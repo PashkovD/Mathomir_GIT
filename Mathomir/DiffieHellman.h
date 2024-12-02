@@ -29,7 +29,6 @@
 //                        Thanks to Ilya O. Levin on help with q-rng
 
 
-
 #define MAX_RANDOM_INTEGER 2147483648 //Should make these numbers massive to be more secure
 #define MAX_PRIME_NUMBER   2147483648 //Bigger the number the slower the algorithm
 
@@ -44,18 +43,17 @@
 class CDiffieHellman
 {
 public:
-	CDiffieHellman(void);
-	~CDiffieHellman(void);
-	void DerivePublicKey(char *password, __int64 *N, __int64 *X);
-	void CreateDecryptionKey(__int64 Y, __int64 N,__int64 *Key);
-	void CreateEncryptionKey(__int64 N, __int64 X,__int64 *Key, __int64 *Y);
+    CDiffieHellman(void);
+    ~CDiffieHellman(void);
+    void DerivePublicKey(char* password, __int64* N, __int64* X);
+    void CreateDecryptionKey(__int64 Y, __int64 N, __int64* Key);
+    void CreateEncryptionKey(__int64 N, __int64 X, __int64* Key, __int64* Y);
 
 private:
-	__int64 XpowYmodN(__int64 x, __int64 y, __int64 N);
-	unsigned __int64 GenerateRandomNumber( void );
-	unsigned __int64 GeneratePrime();
-	bool MillerRabin (__int64 n);
-	__int64 a;
-
+    __int64 XpowYmodN(__int64 x, __int64 y, __int64 N);
+    unsigned __int64 GenerateRandomNumber(void);
+    unsigned __int64 GeneratePrime();
+    bool MillerRabin(__int64 n);
+    __int64 a;
 };
 #endif

@@ -19,13 +19,13 @@
 class CMathomirApp : public CWinApp
 {
 public:
-	CMathomirApp();
+    CMathomirApp();
 
 public:
-	virtual BOOL InitInstance();
+    virtual BOOL InitInstance();
 
-	afx_msg void OnAppAbout();
-	DECLARE_MESSAGE_MAP()
+    afx_msg void OnAppAbout();
+    DECLARE_MESSAGE_MAP()
 };
 
 //the TEACHER_VERSION switch enables certain options like digital exam
@@ -37,36 +37,36 @@ extern HANDLE ProcessHeap;
 //The main document strcture (the main document is stored as an array of these structures)
 typedef struct THE_DOCUMENT
 {
-	CObject *Object;
-	int absolute_X;
-	int absolute_Y;
-	int Checksum;  //calculated for Undo operation
-	short Length;
-	short Above;
-	short Below;
-	char MovingDotState;
-	char Type; //1-expression, 2-drawing
+    CObject* Object;
+    int absolute_X;
+    int absolute_Y;
+    int Checksum; //calculated for Undo operation
+    short Length;
+    short Above;
+    short Below;
+    char MovingDotState;
+    char Type; //1-expression, 2-drawing
 } tDocumentStruct;
-
 
 
 // *************************************
 // initializes Undo memory
 #define NUM_UNDO_LEVELS 5
+
 typedef struct UNDO1
 {
-	void *data;
-	int NumElements;
-	char text[32];
+    void* data;
+    int NumElements;
+    char text[32];
 } tUndoStruct;
 
 typedef struct UNDO2
 {
-	CObject *pObject;
-	CObject *pOriginal;
-	short Type;
-	int UsedInLevel;  //bitmask that tells us this object is used at what undo level
-	int Checksum;
+    CObject* pObject;
+    CObject* pOriginal;
+    short Type;
+    int UsedInLevel; //bitmask that tells us this object is used at what undo level
+    int Checksum;
 } tUndoObjectStruct;
 
 extern tUndoStruct UndoStruct[];
@@ -74,13 +74,12 @@ extern int UndoNumLevels;
 // ***********************************
 
 
-
 #define NUM_COLORS 4
 extern const unsigned int ColorTable[];
 
 extern int NumDocumentElements;
 extern int NumDocumentElementsReserved;
-extern tDocumentStruct *TheDocument;
+extern tDocumentStruct* TheDocument;
 extern int ViewX;
 extern int ViewY;
 extern int ViewMaxX;
@@ -127,8 +126,8 @@ extern int UseCommaAsDecimal;
 extern int UseWideCursor;
 extern int UseCTRLForZoom;
 extern int SnapToGuidlines;
-extern char *LanguageStrings;
-extern unsigned short *LanguagePointers;
+extern char* LanguageStrings;
+extern unsigned short* LanguagePointers;
 extern int ViewOnlyMode;
 extern int UseSpecialCapsLock;
 extern int UseToolbar;
@@ -156,38 +155,40 @@ extern char NoImageAutogeneration;
 #ifdef TEACHER_VERSION
 typedef struct PUBLIC_KEY
 {
-	__int64 N;
-	__int64 X;
+    __int64 N;
+    __int64 X;
 } tPublicKey;
-extern tPublicKey *PublicKey;
+
+extern tPublicKey* PublicKey;
 extern unsigned char TheTimeLimit;
 extern unsigned char TheMathFlags;
 extern DWORD TheExamStartTime;
 extern unsigned char DisableEditing;
 extern unsigned char WarningDisplayed;
-#endif 
+#endif
 
 typedef struct PASSWORD_DLG_STRUCT
 {
-	char is_exam;
-	char password[24];
-	int time_limit;
-	char disable_symbolic_math;
-	char disable_math;
-	char canceled;
+    char is_exam;
+    char password[24];
+    int time_limit;
+    char disable_symbolic_math;
+    char disable_math;
+    char canceled;
 } tPasswordDlgStruct;
-extern tPasswordDlgStruct *PasswordDlgStruct;
+
+extern tPasswordDlgStruct* PasswordDlgStruct;
 extern char TheFileType;
 
 
 HFONT GetFontFromPool(char Face, char Italic, char Bold, unsigned short Size);
 HFONT GetFontFromPool(char combination, unsigned short Size);
 void ClearFontPool();
-HPEN GetPenFromPool(short width, char IsBlue,int color=0);
-int PaintCheckedSign(CDC * DC, short x, short y, short size, char IsChecked);
-void DisplayShortText(std::string text, int x, int y, int LanguageID, int flags=0);
+HPEN GetPenFromPool(short width, char IsBlue, int color = 0);
+int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked);
+void DisplayShortText(std::string text, int x, int y, int LanguageID, int flags = 0);
 int AddDocumentObject(int type, int X, int Y);
-int CopyTranslatedString(char *dest, const char* defstr, int id, int destlen);
+int CopyTranslatedString(char* dest, const char* defstr, int id, int destlen);
 std::string GetTranslatedString(const std::string& eng_defstr, int id);
 void FatalErrorHandling();
 

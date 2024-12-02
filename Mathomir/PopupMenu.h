@@ -20,8 +20,8 @@ public:
 	int m_NumOptions;
 	int m_SizeX;
 	int m_SizeY;
-	int m_SelectedOption,m_prevSelectedOption,m_SelectedSuboption,m_prevSelectedSuboption;
-	CWnd *m_Owner;
+	int m_SelectedOption,m_prevSelectedOption, m_SelectedSuboption, m_prevSelectedSuboption;
+	CWnd* m_Owner;
 	int m_OwnerType;
 	int m_UserParam;
 	tElementStruct *m_theSelectedElement;
