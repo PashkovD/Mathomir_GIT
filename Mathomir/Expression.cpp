@@ -16978,7 +16978,7 @@ int CExpression::GenerateASCIINumber(double number_dbl,long long number_int, cha
 			while (1)
 			{
 				rr=number_dbl*pow(10.0,-exxp);
-				if (abs(rr)>=1.0) break; 
+				if (fabs(rr)>=1.0) break; 
 				exxp--;
 				if (exxp<-100) 	{rr=0.0;exxp=0;break;}
 			}
@@ -16988,7 +16988,7 @@ int CExpression::GenerateASCIINumber(double number_dbl,long long number_int, cha
 			while (1)
 			{
 				rr=number_dbl/pow(10.0,exxp);
-				if (abs(rr)<10.0) break;
+				if (fabs(rr)<10.0) break;
 				exxp++;
 				if (exxp>100) {rr=(number_dbl<0)?-1.0:1.0;exxp=100;break;}
 			}
