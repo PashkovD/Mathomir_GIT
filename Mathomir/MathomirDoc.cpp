@@ -99,9 +99,8 @@ BOOL CMathomirDoc::SaveModified()
 	if (!IsModified()) return 1;
 	if (NumDocumentElements==0) return 1;
 
-	char str[120];
-	CopyTranslatedString(str,"Save changes?",5020,119);
-	int ret=AfxMessageBox(str,MB_YESNOCANCEL | MB_ICONQUESTION,NULL);
+	const std::string str = GetTranslatedString("Save changes?",5020);
+	int ret=AfxMessageBox(str.data(),MB_YESNOCANCEL | MB_ICONQUESTION,NULL);
 	if (ret==IDCANCEL) return 0; //should not be clossed
 	if (ret==IDYES) OnFileSave(); //save the document
 	return 1;
@@ -129,13 +128,9 @@ void CMathomirDoc::OnFileOpen()
 	DetermineTillensData(0x7FFFFFFF); //to prevend crash when a document is double-clicked to load
 	char str[120];
 	if (!SaveModified()) return;
-	int i=0;
-	char filter[120];
-	CopyTranslatedString(str,"MOM files",5010,40);
-	strcpy(filter,str);strcat(filter,"|*.mom|");
-	CopyTranslatedString(str,"All files",5011,40);
-	strcat(filter,str);strcat(filter,"|*.*||\0");
-	CFileDialog fd(TRUE,"mom",NULL,OFN_HIDEREADONLY,filter,theApp.m_pMainWnd,0);
+	std::string filter = GetTranslatedString("MOM files", 5010)+"|*.mom|"
+	+GetTranslatedString("All files",5011)+"|*.*||\0";
+	CFileDialog fd(TRUE,"mom",NULL,OFN_HIDEREADONLY,filter.data(),theApp.m_pMainWnd,0);
 	if (fd.DoModal()==IDOK)
 	{
 		OpenMOMFile(fd.m_pOFN->lpstrFile);
@@ -169,33 +164,30 @@ void CMathomirDoc::OnFileNew()
 #pragma optimize("s",on)
 void CMathomirDoc::OnFileSaveAs()
 {
-	char str[41];
-	char filter[200];
-	int i=0;
+	std::string filter;
 #ifdef TEACHER_VERSION
 	if (TheFileType=='r')
 	{
-		CopyTranslatedString(str,"MOM exam result file",5005,40);
-		strcpy(filter,str);strcat(filter,"|*.mom|All files|*.*||\0");
+		filter = GetTranslatedString("MOM exam result file",5005) + "|*.mom|All files|*.*||";
 	}
 	else
 	{
-		CopyTranslatedString(str,"MOM file (1.x)",5000,40);strcpy(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"MOM file (2.x)",5001,40);strcat(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"MOM encrypted file",5002,40);strcat(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"MOM exam file",5003,40);strcat(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"MOM view-only file",5004,40);strcat(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"All files",5011,40);strcat(filter,str);strcat(filter,"|*.*||\0");
+		filter = GetTranslatedString("MOM file (1.x)",5000)+"|*.mom|"
+		+GetTranslatedString("MOM file (2.x)",5001)+"|*.mom|"
+		+GetTranslatedString("MOM encrypted file",5002)+"|*.mom|"
+		+GetTranslatedString("MOM exam file",5003)+"|*.mom|"
+		+GetTranslatedString("MOM view-only file",5004)+"|*.mom|"
+		+GetTranslatedString("All files",5011)+"|*.*||\0";
 	}
 #else
-		CopyTranslatedString(str,"MOM file",5000,40);strcpy(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"MOM compressed file",5001,40);strcat(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"MOM encrypted file",5002,40);strcat(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"MOM exam file",5003,40);strcat(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"MOM view-only file",5004,40);strcat(filter,str);strcat(filter,"|*.mom|");
-		CopyTranslatedString(str,"All files",5011,40);strcat(filter,str);strcat(filter,"|*.*||\0");
+		filter = GetTranslatedString("MOM file",5000)+"|*.mom|"
+		+GetTranslatedString("MOM compressed file",5001) +"|*.mom|"
+		+GetTranslatedString("MOM encrypted file",5002)+"|*.mom|"
+		+GetTranslatedString("MOM exam file",5003)+"|*.mom|"
+		+GetTranslatedString("MOM view-only file",5004)+"|*.mom|"
+		+GetTranslatedString("All files",5011)+"|*.*||\0";
 #endif
-	CFileDialog fd(FALSE,"mom",GetTitle(),0,filter,theApp.m_pMainWnd,0);
+	CFileDialog fd(FALSE,"mom",GetTitle(),0,filter.data(),theApp.m_pMainWnd,0);
 	if (TheFileType=='2') fd.m_pOFN->nFilterIndex=2;
 	else if (TheFileType=='s') fd.m_pOFN->nFilterIndex=3;
 	else if (TheFileType=='e') fd.m_pOFN->nFilterIndex=4;
@@ -255,12 +247,11 @@ int CMathomirDoc::OpenMOMFile(char * filename)
 		fil=fopen(filename,"r+b");
 		if (fil==NULL) 
 		{
-			char str[280];
-			CopyTranslatedString(str,"Cannot open file!",5030,79);
-			strcat(str,"\r\n(");
-			strcat(str,filename);
-			strcat(str,")");
-			AfxMessageBox(str,MB_OK|MB_ICONWARNING,NULL);
+			const std::string str= GetTranslatedString("Cannot open file!",5030)
+			+ "\r\n("
+			+ filename
+			+ ")";
+			AfxMessageBox(str.data(),MB_OK|MB_ICONWARNING,NULL);
 			return 0;
 		}
 		fseek(fil,0,SEEK_END);
@@ -750,9 +741,7 @@ int CMathomirDoc::SaveMOMFile(char * filename,char filetype)
 		}
 		else
 		{
-			char str[80];
-			CopyTranslatedString(str,"Cannot create file!",5031,79);
-			AfxMessageBox(str,MB_OK|MB_ICONWARNING,NULL);
+			AfxMessageBox(GetTranslatedString("Cannot create file!", 5031).data(),MB_OK | MB_ICONWARNING,NULL);
 		}
 	}
 	else

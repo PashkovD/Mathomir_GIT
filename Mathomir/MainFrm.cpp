@@ -29,6 +29,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "drawing.h"
 #include "MathomirDoc.h"
 #include "MathomirView.h"
+#include <string>
 
 extern CMathomirView *pMainView;
 extern CExpression *ClipboardExpression;
@@ -1854,13 +1855,12 @@ HFONT StaticMessageWindowFont;
 extern int PresentationModeActiveTimer;
 
 #pragma optimize("s",on)
-void DisplayShortText(char* text, int x, int y,int langID,int flags)
+void DisplayShortText(std::string text, int x, int y, int langID, int flags)
 {
 	//displays a message in child Edit box (CEdit) shown somewhere over main view
 	//(note that CMathomirView uses OnCtlColor to define text/background colors)
 
-	char buff[128];
-	if (CopyTranslatedString(buff,text,langID,127))
+	std::string buff = GetTranslatedString(text, langID);
 
 	if (flags!=1) PresentationModeActiveTimer=0;
 	if (!StaticMessageWindow) 
@@ -1929,9 +1929,9 @@ void DisplayShortText(char* text, int x, int y,int langID,int flags)
 	//determine text size
 	CDC *DC=theApp.m_pMainWnd->GetDC();
 	DC->SelectObject(StaticMessageWindowFont);
-	CSize g=DC->GetTextExtent(buff,(int)strlen(buff));
+	CSize g=DC->GetTextExtent(buff.data());
 	theApp.m_pMainWnd->ReleaseDC(DC);
-	StaticMessageWindow->SetWindowText(buff); 
+	StaticMessageWindow->SetWindowText(buff.data()); 
 
 	int ysize=g.cy;
 	RECT r;
@@ -1961,7 +1961,7 @@ void DisplayShortText(char* text, int x, int y,int langID,int flags)
 	StaticMessageWindow->SetWindowPos(NULL,x,y,g.cx+fsize/2,ysize,SWP_NOZORDER);
 	StaticMessageWindow->ShowWindow(SW_SHOW);
 	StaticMessageWindow->UpdateWindow();
-	StaticMessageWindowCntr=2+(int)strlen(buff)/15;
+	StaticMessageWindowCntr=2+(int)buff.size()/15;
 	if (flags==4) StaticMessageWindowCntr+=5;
 }
 #pragma optimize("",on)
@@ -1991,6 +1991,23 @@ int CopyTranslatedString(char *dest, const char* eng_defstr, int id, int destlen
 		strcpy(dest,defstr);
 	}
 	return 1;
+}
+
+std::string GetTranslatedString(const std::string& eng_defstr, int id)
+{
+	std::string defstr = eng_defstr;
+	if ((LanguageStrings) && (id < 36000))
+	{
+		//language database exists - check for the translation
+		if (id < 0) id = 1000 - id;
+		unsigned short pntr = LanguagePointers[id];
+		if (pntr != 0xFFFF)
+		{
+			defstr = LanguageStrings + pntr;
+		}
+	}
+
+	return defstr;
 }
 
 #pragma optimize("s",on)

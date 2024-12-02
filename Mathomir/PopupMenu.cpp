@@ -2170,9 +2170,7 @@ search_second_pass:
 					if ((i>=NumDocumentElements) || (i<0)) 
 					{
 						if ((nFlags==0x1234) && (search_first_pass)) {search_first_pass=0;SearchStartPosition=-1;goto search_second_pass;}
-						char str[80];
-						CopyTranslatedString(str,"Nothing found",5040,79);
-						MessageBox(str);
+						MessageBox(GetTranslatedString("Nothing found",5040).data());
 					}
 					else
 						SearchStartPosition=i;

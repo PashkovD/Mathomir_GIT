@@ -2355,11 +2355,8 @@ void CToolbox::PaintTextcontrolbox(CDC * dc)
 			pdc.SetTextColor(RGB(0,192,0));
 			pdc.TextOut(5,-zz,"T",1);
 			pdc.SelectObject(GetFontFromPool(4,0,1,ToolboxSize/5+((ToolboxSize<60)?1:0)));
-			char bff[16];
-			CopyTranslatedString(bff,"Text",6052,15);
-			pdc.TextOut(ToolboxSize/2-ToolboxSize/10,ToolboxSize/8-4-zz,bff);
-			CopyTranslatedString(bff,"mode",6053,15);
-			pdc.TextOut(ToolboxSize/2-ToolboxSize/10,ToolboxSize/4-3-zz,bff);
+			pdc.TextOut(ToolboxSize/2-ToolboxSize/10,ToolboxSize/8-4-zz,GetTranslatedString("Text",6052).data());
+			pdc.TextOut(ToolboxSize/2-ToolboxSize/10,ToolboxSize/4-3-zz,GetTranslatedString("mode",6053).data());
 		}
 		else
 		{
@@ -3195,13 +3192,15 @@ void CToolbox::ToolbarShowHelp()
 
 	if ((ToolboxSize<80) || (strcmp(ToolbarIcons[icon].name,ToolbarIcons[icon].long_name)))
 	{
-		char buff[128];
-		CopyTranslatedString(buff,ToolbarIcons[icon].long_name,ToolbarIcons[icon].lang_code,127);
-		for (int i=0;i<(int)strlen(buff);i++)
+		std::string buff = GetTranslatedString(ToolbarIcons[icon].long_name, ToolbarIcons[icon].lang_code);
+		for (unsigned int i=0;i<buff.length();i++)
 		{
-			if ((buff[i]<=13) && (buff[i]>0)) {buff[i]=0;break;} //remove special cahracters
+			if ((buff[i]<=13) && (buff[i]>0))
+			{
+				buff[i]=0;break;
+			} //remove special cahracters
 		}
-		DisplayShortText(buff,ToolbarItemPos+ToolbarConfig[ToolbarSelectedItem].pixel_len/2-2,min(25,max(1,p.y+18)),65535,4);
+		DisplayShortText(buff,ToolbarItemPos+ToolbarConfig[ToolbarSelectedItem].pixel_len/2-2, min(25, max(1,p.y+18)),65535,4);
 	}
 }
 
@@ -6131,9 +6130,7 @@ int CToolbox::InsertIntoToolbox(void)
 		
 		if (ok)
 		{
-			char bff[128];
-			CopyTranslatedString(bff,"Insert into toolbox?",5080,127);
-			if (AfxMessageBox(bff,MB_YESNO)!=IDYES) ok=0;
+			if (AfxMessageBox(GetTranslatedString("Insert into toolbox?", 5080).data(),MB_YESNO) != IDYES) ok = 0;
 		}
 		if (ok)
 		{

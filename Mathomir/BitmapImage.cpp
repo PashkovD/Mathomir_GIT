@@ -121,23 +121,19 @@ int CBitmapImage::Paint(CDC * DC, short zoom, short X, short Y,int absX,int absY
 		DC->SetBkColor(RGB(240,240,240));
 		DC->SetBkMode(TRANSPARENT);
 		DC->SelectObject(GetFontFromPool(4,0,0,13));
-		char str1[30];
-		char str2[30];
-		char str3[30];
-		char str4[30];
-		CopyTranslatedString(str1,"Update", 5072,29);
-		CopyTranslatedString(str2,"Edit",5070,29);
-		CopyTranslatedString(str3,"Load",5071,29);
-		CopyTranslatedString(str4,"Cancel",0,29);
+		std::string str1 = GetTranslatedString("Update", 5072);
+		std::string str2 = GetTranslatedString("Edit", 5070);
+		std::string str3 = GetTranslatedString("Load", 5071);
+		std::string str4 = GetTranslatedString("Cancel", 0);
 
 		int sel=SelectedItem;
 		DC->FillSolidRect(X,Y,45,26,RGB(240,240,240));
 		DC->SetTextColor((sel==1)?BLUE_COLOR:0);
-		DC->TextOut(X,Y,(editing)?str1:str2);
-		if (sel==1) DC->TextOut(X+1,Y,(editing)?str1:str2);
+		DC->TextOut(X,Y,(editing?str1:str2).data());
+		if (sel==1) DC->TextOut(X+1,Y,(editing?str1:str2).data());
 		DC->SetTextColor((sel==2)?BLUE_COLOR:0);
-		DC->TextOut(X,Y+12,(editing)?str4:str3);
-		if (sel==2) DC->TextOut(X+1,Y+12,(editing)?str4:str3);
+		DC->TextOut(X,Y+12,(editing?str4:str3).data());
+		if (sel==2) DC->TextOut(X+1,Y+12,(editing?str4:str3).data());
 		BITMAPINFOHEADER *bhead=(BITMAPINFOHEADER*)Image;
 		if (bhead)
 		{

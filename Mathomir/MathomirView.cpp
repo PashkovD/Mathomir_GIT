@@ -6695,10 +6695,8 @@ void CMathomirView::OnTimer(UINT nIDEvent)
 				if (now>tmp) DisableEditing=1;
 			if ((DisableEditing) && (xx!=DisableEditing))
 			{
-					char bff[128];
-					CopyTranslatedString(bff,"Time elapsed!\r\n\r\nSave your work.",5050,127);
-					//sprintf(bff,"Time elapsed!\r\n\r\nSave your work.");
-					AfxMessageBox(bff,MB_OK | MB_ICONINFORMATION);
+				AfxMessageBox(GetTranslatedString("Time elapsed!\r\n\r\nSave your work.", 5050).data(),
+				              MB_OK | MB_ICONINFORMATION);
 			}
 		}
 		if (TheTimeLimit>=5)
