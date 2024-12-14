@@ -101,7 +101,7 @@ BOOL CMathomirDoc::SaveModified()
     if (NumDocumentElements == 0) return 1;
 
     const std::string str = GetTranslatedString("Save changes?", 5020);
-    int ret = AfxMessageBox(str.data(),MB_YESNOCANCEL | MB_ICONQUESTION,nullptr);
+    int ret = AfxMessageBox(str.data(),MB_YESNOCANCEL | MB_ICONQUESTION,NULL);
     if (ret == IDCANCEL) return 0; //should not be clossed
     if (ret == IDYES) OnFileSave(); //save the document
     return 1;
@@ -202,7 +202,7 @@ void CMathomirDoc::OnFileSaveAs()
         if (fd.m_pOFN->nFilterIndex == 4) type = 'e';
         if (fd.m_pOFN->nFilterIndex == 5) type = 'v';
         if ((fd.m_pOFN->nFilterIndex == 1) && (TheFileType == 'r')) type = 'r';
-        SaveMOMFile((char*)fd.m_pOFN->lpstrFile, type);
+        SaveMOMFile(fd.m_pOFN->lpstrFile, type);
         if (fd.m_pOFN->nFilterIndex != 4)
         {
             SetPathName(fd.m_pOFN->lpstrFile, 1);
@@ -252,7 +252,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                 + "\r\n("
                 + filename
                 + ")";
-            AfxMessageBox(str.data(),MB_OK | MB_ICONWARNING,nullptr);
+            AfxMessageBox(str.data(),MB_OK | MB_ICONWARNING,NULL);
             return 0;
         }
         fseek(fil, 0,SEEK_END);
@@ -638,7 +638,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     //first, calculate briefly the length of the output data
 
     if (save_keyboard_clipboard)
-        len += ((CExpression*)TheKeyboardClipboard)->XML_output(dummy, 1, 1);
+        len += TheKeyboardClipboard->XML_output(dummy, 1, 1);
     else
     {
         tDocumentStruct* ds = TheDocument;
@@ -666,7 +666,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     file_buffer = (char*)malloc(alloc_len);
     if (file_buffer == 0)
     {
-        if (filename) AfxMessageBox("Cannot reserve memory for file saving!",MB_OK | MB_ICONWARNING,nullptr);
+        if (filename) AfxMessageBox("Cannot reserve memory for file saving!",MB_OK | MB_ICONWARNING,NULL);
         return 0;
     }
     file_pointer = file_buffer;
@@ -688,7 +688,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         len += tmp;
 
         tmp = 0;
-        tmp = ((CExpression*)TheKeyboardClipboard)->XML_output(file_pointer, 1, 0);
+        tmp = TheKeyboardClipboard->XML_output(file_pointer, 1, 0);
         len += tmp;
         file_pointer += tmp;
 
@@ -832,7 +832,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         }
         else
         {
-            AfxMessageBox(GetTranslatedString("Cannot create file!", 5031).data(),MB_OK | MB_ICONWARNING,nullptr);
+            AfxMessageBox(GetTranslatedString("Cannot create file!", 5031).data(),MB_OK | MB_ICONWARNING,NULL);
         }
     }
     else
@@ -1044,7 +1044,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
         int passlen = (int)strlen(passw);
 
         //add some random numbers
-        unsigned int random_numbers = (unsigned int)((unsigned int)((GetTickCount()) % 64) + passlen);
+        unsigned int random_numbers = (unsigned int)(GetTickCount() % 64) + passlen;
         char* buf2;
         buf2 = (char*)malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64);
         buf = (char*)malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64);

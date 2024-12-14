@@ -702,7 +702,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                 int sx = TheClientRect.right * 100 / ViewZoom;
                 int sy = TheClientRect.bottom * 100 / ViewZoom;
                 int step = (ViewZoom < 50) ? 2 * GRID : GRID;
-                short* yarray = (short*)new short[sy / step * 2 + 8];
+                short* yarray = new short[sy / step * 2 + 8];
                 int ylen = 0;
                 for (int jj = (ViewY / GRID) * GRID - ViewY; jj < sy; jj += step)
                 {
@@ -2096,7 +2096,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     e->m_Alignment = 1;
                     for (int i = 0; i < ClipboardExpression->m_NumElements; i++)
                     {
-                        tElementStruct* ts = (tElementStruct*)ClipboardExpression->m_pElementList + i;
+                        tElementStruct* ts = ClipboardExpression->m_pElementList + i;
                         e->InsertElement(ts, e->m_NumElements);
                     }
                     delete ClipboardExpression;
@@ -3151,7 +3151,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 try
                 {
                     CExpression* parent = (CExpression*)SelectedTab->m_pPaternalExpression;
-                    while (parent->m_pPaternalExpression) parent = (CExpression*)parent->m_pPaternalExpression;
+                    while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
                     if ((SelectedTabObjectIndex < 0) || (SelectedTabObjectIndex >= NumDocumentElements) || (TheDocument[
                         SelectedTabObjectIndex].Object != (CObject*)parent))
                     {
@@ -3542,8 +3542,8 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
 
                 int cx = (SelectionRectOrig.right + SelectionRectOrig.left) / 2;
                 int cy = (SelectionRectOrig.top + SelectionRectOrig.bottom) / 2;
-                double arc1 = atan2((double)(cy - MovingStartY), (double)(cx - MovingStartX));
-                double arc2 = atan2((double)(cy - AbsoluteY), (double)(cx - AbsoluteX));
+                double arc1 = atan2(cy - MovingStartY, cx - MovingStartX);
+                double arc2 = atan2(cy - AbsoluteY, cx - AbsoluteX);
 
                 RepaintTheView();
 
@@ -3789,8 +3789,8 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                             {
                                 int mds = max(MovingDotSize, MovingDotSize*(ViewZoom+420)/512);
                                 int border = 100 + ViewZoom;
-                                int PreciseAbsX = (int)ViewX * ViewZoom + point.x * 100L;
-                                int PreciseAbsY = (int)ViewY * ViewZoom + point.y * 100L;
+                                int PreciseAbsX = ViewX * ViewZoom + point.x * 100L;
+                                int PreciseAbsY = ViewY * ViewZoom + point.y * 100L;
                                 int FontSz = 0;
                                 if ((ds->Type == 1) && (ds->Object)) FontSz = ((CExpression*)ds->Object)->
                                     GetActualFontSize(ViewZoom) * 100;
@@ -5687,12 +5687,12 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 if (((nFlags & 0x100) == 0) && (nChar == VK_F8) && (!CTRLstate))
                 {
                     save_equation_image_to_file = 1;
-                    MakeImageOfExpression((CObject*)KeyboardEntryBaseObject->Object);
+                    MakeImageOfExpression(KeyboardEntryBaseObject->Object);
                     save_equation_image_to_file = 0;
                 }
                 if (((nFlags & 0x100) == 0) && (nChar == VK_F9) && (!CTRLstate))
                 {
-                    MakeImageOfExpression((CObject*)KeyboardEntryBaseObject->Object);
+                    MakeImageOfExpression(KeyboardEntryBaseObject->Object);
                 }
             }
 
@@ -6470,7 +6470,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                     PaintDrawingHotspot();
                                     if (Toolbox)
                                     {
-                                        Toolbox->InvalidateRect(0,nullptr);
+                                        Toolbox->InvalidateRect(nullptr,false);
                                         Toolbox->UpdateWindow();
                                     }
                                     return;
@@ -7857,7 +7857,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                 //clicked at something, now examine this
                                 if (ds->MovingDotState == 3) //right click at selection
                                 {
-                                    Popup->ShowPopupMenu(nullptr, (CWnd*)this, 2, 0);
+                                    Popup->ShowPopupMenu(nullptr, this, 2, 0);
                                     break;
                                 }
                                 else if (ds->Object)
@@ -7887,7 +7887,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                             if ((obj) && ((obj->m_IsColumnInsertion) || (obj->m_IsRowInsertion)))
                                             {
                                                 //right-click at column/row insertion point
-                                                Popup->ShowPopupMenu(obj, (CWnd*)this, 6, 0);
+                                                Popup->ShowPopupMenu(obj, this, 6, 0);
                                                 break;
                                             }
 
@@ -8002,14 +8002,14 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                             if (selection)
                                             {
                                                 m_PopupMenuObject = ds;
-                                                Popup->ShowPopupMenu(selection, (CWnd*)this, 1, 0);
+                                                Popup->ShowPopupMenu(selection, this, 1, 0);
                                                 QuickSelectActive = 0;
                                                 break;
                                             }
                                         }
                                         else
                                         {
-                                            Popup->ShowPopupMenu(nullptr, (CWnd*)this, 2, 0);
+                                            Popup->ShowPopupMenu(nullptr, this, 2, 0);
                                             QuickSelectActive = 0;
                                             break;
                                         }
@@ -8027,7 +8027,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
 
                                         if (obj)
                                         {
-                                            Popup->ShowPopupMenu(nullptr, (CWnd*)this, 2, 0);
+                                            Popup->ShowPopupMenu(nullptr, this, 2, 0);
                                             break;
                                         }
                                     }
@@ -9339,7 +9339,7 @@ void CMathomirView::OnSaveoptionsSaveasdefault()
     Toolbox->SaveSettings(nullptr);
     char str[120];
     CopyTranslatedString(str, "Settings saved to defaults.", 5060, 119);
-    AfxMessageBox(str,MB_OK | MB_ICONINFORMATION,nullptr);
+    AfxMessageBox(str,MB_OK | MB_ICONINFORMATION, NULL);
 }
 
 void CMathomirView::OnSaveoptionsSaveas()
@@ -9566,7 +9566,7 @@ void CMathomirView::OnEditPaste()
                     elem->UpdateCreatingItem(bhdr->biWidth * 10 + lw / 50, bhdr->biHeight * 10 + lw / 50,
                                              bhdr->biWidth + lw / 500, bhdr->biHeight + lw / 500);
                     elem->EndCreatingItem(&xx, &yy);
-                    ((CBitmapImage*)(elem->SpecialData))->Image = (char*)x;
+                    ((CBitmapImage*)(elem->SpecialData))->Image = x;
                     ((CBitmapImage*)(elem->SpecialData))->imgsize = len;
                     ((CBitmapImage*)(elem->SpecialData))->editing = 0;
                     ((CBitmapImage*)(elem->SpecialData))->ShowMenu = 0;
@@ -10287,8 +10287,8 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
     CDrawing* mydrw = (CDrawing*)drawing;
     if (mydrw == nullptr) mydrw = ClipboardDrawing;
     if (mydrw == nullptr) return 0;
-    int AbsoluteX = ViewX + (int)cursorX * 100 / (int)ViewZoom;
-    int AbsoluteY = ViewY + (int)cursorY * 100 / (int)ViewZoom;
+    int AbsoluteX = ViewX + cursorX * 100 / (int)ViewZoom;
+    int AbsoluteY = ViewY + cursorY * 100 / (int)ViewZoom;
     AbsoluteX -= MovingStartX;
     AbsoluteY -= MovingStartY;
 
@@ -11144,9 +11144,9 @@ void CMathomirView::KeyboardSelectionPaste()
                         {
                             if ((i > 0) && (i < len - 2))
                             {
-                                UINT ch1 = (UINT)*((unsigned char*)pntr + i + 1);
-                                UINT ch2 = (UINT)*((unsigned char*)pntr + i - 1);
-                                UINT ch3 = (UINT)*((unsigned char*)pntr + i + 2);
+                                UINT ch1 = *((unsigned char*)pntr + i + 1);
+                                UINT ch2 = *((unsigned char*)pntr + i - 1);
+                                UINT ch3 = *((unsigned char*)pntr + i + 2);
                                 if (((ch == 'e') || (ch == 'E')) &&
                                     ((ch1 == '+') || (ch1 == '-')) &&
                                     (ch2 >= '0') && (ch2 <= '9') && (ch3 >= '0') && (ch3 <= '9'))
@@ -11169,7 +11169,7 @@ void CMathomirView::KeyboardSelectionPaste()
                                     int k = i + 6;
                                     while ((i < k) && (i < len))
                                     {
-                                        UINT ch = (UINT)*((unsigned char*)pntr + i);
+                                        UINT ch = *((unsigned char*)pntr + i);
                                         if (((ch < '0') || (ch > '9')) && (ch != '.') && ((ch != ',') || (!
                                             UseCommaAsDecimal)))
                                         {

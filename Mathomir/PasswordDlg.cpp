@@ -66,7 +66,7 @@ BOOL CPasswordDlg::OnInitDialog()
     if (PasswordDlgStruct)
     {
         PasswordDlgStruct->canceled = 1;
-        PasswordBox.SendMessage(EM_SETPASSWORDCHAR, (WPARAM)'*', 0);
+        PasswordBox.SendMessage(EM_SETPASSWORDCHAR, '*', 0);
 
         char str[192];
         CopyTranslatedString(str, "Password entry", 5500, 80);

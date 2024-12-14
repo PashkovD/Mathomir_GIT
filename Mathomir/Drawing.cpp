@@ -454,7 +454,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         int ffactor = 1;
         if ((SpecialDrawingHover) && (!Drawing_inside_create))
             ffactor = 2;
-        if (sqrt((double)(((double)x2 - x1) * ((double)x2 - x1) + ((double)y2 - y1) * ((double)y2 - y1))) > minlen /
+        if (sqrt(((double)x2 - x1) * ((double)x2 - x1) + ((double)y2 - y1) * ((double)y2 - y1)) > minlen /
             ViewZoom / ffactor)
         {
             int hor_vert_line = 0;
@@ -497,13 +497,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                     double Y = (Items + NumItems - 2)->Y1;
                     double x2 = (Items + NumItems - 1)->X1;
                     double y2 = (Items + NumItems - 1)->Y1;
-                    double l1 = sqrt((double)((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))) * 1000 / DRWZOOM;
-                    double l2 = sqrt((double)((x2 - X) * (x2 - X) + (y2 - Y) * (y2 - Y))) * 1000 / DRWZOOM;
-                    double l3 = sqrt((double)((X - x1) * (X - x1) + (Y - y1) * (Y - y1))) * 1000 / DRWZOOM;
+                    double l1 = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) * 1000 / DRWZOOM;
+                    double l2 = sqrt((x2 - X) * (x2 - X) + (y2 - Y) * (y2 - Y)) * 1000 / DRWZOOM;
+                    double l3 = sqrt((X - x1) * (X - x1) + (Y - y1) * (Y - y1)) * 1000 / DRWZOOM;
                     double factorf = (l2 * l3) / (l2 + l3) / l1 * 3.0;
                     if (factorf == 0) factorf = 0.001;
-                    double a1 = atan2((double)Y - y1, (double)X - x1);
-                    double a2 = atan2((double)y2 - Y, (double)x2 - X);
+                    double a1 = atan2(Y - y1, X - x1);
+                    double a2 = atan2(y2 - Y, x2 - X);
                     if (fabs(a1 - a2) > fabs(a1 + 6.28318 - a2)) a1 += 6.28318;
                     if (fabs(a2 - a1) > fabs(a2 + 6.28318 - a1)) a2 += 6.28318;
 
@@ -511,7 +511,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                         ((fabs(fabs(a1 - a2) - 3.14159) < 0.5 / ffactor) && (hor_vert_line)))
                         //when drawing horizontal/vertical lines we can 'return' (undraw)
                         if (!Drawing_inside_create)
-                            if (((l2 + l3 < l1 + (double)20.0 / factorf / (double)ffactor) && (!hor_vert_line)) || (
+                            if (((l2 + l3 < l1 + 20.0 / factorf / (double)ffactor) && (!hor_vert_line)) || (
                                     hor_vert_line) ||
                                 ((l2 + l3 < l1 * 1.015) && (hor_vert_line)))
                             {
@@ -597,9 +597,9 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         NumItems = Drawing_temp_start + points;
         for (int i = 0; i < points; i++)
         {
-            di->X1 = (int)((x2 - x1) * i / points + x1);
+            di->X1 = (x2 - x1) * i / points + x1;
             di->Y1 = negate * (int)((y2 - y1) * sin(2 * 3.14159 * i / points) / 2) + y1 + (y2 - y1) / 2;
-            di->X2 = (int)((x2 - x1) * (i + 1) / points + x1);
+            di->X2 = (x2 - x1) * (i + 1) / points + x1;
             di->Y2 = negate * (int)((y2 - y1) * sin(2 * 3.14159 * (i + 1) / points) / 2) + y1 + (y2 - y1) / 2;
             di++;
         }
@@ -624,10 +624,10 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         int kk = (points / 2);
         for (int i = 0; i < points; i++)
         {
-            di->X1 = (int)((x2 - x1) * i / points + x1);
-            di->Y1 = ((int)(((i - kk) * (i - kk)) * (y1 - y2) / (kk * kk)) + y2);
-            di->X2 = (int)((x2 - x1) * (i + 1) / points + x1);
-            di->Y2 = ((int)(((i + 1 - kk) * (i + 1 - kk)) * (y1 - y2) / (kk * kk)) + y2);
+            di->X1 = (x2 - x1) * i / points + x1;
+            di->Y1 = ((i - kk) * (i - kk) * (y1 - y2) / (kk * kk) + y2);
+            di->X2 = (x2 - x1) * (i + 1) / points + x1;
+            di->Y2 = ((i + 1 - kk) * (i + 1 - kk) * (y1 - y2) / (kk * kk) + y2);
             di++;
         }
     }
@@ -716,7 +716,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             if (points < 6) points = 6;
         }
 
-        double arc = atan2(-(double)(Y), (double)(X));
+        double arc = atan2(-(double)(Y), X);
         double step = 0;
         if (arc >= 0)
         {
@@ -1022,7 +1022,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                 if (NumItems > NumItemsReserved)
                 {
                     NumItemsReserved = NumItems + 20;
-                    Items = (tDrawingItem*)realloc((void*)Items, NumItemsReserved * sizeof(tDrawingItem));
+                    Items = (tDrawingItem*)realloc(Items, NumItemsReserved * sizeof(tDrawingItem));
                 }
                 int deltaX = absX - oabsX;
                 int deltaY = absY - oabsY;
@@ -1758,8 +1758,8 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
                 int y2 = (Items + NumItems - 1)->Y1;
                 int x3 = (Items + NumItems - 2)->X1;
                 int y3 = (Items + NumItems - 2)->Y1;
-                float a1 = atan2((float)(y1 - y2), (float)(x1 - x2));
-                float a2 = atan2((float)(y1 - y3), (float)(y1 - x3));
+                float a1 = atan2((y1 - y2), (x1 - x2));
+                float a2 = atan2((y1 - y3), (y1 - x3));
                 if (fabs(a1 - a2) < 0.06)
                 {
                     (Items + NumItems - 2)->Y2 = y1;
@@ -2310,7 +2310,7 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
     {
         if (di->Type == 1) //line
         {
-            int width = (int)di->LineWidth;
+            int width = di->LineWidth;
             int use_shadowed_line = 0;
             if (prevwidth != width)
             {
@@ -2343,7 +2343,7 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
             {
                 //painting color-filled shapes
                 char is_closed;
-                IsOpenPath(0, &is_closed, (LPPOINT)&pp[0]);
+                IsOpenPath(0, &is_closed, &pp[0]);
                 if (is_closed)
                 {
                     CBrush brsh(PALE_RGB(PALE_RGB(color)));
@@ -2355,7 +2355,7 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
                         i++;
                         di++;
                     }
-                    DC->Polygon((LPPOINT)pp, is_closed);
+                    DC->Polygon(pp, is_closed);
                     DC->SelectObject(brold);
                     continue;
                 }
@@ -2611,9 +2611,9 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
                     break;
                 }
             }
-            double l1 = sqrt((double)(((double)x2 - x1) * (x2 - x1) + ((double)y2 - y1) * (y2 - y1)));
-            double l2 = sqrt((double)(((double)x2 - X) * (x2 - X) + ((double)y2 - Y) * (y2 - Y)));
-            double l3 = sqrt((double)(((double)X - x1) * (X - x1) + ((double)Y - y1) * (Y - y1)));
+            double l1 = sqrt(((double)x2 - x1) * (x2 - x1) + ((double)y2 - y1) * (y2 - y1));
+            double l2 = sqrt(((double)x2 - X) * (x2 - X) + ((double)y2 - Y) * (y2 - Y));
+            double l3 = sqrt(((double)X - x1) * (X - x1) + ((double)Y - y1) * (Y - y1));
             double factorf = (l2 * l3) / (l2 + l3);
             if (factorf == 0) factorf = 0.001;
             factorf /= ((double)max(di->LineWidth*ViewZoom/100, 34*DRWZOOM/10)) / 2.0 / (double)DRWZOOM;
@@ -3446,8 +3446,8 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                             {
                                 if (x4 == x3)
                                 {
-                                    xx = (int)x3;
-                                    yy = (int)y3 + (int)ya;
+                                    xx = x3;
+                                    yy = y3 + (int)ya;
                                 }
                                 else
                                 {
@@ -3466,7 +3466,7 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                     else if (x4 != x3)
                     {
                         double a = (double)(y4 - y3) / (double)(x4 - x3);
-                        xx = (int)x1;
+                        xx = x1;
                         yy = (int)(y3 + a * (x1 - x3));
                         if ((x1 < max(x3, x4)) && (x1 > min(x3, x4)))
                             if ((yy < max(y1, y2)) && (yy > min(y1, y2)))
@@ -3475,10 +3475,10 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
 
                     if (found)
                     {
-                        di2->X2 = (int)xx;
-                        di2->Y2 = (int)yy;
-                        di3->X2 = (int)xx;
-                        di3->Y2 = (int)yy;
+                        di2->X2 = xx;
+                        di2->Y2 = yy;
+                        di3->X2 = xx;
+                        di3->Y2 = yy;
                         NumItems += 2;
                         if (NumItems > 65000) NumItems = 65000;
                         if (NumItems > NumItemsReserved)
@@ -3488,14 +3488,14 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                         }
                         (Items + NumItems - 2)->LineWidth = (Items + i)->LineWidth;
                         (Items + NumItems - 2)->Type = 1;
-                        (Items + NumItems - 2)->X1 = (int)xx;
-                        (Items + NumItems - 2)->Y1 = (int)yy;
+                        (Items + NumItems - 2)->X1 = xx;
+                        (Items + NumItems - 2)->Y1 = yy;
                         (Items + NumItems - 2)->X2 = x2;
                         (Items + NumItems - 2)->Y2 = y2;
                         (Items + NumItems - 1)->LineWidth = (Items + j)->LineWidth;
                         (Items + NumItems - 1)->Type = 1;
-                        (Items + NumItems - 1)->X1 = (int)xx;
-                        (Items + NumItems - 1)->Y1 = (int)yy;
+                        (Items + NumItems - 1)->X1 = xx;
+                        (Items + NumItems - 1)->Y1 = yy;
                         (Items + NumItems - 1)->X2 = x4;
                         (Items + NumItems - 1)->Y2 = y4;
                     }
@@ -3555,8 +3555,8 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                         num_fnd++;
                         if (j > i)
                         {
-                            double r1 = atan2((double)(y1 - y), (double)(x1 - x));
-                            double r2 = atan2((double)(y2 - y), (double)(x2 - x));
+                            double r1 = atan2(y1 - y, x1 - x);
+                            double r2 = atan2(y2 - y, x2 - x);
                             double r = fabs(r1 - r2);
                             if (r > 3.1415926) r = 2 * 3.1415926 - r;
                             if (r < angle) angle = r;
@@ -3657,8 +3657,8 @@ break_apart_again:
                                     r = -1.0;
                                 else
                                 {
-                                    double r1 = atan2((double)(y1 - y), (double)(x1 - x));
-                                    double r2 = atan2((double)(y2 - y), (double)(x2 - x));
+                                    double r1 = atan2(y1 - y, x1 - x);
+                                    double r2 = atan2(y2 - y, x2 - x);
                                     r = fabs(r1 - r2);
                                     if (r > 3.1415926) r = 2 * 3.1415926 - r;
                                 }
@@ -3971,7 +3971,7 @@ int CDrawing::RotateForAngle(float angle, int centerX, int centerY, int* newX1, 
             double rad = sqrt(
                 (double)(di->X1 - centerX) * (double)(di->X1 - centerX) + (double)(Y - centerY) * (double)(Y -
                     centerY));
-            curangle = atan2((double)(-Y + centerY), (double)(di->X1 - centerX));
+            curangle = atan2(-Y + centerY, di->X1 - centerX);
             curangle += angle;
             di->X1 = (int)(rad * cos(curangle));
             di->Y1 = -(int)(rad * sin(curangle)) - a;
@@ -3987,7 +3987,7 @@ int CDrawing::RotateForAngle(float angle, int centerX, int centerY, int* newX1, 
             double rad = sqrt(
                 (double)(di->X1 - centerX) * (double)(di->X1 - centerX) + (double)(di->Y1 - centerY) * (double)(di->Y1 -
                     centerY));
-            curangle = atan2((double)(-di->Y1 + centerY), (double)(di->X1 - centerX));
+            curangle = atan2(-di->Y1 + centerY, di->X1 - centerX);
             curangle += angle;
             di->X1 = (int)(rad * cos(curangle));
             di->Y1 = -(int)(rad * sin(curangle));
@@ -3995,7 +3995,7 @@ int CDrawing::RotateForAngle(float angle, int centerX, int centerY, int* newX1, 
             rad = sqrt(
                 (double)(di->X2 - centerX) * (double)(di->X2 - centerX) + (double)(di->Y2 - centerY) * (double)(di->Y2 -
                     centerY));
-            curangle = atan2((double)(-di->Y2 + centerY), (double)(di->X2 - centerX));
+            curangle = atan2(-di->Y2 + centerY, di->X2 - centerX);
             curangle += angle;
             di->X2 = (int)(rad * cos(curangle));
             di->Y2 = -(int)(rad * sin(curangle));
@@ -4300,9 +4300,9 @@ int CDrawing::SplitLineAtPos(int X, int Y)
             int y1 = (di->Y1) / DRWZOOM;
             int y2 = (di->Y2) / DRWZOOM;
 
-            double l1 = sqrt((double)(((double)x2 - x1) * (x2 - x1) + ((double)y2 - y1) * (y2 - y1)));
-            double l2 = sqrt((double)(((double)x2 - X) * (x2 - X) + ((double)y2 - Y) * (y2 - Y)));
-            double l3 = sqrt((double)(((double)X - x1) * (X - x1) + ((double)Y - y1) * (Y - y1)));
+            double l1 = sqrt(((double)x2 - x1) * (x2 - x1) + ((double)y2 - y1) * (y2 - y1));
+            double l2 = sqrt(((double)x2 - X) * (x2 - X) + ((double)y2 - Y) * (y2 - Y));
+            double l3 = sqrt(((double)X - x1) * (X - x1) + ((double)Y - y1) * (Y - y1));
             double factorf = (l2 * l3) / (l2 + l3);
             if (factorf == 0) factorf = 0.001;
             if (l2 + l3 < l1 + 1.5 / factorf)
@@ -4953,8 +4953,8 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                         ((di->X2 == di2->X1) && (di->Y2 == di2->Y1)) ||
                         ((di->X2 == di2->X2) && (di->Y2 == di2->Y2)))
                     {
-                        aa1 = atan2((double)(di->X2 - di->X1), (double)(di->Y2 - di->Y1));
-                        aa2 = atan2((double)(di2->X2 - di2->X1), (double)(di2->Y2 - di2->Y1));
+                        aa1 = atan2(di->X2 - di->X1, di->Y2 - di->Y1);
+                        aa2 = atan2(di2->X2 - di2->X1, di2->Y2 - di2->Y1);
                         double aa = fabs(aa1 - aa2);
                         if ((abs(di->X2 - di->X1) > 5 * DRWZOOM) || (abs(di->Y2 - di->Y1) > 5 * DRWZOOM) ||
                             (abs(di2->X2 - di2->X1) > 5 * DRWZOOM) || (abs(di2->Y2 - di2->Y1) > 5 * DRWZOOM))

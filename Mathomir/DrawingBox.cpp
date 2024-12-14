@@ -700,13 +700,13 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
         }
 
         if (abs(unit_size_x) <= 10)
-            sprintf(txt, "x:%5.1f, ", (float)posx);
+            sprintf(txt, "x:%5.1f, ", posx);
         else
-            sprintf(txt, "x:%6.2f, ", (float)posx);
+            sprintf(txt, "x:%6.2f, ", posx);
         if (abs(unit_size_y) <= 10)
-            sprintf(txt2, "y:%5.1f  ", (float)posy);
+            sprintf(txt2, "y:%5.1f  ", posy);
         else
-            sprintf(txt2, "y:%6.2f  ", (float)posy);
+            sprintf(txt2, "y:%6.2f  ", posy);
         strcat(txt, txt2);
         DC->TextOut(mx + 4 * ViewZoom / 100, my + 3 * ViewZoom / 100, txt);
     }
@@ -780,19 +780,19 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
             tDrawingItem* di = Base->Items + 4;
             while (((CExpression*)(di->pSubdrawing))->m_pElementList->Type) ((CExpression*)(di->pSubdrawing))->
                 DeleteElement(0);
-            ((CExpression*)(di->pSubdrawing))->GenerateASCIINumber((double)startx, startx, 1, 0, 0);
+            ((CExpression*)(di->pSubdrawing))->GenerateASCIINumber(startx, startx, 1, 0, 0);
             di++;
             while (((CExpression*)(di->pSubdrawing))->m_pElementList->Type) ((CExpression*)(di->pSubdrawing))->
                 DeleteElement(0);
-            ((CExpression*)(di->pSubdrawing))->GenerateASCIINumber((double)starty, starty, 1, 0, 0);
+            ((CExpression*)(di->pSubdrawing))->GenerateASCIINumber(starty, starty, 1, 0, 0);
             di++;
             while (((CExpression*)(di->pSubdrawing))->m_pElementList->Type) ((CExpression*)(di->pSubdrawing))->
                 DeleteElement(0);
-            ((CExpression*)(di->pSubdrawing))->GenerateASCIINumber((double)unit_size_x, unit_size_x, 1, 0, 0);
+            ((CExpression*)(di->pSubdrawing))->GenerateASCIINumber(unit_size_x, unit_size_x, 1, 0, 0);
             di++;
             while (((CExpression*)(di->pSubdrawing))->m_pElementList->Type) ((CExpression*)(di->pSubdrawing))->
                 DeleteElement(0);
-            ((CExpression*)(di->pSubdrawing))->GenerateASCIINumber((double)unit_size_y, unit_size_y, 1, 0, 0);
+            ((CExpression*)(di->pSubdrawing))->GenerateASCIINumber(unit_size_y, unit_size_y, 1, 0, 0);
             pMainView->RepaintTheView();
         }
     }
@@ -833,9 +833,9 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
             xx /= unit_size_x;
             yy /= unit_size_y;
             float l = (float)sqrt(xx * xx + yy * yy);
-            float angle = (float)(atan2((double)(y2 - y1), (double)(x2 - x1)) * 180.0 / 3.14159265);
+            float angle = (float)(atan2(y2 - y1, x2 - x1) * 180.0 / 3.14159265);
             if (((int)(angle * 10 + 1) % 150) <= 2) DC->SetBkColor(RGB(255, 255, 0));
-            sprintf(txt, "len:%5.1f, ang:%5.1f  ", (float)l, (float)angle);
+            sprintf(txt, "len:%5.1f, ang:%5.1f  ", l, angle);
             DC->TextOut(mx + 4 * ViewZoom / 100, my + 3 * ViewZoom / 100 + 12, txt);
         }
         else

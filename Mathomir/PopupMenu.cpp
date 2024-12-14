@@ -279,7 +279,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     if (OwnerType == 9) //called from menu "search"
     {
         m_NumOptions = 0;
-        memset((void*)&Options, 0, sizeof(Options));
+        memset(&Options, 0, sizeof(Options));
 
         PopupOption_Y = TSize_1p20;
 
@@ -306,7 +306,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     if (OwnerType == 8) //adding guidelines from ruller
     {
         m_NumOptions = 0;
-        memset((void*)&Options, 0, sizeof(Options));
+        memset(&Options, 0, sizeof(Options));
 
         //check if we clicked at already defined position
         int i;
@@ -348,7 +348,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     if (OwnerType == 6) //column/row insertion point
     {
         m_NumOptions = 0;
-        memset((void*)&Options, 0, sizeof(Options));
+        memset(&Options, 0, sizeof(Options));
 
         PopupOption_Y = 3 * TSize_1p20;
         AddMenuOption(0, 3 * TSize, "Line type:", -601, 1);
@@ -363,7 +363,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     if (OwnerType == 7) //defining keycode scans for accelerated typing
     {
         m_NumOptions = 0;
-        memset((void*)&Options, 0, sizeof(Options));
+        memset(&Options, 0, sizeof(Options));
         PopupOption_Y = 3 * TSize_1p20;
         AddMenuOption(0, 2 * TSize + TSize / 2, "Easycast string:", -831, 1);
         PopupOption_Y += 1 * TSize_1p20;
@@ -506,7 +506,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         }
 
         m_NumOptions = 0;
-        memset((void*)&Options, 0, sizeof(Options));
+        memset(&Options, 0, sizeof(Options));
 
         //the 'delete' option
         AddMenuOption(TSize / 3, TSize, "Delete ", 501, 0);
@@ -842,7 +842,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     //Let's create menu options
 
     m_NumOptions = 0;
-    memset((void*)&Options, 0, sizeof(Options));
+    memset(&Options, 0, sizeof(Options));
     if ((m_HaveCutDel) || ((m_OwnerType == 3) && (UserParam)))
     {
         if (m_OwnerType != 3)
@@ -1139,7 +1139,7 @@ popupmenu_end_showpopup:
                 sa.bInheritHandle = FALSE;
                 sa.lpSecurityDescriptor = nullptr;
                 sa.nLength = sizeof(sa);
-                CalcThreadHandle = CreateThread(&sa, 0, CalcThread, (LPVOID)this, 0, &(CalcThreadID));
+                CalcThreadHandle = CreateThread(&sa, 0, CalcThread, this, 0, &(CalcThreadID));
             }
 
 
@@ -2574,7 +2574,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             POINT pp[64];
                             char is_closed;
                             char num_points;
-                            int is_open = drw->IsOpenPath(0, &is_closed, (LPPOINT)&pp[0], &num_points);
+                            int is_open = drw->IsOpenPath(0, &is_closed, &pp[0], &num_points);
                             if ((drw->NumItems == 1) && (drw->Items->Type == 1))
                             {
                                 //simple straight line
@@ -2590,9 +2590,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             {
                                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("add arrows", 20103);
 
-                                double ang = atan2((double)(pp[1].y - pp[0].y), (double)(pp[1].x - pp[0].x));
-                                double ang2 = atan2((double)(pp[num_points - 1].y - pp[num_points - 2].y),
-                                                    (double)(pp[num_points - 1].x - pp[num_points - 2].x));
+                                double ang = atan2(pp[1].y - pp[0].y, pp[1].x - pp[0].x);
+                                double ang2 = atan2(pp[num_points - 1].y - pp[num_points - 2].y,
+                                                    pp[num_points - 1].x - pp[num_points - 2].x);
 
                                 //r=lenght of line
                                 double r = 0;
@@ -3128,7 +3128,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 double rad = sqrt(
                                     (double)(X - StartX) * (double)(X - StartX) + (double)(Y - StartY) * (double)(Y -
                                         StartY));
-                                curangle = atan2((double)(-Y + StartY), (double)(X - StartX));
+                                curangle = atan2(-Y + StartY, X - StartX);
                                 curangle += angle;
                                 ds->absolute_X = (int)(rad * cos(curangle)) + StartX;
                                 ds->absolute_Y = -(int)(rad * sin(curangle)) + StartY;
@@ -3818,7 +3818,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     short l, a, b;
                     CDC* DC;
                     DC = pMainView->GetDC();
-                    ((CExpression*)(copy2))->CalculateSize(DC, 100, &l, &a, &b);
+                    copy2->CalculateSize(DC, 100, &l, &a, &b);
                     pMainView->ReleaseDC(DC);
 
                     int delta2 = a + b + 5 + (a + b) / 6;
@@ -3939,7 +3939,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             CDC* DC;
                             DC = pMainView->GetDC();
                             parent->CalculateSize(DC, 100, &l, &a, &b);
-                            ((CExpression*)(copy2))->CalculateSize(DC, 100, &l, &a, &b);
+                            copy2->CalculateSize(DC, 100, &l, &a, &b);
                             pMainView->ReleaseDC(DC);
                         }
                         else
@@ -3954,7 +3954,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             ((CExpression*)(KeyboardEntryObject))->KeyboardStop();
                             CDC* DC;
                             DC = pMainView->GetDC();
-                            ((CExpression*)(copy2))->CalculateSize(DC, 100, &l, &a, &b);
+                            copy2->CalculateSize(DC, 100, &l, &a, &b);
                             copy2->m_Selection = copy2->m_NumElements + 1;
                             copy2->KeyboardStart(DC, ViewZoom);
                             pMainView->ReleaseDC(DC);
@@ -4102,12 +4102,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 if (((data >= 43) && (data < 49)) || (data == 54) || (data == 55)) //size options
                 {
-                    if (data == 45) m_Expression->ChangeFontSize((float)0.95); //all contents -5%
-                    if (data == 46) m_Expression->ChangeFontSize((float)1.05); //all contents +5%
-                    if (data == 47) m_Expression->ChangeFontSize((float)0.85); //all contents -15%
-                    if (data == 48) m_Expression->ChangeFontSize((float)1.15); //all contents +15%
-                    if (data == 54) m_Expression->ChangeFontSize((float)0.5); //all contents -50%
-                    if (data == 55) m_Expression->ChangeFontSize((float)1.5); //all contents +50%
+                    if (data == 45) m_Expression->ChangeFontSize(0.95f); //all contents -5%
+                    if (data == 46) m_Expression->ChangeFontSize(1.05f); //all contents +5%
+                    if (data == 47) m_Expression->ChangeFontSize(0.85f); //all contents -15%
+                    if (data == 48) m_Expression->ChangeFontSize(1.15f); //all contents +15%
+                    if (data == 54) m_Expression->ChangeFontSize(0.5); //all contents -50%
+                    if (data == 55) m_Expression->ChangeFontSize(1.5); //all contents +50%
                 }
                 if ((data >= 150) && (data < 160)) //other data options
                 {
@@ -4163,8 +4163,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("convert to function", 20215);
                     m_theSelectedElement->Type = 6;
-                    CElementInitPaternalExpression = (CObject*)m_theSelectedElement->pElementObject->
-                        m_pPaternalExpression;
+                    CElementInitPaternalExpression = m_theSelectedElement->pElementObject->
+                                                                           m_pPaternalExpression;
                     CElementInitType = 6;
                     CElement* newElement = new CElement();
                     newElement->Empty(1);
@@ -4209,7 +4209,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index add", 20214);
                                 tmpExpression->m_pPaternalElement->Expression2 = (CObject*)(new CExpression(
                                     tmpExpression->m_pPaternalElement, tmpExpression->m_pPaternalExpression,
-                                    ((CElement*)(tmpExpression->m_pPaternalElement))->FontSizeForType(2)));
+                                    tmpExpression->m_pPaternalElement->FontSizeForType(2)));
                                 //((CExpression*)(tmpExpression->m_pPaternalElement->Expression2))->m_FontSizeHQ=((CElement*)(tmpExpression->m_pPaternalElement))->FontSizeForTypeHQ(2);
                             }
                         }
@@ -4238,8 +4238,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("convert to variable", 20216);
                     m_theSelectedElement->Type = 1;
-                    CElementInitPaternalExpression = (CObject*)m_theSelectedElement->pElementObject->
-                        m_pPaternalExpression;
+                    CElementInitPaternalExpression = m_theSelectedElement->pElementObject->
+                                                                           m_pPaternalExpression;
                     CElementInitType = 1;
                     CElement* newElement = new CElement();
                     if (m_theSelectedElement->pElementObject->Expression2)
@@ -4431,7 +4431,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             ShowWindow(SW_HIDE);
             if (m_OwnerType == 1) //the main view
             {
-                ((CMathomirView*)pMainView)->PopupCloses(m_UserParam, Options[m_SelectedOption].Data);
+                pMainView->PopupCloses(m_UserParam, Options[m_SelectedOption].Data);
             }
             if (m_OwnerType == 0) //the toolbox
             {
@@ -4500,7 +4500,7 @@ int PopupMenu::HidePopupMenu(void)
     {
         if (m_OwnerType == 1) //the main view
         {
-            ((CMathomirView*)pMainView)->PopupCloses(m_UserParam, 0);
+            pMainView->PopupCloses(m_UserParam, 0);
         }
         if (m_OwnerType == 0) //the toolbox
         {
@@ -4664,7 +4664,7 @@ void PopupMenu::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if ((Options[found].Graphics == nullptr) || (Options[found].IsGraphicsSensitive)) m_SelectedSuboption = 0;
         for (int i = 0; i < m_NumOptions; i++)
             if (Options[i].Graphics)
-                ((CExpression*)Options[i].Graphics)->SelectExpression(
+                Options[i].Graphics->SelectExpression(
                     ((i == found) && (m_SelectedSuboption == 0)) ? 1 : 0);
         PaintThePopupMenu();
     }
@@ -5040,7 +5040,7 @@ int PopupMenu::SymbolicComputation(void)
                 prec_increase++;
                 if (prec + prec_increase > 10) break;
             }
-            if ((prec > 0) && (fabs(N) > pow((double)10, (double)(-prec + 1))))
+            if ((prec > 0) && (fabs(N) > pow(10, -prec + 1)))
             {
                 CExpression* E1 = new CExpression(nullptr,nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
@@ -5048,7 +5048,7 @@ int PopupMenu::SymbolicComputation(void)
                 if (!AddMathMenuOption(E1)) delete E1;
                 else rounding_done = 1;
             }
-            if ((prec > 1) && (fabs(N) > pow((double)10, (double)(-prec + 2))))
+            if ((prec > 1) && (fabs(N) > pow(10, -prec + 2)))
             {
                 CExpression* E1 = new CExpression(nullptr,nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
@@ -5062,7 +5062,7 @@ int PopupMenu::SymbolicComputation(void)
                 CExpression* E1 = new CExpression(nullptr,nullptr, 100);
                 int exp = (int)log10(fabs(N));
                 if (fabs(N) < 1.0) exp--;
-                double re = N / pow((double)10, (double)exp);
+                double re = N / pow(10, exp);
                 E1->GenerateASCIINumber(re, (long long)(re + (re > 0) ? 0.01 : -0.01),
                                         (fabs(re - (long long)re) < 1e-100) ? 1 : 0,min(prec+abs(exp), 8), 0);
                 tElementStruct* ts = E1->m_pElementList;
@@ -5087,10 +5087,10 @@ int PopupMenu::SymbolicComputation(void)
                 if (exp < 0)
                 {
                     e->InsertEmptyElement(0, 2, '-');
-                    e->GenerateASCIINumber((double)-exp, -exp, 1, 0, 1);
+                    e->GenerateASCIINumber(-exp, -exp, 1, 0, 1);
                 }
                 else
-                    e->GenerateASCIINumber((double)exp, exp, 1, 0, 0);
+                    e->GenerateASCIINumber(exp, exp, 1, 0, 0);
                 if ((E1->m_pElementList->Type == 2) && (E1->m_pElementList->pElementObject->Data1[0] == '-') &&
                     ((E1->m_pElementList + 1)->Type == 1) && (strcmp((E1->m_pElementList + 1)->pElementObject->Data1,
                                                                      "1") == 0))
@@ -5150,7 +5150,7 @@ int PopupMenu::SymbolicComputation(void)
                             CExpression* e = ((CExpression*)(result->m_pElementList + result->m_NumElements - 1)->
                                                             pElementObject->Expression2);
                             a->GenerateASCIINumber((double)z, z, 1, 0, 0);
-                            e->GenerateASCIINumber((double)cnt, (long long)cnt, 1, 0, 0);
+                            e->GenerateASCIINumber(cnt, cnt, 1, 0, 0);
                         }
                         if (z == 2) z++;
                         else z += 2;

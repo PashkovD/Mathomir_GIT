@@ -1274,8 +1274,8 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
         if (Expression1)
         {
             ((CExpression*)Expression1)->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
-            if (*above < E1_above) *above = (short)E1_above;
-            if (*below < E1_below) *below = (short)E1_below;
+            if (*above < E1_above) *above = E1_above;
+            if (*below < E1_below) *below = E1_below;
             ParenthesesAbove = ((CExpression*)Expression1)->m_ParenthesesAbove;
             ParenthesesBelow = ((CExpression*)Expression1)->m_ParenthesesBelow;
 
@@ -1354,8 +1354,8 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
         if (Expression1)
         {
             ((CExpression*)Expression1)->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
-            *above = (short)E1_above;
-            *below = (short)E1_below;
+            *above = E1_above;
+            *below = E1_below;
             ParenthesesAbove = ((CExpression*)Expression1)->m_ParenthesesAbove;
             ParenthesesBelow = ((CExpression*)Expression1)->m_ParenthesesBelow;
             E1_posX = 0;
@@ -1505,7 +1505,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
         if (Data2[1] == 1)
         {
             //integration limits placed aside
-            int longest = (int)E2_length;
+            int longest = E2_length;
             if (E3_length > longest) longest = E3_length;
 
             if (Data1[0] == '/') //right bar
@@ -1539,7 +1539,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
         else
         {
             //integration limits placed above/below
-            int longest = (int)Data3[1];
+            int longest = Data3[1];
             if (E2_length > longest) longest = E2_length;
             if (E3_length > longest) longest = E3_length;
 
@@ -1592,7 +1592,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
             E1_posX = 0;
             E1_posY = ActualSize / 24;
             *length = E1_length + 2;
-            *above = (short)E1_above + ActualSize / 8 + ((HQR) ? (ActualSize / 16) : 0);
+            *above = E1_above + ActualSize / 8 + ((HQR) ? (ActualSize / 16) : 0);
             *below = (short)(E1_posY + E1_below);
             ParenthesesAbove = *above - ActualSize / 8;
             ParenthesesBelow = *below - ActualSize / 8;
@@ -3010,7 +3010,7 @@ void CElement::Empty(char oper)
         } //delta operator
         if (oper == 23)
         {
-            Data1[0] = (char)'d';
+            Data1[0] = 'd';
             Data2[0] = 0x20;
         } //derivation sign
         if (oper == 24)
@@ -3025,7 +3025,7 @@ void CElement::Empty(char oper)
         }
         if (oper == 37)
         {
-            Data1[0] = (char)'d';
+            Data1[0] = 'd';
             Data2[0] = 0x60;
         } //dirac delta
         if (oper == 38)
@@ -3449,7 +3449,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                         if (ts->Type == 0) break;
                         ((CExpression*)(m_pPaternalExpression))->SelectElement(1, jj);
                     }
-                    return (CObject*)(this->m_pPaternalExpression);
+                    return this->m_pPaternalExpression;
                 }
 
                 //check if it is pointing =,<,>,<<,>>,<=,>=,...
@@ -3473,7 +3473,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                         if ((ts->Type == 11) || (ts->Type == 12) || (ts->Type == 9) || (ts->Type == 10)) break;
                         ((CExpression*)(m_pPaternalExpression))->SelectElement(1, jj);
                     }
-                    return (CObject*)(this->m_pPaternalExpression);
+                    return this->m_pPaternalExpression;
                 }
             }
 
@@ -3624,7 +3624,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             memcpy(tmpstr + j, "\" mods=\"", 8);
             j += 8;
             char ppp[4];
-            sprintf(ppp, "%02X", (unsigned char)m_VMods);
+            sprintf(ppp, "%02X", m_VMods);
             tmpstr[j++] = ppp[0];
             tmpstr[j++] = ppp[1];
         }
@@ -3652,7 +3652,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             char ppp[4];
             unsigned char dd = (unsigned char)Data2[i];
             if (XMLFileVersion == 1) dd = (dd & 0xE3) | (m_VMods & 0x1C);
-            sprintf(ppp, "%02X", (unsigned char)dd);
+            sprintf(ppp, "%02X", dd);
             tmpstr[j++] = ppp[0];
             tmpstr[j++] = ppp[1];
             if ((m_Type == 6) || (all_chars_same_font)) break;

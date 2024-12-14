@@ -416,16 +416,16 @@ CToolbox::CToolbox(int IsSubtoolbox)
         AddSubmember(2, (char)0xB9); //non equal
         AddSubmember(2, '<');
         AddSubmember(2, '>');
-        AddSubmember(2, (char)0x01); //  <<
-        AddSubmember(2, (char)0x02); //  >>
+        AddSubmember(2, 0x01); //  <<
+        AddSubmember(2, 0x02); //  >>
         AddSubmember(2, (char)0xBB);
         AddAccelerator('A'); //aprox. equal (waved equal)
         AddSubmember(2, (char)0x9F); //equal with hat
         AddSubmember(2, (char)0xA3); //less or equal
         AddSubmember(2, (char)0xB3); //greater or equal
         AddSubmember(2, (char)0xB5); //proportianal?? (like infinite, but not closed)
-        AddSubmember(2, (char)0x40); //approx equal?? (equal with a tilda)
-        AddSubmember(2, (char)0x7E); //approx. equal (tilda)
+        AddSubmember(2, 0x40); //approx equal?? (equal with a tilda)
+        AddSubmember(2, 0x7E); //approx. equal (tilda)
         AddSubmember(2, (char)0xBA); //triple equal
         AddSubmember(2, (char)0xA0); //approx equal (equal with dot above)
         AddSubmember(2, '1'); // :=
@@ -435,9 +435,9 @@ CToolbox::CToolbox(int IsSubtoolbox)
 
         AddSubmember(2, (char)0xC5); //circled +
         AddSubmember(2, (char)0xC4); //cyrcled x
-        AddSubmember(2, (char)0x24); //Exists
-        AddSubmember(2, (char)0x22); //All
-        AddSubmember(2, (char)0x27); //??? like 'e' backwards
+        AddSubmember(2, 0x24); //Exists
+        AddSubmember(2, 0x22); //All
+        AddSubmember(2, 0x27); //??? like 'e' backwards
         AddSubmember(2, (char)0xCE); //element
         AddSubmember(2, (char)0xCF); //not element
         AddSubmember(2, (char)0xC7); //intersection
@@ -447,15 +447,15 @@ CToolbox::CToolbox(int IsSubtoolbox)
         AddSubmember(2, (char)0xCC); //sub-enum left
         AddSubmember(2, (char)0xCD); //sub-or-equal-enum left
         AddSubmember(2, (char)0xCB); //not a sub-enum
-        AddSubmember(2, (char)0x5C); //three dots (in triangle formation)
-        AddSubmember(2, (char)']'); //complement? 
-        AddSubmember(2, (char)0x5B); //three dots (in upside-down triangle formation)
+        AddSubmember(2, 0x5C); //three dots (in triangle formation)
+        AddSubmember(2, ']'); //complement? 
+        AddSubmember(2, 0x5B); //three dots (in upside-down triangle formation)
         AddSubmember(2, '#');
 
         ToolboxNumMembers++;
 
         AddSubmember(2, (char)0xB4); //vector product 'x'
-        AddSubmember(2, (char)0x44); //delta operator
+        AddSubmember(2, 0x44); //delta operator
         AddSubmember(2, (char)0xD1); //nabla operator
         AddSubmember(2, 'r'); //rotor
         AddSubmember(2, '*'); //convolution
@@ -656,7 +656,7 @@ CToolbox::CToolbox(int IsSubtoolbox)
         AddSubmember(2, (char)0xBC); //triple dot - note that this is an operator (not variable)
         //AddSubmember(201,(char)0xA1); //pisani Y
         AddSubmember(2, (char)0x9E); //triangle
-        AddSubmember(1, (char)0x24); //$
+        AddSubmember(1, 0x24); //$
         AddSubmember(1, (char)0xA3); //pound
         AddSubmember(1, '€');
         AddSubmember(1, '@');
@@ -711,7 +711,7 @@ CToolbox::CToolbox(int IsSubtoolbox)
 
         ToolboxNumMembers++;
 
-        memset((void*)&ToolboxFontFormating, 0, (size_t)sizeof(ToolboxFontFormating));
+        memset(&ToolboxFontFormating, 0, sizeof(ToolboxFontFormating));
         AddFontFormating(0, 0, 0, 0); //sans-serif
         AddFontFormating(0, 0, 1, 0); //sans-serif, italic
 
@@ -733,7 +733,7 @@ CToolbox::CToolbox(int IsSubtoolbox)
         ToolboxFontFormating.UniformAccKey[0] = 'U';
         ToolboxFontFormating.MixedAccKey = 'M';
 
-        memset((void*)&ToolboxKeyboardElements, 0, sizeof(ToolboxKeyboardElements));
+        memset(&ToolboxKeyboardElements, 0, sizeof(ToolboxKeyboardElements));
         AddKeyboardKey(2, 10, 'A');
         AddKeyboardKey(47, 20, 'B');
         AddKeyboardKey(27, 20, 'C');
@@ -1283,7 +1283,7 @@ void CToolbox::OnPaint()
     // Do not call CWnd::OnPaint() for painting messages
 }
 
-void CToolbox::ToolboxChangeIndividualKeyFont(void)
+void CToolbox::ToolboxChangeIndividualKeyFont()
 {
     int row = m_SelectedElement / 100;
     int key = m_SelectedElement % 100;
@@ -1348,7 +1348,7 @@ void CToolbox::ToolboxChangeIndividualKeyFont(void)
     ToolboxCharacter->SelectExpression(1);
     ToolboxCharacter->m_Selection = 0;
     FontAdditionalData = 0;
-    Popup->ShowPopupMenu(ToolboxCharacter, (CWnd*)this, 0, 23);
+    Popup->ShowPopupMenu(ToolboxCharacter, this, 0, 23);
     //the PopupCloses function will be called after popupmenu closs
 }
 
@@ -2079,12 +2079,12 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         if ((icon == 9) && (exp->m_FontSize < 1400))
                         {
-                            exp->ChangeFontSize((float)1.2);
+                            exp->ChangeFontSize(1.2f);
                             yes = 1;
                         }
                         if ((icon == 10) && (exp->m_FontSize > 25))
                         {
-                            exp->ChangeFontSize((float)(1.0 / 1.2));
+                            exp->ChangeFontSize(1.0f / 1.2f);
                             yes = 1;
                         }
                         if (icon == 18)

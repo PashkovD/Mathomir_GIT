@@ -282,11 +282,11 @@ BOOL CMathomirApp::InitInstance()
         Popup->CreateEx(WS_EX_TOPMOST, AfxRegisterWndClass(CS_OWNDC), "PopupMenu",WS_CLIPCHILDREN | WS_POPUP, 5, 5, 10,
                         10, m_pMainWnd->m_hWnd,nullptr, 0);
     else
-        AfxMessageBox("Cannot create Popup menu",MB_OK | MB_ICONSTOP,nullptr);
+        AfxMessageBox("Cannot create Popup menu",MB_OK | MB_ICONSTOP,NULL);
 
     //TODO  should better investigate how the following works when there are more than one monitor (What gets returned by GetDesktopWindow()?)
     RECT desk_rect;
-    GetWindowRect(GetDesktopWindow(), (LPRECT)(&desk_rect));
+    GetWindowRect(GetDesktopWindow(), &desk_rect);
     if ((desk_rect.right >= 1300) && (desk_rect.bottom >= 750)) { BaseToolboxSize = ToolboxSize = 84; }
     if ((desk_rect.right >= 1900) && (desk_rect.bottom >= 1100)) { BaseToolboxSize = ToolboxSize = 102; }
     if ((desk_rect.right >= 1600) && (desk_rect.bottom >= 900)) { DefaultZoom = ViewZoom = 120; }
@@ -305,7 +305,7 @@ BOOL CMathomirApp::InitInstance()
         Toolbox->ShowWindow(SW_SHOWNA);
     }
     else
-        AfxMessageBox("Cannot create Main Toolbox",MB_OK | MB_ICONSTOP,nullptr);
+        AfxMessageBox("Cannot create Main Toolbox",MB_OK | MB_ICONSTOP,NULL);
     if (NumDocumentElements)
     {
         PaperWidth = pw;

@@ -989,7 +989,7 @@ int AddDocumentObject(int type, int X, int Y)
         }
         if (TheDocument == nullptr)
         {
-            AfxMessageBox("Cannot reserve memory for the Document",MB_OK | MB_ICONWARNING,nullptr);
+            AfxMessageBox("Cannot reserve memory for the Document",MB_OK | MB_ICONWARNING,NULL);
             return 0;
         }
     }
@@ -1526,7 +1526,7 @@ int CMainFrame::UndoSave(char* text, int unique_ID)
     UndoStruct[UndoNumLevels].data = malloc(NumDocumentElements * sizeof(tDocumentStruct));
     if (UndoStruct[UndoNumLevels].data == nullptr)
     {
-        AfxMessageBox("Cannot reserve undo memory [3]",MB_OK | MB_ICONWARNING,nullptr);
+        AfxMessageBox("Cannot reserve undo memory [3]",MB_OK | MB_ICONWARNING,NULL);
         return 0;
     }
     memcpy(UndoStruct[UndoNumLevels].data, TheDocument, NumDocumentElements * sizeof(tDocumentStruct));
@@ -1553,7 +1553,7 @@ int CMainFrame::UndoSave(char* text, int unique_ID)
                                                               UndoNumObjectsReserved * sizeof(tUndoObjectStruct));
                 if (pUndoObjectList == nullptr)
                 {
-                    AfxMessageBox("Cannot reserve Undo memory",MB_OK | MB_ICONWARNING,nullptr);
+                    AfxMessageBox("Cannot reserve Undo memory",MB_OK | MB_ICONWARNING,NULL);
                     return 0;
                 }
                 us = pUndoObjectList + UndoNumObjects;
@@ -1696,7 +1696,7 @@ int CMainFrame::UndoRestore()
     if (TheDocument == nullptr)
     {
         NumDocumentElementsReserved = NumDocumentElements = 0;
-        AfxMessageBox("Cannot reserve document memory [undo]",MB_OK | MB_ICONWARNING,nullptr);
+        AfxMessageBox("Cannot reserve document memory [undo]",MB_OK | MB_ICONWARNING,NULL);
         free(oldDoc);
         return 0;
     }
@@ -1749,7 +1749,7 @@ int CMainFrame::UndoRestore()
             else
             {
                 //this should never happened - the object was not found in our history list
-                AfxMessageBox("Error during Undo operation",MB_OK | MB_ICONWARNING,nullptr);
+                AfxMessageBox("Error during Undo operation",MB_OK | MB_ICONWARNING,NULL);
                 //DeleteDocumentObject(&TheDocument[i]);
                 free(oldDoc);
                 return 0;
@@ -2240,7 +2240,7 @@ int ExecuteLink(char* command)
     }
     else
     {
-        ShellExecute(nullptr,nullptr, (LPCSTR)command,nullptr,nullptr,SW_SHOWNORMAL);
+        ShellExecute(nullptr,nullptr, command,nullptr,nullptr,SW_SHOWNORMAL);
     }
 
     return 0;

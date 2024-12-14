@@ -1912,7 +1912,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
             sa.bInheritHandle = FALSE;
             sa.lpSecurityDescriptor = nullptr;
             sa.nLength = sizeof(sa);
-            ThreadHandle = CreateThread(&sa, 0, DrawingThread, (LPVOID)this, 0, &(ThreadID));
+            ThreadHandle = CreateThread(&sa, 0, DrawingThread, this, 0, &ThreadID);
             return 1;
         }
     }
@@ -2074,7 +2074,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
                     if (Func[kk])
                     {
                         memcpy(sort_buff, YY[kk], sizeof(double) * i);
-                        qsort((void*)sort_buff, i, sizeof(double), double_compare);
+                        qsort(sort_buff, i, sizeof(double), double_compare);
                         int k = 0;
                         while ((_isnan(sort_buff[k])) && (k < i)) k++;
                         if (k < i)
@@ -2122,7 +2122,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
             }
 
             //compute scaling factors
-            double F1 = (is_y_log == 0) ? ((double)Ylen / (double)(Ymax - Ymin)) : ((double)Ylen / log10(Ymax / Ymin));
+            double F1 = (is_y_log == 0) ? ((double)Ylen / (Ymax - Ymin)) : ((double)Ylen / log10(Ymax / Ymin));
             //double F2=(double)Ylen/log10(Ymax/Ymin);
 
             //now we start drawing pre-calculated points into the plotter bitmap
@@ -2132,7 +2132,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
                         if (Func[kk])
                         {
                             double Y = (is_y_log == 0)
-                                           ? ((double)(*(YY[kk] + j) - Ymin))
+                                           ? *(YY[kk] + j) - Ymin
                                            : (log10(*(YY[kk] + j)) - log10(Ymin));
                             Y *= F1;
 
@@ -2460,7 +2460,7 @@ int CFunctionPlotter::ShowNumberWithPrecision(double number, double precision, c
     if ((x > 0) || ((x == 0) && (fabs(number) <= fabs(precision))))
     {
         if (fabs(number) < precision) number = 0;
-        double tmp = pow(10.0, (double)x);
+        double tmp = pow(10.0, x);
         number /= tmp;
         if (fabs(number) < 1) number = 0;
         sprintf(t, "%.0lf", number);
