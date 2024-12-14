@@ -9,7 +9,7 @@ class CPasswordDlg : public CDialog
     DECLARE_DYNAMIC(CPasswordDlg)
 
 public:
-    CPasswordDlg(CWnd* pParent = NULL); // standard constructor
+    CPasswordDlg(CWnd* pParent = nullptr); // standard constructor
     virtual ~CPasswordDlg();
     virtual BOOL OnInitDialog();
 

@@ -51,7 +51,7 @@ CDrawingBox::CDrawingBox(CDrawing* BaseItem)
     ToolboxLength = 0;
     ToolboxSelectedItem = 0;
     prevDrawingBoxData = -1;
-    CommandLine = NULL;
+    CommandLine = nullptr;
 }
 
 //destructor (should release all previously reserved memory)
@@ -68,7 +68,7 @@ int CDrawingBox::CopyFrom(CDrawing* Original)
     CDrawingBox* org = (CDrawingBox*)Original->SpecialData;
     if (!org) return 0;
 
-    this->CommandLine = NULL;
+    this->CommandLine = nullptr;
     this->IsToolboxShown = 0;
     this->TheState = 0;
     this->ToolboxHeight = org->ToolboxHeight;
@@ -178,7 +178,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
             ExecuteCommandLine(X, Y, absX, absY);
             TheState = 0;
             delete CommandLine;
-            CommandLine = NULL;
+            CommandLine = nullptr;
             pMainView->RepaintTheView(1);
         }
     }
@@ -321,7 +321,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
     DC->FillSolidRect(xx, yy, 1, toolbox_height,RGB(160, 160, 192));
     DC->FillSolidRect(xx, yy + toolbox_height - 1, toolbox_len, 1,RGB(160, 160, 192));
     DC->FillSolidRect(xx + toolbox_len, yy, 1, toolbox_height,RGB(160, 160, 192));
-    DC->SelectClipRgn(NULL);
+    DC->SelectClipRgn(nullptr);
 
     return 1;
 }
@@ -339,7 +339,7 @@ int CDrawingBox::MouseClick(int X, int Y)
             {
                 int px = -X + SpecialDrawingHover->absolute_X;
                 int py = -Y + SpecialDrawingHover->absolute_Y;
-                Base->FindNerbyPoint(&px, &py,NULL, 0, 0, 0, 0);
+                Base->FindNerbyPoint(&px, &py,nullptr, 0, 0, 0, 0);
                 X = SpecialDrawingHover->absolute_X - px;
                 Y = SpecialDrawingHover->absolute_Y - py;
             }
@@ -386,7 +386,7 @@ int CDrawingBox::MouseClick(int X, int Y)
         }
         TheState = 100;
         if (CommandLine) delete CommandLine;
-        CommandLine = new CExpression(NULL,NULL, 80);
+        CommandLine = new CExpression(nullptr,nullptr, 80);
 
         //will start the keyboard entry
         if (KeyboardEntryObject)
@@ -423,11 +423,11 @@ int CDrawingBox::MouseClick(int X, int Y)
             {
                 if (NumSelectedObjects < 2) return 1;
                 //grouping
-                CDrawing* tmpdrw = NULL;
+                CDrawing* tmpdrw = nullptr;
                 int found = 0;
                 int StartX = 0x7FFFFFFF;
                 int StartY = 0x7FFFFFFF;
-                tDocumentStruct* prevelement = NULL;
+                tDocumentStruct* prevelement = nullptr;
                 for (int ii = 0; ii < NumDocumentElements; ii++)
                 {
                     tDocumentStruct* ds = TheDocument + ii;
@@ -438,7 +438,7 @@ int CDrawingBox::MouseClick(int X, int Y)
                         int X = ds->absolute_X;
                         int Y = ds->absolute_Y;
                         if (ds->Type == 1) Y -= ds->Above;
-                        if (tmpdrw == NULL)
+                        if (tmpdrw == nullptr)
                         {
                             StartX = X;
                             StartY = Y;
@@ -610,7 +610,7 @@ int CDrawingBox::MouseClick(int X, int Y)
 int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
 {
     int redraw_flag = 0;
-    if ((TheState == 100) && (CommandLine == NULL)) TheState = 0;
+    if ((TheState == 100) && (CommandLine == nullptr)) TheState = 0;
 
     int zX = X * ViewZoom / 100;
     int zY = Y * ViewZoom / 100;
@@ -646,7 +646,7 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
         return redraw_flag;
     }
 
-    if (SpecialDrawingHover == NULL) return redraw_flag;
+    if (SpecialDrawingHover == nullptr) return redraw_flag;
 
     int mx, my;
     mx = (SpecialDrawingHover->absolute_X - ViewX) * ViewZoom / 100;
@@ -676,7 +676,7 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
         int yy = Y + SpecialDrawingHover->absolute_Y;
 
         if ((GetKeyState(VK_MENU) & 0xFFFE) && (flags != 0x1234) &&
-            (Base->FindNerbyPoint(&xx, &yy,NULL, 0, 0, 0, 0)))
+            (Base->FindNerbyPoint(&xx, &yy,nullptr, 0, 0, 0, 0)))
         {
             CPen pen(PS_SOLID, 1,RGB(0, 255, 0));
             HANDLE olpen = DC->SelectObject(pen);
@@ -775,7 +775,7 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
                 (Base->Items + Base->NumItems - 1)->Y1 = 0;
                 (Base->Items + Base->NumItems - 1)->Y2 = 0;
                 (Base->Items + Base->NumItems - 1)->LineWidth = 0;
-                (Base->Items + Base->NumItems - 1)->pSubdrawing = new CExpression(NULL,NULL, 100);
+                (Base->Items + Base->NumItems - 1)->pSubdrawing = new CExpression(nullptr,nullptr, 100);
             }
             tDrawingItem* di = Base->Items + 4;
             while (((CExpression*)(di->pSubdrawing))->m_pElementList->Type) ((CExpression*)(di->pSubdrawing))->

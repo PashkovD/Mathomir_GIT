@@ -89,8 +89,8 @@ CElement::CElement()
 
 CElement::~CElement(void)
 {
-    SelectedTab = NULL;
-    if ((m_Type == 9) && (Expression2 == NULL) && (Expression3 == NULL) && (Data1[0] == 'H'))
+    SelectedTab = nullptr;
+    if ((m_Type == 9) && (Expression2 == nullptr) && (Expression3 == nullptr) && (Data1[0] == 'H'))
     {
         //deleting hyperlink
         try
@@ -643,7 +643,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
         E1_posX = 0;
         E1_posY = 0;
 
-        if (Expression1 != NULL)
+        if (Expression1 != nullptr)
         {
             //handling base
             ((CExpression*)Expression1)->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
@@ -674,7 +674,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
 
             //if (CenterParentheses) E1_CenterParentheses(above,below);
         }
-        if (Expression2 != NULL)
+        if (Expression2 != nullptr)
         {
             //handling power, first compute the size of exponent
             CExpression* Base = (CExpression*)Expression1;
@@ -963,7 +963,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
             }
         }*/
 
-        if (Expression1 != NULL)
+        if (Expression1 != nullptr)
         {
             //handling upper expression
             ((CExpression*)Expression1)->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
@@ -974,7 +974,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
                 E1_posY = -ActualSize / 8 - E1_below;
             *above = -E1_posY + E1_above;
         }
-        if (Expression2 != NULL)
+        if (Expression2 != nullptr)
         {
             //handling lower expression
             ((CExpression*)Expression2)->CalculateSize(DC, zoom, &E2_length, &E2_above, &E2_below, HQR);
@@ -1118,7 +1118,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
 
     if (m_Type == 5) //Parentheses
     {
-        if (Expression1 != NULL)
+        if (Expression1 != nullptr)
         {
             //handling expression
             ((CExpression*)Expression1)->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
@@ -1134,7 +1134,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
             *above = E1_above;
             //if (CenterParentheses) E1_CenterParentheses(above,below);
 
-            if (Expression2 != NULL)
+            if (Expression2 != nullptr)
             {
                 //if it has an index
                 ((CExpression*)Expression2)->CalculateSize(DC, zoom, &E2_length, &E2_above, &E2_below, HQR);
@@ -1579,7 +1579,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
 
     if (m_Type == 8) //root
     {
-        if (Expression1 != NULL)
+        if (Expression1 != nullptr)
         {
             //handling argument
             ((CExpression*)Expression1)->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
@@ -1598,7 +1598,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
             ParenthesesBelow = *below - ActualSize / 8;
         }
 
-        if (Expression2 != NULL)
+        if (Expression2 != nullptr)
         {
             //handling expression2
             ((CExpression*)Expression2)->CalculateSize(DC, zoom, &E2_length, &E2_above, &E2_below, HQR);
@@ -1630,7 +1630,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
 
     if (m_Type == 9) //Vertical line (with condition list), also an HTML element
     {
-        if ((Expression2 == NULL) && (Expression3 == NULL))
+        if ((Expression2 == nullptr) && (Expression3 == nullptr))
         {
             //an HTML element (type 9 without Expression2 and Expression3 defined)
             //pointer to additional data (URL) is in Data3
@@ -1884,7 +1884,7 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
     }
     else if ((m_Type == 9) || (m_Type == 10))
     {
-        if ((m_Type == 9) && (Expression2 == NULL) && (Expression3 == NULL) && ((Data1[0] == 'H') || (Data1[0] == 'L')))
+        if ((m_Type == 9) && (Expression2 == nullptr) && (Expression3 == nullptr) && ((Data1[0] == 'H') || (Data1[0] == 'L')))
         //hyperlink or label
         {
             E2 = E3 = 0;
@@ -2505,10 +2505,10 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
     if (m_Type == 8) //root
     {
         X -= ActualSize / 20;
-        if (Expression1 != NULL)
+        if (Expression1 != nullptr)
             ((CExpression*)Expression1)->PaintExpression(
                 DC, zoom, X + E1_posX, Y + E1_posY, ClipReg, color);
-        if (Expression2 != NULL)
+        if (Expression2 != nullptr)
             ((CExpression*)Expression2)->PaintExpression(
                 DC, zoom, X + E2_posX, Y + E2_posY, ClipReg, color);
 
@@ -2541,7 +2541,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                     (IsHighQualityRendering) ? ActualSize / 16 : 0);
                 DC->LineTo(X + E2_length + Data3[0] - ((IsHighQualityRendering) ? ActualSize / 32 : 0), plafon);
                 DC->LineTo(X2, plafon);
-                DC->SelectClipRgn(NULL);
+                DC->SelectClipRgn(nullptr);
             }
         }
 
@@ -2550,7 +2550,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
     if (m_Type == 9) //vertical line with condition list
     {
-        if ((Expression2 == NULL) && (Expression3 == NULL))
+        if ((Expression2 == nullptr) && (Expression3 == nullptr))
         {
             //an HTML element
             if (Expression1)
@@ -3117,7 +3117,7 @@ void CElement::Empty(char oper)
             //((CExpression*)Expression1)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
             ((CExpression*)Expression1)->m_StartAsText = 1;
 
-            Expression2 = Expression3 = NULL;
+            Expression2 = Expression3 = nullptr;
             Data3[0] = Data3[1] = 0;
         }
         else
@@ -3168,9 +3168,9 @@ void CElement::Empty(char oper)
 //this function deletes all data from the element (including subexpressions)
 /*int CElement::Delete(void)
 {
-	if (Expression1) {delete (CExpression*)Expression1;Expression1=NULL;}
-	if (Expression2) {delete (CExpression*)Expression2;Expression2=NULL;}
-	if (Expression3) {delete (CExpression*)Expression3;Expression3=NULL;}
+	if (Expression1) {delete (CExpression*)Expression1;Expression1=nullptr;}
+	if (Expression2) {delete (CExpression*)Expression2;Expression2=nullptr;}
+	if (Expression3) {delete (CExpression*)Expression3;Expression3=nullptr;}
 
 	m_Color=-1;
 	return 1;
@@ -3211,7 +3211,7 @@ void CElement::CopyElement(const CElement* Element)
             else if (i == 2) Expression3 = (CObject*)exp;
         }
     }
-    if ((m_Type == 9) && (Expression2 == NULL) && (Expression3 == NULL) && (Data1[0] == 'H') && (*(char**)Element->
+    if ((m_Type == 9) && (Expression2 == nullptr) && (Expression3 == nullptr) && (Data1[0] == 'H') && (*(char**)Element->
         Data3))
     {
         //copy hyperlinks
@@ -3251,7 +3251,7 @@ CElement* CElement::GetPreviousElement()
     tElementStruct* ts = e->m_pElementList + 1;
     for (int i = 1; i < n; i++, ts++)
         if (ts->pElementObject == this) return (ts - 1)->pElementObject;
-    return NULL;
+    return nullptr;
 }
 
 CElement* CElement::GetNextElement()
@@ -3261,7 +3261,7 @@ CElement* CElement::GetNextElement()
     tElementStruct* ts = e->m_pElementList;
     for (int i = 0; i < n - 1; i++, ts++)
         if (ts->pElementObject == this) return (ts + 1)->pElementObject;
-    return NULL;
+    return nullptr;
 }
 
 
@@ -3272,7 +3272,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                                  short paternal_position)
 {
     //special handling for the HTML link element (we will select the whole element so it can be clicked on it)
-    if ((this->m_Type == 9) && (this->Data1[0] == 'H') && (Expression2 == NULL) && (Expression3 == NULL) && (
+    if ((this->m_Type == 9) && (this->Data1[0] == 'H') && (Expression2 == nullptr) && (Expression3 == nullptr) && (
             Expression1) &&
         (((CExpression*)Expression1)->m_pElementList->Type))
     {
@@ -3373,7 +3373,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
         if (TouchMouseMode == 0) ok = 1;
         if ((((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint) && (TouchMouseMode == 1)) ok = 1;
         ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint = 0;
-        if (ClipboardExpression == NULL)
+        if (ClipboardExpression == nullptr)
             if ((((GetKeyState(VK_SHIFT) & 0xFFFE) == 0) && (ok)) || (DisableMultitouch))
             {
                 if ((X <= Data3[1] / 2) && (this->m_Text != 2))
@@ -3399,10 +3399,10 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
             }
     }
 
-    if ((GetKeyState(VK_MENU) & 0xFFFE)) return NULL;
+    if ((GetKeyState(VK_MENU) & 0xFFFE)) return nullptr;
 
 
-    SelectedTab = NULL;
+    SelectedTab = nullptr;
 
     if ((GetKeyState(16) & 0xFFFE) == 0) //shift not pressed
         if (TouchMouseMode == 0)
@@ -3477,7 +3477,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                 }
             }
 
-    if (ContainsBlinkingCursor()) return NULL;
+    if (ContainsBlinkingCursor()) return nullptr;
 
     //selecting all subexpression
     if (Expression1) ((CExpression*)(Expression1))->SelectExpression(1);
@@ -3496,9 +3496,9 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
     int len = 0;
     int tmp;
     short i;
-    char* E1 = NULL;
-    char* E2 = NULL;
-    char* E3 = NULL;
+    char* E1 = nullptr;
+    char* E2 = nullptr;
+    char* E3 = nullptr;
 
     static char tmpstr[136]; //we are using this functin recursivley, so take care not to use too much memory
     //static char tabs[17];
@@ -3800,7 +3800,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             strcat(tmpstr, "label=\"1\"");
         if ((Expression3 == 0) && (Expression2 == 0) && (Data1[0] == 'H'))
         {
-            if ((*(char**)this->Data3) == NULL)
+            if ((*(char**)this->Data3) == nullptr)
                 strcat(tmpstr, " URL=\"\"");
             else
             {
@@ -3886,7 +3886,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         }
     }
 
-    if ((Expression1 == NULL) && (Expression2 == NULL) && (Expression3 == NULL))
+    if ((Expression1 == nullptr) && (Expression2 == nullptr) && (Expression3 == nullptr))
         strcat(tmpstr, " />\r\n");
     else
         strcat(tmpstr, ">\r\n");
@@ -3917,7 +3917,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         if (!only_calculate) output += tmp;
     }
 
-    if ((Expression1 != NULL) || (Expression2 != NULL) || (Expression3 != NULL))
+    if ((Expression1 != nullptr) || (Expression2 != nullptr) || (Expression3 != nullptr))
     {
         if (!only_calculate)
         {
@@ -3966,7 +3966,7 @@ char* CElement::XML_input(char* file, void* element_struct)
     do
     {
         file = mf->XML_read_attribute(attribute, value, file, 299);
-        if (file == NULL) return NULL;
+        if (file == nullptr) return nullptr;
         if (strcmp(attribute, "color") == 0) m_Color = atoi(value);
         if ((strcmp(attribute, "decor") == 0) && (element_struct))
         {
@@ -4114,7 +4114,7 @@ char* CElement::XML_input(char* file, void* element_struct)
             if (strcmp(attribute, "URL") == 0)
             {
                 Data1[0] = 'H';
-                *(char**)Data3 = NULL;
+                *(char**)Data3 = nullptr;
                 if (value[0])
                 {
                     *(char**)Data3 = (char*)malloc(300);
@@ -4135,30 +4135,30 @@ char* CElement::XML_input(char* file, void* element_struct)
     {
         Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
         file = ((CExpression*)(Expression1))->XML_input(file);
-        if (file == NULL)
+        if (file == nullptr)
         {
             delete ((CExpression*)(Expression1));
-            return NULL;
+            return nullptr;
         }
     }
     if (hasE2) //Expression2
     {
         Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
         file = ((CExpression*)(Expression2))->XML_input(file);
-        if (file == NULL)
+        if (file == nullptr)
         {
             delete ((CExpression*)(Expression2));
-            return NULL;
+            return nullptr;
         }
     }
     if (hasE3) //Expression3
     {
         Expression3 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
         file = ((CExpression*)(Expression3))->XML_input(file);
-        if (file == NULL)
+        if (file == nullptr)
         {
             delete ((CExpression*)(Expression3));
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -4249,7 +4249,7 @@ int MakeOutput(char** output, char* tabs, char only_calculate, char* text1)
 int MakeExpressionOutput(char** output, char** tabs, int num_tabs, char only_calculate, char output_type,
                          CObject* expression)
 {
-    if (expression == NULL) return 0;
+    if (expression == nullptr) return 0;
     if (((CExpression*)expression)->m_pElementList->Type == 0) return 0;
     int tt;
     if (output_type == 3)
@@ -4286,10 +4286,10 @@ int CElement::MathML_output(char * output, int num_tabs, char only_calculate, ch
 		//this is a bit complicated - variables and functions can have indexes and exponents
 		char is_pure_number=0;
 		char is_d=0;
-		CExpression *is_exp=NULL;
+		CExpression *is_exp=nullptr;
 
 		//preparation - determine the way it will be coded (if msub or munder must be used)
-		if ((m_Type==1) && (this->Expression1==NULL))
+		if ((m_Type==1) && (this->Expression1==nullptr))
 		{
 			double N;
 			int prec;
@@ -4882,7 +4882,7 @@ int CElement::LaTeX_output(char* output, char only_calculate)
                 if (fnt != 0x60)
                     OUTPUT("} ");
                 if (this->Expression1)
-                    if ((this->Expression2 == NULL) &&
+                    if ((this->Expression2 == nullptr) &&
                         (((CExpression*)this->Expression1)->m_pElementList->Type == 1) &&
                         (((CExpression*)this->Expression1)->m_DrawParentheses == 0) &&
                         (!is_squared_function))

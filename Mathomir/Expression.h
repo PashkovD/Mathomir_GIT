@@ -155,7 +155,7 @@ public:
     ~CExpression(void);
     void CalculateSize(CDC* DC, short int zoom, short int* length, short int* above, short int* below, char HQR = -1,
                        char optimize_for_readability = 0);
-    void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg = NULL, int color = 0);
+    void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg = nullptr, int color = 0);
     short GetActualFontSize(short zoom);
     int InsertEmptyElement(short position, short Type, char Operator, int color = -1);
     void SelectExpression(char Select);
@@ -224,7 +224,7 @@ public:
     int Autocomplete(int is_internal);
     tElementStruct* GetElementStruct(CElement* element);
     CElement* DecodeInternalInsertionPoint();
-    //returns NULL if no insertion point found, otherwise the element (type=1) with the insertion point
+    //returns nullptr if no insertion point found, otherwise the element (type=1) with the insertion point
     int ContainsBlinkingCursor();
     CExpression* GetLabel();
 
@@ -242,8 +242,8 @@ public:
     int FactorizeExpression(int force_factorization = 0);
     int ComputeRoot(int Position, char element_type, int ComputationType);
     int ExtractVariables(int StartPos, int EndPos, double order, int summand_no, tVariableList* VarList,
-                         CExpression* exponent = NULL, char style = 0);
-    int Polynomize(CExpression* variable, char* alternative_variable = NULL, char is_greek = 0);
+                         CExpression* exponent = nullptr, char style = 0);
+    int Polynomize(CExpression* variable, char* alternative_variable = nullptr, char is_greek = 0);
     int DividePolynome(CExpression* Q, int orderQ, CExpression* result, CExpression* variable);
     int ComputeFraction(int Position, char element_type, int ComputationType);
     int MultiplyElements(int StartPos, int EndPos, int inv, CExpression* Other, int StartPos22, int EndPos2, int inv2,
@@ -254,7 +254,7 @@ public:
     int PROFILERClear(void);
     int PROFILEREnd(void);
     int StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpression* Other, int StartPos2, int EndPos2,
-                               int inv2, tPureFactors* PureFactors = NULL, int UseDeepCalculation = 0);
+                               int inv2, tPureFactors* PureFactors = nullptr, int UseDeepCalculation = 0);
     int StrikeoutRemove(int StartPos, int EndPos, char test_value = 0);
     char GetDefaultElementType(int Level);
     static int InitCalculator(void); // can be called only once, before any symbolic-calculator function is used
@@ -263,7 +263,7 @@ public:
     int IsSuitableForComputation(int autocorrect = 0);
     int ComputeLog(int Position, char element_type, int ComputationType);
     int ContainsVariable(int StartPos, int EndPos, CExpression* variable, int VarPos, int VarLen,
-                         char* alternative_variable = NULL, char is_greek = 0);
+                         char* alternative_variable = nullptr, char is_greek = 0);
     int ExtractVariable(CExpression* variable, int VarPos, int VarLen, int ComputationLevel);
     int SynthetizeExpression(int Position, void* VarList, int summand_no);
     int ComputeMatrixDeterminant(int ComputationType);
@@ -280,13 +280,13 @@ public:
 
     int Derivate(CExpression* variable, int internall_call = 0);
 
-    void* PlotterPrepareVariablePositions(void* VarPos = NULL);
+    void* PlotterPrepareVariablePositions(void* VarPos = nullptr);
     double PlotterCalculateFunctionValue(double X, void* VarPos);
     int PlotterReleaseVariablePositions(void* VarPos);
     int PlotterGetEquationInfo(CExpression** variable, int* position, int* starting_point, char* equation_type);
     int SetColor(int color);
     int MakeSubstitution(CExpression* Substitute, CExpression* Variable);
-    void* GenerateVariableList(int StartPos, int EndPos, int* summand_no, tVariableList* VarList = NULL);
+    void* GenerateVariableList(int StartPos, int EndPos, int* summand_no, tVariableList* VarList = nullptr);
     void FreeVariableList(tVariableList* VarList);
     int FindReplace(int StartPos, int EndPos, CExpression* Find, CExpression* Replace);
     int SolveSystemOfEquations(CExpression* System[], int* NumEquations, CObject* ThePopupMenu);

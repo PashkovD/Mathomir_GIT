@@ -137,7 +137,7 @@ public:
     afx_msg void OnMovingdotPermanent();
     afx_msg void OnHelpQuickguide();
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-    int PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* drawing = NULL, int select = 0);
+    int PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* drawing = nullptr, int select = 0);
     afx_msg void OnEditAccesslockedobjects();
     afx_msg void OnGridFine();
     afx_msg void OnGridMedium();

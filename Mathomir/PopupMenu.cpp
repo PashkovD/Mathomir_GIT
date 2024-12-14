@@ -77,7 +77,7 @@ IMPLEMENT_DYNAMIC(PopupMenu, CWnd)
 
 PopupMenu::PopupMenu()
 {
-    m_Owner = NULL;
+    m_Owner = nullptr;
     /*int Popup_CursorX;
     int Popup_CursorY;
     unsigned char entry_box_first_call;
@@ -88,7 +88,7 @@ PopupMenu::PopupMenu()
     Popup_CursorX = Popup_CursorY = 0;
     entry_box_first_call = 0;
     PopupMenuSecondPassChoosing = 0;
-    ValueEntryBox = NULL;
+    ValueEntryBox = nullptr;
     ValueEntryBoxData = 0;
     ValueEntryBoxString[0] = 0;
 }
@@ -185,7 +185,7 @@ int YorderQSort(const void* first, const void* second)
     return 0;
 }
 
-CExpression* ExtractedSelection = NULL;
+CExpression* ExtractedSelection = nullptr;
 extern int RullerPositionPreselected;
 int DeletableGuidelineObject;
 extern CToolbox* Toolbox;
@@ -222,7 +222,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     }
     m_Owner = owner;
     m_OwnerType = OwnerType;
-    m_theSelectedElement = NULL;
+    m_theSelectedElement = nullptr;
     m_UserParam = UserParam;
 
     m_Expression = expression;
@@ -388,7 +388,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         {
             char* keycode;
             CExpression* graphics = Toolbox->ReturnKeycode(EasycastListStart, &keycode);
-            if (graphics == NULL) break;
+            if (graphics == nullptr) break;
             AddMenuOption(TSize_1p3, TSize, keycode, -802 - k, 0);
 
             CExpression* image = new CExpression(0, 0, 100);
@@ -446,18 +446,18 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
 
     //create/delete a helping expression that will store the selection (for symbolic-computation purposes)
-    if (ExtractedSelection == NULL) ExtractedSelection = new CExpression(NULL,NULL, 100);
+    if (ExtractedSelection == nullptr) ExtractedSelection = new CExpression(nullptr,nullptr, 100);
     ExtractedSelection->Delete();
 
 
-    if ((m_Expression == NULL) && (m_OwnerType == 2))
+    if ((m_Expression == nullptr) && (m_OwnerType == 2))
     {
         //the drawing popup menu
         //options: delete, line size, group, ungroup, node edit?, sizing, rotating, mirroring, 
         //         lock, unlock, arrange (left,center,right, top, center, ..)
 
         CDrawing* drw;
-        tDocumentStruct* dss = NULL;
+        tDocumentStruct* dss = nullptr;
         int NumDrawings = 0;
         int NumExpressions = 0;
         int Any_uncombineable = 0;
@@ -573,7 +573,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 0))
             {
                 char is_closed = 0;
-                int is_open = ((CDrawing*)(dss->Object))->IsOpenPath(0, &is_closed,NULL);
+                int is_open = ((CDrawing*)(dss->Object))->IsOpenPath(0, &is_closed,nullptr);
                 if ((is_open) || (is_closed) || (((CDrawing*)(dss->Object))->NumItems == 1))
                 {
                     AddMenuOption(TSize / 3, TSize_2p3 + TSize / 3, "dash-dash ", 591, 0);
@@ -652,7 +652,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "V. stretch +15% ", 531, 52, 0);
             AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "V. stretch +50% ", 532, 53, 1);
 
-            if ((NumDrawings > 1) || (dss == NULL) || (((CDrawing*)(dss->Object))->IsSpecialDrawing == 0))
+            if ((NumDrawings > 1) || (dss == nullptr) || (((CDrawing*)(dss->Object))->IsSpecialDrawing == 0))
             {
                 PopupOption_Y += TSize_1p20;
                 AddMenuOptionButton(1 * TSize / 3, "Horizontal mirror ", 535, 54, 0);
@@ -719,7 +719,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 }
             }
 
-            if ((dss == NULL) || (((CDrawing*)(dss->Object))->IsSpecialDrawing == 0))
+            if ((dss == nullptr) || (((CDrawing*)(dss->Object))->IsSpecialDrawing == 0))
             {
                 //AddCheckedMenuOption(TSize/3-TSize/5,2*TSize+TSize_1p2,"Edit nodes  ",drw->IsNodeEdit,550,1);
                 //if (drw->IsNodeEdit)
@@ -748,7 +748,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     int at_least_one_variable = 0;
     int add_even_chars = 0;
 
-    if (m_Expression == NULL)
+    if (m_Expression == nullptr)
     {
         //no selections - only EXIT will be available
         m_HaveCutDel = 0;
@@ -770,7 +770,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 if (theElement->Type == 1) at_least_one_variable = 1;
                 if (i < StartExtendedSelection) StartExtendedSelection = i;
                 if (i > EndExtendedSelection) EndExtendedSelection = i;
-                if (m_theSelectedElement == NULL) m_theSelectedElement = theElement;
+                if (m_theSelectedElement == nullptr) m_theSelectedElement = theElement;
                 if ((theElement->Type > 0) && (theElement->Type != 11) && (theElement->Type != 12) && (theElement->
                     pElementObject))
                 {
@@ -920,7 +920,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                              1);
     }
 
-    if (((m_MenuType == 2) || (m_MenuType == 6) || (add_even_chars)) && (m_theSelectedElement != NULL)) //the font menu
+    if (((m_MenuType == 2) || (m_MenuType == 6) || (add_even_chars)) && (m_theSelectedElement != nullptr)) //the font menu
     {
         PrepareFontMenu(PopupOption_Y);
     }
@@ -928,19 +928,19 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     {
         PrepareParenthesesMenu(PopupOption_Y);
     }
-    if ((m_MenuType == 3) && (m_theSelectedElement != NULL)) //the symbol height (sigma, pi, integral) menu
+    if ((m_MenuType == 3) && (m_theSelectedElement != nullptr)) //the symbol height (sigma, pi, integral) menu
     {
         PrepareSymbolMenu(PopupOption_Y);
     }
-    if ((m_MenuType == 5) && (m_theSelectedElement != NULL))
+    if ((m_MenuType == 5) && (m_theSelectedElement != nullptr))
     {
         PrepareConditionListMenu();
     }
-    if ((m_MenuType == 7) && (m_theSelectedElement != NULL))
+    if ((m_MenuType == 7) && (m_theSelectedElement != nullptr))
     {
         PopupOption_Y += TSize / 5; //separator
         AddMenuOption(0, 4 * TSize, "Hyperlink", 77, 1);
-        if ((*(char**)m_theSelectedElement->pElementObject->Data3) != NULL)
+        if ((*(char**)m_theSelectedElement->pElementObject->Data3) != nullptr)
             AddMenuOption(0, 4 * TSize, *(char**)m_theSelectedElement->pElementObject->Data3, -77, 1);
 
         //add list of all availabe internal links
@@ -1137,7 +1137,7 @@ popupmenu_end_showpopup:
                 }
                 SECURITY_ATTRIBUTES sa;
                 sa.bInheritHandle = FALSE;
-                sa.lpSecurityDescriptor = NULL;
+                sa.lpSecurityDescriptor = nullptr;
                 sa.nLength = sizeof(sa);
                 CalcThreadHandle = CreateThread(&sa, 0, CalcThread, (LPVOID)this, 0, &(CalcThreadID));
             }
@@ -1155,7 +1155,7 @@ popupmenu_end_showpopup:
     if (OwnerType == 10) ShowWindow(SW_SHOWNA);
     else ShowWindow(SW_SHOW);
 
-    InvalidateRect(NULL, 0);
+    InvalidateRect(nullptr, 0);
     UpdateWindow();
 
     if (m_OwnerType != 9)
@@ -1266,7 +1266,7 @@ int PopupMenu::PrepareParenthesesMenu(int y)
         m_ParenthesesSelected) && (theexp->m_pPaternalElement->m_Type == 5))
     {
         AddCheckedMenuOption(TSize / 3 - TSize / 6, TSize * 2, "Have index ",
-                             (theexp->m_pPaternalElement->Expression2 != NULL), 21, 1);
+                             (theexp->m_pPaternalElement->Expression2 != nullptr), 21, 1);
     }
 
     if (m_MenuType == 4) return y;
@@ -1290,7 +1290,7 @@ int PopupMenu::PrepareParenthesesMenu(int y)
         //if (m_Expression->m_MaxNumColumns==1) AddMenuOptionButton(6*TSize/3+TSize/8,"Inline spacing ",96,83,1);
     }
 
-    if (m_Expression->m_pPaternalExpression == NULL)
+    if (m_Expression->m_pPaternalExpression == nullptr)
     {
         AddCheckedMenuOption(TSize / 3 - TSize / 5, 2 * TSize, "Vertical orientation",
                              (m_Expression->m_IsVertical == 1), 93, 1);
@@ -1298,7 +1298,7 @@ int PopupMenu::PrepareParenthesesMenu(int y)
 
     if (haveParentheses)
         if (((m_Expression->m_pPaternalElement) && (m_Expression->m_pPaternalElement->m_Type != 5)) ||
-            (m_Expression->m_pPaternalExpression == NULL))
+            (m_Expression->m_pPaternalExpression == nullptr))
         {
             AddMenuOption(TSize / 3, 2 * TSize, "Expand outside", 94, 1);
         }
@@ -1315,7 +1315,7 @@ int PopupMenu::PrepareParenthesesMenu(int y)
 #pragma optimize("s",on)
 int PopupMenu::PrepareFontMenu(int y)
 {
-    if (m_theSelectedElement == NULL) return y;
+    if (m_theSelectedElement == nullptr) return y;
     int font = 0;
     int vmods = 0;
     if ((m_theSelectedElement->Type == 1) || (m_theSelectedElement->Type == 6))
@@ -1351,7 +1351,7 @@ int PopupMenu::PrepareFontMenu(int y)
 
     if ((m_OwnerType != 0) && (m_MenuType != 6))
     {
-        if ((m_theSelectedElement->Type == 1) && ((m_theSelectedElement->pElementObject == NULL) || (
+        if ((m_theSelectedElement->Type == 1) && ((m_theSelectedElement->pElementObject == nullptr) || (
             m_theSelectedElement->pElementObject->m_Text == 0))) //variable
         {
             PopupOption_Y += TSize_1p20; //separator
@@ -1359,7 +1359,7 @@ int PopupMenu::PrepareFontMenu(int y)
             char ch = m_theSelectedElement->pElementObject->Data1[0];
 
             AddCheckedMenuOptionButton(TSize / 3, "Has index ",
-                                       (m_theSelectedElement->pElementObject->Expression1 != NULL), 19, 11,
+                                       (m_theSelectedElement->pElementObject->Expression1 != nullptr), 19, 11,
                                        (ch < 'A') ? 1 : 0);
             if (ch >= 'A')
                 if ((m_theSelectedElement->pElementObject->m_VMods) != 0x10) //test if this is a measurement unit
@@ -1378,7 +1378,7 @@ int PopupMenu::PrepareFontMenu(int y)
             PopupOption_Y += TSize_1p20; //separator
             AddMenuOption(0, 5 * TSize_1p2, "Function:", -18, 1);
             AddCheckedMenuOptionButton(TSize / 3, "Has index ",
-                                       (m_theSelectedElement->pElementObject->Expression2 != NULL), 21, 11, 0);
+                                       (m_theSelectedElement->pElementObject->Expression2 != nullptr), 21, 11, 0);
             AddMenuOptionButton(TSize_2p3 + TSize / 6, "Convert to variable ", 22, 13, 1);
         }
     }
@@ -1530,7 +1530,7 @@ void PopupMenu::OnPaint()
     PaintThePopupMenu();
 }
 
-CObject* prevSelectedGraphicsObject = NULL;
+CObject* prevSelectedGraphicsObject = nullptr;
 CPoint prevCurPos;
 
 void PopupMenu::OnMouseMove(UINT nFlags, CPoint point)
@@ -1545,7 +1545,7 @@ void PopupMenu::OnMouseMove(UINT nFlags, CPoint point)
             ClientToScreen(&point);
             point.x -= (MovingMode - 1) % 20;
             point.y -= (MovingMode - 1) / 20;
-            SetWindowPos(NULL, point.x, point.y, 0, 0,SWP_NOZORDER | SWP_NOSIZE);
+            SetWindowPos(nullptr, point.x, point.y, 0, 0,SWP_NOZORDER | SWP_NOSIZE);
             return CWnd::OnMouseMove(nFlags, point);
         }
     }
@@ -1564,7 +1564,7 @@ void PopupMenu::OnMouseMove(UINT nFlags, CPoint point)
         return;
     prevCurPos = point;
 
-    CObject* SelectedGraphics = NULL;
+    CObject* SelectedGraphics = nullptr;
     POINT cursor;
     GetCursorPos(&cursor);
     POINT cursor2;
@@ -1579,10 +1579,10 @@ void PopupMenu::OnMouseMove(UINT nFlags, CPoint point)
     {
         if (cursor.y + 2 > desktop.bottom) m_IsFirstPass = 3;
         else m_IsFirstPass = 4;
-        InvalidateRect(NULL);
+        InvalidateRect(nullptr);
         UpdateWindow();
     }
-    SetCursor(::LoadCursor(NULL,IDC_ARROW));
+    SetCursor(::LoadCursor(nullptr,IDC_ARROW));
 
     if ((m_OwnerType == 9) || (m_OwnerType == 10))
         ReleaseCapture();
@@ -1981,7 +1981,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 dc->SelectObject(GetPenFromPool(3,1));
                 dc->MoveTo(2,2);dc->LineTo(wr.right-2,2);dc->LineTo(wr.right-2,wr.bottom-2);dc->LineTo(2,wr.bottom-2);dc->LineTo(2,2);
                 Sleep(50);
-                InvalidateRect(NULL,0);
+                InvalidateRect(nullptr,0);
                 UpdateWindow();*/
             }
 
@@ -2024,7 +2024,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 if ((KeyboardEntryObject) && (KeyboardEntryBaseObject))
                 {
                     if (ClipboardExpression) delete ClipboardExpression;
-                    ClipboardExpression = new CExpression(NULL,NULL, 100);
+                    ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                     ClipboardExpression->CopyExpression(this->Options[d].Graphics, 0, 0, 0);
                     CDC* DC = pMainView->GetDC();
                     ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, 0);
@@ -2049,11 +2049,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if ((ts->IsSelected) && (ts->Type == 9) && (ts->pElementObject))
                         {
                             CElement* elm = ts->pElementObject;
-                            if ((elm->Data1[0] == 'H') && (elm->Expression1) && (elm->Expression2 == NULL) && (elm->
-                                Expression3 == NULL)) //hyperlink element
+                            if ((elm->Data1[0] == 'H') && (elm->Expression1) && (elm->Expression2 == nullptr) && (elm->
+                                Expression3 == nullptr)) //hyperlink element
                             {
                                 CExpression* exp = (CExpression*)elm->Expression1;
-                                if (*((char**)elm->Data3) == NULL)
+                                if (*((char**)elm->Data3) == nullptr)
                                 {
                                     char* link = (char*)malloc(340);
                                     *((char**)elm->Data3) = link;
@@ -2108,7 +2108,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             }
             if ((dataval >= 820) && (dataval <= 822)) //adding a guideline at this position
             {
-                CExpression* e = new CExpression(NULL,NULL, 100);
+                CExpression* e = new CExpression(nullptr,nullptr, 100);
                 if (dataval == 820) AddDocumentObject(1, RullerPositionPreselected, -1101); //nomal guideline
                 else if (dataval == 821) AddDocumentObject(1, RullerPositionPreselected, -1051); //text guideline
                 else AddDocumentObject(1, RullerPositionPreselected, -1001); //text autowrap guideline
@@ -2504,8 +2504,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             //drawing and selection (options 500...599)
             if ((dataval >= 500) && (dataval < 599))
             {
-                CDrawing* tmpdrw = NULL;
-                tDocumentStruct* prevelement = NULL;
+                CDrawing* tmpdrw = nullptr;
+                tDocumentStruct* prevelement = nullptr;
                 int StartX, StartY;
                 int MaxX, MaxY;
                 int found = 0;
@@ -2550,7 +2550,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             tDrawingItem* di = drw->Items + drw->NumItems - 1;
                             di->LineWidth = DRWZOOM;
                             di->Type = 1;
-                            di->pSubdrawing = NULL;
+                            di->pSubdrawing = nullptr;
                             di->X1 = (minx + maxx) / 2 * DRWZOOM;
                             di->Y1 = (miny + maxy) / 2 * DRWZOOM;
                             di->X2 = di->X1;
@@ -2750,7 +2750,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             tDrawingItem *di=drw->Items+drw->NumItems-1;
                             di->LineWidth=DRWZOOM;
                             di->Type=1;
-                            di->pSubdrawing=NULL;
+                            di->pSubdrawing=nullptr;
                             di->X1=(minx+maxx)/2*DRWZOOM;
                             di->Y1=(miny+maxy)/2*DRWZOOM;
                             di->X2=(Popup_CursorX-ds->absolute_X)*DRWZOOM;
@@ -2793,7 +2793,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     di = drw->Items;
                                     di->LineWidth = (g % 5) ? (DRWZOOM / 2) : DRWZOOM;
                                     di->Type = 1;
-                                    di->pSubdrawing = NULL;
+                                    di->pSubdrawing = nullptr;
                                     di->X1 = (ii + cx) * DRWZOOM;
                                     di->Y1 = miny * DRWZOOM;
                                     di->X2 = (ii + cx) * DRWZOOM;
@@ -2805,7 +2805,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     di = drw->Items;
                                     di->LineWidth = (g % 5) ? (DRWZOOM / 2) : DRWZOOM;
                                     di->Type = 1;
-                                    di->pSubdrawing = NULL;
+                                    di->pSubdrawing = nullptr;
                                     di->X1 = (cx - ii) * DRWZOOM;
                                     di->Y1 = miny * DRWZOOM;
                                     di->X2 = (cx - ii) * DRWZOOM;
@@ -2823,7 +2823,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     di = drw->Items;
                                     di->LineWidth = (g % 5) ? (DRWZOOM / 2) : DRWZOOM;
                                     di->Type = 1;
-                                    di->pSubdrawing = NULL;
+                                    di->pSubdrawing = nullptr;
                                     di->X1 = minx * DRWZOOM;
                                     di->Y1 = (ii + cy) * DRWZOOM;
                                     di->X2 = maxx * DRWZOOM;
@@ -2835,7 +2835,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     di = drw->Items;
                                     di->LineWidth = (g % 5) ? (DRWZOOM / 2) : DRWZOOM;
                                     di->Type = 1;
-                                    di->pSubdrawing = NULL;
+                                    di->pSubdrawing = nullptr;
                                     di->X1 = minx * DRWZOOM;
                                     di->Y1 = (cy - ii) * DRWZOOM;
                                     di->X2 = maxx * DRWZOOM;
@@ -2898,7 +2898,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (data == 513) //break apart
                             {
                                 if (found == 0) ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("break apart", 20109);
-                                drw->BreakApart(NULL,NULL);
+                                drw->BreakApart(nullptr,nullptr);
                             }
                             if (data == 514) //combine
                             {
@@ -3091,7 +3091,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 {
                                     ValueEntryBox->DestroyWindow();
                                     delete ValueEntryBox;
-                                    ValueEntryBox = NULL;
+                                    ValueEntryBox = nullptr;
                                 }
                                 else if (found == 0)
                                 {
@@ -3261,7 +3261,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 {
                                     ValueEntryBox->DestroyWindow();
                                     delete ValueEntryBox;
-                                    ValueEntryBox = NULL;
+                                    ValueEntryBox = nullptr;
                                 }
                                 else if (found == 0)
                                 {
@@ -3351,7 +3351,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             int X = ds->absolute_X;
                             int Y = ds->absolute_Y;
                             if (ds->Type == 1) Y -= ds->Above;
-                            if (tmpdrw == NULL)
+                            if (tmpdrw == nullptr)
                             {
                                 StartX = X;
                                 StartY = Y;
@@ -3460,7 +3460,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if (ClipboardExpression)
                     {
                         ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("Paste", 20201);
-                        m_Expression->CopyAtPoint(NULL, ViewZoom, -1, -1, ClipboardExpression);
+                        m_Expression->CopyAtPoint(nullptr, ViewZoom, -1, -1, ClipboardExpression);
                         delete_clipboard_at_exit = 1;
                     }
                 }
@@ -3469,7 +3469,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if ((Options[m_SelectedOption].Data == 1) || (Options[m_SelectedOption].Data == 9))
                     {
                         //copies selection into clipboard
-                        ClipboardExpression = new CExpression(NULL,NULL, 100);
+                        ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                         ClipboardExpression->CopyExpression(m_Expression, 1);
                     }
 
@@ -3550,12 +3550,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if (m_Expression->m_MatrixRows)
                     {
                         HeapFree(ProcessHeap, 0, m_Expression->m_MatrixRows);
-                        m_Expression->m_MatrixRows = NULL;
+                        m_Expression->m_MatrixRows = nullptr;
                     }
                     if (m_Expression->m_MatrixColumns)
                     {
                         HeapFree(ProcessHeap, 0, m_Expression->m_MatrixColumns);
-                        m_Expression->m_MatrixColumns = NULL;
+                        m_Expression->m_MatrixColumns = nullptr;
                     }
                 }
                 if (kaka == 95) //condense outside
@@ -3685,7 +3685,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                 if (data == 77) //hyperlink definition
                 {
-                    if (*((char**)m_theSelectedElement->pElementObject->Data3) == NULL)
+                    if (*((char**)m_theSelectedElement->pElementObject->Data3) == nullptr)
                     {
                         char* link = (char*)malloc(340);
                         strcpy(link, "http://");
@@ -3707,11 +3707,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             }
                         }
                         url[len] = 0;
-                        if (len == 0) *((char**)m_theSelectedElement->pElementObject->Data3) = NULL;
+                        if (len == 0) *((char**)m_theSelectedElement->pElementObject->Data3) = nullptr;
 
                         ValueEntryBox->DestroyWindow();
                         delete ValueEntryBox;
-                        ValueEntryBox = NULL;
+                        ValueEntryBox = nullptr;
                     }
                     else
                     {
@@ -3754,8 +3754,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 //the "implanting paste" option
 
                 //first create a temporary storage expression
-                CExpression* tmpExpression = new CExpression(NULL,NULL, 100);
-                if (tmpExpression == NULL) return;
+                CExpression* tmpExpression = new CExpression(nullptr,nullptr, 100);
+                if (tmpExpression == nullptr) return;
 
                 //then copy current selection object into it
                 tmpExpression->CopyExpression(m_Expression, 1);
@@ -3780,8 +3780,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 if (ClipboardExpression)
                 {
                     delete ClipboardExpression;
-                    ClipboardExpression = NULL;
-                    Options[m_SelectedOption].Graphics = NULL;
+                    ClipboardExpression = nullptr;
+                    Options[m_SelectedOption].Graphics = nullptr;
                 }
                 delete tmpExpression;
             }
@@ -3792,7 +3792,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("computation", 20210);
                 if (ClipboardExpression) delete_clipboard_at_exit = 1;
 
-                if ((this->m_Expression == NULL) && (m_SelectedSuboption != 2))
+                if ((this->m_Expression == nullptr) && (m_SelectedSuboption != 2))
                 {
                     //handling for system of equations - there was a selected group of equations
 
@@ -3812,7 +3812,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     //NumDocumentElements++;
                     //pMainView->CheckDocumentMemoryReservations();
 
-                    CExpression* copy2 = new CExpression(NULL,NULL, DefaultFontSize);
+                    CExpression* copy2 = new CExpression(nullptr,nullptr, DefaultFontSize);
                     copy2->CopyExpression(Options[m_SelectedOption].Graphics, 0);
 
                     short l, a, b;
@@ -3880,9 +3880,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         CExpression* copy2;
                         int fs = ((CExpression*)(org_ds->Object))->m_FontSize;
                         //int fsh=((CExpression*)(org_ds->Object))->m_FontSizeHQ;
-                        if ((m_OwnerType != 3) || (KeyboardEntryBaseObject == NULL))
+                        if ((m_OwnerType != 3) || (KeyboardEntryBaseObject == nullptr))
                         {
-                            CExpression* copy = new CExpression(NULL,NULL, 100);
+                            CExpression* copy = new CExpression(nullptr,nullptr, 100);
                             copy->CopyExpression(parent, 0);
                             int ps = parent->m_ParentheseShape;
                             //int ph=parent->m_ParentheseHeightFactor;
@@ -3922,7 +3922,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                         Options[m_SelectedOption].Graphics->m_NumElements - 1);
                                 }
                             }
-                            copy2 = new CExpression(NULL,NULL, fs);
+                            copy2 = new CExpression(nullptr,nullptr, fs);
                             //copy2->m_FontSizeHQ=fsh;
                             copy2->CopyExpression(parent, 0);
                             parent->CopyExpression(copy, 0);
@@ -3945,7 +3945,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         else
                         {
                             //m_OwnerType==3 -> in keyboard entry mode when two times '?' was pressed
-                            copy2 = new CExpression(NULL,NULL, fs);
+                            copy2 = new CExpression(nullptr,nullptr, fs);
                             //copy2->m_FontSizeHQ=fsh;
                             copy2->CopyExpression(Options[m_SelectedOption].Graphics, 0);
 
@@ -4015,10 +4015,10 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if ((m_OwnerType == 3) && (KeyboardEntryObject))
                     {
                         ((CExpression*)KeyboardEntryObject)->KeyboardStop();
-                        KeyboardEntryObject = NULL;
-                        KeyboardEntryBaseObject = NULL;
+                        KeyboardEntryObject = nullptr;
+                        KeyboardEntryBaseObject = nullptr;
                     }
-                    if (ClipboardExpression == NULL) ClipboardExpression = new CExpression(NULL,NULL, 100);
+                    if (ClipboardExpression == nullptr) ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                     ClipboardExpression->CopyExpression(Options[m_SelectedOption].Graphics, 0);
                     delete_clipboard_at_exit = 0;
                 }
@@ -4148,7 +4148,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index remove", 20213);
                         delete ((CExpression*)(m_theSelectedElement->pElementObject->Expression1));
-                        m_theSelectedElement->pElementObject->Expression1 = NULL;
+                        m_theSelectedElement->pElementObject->Expression1 = nullptr;
                     }
                     else
                     {
@@ -4202,7 +4202,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             {
                                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index remove", 20213);
                                 delete ((CExpression*)(tmpExpression->m_pPaternalElement->Expression2));
-                                tmpExpression->m_pPaternalElement->Expression2 = NULL;
+                                tmpExpression->m_pPaternalElement->Expression2 = nullptr;
                             }
                             else
                             {
@@ -4222,7 +4222,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index remove", 20213);
                             delete ((CExpression*)(m_theSelectedElement->pElementObject->Expression2));
-                            m_theSelectedElement->pElementObject->Expression2 = NULL;
+                            m_theSelectedElement->pElementObject->Expression2 = nullptr;
                         }
                         else
                         {
@@ -4367,7 +4367,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         m_NumOptions=ii;
                         PrepareFontMenu(y);
                         m_NumOptions=tmp;
-                        InvalidateRect(NULL,0);
+                        InvalidateRect(nullptr,0);
                         UpdateWindow();
                         Sleep(200);
                         break;
@@ -4447,7 +4447,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     delete_clipboard_at_exit = 0;
                     if (ClipboardExpression) delete ClipboardExpression;
-                    ClipboardExpression = new CExpression(NULL,NULL, 100);
+                    ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                     ClipboardExpression->CopyExpression(m_Expression, 0);
                 }
             }
@@ -4470,7 +4470,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if (ClipboardExpression)
                     {
                         delete ClipboardExpression;
-                        ClipboardExpression = NULL;
+                        ClipboardExpression = nullptr;
                     }
             }
         }
@@ -4496,7 +4496,7 @@ int PopupMenu::UncheckOptions(int from, int to)
 int PopupMenu::HidePopupMenu(void)
 {
     //exiting popup menu
-    if ((IsWindowVisible()) && (m_Owner != NULL))
+    if ((IsWindowVisible()) && (m_Owner != nullptr))
     {
         if (m_OwnerType == 1) //the main view
         {
@@ -4661,7 +4661,7 @@ void PopupMenu::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     if (found >= 0)
     {
         m_SelectedOption = found;
-        if ((Options[found].Graphics == NULL) || (Options[found].IsGraphicsSensitive)) m_SelectedSuboption = 0;
+        if ((Options[found].Graphics == nullptr) || (Options[found].IsGraphicsSensitive)) m_SelectedSuboption = 0;
         for (int i = 0; i < m_NumOptions; i++)
             if (Options[i].Graphics)
                 ((CExpression*)Options[i].Graphics)->SelectExpression(
@@ -4700,7 +4700,7 @@ BOOL PopupMenu::OnCommand(WPARAM wParam, LPARAM lParam)
 //it returns Operator Level
 int PopupMenu::ExtractSelection(int StartPos, int EndPos, int* StartSel, int* EndSel)
 {
-    if (ExtractedSelection == NULL) return -1;
+    if (ExtractedSelection == nullptr) return -1;
     if (*EndSel < *StartSel) return -1;
 
     if (*EndSel == *StartSel)
@@ -4779,7 +4779,7 @@ int PopupMenu::SymbolicComputation(void)
 
     //The following section is abut solving systems of equations
     //It generates a list of expression and gives it to SolveSystemOfEquations method
-    if ((ExtractedSelection == NULL) || (ExtractedSelection->m_pElementList->Type == 0))
+    if ((ExtractedSelection == nullptr) || (ExtractedSelection->m_pElementList->Type == 0))
     {
         //create an array of expressions
         CExpression* System[24];
@@ -4802,7 +4802,7 @@ int PopupMenu::SymbolicComputation(void)
                 if (lvl > EqLevel)
                 {
                     //for expression of higher-than equation level, include directly
-                    System[NumEquations] = new CExpression(NULL,NULL, 100);
+                    System[NumEquations] = new CExpression(nullptr,nullptr, 100);
                     System[NumEquations]->CopyExpression((CExpression*)TheDocument[i].Object, 0);
                     NumEquations++;
                     if (NumEquations > 16) break; //current limit is 16
@@ -4832,7 +4832,7 @@ int PopupMenu::SymbolicComputation(void)
                                 if (l2 == 0) break;
                                 if (pos2 > pos + p)
                                 {
-                                    System[NumEquations] = new CExpression(NULL,NULL, 100);
+                                    System[NumEquations] = new CExpression(nullptr,nullptr, 100);
                                     for (int kk = ppos; kk < pos2; kk++)
                                         System[NumEquations]->InsertElement(
                                             tmp->m_pElementList + kk, System[NumEquations]->m_NumElements);
@@ -4867,7 +4867,7 @@ int PopupMenu::SymbolicComputation(void)
         PopupMenu_AddMathHeader = 6;
         if (NumEquations <= 16) //we don't even try for large systems (too dangerous)
         {
-            CExpression* solution = new CExpression(NULL,NULL, 100); //create an dummy object
+            CExpression* solution = new CExpression(nullptr,nullptr, 100); //create an dummy object
             solution->SolveSystemOfEquations(System, &NumEquations, this);
             delete solution;
         }
@@ -4889,9 +4889,9 @@ int PopupMenu::SymbolicComputation(void)
         while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
         if (parent->IsSuitableForComputation() == 0) return 0;
 
-        CExpression* Base = new CExpression(NULL,NULL, 100);
+        CExpression* Base = new CExpression(nullptr,nullptr, 100);
         Base->CopyExpression(parent, 0);
-        CExpression* tmp_clipboard = new CExpression(NULL,NULL, 100);
+        CExpression* tmp_clipboard = new CExpression(nullptr,nullptr, 100);
         tmp_clipboard->CopyExpression(ClipboardExpression, 0);
 
         if (tmp_clipboard->m_pElementList->Type == 2)
@@ -4950,7 +4950,7 @@ int PopupMenu::SymbolicComputation(void)
     if (!is_suitable)
     {
         //try with auto-correction
-        CExpression* tmp = new CExpression(NULL,NULL, 100);
+        CExpression* tmp = new CExpression(nullptr,nullptr, 100);
         tmp->CopyExpression(ExtractedSelection, 0);
         tmp->m_ParentheseShape = ExtractedSelection->m_ParentheseShape;
         tmp->m_ParenthesesFlags = ExtractedSelection->m_ParenthesesFlags;
@@ -5013,7 +5013,7 @@ int PopupMenu::SymbolicComputation(void)
             int prec_increase = 2;
             while (prec + prec_increase < 14)
             {
-                CExpression* E1 = new CExpression(NULL,NULL, 100);
+                CExpression* E1 = new CExpression(nullptr,nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
                                         (fabs(N - (long long)N) < 1e-100) ? 1 : 0, prec + prec_increase, 0);
                 int last = E1->m_NumElements - 1;
@@ -5042,7 +5042,7 @@ int PopupMenu::SymbolicComputation(void)
             }
             if ((prec > 0) && (fabs(N) > pow((double)10, (double)(-prec + 1))))
             {
-                CExpression* E1 = new CExpression(NULL,NULL, 100);
+                CExpression* E1 = new CExpression(nullptr,nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
                                         (fabs(N - (long long)N) < 1e-100) ? 1 : 0, prec - 1, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
@@ -5050,7 +5050,7 @@ int PopupMenu::SymbolicComputation(void)
             }
             if ((prec > 1) && (fabs(N) > pow((double)10, (double)(-prec + 2))))
             {
-                CExpression* E1 = new CExpression(NULL,NULL, 100);
+                CExpression* E1 = new CExpression(nullptr,nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
                                         (fabs(N - (long long)N) < 1e-100) ? 1 : 0, prec - 2, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
@@ -5059,7 +5059,7 @@ int PopupMenu::SymbolicComputation(void)
             if (((fabs(N) >= 10000.0) || (fabs(N) < 0.001)) && (this->LevelExtendedSelection <= MulLevel))
             {
                 //expressing numbers in scientific form
-                CExpression* E1 = new CExpression(NULL,NULL, 100);
+                CExpression* E1 = new CExpression(nullptr,nullptr, 100);
                 int exp = (int)log10(fabs(N));
                 if (fabs(N) < 1.0) exp--;
                 double re = N / pow((double)10, (double)exp);
@@ -5121,7 +5121,7 @@ int PopupMenu::SymbolicComputation(void)
                         N = -N;
                     }
                     long long n = (long long)(N + 0.01);
-                    CExpression* result = new CExpression(NULL,NULL, 100);
+                    CExpression* result = new CExpression(nullptr,nullptr, 100);
 
                     long long z = 2;
                     do
@@ -5181,7 +5181,7 @@ int PopupMenu::SymbolicComputation(void)
             CExpression* parent = m_Expression;
             while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
 
-            CExpression* tmp = new CExpression(NULL,NULL, 100);
+            CExpression* tmp = new CExpression(nullptr,nullptr, 100);
             tmp->CopyExpression(parent, 0);
 
             int cnt = 0;
@@ -5202,7 +5202,7 @@ int PopupMenu::SymbolicComputation(void)
                     }
                     if ((ret == 4) && (prev_ret != ret))
                     {
-                        CExpression* tmp2 = new CExpression(NULL,NULL, 100);
+                        CExpression* tmp2 = new CExpression(nullptr,nullptr, 100);
                         tmp2->CopyExpression(tmp, 0);
                         AddMathMenuOption(tmp2, parent);
                     }
@@ -5225,7 +5225,7 @@ int PopupMenu::SymbolicComputation(void)
             //polynomization
             PopupMenu_AddMathHeader = 4;
 
-            CExpression* tmp2 = new CExpression(NULL,NULL, 100);
+            CExpression* tmp2 = new CExpression(nullptr,nullptr, 100);
             parent = m_Expression;
             tmp2->CopyExpression(m_Expression, 0);
 
@@ -5270,7 +5270,7 @@ int PopupMenu::SymbolicComputation(void)
 
     for (int i = -1; i < 4; i++)
     {
-        CExpression* E1 = new CExpression(NULL,NULL, 100);
+        CExpression* E1 = new CExpression(nullptr,nullptr, 100);
         E1->CopyExpression(ExtractedSelection, 0);
         E1->m_ParenthesesFlags = ExtractedSelection->m_ParenthesesFlags;
         E1->PROFILERClear();
@@ -5370,10 +5370,10 @@ int PopupMenu::SymbolicComputation(void)
                 PF.N1 = PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                CExpression* ex1 = new CExpression(NULL,NULL, 100);
+                CExpression* ex1 = new CExpression(nullptr,nullptr, 100);
                 for (int i = pos + p; i < pos + l; i++)
                     ex1->InsertElement(ExtractedSelection->m_pElementList + i, ex1->m_NumElements);
-                if (ex1->StrikeoutCommonFactors(0, ex1->m_NumElements - 1, 1,NULL, 0, 0, 1, &PF))
+                if (ex1->StrikeoutCommonFactors(0, ex1->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF))
                 {
                     number++;
                     sum += PF.N1 / PF.N2;
@@ -5390,12 +5390,12 @@ int PopupMenu::SymbolicComputation(void)
             if (is_numbers)
             {
                 PopupMenu_AddMathHeader = 7;
-                CExpression* E1 = new CExpression(NULL,NULL, 100);
+                CExpression* E1 = new CExpression(nullptr,nullptr, 100);
                 E1->GenerateASCIINumber(sum, (long long)sum, 0, precision, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
 
                 PopupMenu_AddMathHeader = 8;
-                E1 = new CExpression(NULL,NULL, 100);
+                E1 = new CExpression(nullptr,nullptr, 100);
                 sum = sum / (double)number;
                 E1->GenerateASCIINumber(sum, (long long)sum, 0, precision, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
@@ -5421,7 +5421,7 @@ int PopupMenu::AddMathMenuOption(CExpression* E1, CExpression* original)
     int S1 = E1->CalcChecksum();
     if (m_Expression)
     {
-        if (original == NULL) original = ExtractedSelection;
+        if (original == nullptr) original = ExtractedSelection;
         int S0 = original->CalcChecksum();
         if (S1 == S0)
         {
@@ -5550,7 +5550,7 @@ int PopupMenu::AddMathMenuOption(CExpression* E1, CExpression* original)
 
 
     m_IsFirstPass = 2;
-    InvalidateRect(NULL, 0);
+    InvalidateRect(nullptr, 0);
     UpdateWindow();
     if ((m_OwnerType == 3) && (m_UserParam == 0) && (m_SelectedOption == -1))
     {

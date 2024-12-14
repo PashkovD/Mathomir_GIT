@@ -34,26 +34,26 @@
 
 // Thanks to Ilya O. Levin (whoever you are, thanks!)
 //Linear Feedback Shift Registers
-#define LFSR(n)    {if (n&1) n=((n^0x80000055)>>1)|0x80000000; else n>>=1;}
+#define LFSR(n)    {if ((n)&1) (n)=(((n)^0x80000055)>>1)|0x80000000; else (n)>>=1;}
 
 //Rotate32
-#define ROT(x, y)  (x=(x<<y)|(x>>(32-y)))
+#define ROT(x, y)  ((x)=((x)<<(y))|((x)>>(32-(y))))
 
 #ifdef TEACHER_VERSION
 class CDiffieHellman
 {
 public:
-    CDiffieHellman(void);
-    ~CDiffieHellman(void);
-    void DerivePublicKey(char* password, __int64* N, __int64* X);
-    void CreateDecryptionKey(__int64 Y, __int64 N, __int64* Key);
-    void CreateEncryptionKey(__int64 N, __int64 X, __int64* Key, __int64* Y);
+    CDiffieHellman();
+    ~CDiffieHellman();
+    void DerivePublicKey(char* password, int64_t* N, int64_t* X);
+    void CreateDecryptionKey(int64_t Y, int64_t N, int64_t* Key);
+    void CreateEncryptionKey(int64_t N, int64_t X, int64_t* Key, int64_t* Y);
 
 private:
-    __int64 XpowYmodN(__int64 x, __int64 y, __int64 N);
-    unsigned __int64 GenerateRandomNumber(void);
-    unsigned __int64 GeneratePrime();
-    bool MillerRabin(__int64 n);
-    __int64 a;
+    int64_t XpowYmodN(int64_t x, int64_t y, int64_t N);
+    uint64_t GenerateRandomNumber();
+    uint64_t GeneratePrime();
+    bool MillerRabin(int64_t n);
+    int64_t a;
 };
 #endif

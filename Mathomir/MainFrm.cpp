@@ -102,7 +102,7 @@ CMainFrame::CMainFrame()
         HSolidLineBlack[i] = CreatePen(PS_SOLID, 1 + i,RGB(0, 0, 0));
         HSolidLineBlue[i] = CreatePen(PS_SOLID, 1 + i,BLUE_COLOR);
     }
-    HOtherLine = NULL;
+    HOtherLine = nullptr;
 }
 
 extern CBitmap* GentlyPaintBitmap;
@@ -127,7 +127,7 @@ CMainFrame::~CMainFrame()
     if (ClipboardExpression)
     {
         delete ClipboardExpression;
-        ClipboardExpression = NULL;
+        ClipboardExpression = nullptr;
     }
     UndoRelease(1); //release undo memory
     if (SpacingBitmap) delete SpacingBitmap;
@@ -333,7 +333,7 @@ HFONT GetFontFromPool(char combination, unsigned short Size)
         0, //Pitch and Family
         FontFacenames[Face]); //facename
 
-    if (theFont == NULL) return (HFONT)GetStockObject(SYSTEM_FONT);
+    if (theFont == nullptr) return (HFONT)GetStockObject(SYSTEM_FONT);
 
     //store the font to the font pool (if there is no space, delete one)
     if (NumFontsInPool < MAX_NUM_FONTS)
@@ -373,7 +373,7 @@ HPEN GetPenFromPool(short width, char IsBlue, int color)
 
     {
         int new_color = (IsBlue) ? BLUE_COLOR : color;
-        if ((LastWidth != width) || (LastColor != new_color) || (HOtherLine == NULL))
+        if ((LastWidth != width) || (LastColor != new_color) || (HOtherLine == nullptr))
         {
             if (HOtherLine) DeleteObject(HOtherLine);
             HOtherLine = CreatePen((width > 0) ? PS_SOLID : PS_DOT,max(width, 1), new_color);
@@ -382,7 +382,7 @@ HPEN GetPenFromPool(short width, char IsBlue, int color)
         }
         return HOtherLine;
     }
-    return NULL;
+    return nullptr;
 }
 
 extern int Reenable;
@@ -478,7 +478,7 @@ void CMainFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
             }
 
         CMathomirDoc* pDoc = pMainView->GetDocument();
-        if (pDoc->OpenMOMFile(NULL)) //this makes paste from clipboard
+        if (pDoc->OpenMOMFile(nullptr)) //this makes paste from clipboard
         {
             if (TheKeyboardClipboard)
             {
@@ -649,7 +649,7 @@ int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked)
 // copied into using StretchBlt - it is posible to generate halftones this way
 // Used for the 'presentation mode rendering' - should work fast!
 //***********************************************************************************
-CBitmap* MyBitmap = NULL;
+CBitmap* MyBitmap = nullptr;
 CDC* MyDC;
 int MyBitmapWidth = 0;
 int MyBitmapAbove = 0;
@@ -663,7 +663,7 @@ int MyBitmapIsNew = 0;
 int CMainFrame::StartMyPainting(CDC* DC, int width, int above, int below, int color)
 {
     MyColor = color;
-    if ((MyBitmap == NULL) || (DC != MyOldDC) || (width > MyBitmapReservedWidth) || (above + below >
+    if ((MyBitmap == nullptr) || (DC != MyOldDC) || (width > MyBitmapReservedWidth) || (above + below >
         MyBitmapReservedHeight))
     {
         //creates new memory bitmap if the requested bitmap is larger than alredy existing one
@@ -717,13 +717,13 @@ int CMainFrame::ReleaseMyPainting(void)
     {
         MyDC->DeleteDC();
         delete MyDC;
-        MyDC = NULL;
+        MyDC = nullptr;
     }
     if (MyBitmap)
     {
         MyBitmap->DeleteObject();
         delete MyBitmap;
-        MyBitmap = NULL;
+        MyBitmap = nullptr;
     }
     return 0;
 }
@@ -928,7 +928,7 @@ int CMainFrame::ClearDocument(void)
     if (PublicKey) free(PublicKey);
     TheTimeLimit = 0;
     TheMathFlags = 0;
-    PublicKey = NULL;
+    PublicKey = nullptr;
 #endif
     TheFileType = 0;
     return 0;
@@ -971,25 +971,25 @@ int AddDocumentObject(int type, int X, int Y)
             NumDocumentElementsReserved += 20;
             TheDocument = (tDocumentStruct*)realloc(TheDocument, NumDocumentElementsReserved * sizeof(tDocumentStruct));
 
-            if (x1 < 0) prevTouchedObject = NULL;
+            if (x1 < 0) prevTouchedObject = nullptr;
             else prevTouchedObject = TheDocument + x1;
-            if (x2 < 0) SelectedDocumentObject = NULL;
+            if (x2 < 0) SelectedDocumentObject = nullptr;
             else SelectedDocumentObject = TheDocument + x2;
-            if (x3 < 0) SelectedDocumentObject2 = NULL;
+            if (x3 < 0) SelectedDocumentObject2 = nullptr;
             else SelectedDocumentObject2 = TheDocument + x3;
-            if (x4 < 0) SpecialDrawingHover = NULL;
+            if (x4 < 0) SpecialDrawingHover = nullptr;
             else SpecialDrawingHover = TheDocument + x4;
-            if (x5 < 0) prevSpecialDrawingHover = NULL;
+            if (x5 < 0) prevSpecialDrawingHover = nullptr;
             else prevSpecialDrawingHover = TheDocument + x5;
-            if (x6 < 0) KeyboardEntryBaseObject = NULL;
+            if (x6 < 0) KeyboardEntryBaseObject = nullptr;
             else KeyboardEntryBaseObject = TheDocument + x6;
-            LongClickObject = NULL;
-            //if (SpecialDrawingHover) SpecialDrawingHover=NULL;
-            //if (prevSpecialDrawingHover) prevSpecialDrawingHover=NULL;
+            LongClickObject = nullptr;
+            //if (SpecialDrawingHover) SpecialDrawingHover=nullptr;
+            //if (prevSpecialDrawingHover) prevSpecialDrawingHover=nullptr;
         }
-        if (TheDocument == NULL)
+        if (TheDocument == nullptr)
         {
-            AfxMessageBox("Cannot reserve memory for the Document",MB_OK | MB_ICONWARNING,NULL);
+            AfxMessageBox("Cannot reserve memory for the Document",MB_OK | MB_ICONWARNING,nullptr);
             return 0;
         }
     }
@@ -997,7 +997,7 @@ int AddDocumentObject(int type, int X, int Y)
     TheDocument[NumDocumentElements].absolute_Y = Y;
     TheDocument[NumDocumentElements].Type = type;
     TheDocument[NumDocumentElements].MovingDotState = 0;
-    TheDocument[NumDocumentElements].Object = NULL;
+    TheDocument[NumDocumentElements].Object = nullptr;
     TheDocument[NumDocumentElements].Above = 0;
     TheDocument[NumDocumentElements].Below = 0;
     TheDocument[NumDocumentElements].Length = 0;
@@ -1018,7 +1018,7 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
 
     if (ViewOnlyMode == 2)
     {
-        SetMenu(NULL);
+        SetMenu(nullptr);
         return 0;
     }
 
@@ -1038,7 +1038,7 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
         if (LanguagePointers[ID_VIEW_ZOOMTO1] != 0xFFFF) F1Text = LanguageStrings + LanguagePointers[ID_VIEW_ZOOMTO1];
     }
 
-    if (theMenu == NULL) return 0;
+    if (theMenu == nullptr) return 0;
 
     if ((LanguageStrings) && (!MenuTranslated))
     {
@@ -1410,7 +1410,7 @@ int CMainFrame::UndoInit(void)
             }
         }
         free(pUndoObjectList);
-        pUndoObjectList = NULL;
+        pUndoObjectList = nullptr;
     }
 
     UndoNumObjects = 0;
@@ -1524,9 +1524,9 @@ int CMainFrame::UndoSave(char* text, int unique_ID)
 
     //store the main document structure
     UndoStruct[UndoNumLevels].data = malloc(NumDocumentElements * sizeof(tDocumentStruct));
-    if (UndoStruct[UndoNumLevels].data == NULL)
+    if (UndoStruct[UndoNumLevels].data == nullptr)
     {
-        AfxMessageBox("Cannot reserve undo memory [3]",MB_OK | MB_ICONWARNING,NULL);
+        AfxMessageBox("Cannot reserve undo memory [3]",MB_OK | MB_ICONWARNING,nullptr);
         return 0;
     }
     memcpy(UndoStruct[UndoNumLevels].data, TheDocument, NumDocumentElements * sizeof(tDocumentStruct));
@@ -1551,9 +1551,9 @@ int CMainFrame::UndoSave(char* text, int unique_ID)
                 UndoNumObjectsReserved += 50;
                 pUndoObjectList = (tUndoObjectStruct*)realloc(pUndoObjectList,
                                                               UndoNumObjectsReserved * sizeof(tUndoObjectStruct));
-                if (pUndoObjectList == NULL)
+                if (pUndoObjectList == nullptr)
                 {
-                    AfxMessageBox("Cannot reserve Undo memory",MB_OK | MB_ICONWARNING,NULL);
+                    AfxMessageBox("Cannot reserve Undo memory",MB_OK | MB_ICONWARNING,nullptr);
                     return 0;
                 }
                 us = pUndoObjectList + UndoNumObjects;
@@ -1561,7 +1561,7 @@ int CMainFrame::UndoSave(char* text, int unique_ID)
             if (ds->Type == 1)
             {
                 us->Checksum = ((CExpression*)(ds->Object))->CalcChecksum();
-                us->pObject = (CObject*)new CExpression(NULL,NULL, ((CExpression*)(ds->Object))->m_FontSize);
+                us->pObject = (CObject*)new CExpression(nullptr,nullptr, ((CExpression*)(ds->Object))->m_FontSize);
                 ((CExpression*)(us->pObject))->CopyExpression((CExpression*)ds->Object, 2);
             }
             else if (ds->Type == 2)
@@ -1610,13 +1610,13 @@ int CMainFrame::UndoRestore()
 {
     if (UndoNumLevels == 0) return 0; //nothing to restore		
 
-    tmpDrawing = NULL;
-    tmpDrawing2 = NULL;
-    SelectedDocumentObject = NULL;
-    SelectedDocumentObject2 = NULL;
-    prevTouchedObject = NULL;
-    SpecialDrawingHover = NULL;
-    prevSpecialDrawingHover = NULL;
+    tmpDrawing = nullptr;
+    tmpDrawing2 = nullptr;
+    SelectedDocumentObject = nullptr;
+    SelectedDocumentObject2 = nullptr;
+    prevTouchedObject = nullptr;
+    SpecialDrawingHover = nullptr;
+    prevSpecialDrawingHover = nullptr;
 
 
     int i;
@@ -1655,7 +1655,7 @@ int CMainFrame::UndoRestore()
                 //so we will delete and latter recreate.
                 //((CExpression*)(TheDocument[i].Object))->Delete(); //MOD - removed (redundant)
                 delete ((CExpression*)(TheDocument[i].Object));
-                TheDocument[i].Object = NULL;
+                TheDocument[i].Object = nullptr;
             }
         }
 
@@ -1683,7 +1683,7 @@ int CMainFrame::UndoRestore()
                 //so we will delete and latter recreate.
                 //((CDrawing*)(TheDocument[i].Object))->Delete(); //MOD - removed (redundant)
                 delete ((CDrawing*)(TheDocument[i].Object));
-                TheDocument[i].Object = NULL;
+                TheDocument[i].Object = nullptr;
             }
         }
     }
@@ -1693,10 +1693,10 @@ int CMainFrame::UndoRestore()
     int oldDocNumElements = NumDocumentElements;
 
     TheDocument = (tDocumentStruct*)malloc(UndoStruct[UndoNumLevels - 1].NumElements * sizeof(tDocumentStruct));
-    if (TheDocument == NULL)
+    if (TheDocument == nullptr)
     {
         NumDocumentElementsReserved = NumDocumentElements = 0;
-        AfxMessageBox("Cannot reserve document memory [undo]",MB_OK | MB_ICONWARNING,NULL);
+        AfxMessageBox("Cannot reserve document memory [undo]",MB_OK | MB_ICONWARNING,nullptr);
         free(oldDoc);
         return 0;
     }
@@ -1735,7 +1735,7 @@ int CMainFrame::UndoRestore()
                     if (pUndoObjectList[j].Type == 1)
                     {
                         TheDocument[i].Object = (CObject*)new CExpression(
-                            NULL,NULL, ((CExpression*)(pUndoObjectList[j].pObject))->m_FontSize);
+                            nullptr,nullptr, ((CExpression*)(pUndoObjectList[j].pObject))->m_FontSize);
                         ((CExpression*)(TheDocument[i].Object))->CopyExpression(
                             (CExpression*)(pUndoObjectList[j].pObject), 2);
                     }
@@ -1749,7 +1749,7 @@ int CMainFrame::UndoRestore()
             else
             {
                 //this should never happened - the object was not found in our history list
-                AfxMessageBox("Error during Undo operation",MB_OK | MB_ICONWARNING,NULL);
+                AfxMessageBox("Error during Undo operation",MB_OK | MB_ICONWARNING,nullptr);
                 //DeleteDocumentObject(&TheDocument[i]);
                 free(oldDoc);
                 return 0;
@@ -1796,7 +1796,7 @@ int CMainFrame::UndoRestore()
             UndoNumObjects--;
         }
     }
-    SpecialDrawingHover = NULL; //othwervise crashes because its address is changed
+    SpecialDrawingHover = nullptr; //othwervise crashes because its address is changed
 
     AdjustMenu();
     return 0;
@@ -1835,7 +1835,7 @@ char* CMainFrame::XML_search(char* text, char* file)
         }
         file++;
     }
-    return NULL;
+    return nullptr;
 }
 
 //parses the XML file and reads the next attribute-value pair
@@ -1866,8 +1866,8 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
                 tmp[0] = *(file + 1);
                 tmp[1] = *(file + 2);
                 tmp[2] = 0;
-                if (tmp[0] == 0) return NULL;
-                if (tmp[1] == 0) return NULL;
+                if (tmp[0] == 0) return nullptr;
+                if (tmp[1] == 0) return nullptr;
                 int tt = 0;
                 sscanf(tmp, "%X", &tt);
                 ch = (char)tt;
@@ -1895,7 +1895,7 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
         file++;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 //rearanges object positions - objects are pushed to down by moving one single object
@@ -2032,7 +2032,7 @@ void DisplayShortText(std::string text, int x, int y, int langID, int flags)
     {
         StaticMessageWindow = new CEdit();
         StaticMessageWindow->Create(WS_CHILD | WS_VISIBLE, CRect(10, 10, 150, 50), pMainView, 123);
-        //StaticMessageWindow->CreateEx(0,"edit","text",WS_POPUP,5,5,10,10,pMainView->m_hWnd,NULL,0);
+        //StaticMessageWindow->CreateEx(0,"edit","text",WS_POPUP,5,5,10,10,pMainView->m_hWnd,nullptr,0);
     }
 
     int fsize = 15;
@@ -2123,7 +2123,7 @@ void DisplayShortText(std::string text, int x, int y, int langID, int flags)
         x = r.right - g.cx - 10;
     }
     if (x < -2) x = -2;
-    StaticMessageWindow->SetWindowPos(NULL, x, y, g.cx + fsize / 2, ysize,SWP_NOZORDER);
+    StaticMessageWindow->SetWindowPos(nullptr, x, y, g.cx + fsize / 2, ysize,SWP_NOZORDER);
     StaticMessageWindow->ShowWindow(SW_SHOW);
     StaticMessageWindow->UpdateWindow();
     StaticMessageWindowCntr = 2 + (int)buff.size() / 15;
@@ -2240,7 +2240,7 @@ int ExecuteLink(char* command)
     }
     else
     {
-        ShellExecute(NULL,NULL, (LPCSTR)command,NULL,NULL,SW_SHOWNORMAL);
+        ShellExecute(nullptr,nullptr, (LPCSTR)command,nullptr,nullptr,SW_SHOWNORMAL);
     }
 
     return 0;

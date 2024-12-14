@@ -141,7 +141,7 @@ const unsigned int ColorTable[] =
 
 int ToolboxSize = 60; //the width of the toolbox window (zero if not shown)
 int BaseToolboxSize;
-CToolbox* Toolbox = NULL; //toolbox object
+CToolbox* Toolbox = nullptr; //toolbox object
 CSingleDocTemplate* pDocTemplate;
 HANDLE ProcessHeap;
 int ViewX = 0;
@@ -153,11 +153,11 @@ int NumDocumentElements = 0;
 int NumDocumentElementsReserved = 0;
 tDocumentStruct* TheDocument;
 int MouseMode = 0; //0=free moving, 1=right click moving, (many more)...
-CExpression* ClipboardExpression = NULL;
+CExpression* ClipboardExpression = nullptr;
 CExpression* prevClipboardExpression;
-CDrawing* ClipboardDrawing = NULL;
-CObject* KeyboardEntryObject = NULL;
-tDocumentStruct* KeyboardEntryBaseObject = NULL;
+CDrawing* ClipboardDrawing = nullptr;
+CObject* KeyboardEntryObject = nullptr;
+tDocumentStruct* KeyboardEntryBaseObject = nullptr;
 int IsHighQualityRendering = 0;
 int IsHalftoneRendering = 0;
 int CenterParentheses_not_used = 0; //not used any more
@@ -280,9 +280,9 @@ BOOL CMathomirApp::InitInstance()
     Popup = new PopupMenu();
     if (Popup)
         Popup->CreateEx(WS_EX_TOPMOST, AfxRegisterWndClass(CS_OWNDC), "PopupMenu",WS_CLIPCHILDREN | WS_POPUP, 5, 5, 10,
-                        10, m_pMainWnd->m_hWnd,NULL, 0);
+                        10, m_pMainWnd->m_hWnd,nullptr, 0);
     else
-        AfxMessageBox("Cannot create Popup menu",MB_OK | MB_ICONSTOP,NULL);
+        AfxMessageBox("Cannot create Popup menu",MB_OK | MB_ICONSTOP,nullptr);
 
     //TODO  should better investigate how the following works when there are more than one monitor (What gets returned by GetDesktopWindow()?)
     RECT desk_rect;
@@ -299,13 +299,13 @@ BOOL CMathomirApp::InitInstance()
     Toolbox = new CToolbox(0);
     if (Toolbox)
     {
-        Toolbox->CreateEx(0, AfxRegisterWndClass(CS_OWNDC), "Toolbox",WS_CHILD, 5, 5, 10, 10, m_pMainWnd->m_hWnd,NULL,
+        Toolbox->CreateEx(0, AfxRegisterWndClass(CS_OWNDC), "Toolbox",WS_CHILD, 5, 5, 10, 10, m_pMainWnd->m_hWnd,nullptr,
                           0);
         NoImageAutogeneration = 2;
         Toolbox->ShowWindow(SW_SHOWNA);
     }
     else
-        AfxMessageBox("Cannot create Main Toolbox",MB_OK | MB_ICONSTOP,NULL);
+        AfxMessageBox("Cannot create Main Toolbox",MB_OK | MB_ICONSTOP,nullptr);
     if (NumDocumentElements)
     {
         PaperWidth = pw;
@@ -464,12 +464,12 @@ void CMathomirApp::OnAppAbout()
 
 void CAboutDlg::OnBnClickedButton1()
 {
-    ShellExecute(NULL,NULL, "http://gorupec.awardspace.com/mathomir.html",NULL,NULL,SW_SHOWNORMAL);
+    ShellExecute(nullptr,nullptr, "http://gorupec.awardspace.com/mathomir.html",nullptr,nullptr,SW_SHOWNORMAL);
 }
 
 void CAboutDlg::OnBnClickedButton2()
 {
-    ShellExecute(NULL,NULL, "mailto:danijel.gorupec@gmail.com",NULL,NULL,SW_SHOWNORMAL);
+    ShellExecute(nullptr,nullptr, "mailto:danijel.gorupec@gmail.com",nullptr,nullptr,SW_SHOWNORMAL);
 }
 
 int CAboutDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)

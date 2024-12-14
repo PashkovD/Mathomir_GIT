@@ -39,7 +39,7 @@ extern tDocumentStruct* SpecialDrawingHover;
 CBitmapImage::CBitmapImage(CDrawing* BaseItem)
 {
     Base = BaseItem;
-    Image = NULL;
+    Image = nullptr;
     imgsize = 0;
     ShowMenu = 0;
     SelectedItem = 0;
@@ -49,7 +49,7 @@ CBitmapImage::CBitmapImage(CDrawing* BaseItem)
 }
 
 //destructor (should release all previously reserved memory)
-CBitmapImage::~CBitmapImage(void)
+CBitmapImage::~CBitmapImage()
 {
     if (Image) free(Image);
 }
@@ -76,7 +76,7 @@ int CBitmapImage::CopyFrom(CDrawing* Original)
     }
     else
     {
-        Image = NULL;
+        Image = nullptr;
         imgsize = 0;
     }
 
@@ -180,7 +180,7 @@ int CBitmapImage::MouseClick(int X, int Y)
                 else
                 {
                     //create its empty image if does not exist already
-                    if (Image == NULL) LoadImageFromFile((CObject*)Base,NULL);
+                    if (Image == nullptr) LoadImageFromFile((CObject*)Base,nullptr);
 
                     if (SaveImageToFileForEditing((CObject*)Base))
                     {
@@ -205,7 +205,7 @@ int CBitmapImage::MouseClick(int X, int Y)
                     int i = 0;
                     char* filter;
                     filter = "BMP files|*.BMP|JPG files|*.jpg|PNG files|*.PNG|All files|*.*||\0";
-                    CFileDialog fd(TRUE, "bmp",NULL,OFN_HIDEREADONLY, filter, theApp.m_pMainWnd, 0);
+                    CFileDialog fd(TRUE, "bmp",nullptr,OFN_HIDEREADONLY, filter, theApp.m_pMainWnd, 0);
                     if (fd.DoModal() == IDOK)
                     {
                         LoadImageFromFile((CObject*)Base, fd.m_pOFN->lpstrFile);
@@ -421,7 +421,7 @@ char* CBitmapImage::XML_input(char* file)
         do
         {
             file = mf->XML_read_attribute(attribute, value, file, 256);
-            if (file == NULL) return NULL;
+            if (file == nullptr) return nullptr;
             if ((strcmp(attribute, "len") == 0) || (strcmp(attribute, "bmplen") == 0))
             {
                 Image = (char*)malloc(atoi(value) + 16);
@@ -568,7 +568,7 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, char* fname)
 int CBitmapImage::SaveImageToFileForEditing(CObject* dwg)
 {
     CDrawing* d = (CDrawing*)dwg;
-    if (((CBitmapImage*)(d->SpecialData))->Image == NULL) return 0;
+    if (((CBitmapImage*)(d->SpecialData))->Image == nullptr) return 0;
 
     CImage img;
     BITMAPINFOHEADER* hdr = (BITMAPINFOHEADER*)((CBitmapImage*)(d->SpecialData))->Image;
@@ -588,7 +588,7 @@ int CBitmapImage::SaveImageToFileForEditing(CObject* dwg)
 
     FILE* fil;
     fil = fopen(filename, "w+b");
-    if (fil == NULL) return 0;
+    if (fil == nullptr) return 0;
 
     char buff[32];
     memset(buff, 0, 32);
@@ -601,7 +601,7 @@ int CBitmapImage::SaveImageToFileForEditing(CObject* dwg)
     fwrite(hdr, 40 + tablesize + hdr->biSizeImage, 1, fil);
     fclose(fil);
 
-    int result = (int)ShellExecute(NULL, "edit", filename,NULL,NULL,SW_SHOWNORMAL);
+    int result = (int)ShellExecute(nullptr, "edit", filename,nullptr,nullptr,SW_SHOWNORMAL);
     if (result <= 32) return 0;
 
     return 1;

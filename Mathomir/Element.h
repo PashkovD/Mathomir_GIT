@@ -33,7 +33,7 @@ public:
     ~CElement(void);
     void CalculateSize(CDC* DC, short int zoom, short int* length, short int* above, short int* below,
                        short paternal_position, char HQR);
-    void PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlue, int ActualSize, RECT* ClipReg = NULL,
+    void PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlue, int ActualSize, RECT* ClipReg = nullptr,
                          int color = 0);
     void Empty(char oper);
     void CopyElement(const CElement* Element);

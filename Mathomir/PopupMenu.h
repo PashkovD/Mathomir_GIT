@@ -83,7 +83,7 @@ protected:
 public:
 	int ExtractSelection(int StartPos,int EndPos,int * StartSel, int * EndSel);
 	int SymbolicComputation(void);
-	int AddMathMenuOption(CExpression * E1,CExpression *original=NULL);
+	int AddMathMenuOption(CExpression * E1,CExpression *original=nullptr);
 	int PaintWorkIndicator(void);
 };
 

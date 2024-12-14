@@ -101,7 +101,7 @@ BOOL CMathomirDoc::SaveModified()
     if (NumDocumentElements == 0) return 1;
 
     const std::string str = GetTranslatedString("Save changes?", 5020);
-    int ret = AfxMessageBox(str.data(),MB_YESNOCANCEL | MB_ICONQUESTION,NULL);
+    int ret = AfxMessageBox(str.data(),MB_YESNOCANCEL | MB_ICONQUESTION,nullptr);
     if (ret == IDCANCEL) return 0; //should not be clossed
     if (ret == IDYES) OnFileSave(); //save the document
     return 1;
@@ -131,7 +131,7 @@ void CMathomirDoc::OnFileOpen()
     if (!SaveModified()) return;
     std::string filter = GetTranslatedString("MOM files", 5010) + "|*.mom|"
         + GetTranslatedString("All files", 5011) + "|*.*||\0";
-    CFileDialog fd(TRUE, "mom",NULL,OFN_HIDEREADONLY, filter.data(), theApp.m_pMainWnd, 0);
+    CFileDialog fd(TRUE, "mom",nullptr,OFN_HIDEREADONLY, filter.data(), theApp.m_pMainWnd, 0);
     if (fd.DoModal() == IDOK)
     {
         OpenMOMFile(fd.m_pOFN->lpstrFile);
@@ -149,7 +149,7 @@ void CMathomirDoc::OnFileNew()
     ((CMainFrame*)(theApp.m_pMainWnd))->ClearDocument();
     SetPathName("\\Untitled", 0); //ClearPathName does not exist??
     SetModifiedFlag(0);
-    Toolbox->LoadSettings(NULL);
+    Toolbox->LoadSettings(nullptr);
     ViewOnlyMode = 0;
     IsDrawingMode = 0;
     ToolboxSize = (BaseToolboxSize) ? BaseToolboxSize : 60;
@@ -159,7 +159,7 @@ void CMathomirDoc::OnFileNew()
     ((CMainFrame*)(theApp.m_pMainWnd))->AdjustMenu();
     pMainView->AdjustPosition();
     pMainView->RepaintTheView(1);
-    Toolbox->InvalidateRect(NULL, 1);
+    Toolbox->InvalidateRect(nullptr, 1);
 }
 
 #pragma optimize("s",on)
@@ -229,30 +229,30 @@ BOOL CMathomirDoc::OnOpenDocument(LPCTSTR lpszPathName)
     return TRUE;
 }
 
-//opens MOM file from disk or clipboard (reads from clipboard if filename==NULL)
+//opens MOM file from disk or clipboard (reads from clipboard if filename==nullptr)
 extern char dont_empty_clipboard;
 #pragma optimize("s",on)
 int CMathomirDoc::OpenMOMFile(char* filename)
 {
     XMLFileVersion = (filename) ? 1 : 2;
     int OrigNumElements;
-    char* file_buffer = NULL;
+    char* file_buffer = nullptr;
     char* file_pointer;
-    FILE* fil = NULL;
-    HANDLE clipb_data = NULL;
+    FILE* fil = nullptr;
+    HANDLE clipb_data = nullptr;
     int len;
 
-    if (filename != NULL)
+    if (filename != nullptr)
     {
         //reading from file
         fil = fopen(filename, "r+b");
-        if (fil == NULL)
+        if (fil == nullptr)
         {
             const std::string str = GetTranslatedString("Cannot open file!", 5030)
                 + "\r\n("
                 + filename
                 + ")";
-            AfxMessageBox(str.data(),MB_OK | MB_ICONWARNING,NULL);
+            AfxMessageBox(str.data(),MB_OK | MB_ICONWARNING,nullptr);
             return 0;
         }
         fseek(fil, 0,SEEK_END);
@@ -299,7 +299,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                 format = RegisterClipboardFormat("MATHOMIR_DOC");
             }
             clipb_data = GetClipboardData(format);
-            if (clipb_data == NULL)
+            if (clipb_data == nullptr)
             {
                 CloseClipboard();
                 return 0;
@@ -312,13 +312,13 @@ int CMathomirDoc::OpenMOMFile(char* filename)
 
     //reserve memory where file will be loaded
     file_buffer = (char*)malloc(len + 1);
-    if (file_buffer == NULL)
+    if (file_buffer == nullptr)
     {
-        if (filename == NULL) CloseClipboard();
+        if (filename == nullptr) CloseClipboard();
         return 0; //failed
     }
 
-    if (filename != NULL)
+    if (filename != nullptr)
     {
         //clear the entire documment
         ((CMainFrame*)(theApp.m_pMainWnd))->ClearDocument();
@@ -356,7 +356,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
     {
         //gata from clipboard
         LPVOID pntr = GlobalLock(clipb_data);
-        if (pntr == NULL)
+        if (pntr == nullptr)
         {
             CloseClipboard();
             return 0;
@@ -420,7 +420,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
 
                         if (type == 1) //object of type==1 - the expression
                         {
-                            CExpression* exp = new CExpression(NULL,NULL, 100);
+                            CExpression* exp = new CExpression(nullptr,nullptr, 100);
                             if (!exp)
                             {
                                 NumDocumentElements--;
@@ -430,7 +430,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
 
                             //calling the CExpression for parsing the object
                             file_pointer = exp->XML_input(file_pointer);
-                            if (file_pointer == NULL)
+                            if (file_pointer == nullptr)
                             {
                                 NumDocumentElements--;
                                 delete exp;
@@ -450,7 +450,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
 
                             //calling the CExpression for parsing the object
                             file_pointer = drw->XML_input(file_pointer);
-                            if (file_pointer == NULL)
+                            if (file_pointer == nullptr)
                             {
                                 NumDocumentElements--;
                                 delete drw;
@@ -472,7 +472,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                             ds->Length = l * 100 / ViewZoom;
                             ds->Above = a * 100 / ViewZoom;
                             ds->Below = b * 100 / ViewZoom;
-                            if (ds->MovingDotState != 5) ds->MovingDotState = (filename == NULL) ? 3 : 0;
+                            if (ds->MovingDotState != 5) ds->MovingDotState = (filename == nullptr) ? 3 : 0;
                             //automaticaly select object pasted from clipboard
                             theApp.m_pMainWnd->ReleaseDC(DC);
                         }
@@ -486,19 +486,19 @@ int CMathomirDoc::OpenMOMFile(char* filename)
     }
 
 openMOMfile_end:
-    if (filename == NULL) //paste operation
+    if (filename == nullptr) //paste operation
     {
         if (TheKeyboardClipboard)
         {
             delete TheKeyboardClipboard;
-            TheKeyboardClipboard = NULL;
+            TheKeyboardClipboard = nullptr;
         }
         if ((NumDocumentElements - OrigNumElements == 1) &&
             (TheDocument[OrigNumElements].Type == 1) &&
             (KeyboardEntryObject))
         {
             //we are pasting into the keyboard clipboard			
-            TheKeyboardClipboard = new CExpression(NULL,NULL, 100);
+            TheKeyboardClipboard = new CExpression(nullptr,nullptr, 100);
             CExpression* exp = (CExpression*)TheDocument[OrigNumElements].Object;
             TheKeyboardClipboard->CopyExpression(exp, 0);
             delete exp;
@@ -581,11 +581,11 @@ openMOMfile_end:
 }
 
 // saves into MOM file or clipboard
-// (if filename==NULL the saves into clipboard)
+// (if filename==nullptr the saves into clipboard)
 #pragma optimize("s",on)
 int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
 {
-    if ((filetype == '2') || (filename == NULL)) XMLFileVersion = 2;
+    if ((filetype == '2') || (filename == nullptr)) XMLFileVersion = 2;
     else XMLFileVersion = 1;
     char dummy[128];
     int len = 0;
@@ -594,7 +594,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     if ((filename == (char*)TheKeyboardClipboard) &&
         (TheKeyboardClipboard))
     {
-        filename = NULL;
+        filename = nullptr;
         save_keyboard_clipboard = 1;
         TheFileType = 0;
     }
@@ -603,7 +603,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     if ((filename) && (TheFileType == 'r'))
     {
         char tmpbuf[128];
-        CExpression* exp = new CExpression(NULL,NULL, 80);
+        CExpression* exp = new CExpression(nullptr,nullptr, 80);
         int maxy = 0;
         for (int jj = 0; jj < NumDocumentElements; jj++)
             if (TheDocument[jj].absolute_Y + TheDocument[jj].Below > maxy)
@@ -666,7 +666,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     file_buffer = (char*)malloc(alloc_len);
     if (file_buffer == 0)
     {
-        if (filename) AfxMessageBox("Cannot reserve memory for file saving!",MB_OK | MB_ICONWARNING,NULL);
+        if (filename) AfxMessageBox("Cannot reserve memory for file saving!",MB_OK | MB_ICONWARNING,nullptr);
         return 0;
     }
     file_pointer = file_buffer;
@@ -832,7 +832,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         }
         else
         {
-            AfxMessageBox(GetTranslatedString("Cannot create file!", 5031).data(),MB_OK | MB_ICONWARNING,NULL);
+            AfxMessageBox(GetTranslatedString("Cannot create file!", 5031).data(),MB_OK | MB_ICONWARNING,nullptr);
         }
     }
     else
@@ -909,7 +909,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
         if (PasswordDlgStruct->canceled)
         {
             delete PasswordDlgStruct;
-            PasswordDlgStruct = NULL;
+            PasswordDlgStruct = nullptr;
             return 0;
         }
         strcpy(passw, PasswordDlgStruct->password);
@@ -1000,7 +1000,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
 
 
 #ifdef TEACHER_VERSION
-    unsigned char* pkey = NULL;
+    unsigned char* pkey = nullptr;
     if ((type == 'r') || (type == 'e'))
     {
         //if this is an exam or exam result
@@ -1106,7 +1106,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
     if (PasswordDlgStruct)
     {
         delete PasswordDlgStruct;
-        PasswordDlgStruct = NULL;
+        PasswordDlgStruct = nullptr;
     }
 
     if ((type != 'e') && (type != 'v')) TheFileType = type; //change the file type according to saved format
@@ -1154,12 +1154,12 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         if (PasswordDlgStruct->canceled)
         {
             delete PasswordDlgStruct;
-            PasswordDlgStruct = NULL;
+            PasswordDlgStruct = nullptr;
             return 0;
         }
         strcpy(passw, PasswordDlgStruct->password);
         delete PasswordDlgStruct;
-        PasswordDlgStruct = NULL;
+        PasswordDlgStruct = nullptr;
     }
 
     int olen = *((int*)(*buffer + 4)); //original file length
@@ -1177,7 +1177,7 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
 
         if (type == 'r')
         {
-            DH->DerivePublicKey(passw, &N,NULL);
+            DH->DerivePublicKey(passw, &N,nullptr);
             memset(passw, 0, 24);
             for (int i = 0; i < 64; i++)
             {

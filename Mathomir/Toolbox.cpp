@@ -368,9 +368,9 @@ IMPLEMENT_DYNAMIC(CToolbox, CWnd)
 
 CToolbox::CToolbox(int IsSubtoolbox)
 {
-    Subtoolbox = NULL;
-    ContextMenu = NULL;
-    Keyboard = NULL;
+    Subtoolbox = nullptr;
+    ContextMenu = nullptr;
+    Keyboard = nullptr;
     Toolbar = 0;
     m_IsSubtoolbox = 0;
     m_IsKeyboard = 0;
@@ -724,7 +724,7 @@ CToolbox::CToolbox(int IsSubtoolbox)
         AddFontFormating(1, 0, 1, 2); //serif, italic, arrow
         AddFontFormating(1, 0, 1, 3); //serif, italic, hat
 
-        ToolboxFontFormating.MixedFormat = new CExpression(NULL,NULL, 100);
+        ToolboxFontFormating.MixedFormat = new CExpression(nullptr,nullptr, 100);
         ToolboxFontFormating.MixedFormat->InsertEmptyElement(0, 1, 'M');
         ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0] = 0x22; //Italic, serif (by default)
         ToolboxFontFormating.SelectedUniform = 0;
@@ -764,33 +764,33 @@ CToolbox::CToolbox(int IsSubtoolbox)
 
     if (IsSubtoolbox == 0)
     {
-        LoadSettings(NULL);
+        LoadSettings(nullptr);
         //init symbolic calculator (to be called only once)
         ToolboxMembers[0].Submembers[0]->InitCalculator();
 
         Subtoolbox = new CToolbox(1);
         Subtoolbox->m_IsSubtoolbox = -1;
         Subtoolbox->CreateEx(/*WS_EX_TOPMOST*/0, AfxRegisterWndClass(CS_OWNDC), "Subtoolbox",WS_POPUP, 5, 5, 10, 10,
-                                              theApp.m_pMainWnd->m_hWnd,NULL, 0);
+                                              theApp.m_pMainWnd->m_hWnd,nullptr, 0);
         Subtoolbox->ShowWindow(SW_HIDE);
 
         ContextMenu = new CToolbox(2);
         ContextMenu->m_IsContextMenu = 1;
         ContextMenu->CreateEx(WS_EX_TOPMOST, AfxRegisterWndClass(CS_OWNDC), "Context Menu",WS_POPUP, 5, 5, 10, 10,
-                              theApp.m_pMainWnd->m_hWnd,NULL, 0);
+                              theApp.m_pMainWnd->m_hWnd,nullptr, 0);
         ContextMenu->ShowWindow(SW_HIDE);
 
         Toolbar = new CToolbox(4);
         Toolbar->m_IsToolbar = 1;
         Toolbar->CreateEx(/*WS_EX_TOPMOST*/0, AfxRegisterWndClass(CS_OWNDC), "Toolbar",WS_CHILD, 5, 5, 10, 10,
-                                           theApp.m_pMainWnd->m_hWnd,NULL, 0);
+                                           theApp.m_pMainWnd->m_hWnd,nullptr, 0);
         Toolbar->ShowWindow(SW_HIDE);
 
         Keyboard = new CToolbox(3);
         Keyboard->m_IsKeyboard = 1;
         Keyboard->CreateEx(/*WS_EX_TOPMOST*/WS_EX_TOOLWINDOW, AfxRegisterWndClass(CS_OWNDC), "Virtual Keyboard",
                                             WS_SYSMENU | WS_CAPTION | WS_POPUP, 5, 5, 10, 10, theApp.m_pMainWnd->m_hWnd,
-                                            NULL, 0);
+                                            nullptr, 0);
         Keyboard->ShowWindow(SW_HIDE);
 
         Keyboard->m_KeyboardX = -1;
@@ -811,7 +811,7 @@ int CToolbox::AddAccelerator(short code)
 int CToolbox::AddKeyboardKey(int x, int y, char key)
 {
     int i = ToolboxKeyboardElements.NumKeys;
-    ToolboxKeyboardElements.Key[i] = new CExpression(NULL,NULL, 100);
+    ToolboxKeyboardElements.Key[i] = new CExpression(nullptr,nullptr, 100);
     ToolboxKeyboardElements.Key[i]->InsertEmptyElement(0, 1, key);
     //ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data2[0]=0x02;
     ToolboxKeyboardElements.code[i] = (short)key;
@@ -834,7 +834,7 @@ int CToolbox::AddFontFormating(int FaceType, int IsBold, int IsItalic, int Modif
 {
     int i = ToolboxFontFormating.NumFormats;
     ToolboxFontFormating.UniformFormats2[i] = (char)0x80;
-    ToolboxFontFormating.UniformFormats[i] = new CExpression(NULL,NULL, 100);
+    ToolboxFontFormating.UniformFormats[i] = new CExpression(nullptr,nullptr, 100);
     ToolboxFontFormating.UniformFormats[i]->InsertEmptyElement(0, 1, 'U');
     ToolboxFontFormating.UniformFormats[i]->m_pElementList->pElementObject->Data2[0] =
         (FaceType << 5) + (IsItalic << 1) + IsBold;
@@ -863,7 +863,7 @@ int CToolbox::AddSubmember(short Type, char data)
         Type -= 100;
         forceparentheses = 1;
     }
-    ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers] = new CExpression(NULL,NULL, 100);
+    ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers] = new CExpression(nullptr,nullptr, 100);
     ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers]->InsertEmptyElement(0, Type, data);
     ToolboxMembers[member].CreationCode[ToolboxMembers[member].NumSubmembers] = Type * 256 + data;
     if (forceparentheses)
@@ -1335,7 +1335,7 @@ void CToolbox::ToolboxChangeIndividualKeyFont(void)
         symbol = tolower(prevsymbol);
     }
     if (ToolboxCharacter) delete ToolboxCharacter;
-    ToolboxCharacter = new CExpression(NULL,NULL, 100);
+    ToolboxCharacter = new CExpression(nullptr,nullptr, 100);
     ToolboxCharacter->InsertEmptyElement(0, 1, symbol);
     ToolboxCharacter->m_pElementList->pElementObject->Data2[0] = fdata;
     ToolboxCharacter->m_pElementList->pElementObject->m_VMods = vmods;
@@ -1416,7 +1416,7 @@ void CToolbox::AdjustPosition(void)
         //	additionals=2*ToolboxSize/3+5;
         //int additionals=((m_LowHeightMode)?ToolboxSize/2:ToolboxSize)+5;
 
-        SetWindowPos(NULL, //insert after
+        SetWindowPos(nullptr, //insert after
                      0, //wr.left+border,  //x
                      1, //wr.top+header+1,  //y
                      ToolboxSize, //cx
@@ -1490,7 +1490,7 @@ void CToolbox::AdjustPosition(void)
             cx += 2;
             cy += 2;
         }
-        SetWindowPos(NULL, wr.left, wr.top, cx, cy,SWP_NOZORDER | SWP_NOACTIVATE);
+        SetWindowPos(nullptr, wr.left, wr.top, cx, cy,SWP_NOZORDER | SWP_NOACTIVATE);
     }
     else if (m_IsContextMenu)
     {
@@ -1533,7 +1533,7 @@ void CToolbox::AdjustPosition(void)
 
         if ((UseToolbar) && (ViewOnlyMode == 0) && (pMainView->IsWindowVisible()))
         {
-            SetWindowPos(NULL, //insert after
+            SetWindowPos(nullptr, //insert after
                          ToolboxSize, //wr.left+border+ToolboxSize,  //x
                          1, //wr.top+header+1,  //y
                          cr.right - ToolboxSize, //cx
@@ -1543,7 +1543,7 @@ void CToolbox::AdjustPosition(void)
             if (m_IsToolbar)
             {
                 ConfigureToolbar();
-                InvalidateRect(NULL, 0);
+                InvalidateRect(nullptr, 0);
             }
         }
         else
@@ -1589,7 +1589,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                             {
                                 NoImageAutogeneration=2;
                                 Keyboard->AdjustPosition();
-                                Keyboard->InvalidateRect(NULL,0);
+                                Keyboard->InvalidateRect(nullptr,0);
                                 AdjustKeyboardFont();
                                 NoImageAutogeneration=2;
                                 Keyboard->ShowWindow(SW_SHOW);
@@ -1601,7 +1601,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             Subtoolbox->m_IsSubtoolbox = -m_FontModeElement - 1;
                             Subtoolbox->AdjustPosition();
-                            Subtoolbox->InvalidateRect(NULL, 0);
+                            Subtoolbox->InvalidateRect(nullptr, 0);
                             Subtoolbox->UpdateWindow();
                             NoImageAutogeneration = 2;
                             m_IsArrowSelected = 0;
@@ -1648,7 +1648,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                         Subtoolbox->m_IsSubtoolbox = m_SelectedElement + 1;
                         Subtoolbox->m_SelectedElement = -1;
                         Subtoolbox->AdjustPosition();
-                        Subtoolbox->InvalidateRect(NULL, 1);
+                        Subtoolbox->InvalidateRect(nullptr, 1);
                         Subtoolbox->UpdateWindow();
                         NoImageAutogeneration = 2;
                         Subtoolbox->ShowWindow(SW_SHOWNA);
@@ -1748,7 +1748,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     exp->CalculateSize(ddc, ViewZoom, &l, &a, &b);
 
                     pMainView->ReleaseDC(ddc);
-                    pMainView->InvalidateRect(NULL, 0);
+                    pMainView->InvalidateRect(nullptr, 0);
                     pMainView->UpdateWindow();
                 }
             }
@@ -1781,7 +1781,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     //use cross
                     if (ToolbarUseCross) ToolbarUseCross = 0;
                     else ToolbarUseCross = 1;
-                    pMainView->InvalidateRect(NULL, 0);
+                    pMainView->InvalidateRect(nullptr, 0);
                     pMainView->UpdateWindow();
                 }
                 else if (m_SelectedColor == 22)
@@ -1845,7 +1845,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
 
                     TemporaryShowColoredSelection = 2;
                     if (repaint) pMainView->RepaintTheView();
-                    else pMainView->InvalidateRect(NULL, 0);
+                    else pMainView->InvalidateRect(nullptr, 0);
 
                     if ((NumSelectedObjects == 0) || (IsDrawingMode))
                         if ((any == 0) && (IsDrawingMode == 0))
@@ -1870,7 +1870,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     ToolboxMembers[m_IsSubtoolbox - 1].SelectedSubmember = m_SelectedElement;
                     m_IsSubtoolbox = -1;
                     ShowWindow(SW_HIDE);
-                    Toolbox->InvalidateRect(NULL, 0);
+                    Toolbox->InvalidateRect(nullptr, 0);
                     Toolbox->UpdateWindow();
                 }
                 else
@@ -1937,7 +1937,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     }
                 }
 
-                Toolbox->InvalidateRect(NULL, 0);
+                Toolbox->InvalidateRect(nullptr, 0);
                 Toolbox->UpdateWindow();
             }
         }
@@ -1980,7 +1980,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     delete ClipboardExpression;
                 }
-                ClipboardExpression = new CExpression(NULL,NULL, 100);
+                ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                 ClipboardExpression->CopyExpression(ToolboxKeyboardElements.Key[m_KeyboardElement], 0);
                 short l, a, b;
                 ClipboardExpression->CalculateSize(this->GetDC(), 100, &l, &a, &b);
@@ -1990,7 +1990,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
         else if (m_IsToolbar)
         {
             ToolbarIsClicked = 1;
-            InvalidateRect(NULL, 0);
+            InvalidateRect(nullptr, 0);
             UpdateWindow();
             Sleep(50);
             ToolbarIsClicked = 0;
@@ -2049,7 +2049,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     if (IsShowGrid) IsShowGrid = 0;
                     else IsShowGrid = 1;
                     ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
-                    pMainView->InvalidateRect(NULL, 0);
+                    pMainView->InvalidateRect(nullptr, 0);
                     pMainView->UpdateWindow();
                 }
                 if (icon == 8) pMainView->OnKeyDown(VK_F4, 0, 0);
@@ -2061,7 +2061,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     CExpression* exp = ((CExpression*)KeyboardEntryObject);
                     CExpression* parent = (KeyboardEntryBaseObject)
                                               ? (((CExpression*)(KeyboardEntryBaseObject->Object)))
-                                              : NULL;
+                                              : nullptr;
                     if ((parent == 0) || (exp == 0))
                     {
                         tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
@@ -2152,7 +2152,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                             if ((exp->m_IsKeyboardEntry) && ((exp->m_MaxNumRows > 1) || (exp->m_MaxNumColumns > 1)))
                             {
                                 tCellAttributes a;
-                                a.alignment = NULL;
+                                a.alignment = nullptr;
                                 for (int i = 0; i < exp->m_MaxNumRows; i++)
                                     for (int j = 0; j < exp->m_MaxNumColumns; j++)
                                     {
@@ -2188,7 +2188,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                             parentstr->Below = b * 100 / ViewZoom;
                             parentstr->Length = l * 100 / ViewZoom;
 
-                            pMainView->InvalidateRect(NULL, 0);
+                            pMainView->InvalidateRect(nullptr, 0);
                             pMainView->UpdateWindow();
                         }
                     }
@@ -2209,7 +2209,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     if (icon == 24) Popup->OnLButtonDown(578, CPoint(-10000, -10001)); //vertical distribute
                 }
                 Toolbox->ConfigureToolbar();
-                Toolbox->Toolbar->InvalidateRect(NULL, 0);
+                Toolbox->Toolbar->InvalidateRect(nullptr, 0);
                 Toolbox->Toolbar->UpdateWindow();
             }
         }
@@ -2244,8 +2244,8 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
 		if (ToolboxMembers[i].Above[j]!=-1) //not for drawing elements
 		{
 			ToolboxMembers[i].Submembers[j]->m_ParentheseHeightFactor=1;//DefaultParentheseType;
-			if (ToolboxMembers[i].Submembers[j]->m_pElementList==NULL) break;
-			if (ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject==NULL) break;
+			if (ToolboxMembers[i].Submembers[j]->m_pElementList==nullptr) break;
+			if (ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject==nullptr) break;
 			if (ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression1)
 				((CExpression*)(ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression1))->m_ParentheseHeightFactor=1;//DefaultParentheseType;
 			if (ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression2)
@@ -2265,7 +2265,7 @@ void CToolbox::HideUnhideColorbox()
     int tmpDM = IsDrawingMode + ((NumSelectedObjects) ? 1000 : 0);
     if (prevDrawingMode != tmpDM)
     {
-        //InvalidateRect(NULL,0);
+        //InvalidateRect(nullptr,0);
         RECT r;
         r.left = 0;
         r.right = ToolboxSize;
@@ -2282,7 +2282,7 @@ char TextControlboxMode = 0;
 
 void CToolbox::PaintColorbox(CDC* dc)
 {
-    if (dc == NULL) dc = this->GetDC();
+    if (dc == nullptr) dc = this->GetDC();
     TextControlboxMode = -1;
     int ToolboxBottom = (ToolboxNumMembers + 1) / 2 * m_ItemHeight + ToolboxSize / 2; //the bottom of toolbox main part
     dc->FillSolidRect(1, ToolboxBottom, ToolboxSize - 2, 4,RGB(128, 128, 128));
@@ -2482,7 +2482,7 @@ void CToolbox::HideUnhideTextcontrolbox()
     int tmpDM = ((KeyboardEntryBaseObject) && (KeyboardEntryObject) && (IsDrawingMode == 0)) ? 1 : 0;
     if (prevWasTextmode != tmpDM)
     {
-        InvalidateRect(NULL, 0);
+        InvalidateRect(nullptr, 0);
         AdjustPosition();
         prevWasTextmode = tmpDM;
     }
@@ -2493,7 +2493,7 @@ void CToolbox::HideUnhideTextcontrolbox()
 void CToolbox::PaintTextcontrolbox(CDC* dc)
 {
     if ((IsDrawingMode) || (NumSelectedObjects)) return;
-    if (dc == NULL) dc = this->GetDC();
+    if (dc == nullptr) dc = this->GetDC();
     dc->FillSolidRect(1, (ToolboxNumMembers + 1) / 2 * m_ItemHeight + ToolboxSize / 2, ToolboxSize - 2, 5,
                       RGB(128, 128, 128));
     dc->FillSolidRect(0, (ToolboxNumMembers + 1) / 2 * m_ItemHeight + ToolboxSize / 2 + 4, ToolboxSize, 1,
@@ -2590,7 +2590,7 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
         pdc.FillSolidRect(2 * mmm, yyy, 1, ToolboxSize / 4,RGB(96, 96, 96));
         pdc.FillSolidRect(3 * mmm, yyy, 1, ToolboxSize / 4,RGB(96, 96, 96));
         pdc.FillSolidRect(4 * mmm, yyy, 1, ToolboxSize / 4,RGB(96, 96, 96));
-        CExpression* exp = new CExpression(NULL,NULL, 100);
+        CExpression* exp = new CExpression(nullptr,nullptr, 100);
         exp->InsertEmptyElement(0, 1, 'a');
         short l, a, b;
         unsigned short zoom = 5 * ToolboxSize / 4;
@@ -2756,7 +2756,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue)
                 xdc.MoveTo(xx, yy + 2 * rr);
                 xdc.LineTo(xx + rr, yy + rr);
             }
-            CExpression* exp = new CExpression(NULL,NULL, 105);
+            CExpression* exp = new CExpression(nullptr,nullptr, 105);
             unsigned char fnt = ToolboxFontFormating.UniformFormats[member]->m_pElementList->pElementObject->Data2[0];
             unsigned char vmods = ToolboxFontFormating.UniformFormats[member]->m_pElementList->pElementObject->m_VMods;
             int clr = ToolboxFontFormating.UniformFormats[member]->m_pElementList->pElementObject->m_Color;
@@ -2940,7 +2940,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue)
             symbol = tolower(prevsymbol);
         }
 
-        CExpression* exp = new CExpression(NULL,NULL, 100);
+        CExpression* exp = new CExpression(nullptr,nullptr, 100);
         exp->InsertEmptyElement(0, 1, symbol);
         exp->m_pElementList->pElementObject->Data2[0] = fdata;
         exp->m_pElementList->pElementObject->m_VMods = vmods;
@@ -3515,7 +3515,7 @@ int CToolbox::ConfigureToolbar()
 {
     //this functions decides what options are going to be visible in the toolbar
     //must work fast!!!
-    if ((UseToolbar == 0) || (Toolbox->Toolbar == NULL) || (Toolbox->Toolbar->m_hWnd == NULL)) return 0;
+    if ((UseToolbar == 0) || (Toolbox->Toolbar == nullptr) || (Toolbox->Toolbar->m_hWnd == nullptr)) return 0;
 
     unsigned int checksum = 0;
     for (int i = 0; i < ToolbarNumItems; i++)
@@ -3602,8 +3602,8 @@ int CToolbox::ConfigureToolbar()
         ((NumSelectedObjects == 1) && (NumSelectedDrawings == 0)))
     {
         int tmp = 0;
-        CExpression* parent = NULL;
-        CExpression* exp = NULL;
+        CExpression* parent = nullptr;
+        CExpression* exp = nullptr;
 
 
         if ((KeyboardEntryObject) && (KeyboardEntryBaseObject) && (KeyboardEntryBaseObject->Type == 1))
@@ -3611,7 +3611,7 @@ int CToolbox::ConfigureToolbar()
             parent = ((CExpression*)KeyboardEntryBaseObject->Object);
             exp = ((CExpression*)KeyboardEntryObject);
         }
-        if ((NumSelectedObjects == 1) && (KeyboardEntryObject == NULL))
+        if ((NumSelectedObjects == 1) && (KeyboardEntryObject == nullptr))
         {
             tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
             for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
@@ -3792,7 +3792,7 @@ int CToolbox::ConfigureToolbar()
     if (checksum != checksum2)
         if (Toolbox->Toolbar)
         {
-            Toolbox->Toolbar->InvalidateRect(NULL, 0);
+            Toolbox->Toolbar->InvalidateRect(nullptr, 0);
             Toolbox->Toolbar->UpdateWindow();
         }
     return 1;
@@ -3825,7 +3825,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
     try
     {
         if (m_IsToolbar)
-            SetCursor(::LoadCursor(NULL,IDC_ARROW));
+            SetCursor(::LoadCursor(nullptr,IDC_ARROW));
         else
             pMainView->SetMousePointer();
 
@@ -3853,14 +3853,14 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                 if ((StaticMessageWindow) && (StaticMessageWindow->IsWindowVisible()) && (ToolbarHelpTimer > 1))
                 {
                     StaticMessageWindow->ShowWindow(SW_HIDE);
-                    InvalidateRect(NULL, 1);
+                    InvalidateRect(nullptr, 1);
                 }
                 ToolbarHelpTimer = 0;
                 if ((ToolbarSelectedItem > -1) && (Toolbox->Toolbar))
                 {
                     ToolbarSelectedItem = -1;
                     prevToolbarItem = -1;
-                    Toolbox->Toolbar->InvalidateRect(NULL, 0);
+                    Toolbox->Toolbar->InvalidateRect(nullptr, 0);
                     Toolbox->Toolbar->UpdateWindow();
                 }
             }
@@ -3893,14 +3893,14 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                     if ((StaticMessageWindow) && (StaticMessageWindow->IsWindowVisible()) && (ToolbarHelpTimer > 1))
                     {
                         StaticMessageWindow->ShowWindow(SW_HIDE);
-                        InvalidateRect(NULL, 1);
+                        InvalidateRect(nullptr, 1);
                     }
                     ToolbarHelpTimer = 0;
                     if ((ToolbarSelectedItem > -1) && (Toolbox->Toolbar))
                     {
                         ToolbarSelectedItem = -1;
                         prevToolbarItem = -1;
-                        Toolbox->Toolbar->InvalidateRect(NULL, 0);
+                        Toolbox->Toolbar->InvalidateRect(nullptr, 0);
                         Toolbox->Toolbar->UpdateWindow();
                     }
                 }
@@ -3944,7 +3944,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                 m_SelectedElement = -1;
                 PaintToolboxHeader(this->GetDC());
 
-                if ((ClipboardExpression == NULL) && (ClipboardDrawing == NULL))
+                if ((ClipboardExpression == nullptr) && (ClipboardDrawing == nullptr))
                     if (m_FontModeElement != prevFontElement)
                     {
                         ToolboxAutoopen = 1;
@@ -3990,7 +3990,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                     }
                 }
 
-                if ((ClipboardExpression == NULL) && (ClipboardDrawing == NULL))
+                if ((ClipboardExpression == nullptr) && (ClipboardDrawing == nullptr))
                     if (/*(abs(ToolboxAutoopenX-point.x)>0) || (abs(ToolboxAutoopenY-point.y)>0) ||*/ (m_SelectedElement
                         != prevToolboxElement))
                     {
@@ -4189,7 +4189,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                 if (yy >= 23) m_ContextMenuSelection = -1;
                 if (prevContextMenuSelection != m_ContextMenuSelection)
                 {
-                    InvalidateRect(NULL, 0);
+                    InvalidateRect(nullptr, 0);
                     UpdateWindow();
                     prevContextMenuSelection = m_ContextMenuSelection;
                 }
@@ -4254,7 +4254,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                     Toolbox->Toolbar->ToolbarShowHelp();
                 else
                     ToolbarHelpTimer = 1;
-                Toolbox->Toolbar->InvalidateRect(NULL, 0);
+                Toolbox->Toolbar->InvalidateRect(nullptr, 0);
                 Toolbox->Toolbar->UpdateWindow();
             }
             prevToolbarItem = ToolbarSelectedItem;
@@ -4458,7 +4458,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                         if ((command[0] == 0) && (e) && (e->m_NumElements == 1) && ((ToolboxMembers[help_element].
                                 userdef_mask & (1 << help_subelement)) == 0) &&
                             (e->m_pElementList->Type == 6) && (e->m_pElementList->pElementObject->Data2[0] == 0x20) &&
-                            (e->m_pElementList->pElementObject->Expression2 == NULL))
+                            (e->m_pElementList->pElementObject->Expression2 == nullptr))
                         {
                             command = e->m_pElementList->pElementObject->Data1;
                         }
@@ -4539,7 +4539,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                         ContextMenu->m_ContextMenuSubmember = -1;
                     NoImageAutogeneration = 2;
                     ContextMenu->ShowWindow(SW_SHOW);
-                    ContextMenu->InvalidateRect(NULL, 0);
+                    ContextMenu->InvalidateRect(nullptr, 0);
                     ContextMenu->UpdateWindow();
                 }
             }
@@ -4557,7 +4557,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                         ContextMenu->m_ContextMenuSubmember = ToolboxMembers[m_SelectedElement].SelectedSubmember;
                         NoImageAutogeneration = 2;
                         ContextMenu->ShowWindow(SW_SHOW);
-                        ContextMenu->InvalidateRect(NULL, 0);
+                        ContextMenu->InvalidateRect(nullptr, 0);
                         ContextMenu->UpdateWindow();
                     }
                 }
@@ -4617,7 +4617,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                         }
                     }
                     if (repaint) pMainView->RepaintTheView();
-                    else pMainView->InvalidateRect(NULL, 0);
+                    else pMainView->InvalidateRect(nullptr, 0);
                 }
             }
             else
@@ -4628,7 +4628,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                 {
                     for (int i=0;i<NumDocumentElements;i++)
                         if (TheDocument[i].MovingDotState==3) TheDocument[i].MovingDotState=0;
-                    pMainView->InvalidateRect(NULL,0);
+                    pMainView->InvalidateRect(nullptr,0);
                     pMainView->UpdateWindow();
                     NumSelectedObjects=0;
                     NumSelectedDrawings=0;
@@ -4649,14 +4649,14 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                             pMainView->DeleteDocumentObject(KeyboardEntryBaseObject);
                         }
                     }
-                    KeyboardEntryObject=NULL;
-                    KeyboardEntryBaseObject=NULL;
-                    pMainView->InvalidateRect(NULL,0);
+                    KeyboardEntryObject=nullptr;
+                    KeyboardEntryBaseObject=nullptr;
+                    pMainView->InvalidateRect(nullptr,0);
                     pMainView->UpdateWindow();
                     pMainView->SetMousePointer();
                     this->AdjustPosition();
                     ShowHelptext("","","","",0);
-                    //this->InvalidateRect(NULL,1);
+                    //this->InvalidateRect(nullptr,1);
                     //this->UpdateWindow();
         
                 }
@@ -4685,7 +4685,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                     Toolbox->ContextMenu->m_ContextMenuSubmember = m_SelectedElement;
                     NoImageAutogeneration = 2;
                     Toolbox->ContextMenu->ShowWindow(SW_SHOW);
-                    Toolbox->ContextMenu->InvalidateRect(NULL, 0);
+                    Toolbox->ContextMenu->InvalidateRect(nullptr, 0);
                     Toolbox->ContextMenu->UpdateWindow();
                 }
             }
@@ -4699,12 +4699,12 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
             if (ClipboardExpression)
             {
                 delete ClipboardExpression;
-                ClipboardExpression = NULL;
+                ClipboardExpression = nullptr;
             }
             else if (ClipboardDrawing)
             {
                 delete ClipboardDrawing;
-                ClipboardDrawing = NULL;
+                ClipboardDrawing = nullptr;
             }
             else if ((m_SelectedElement < ToolboxFontFormating.NumFormats) && (m_SelectedElement >= 0))
             {
@@ -4717,7 +4717,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                     Toolbox->ContextMenu->m_ContextMenuSubmember = m_SelectedElement;
                     NoImageAutogeneration = 2;
                     Toolbox->ContextMenu->ShowWindow(SW_SHOW);
-                    Toolbox->ContextMenu->InvalidateRect(NULL, 0);
+                    Toolbox->ContextMenu->InvalidateRect(nullptr, 0);
                     Toolbox->ContextMenu->UpdateWindow();
                 }
             }
@@ -4728,7 +4728,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
             ShowWindow(SW_HIDE);
             if (pMainView)
             {
-                pMainView->InvalidateRect(NULL, 0);
+                pMainView->InvalidateRect(nullptr, 0);
                 pMainView->UpdateWindow();
                 pMainView->SetMousePointer();
             }
@@ -4744,12 +4744,12 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
             if (ClipboardExpression)
             {
                 delete ClipboardExpression;
-                ClipboardExpression = NULL;
+                ClipboardExpression = nullptr;
             }
             else if (ClipboardDrawing)
             {
                 delete ClipboardDrawing;
-                ClipboardDrawing = NULL;
+                ClipboardDrawing = nullptr;
             }
             else
             {
@@ -4925,7 +4925,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
         if (AlternateVirtualKeyboard)
         {
             AlternateVirtualKeyboard = 0;
-            this->Keyboard->InvalidateRect(NULL, 0);
+            this->Keyboard->InvalidateRect(nullptr, 0);
             this->Keyboard->UpdateWindow();
         }
     }
@@ -4987,12 +4987,12 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                         if (ClipboardExpression)
                         {
                             delete ClipboardExpression;
-                            ClipboardExpression = NULL;
+                            ClipboardExpression = nullptr;
                         }
                         if (ClipboardDrawing)
                         {
                             delete ClipboardDrawing;
-                            ClipboardDrawing = NULL;
+                            ClipboardDrawing = nullptr;
                         }
                         //found accelerator key in the table
                         //we are copying the member into clipboard
@@ -5018,7 +5018,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                         else
                         {
                             IsDrawingMode = 0;
-                            ClipboardExpression = new CExpression(NULL,NULL, 100);
+                            ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                             ClipboardExpression->CopyExpression(ToolboxMembers[ii].Submembers[jj], 0, 1, 0);
                             short l, a, b;
                             ClipboardExpression->CalculateSize(this->GetDC(), 100, &l, &a, &b);
@@ -5032,7 +5032,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                                 {
                                     prevAutocompleteSource = AutocompleteSource;
                                     prevAutocompleteTriggered = AutocompleteTriggered;
-                                    pMainView->InvalidateRect(NULL, 0);
+                                    pMainView->InvalidateRect(nullptr, 0);
                                     pMainView->UpdateWindow();
                                 }
                                 pMainView->ReleaseDC(DC);
@@ -5260,7 +5260,7 @@ int CToolbox::DefineAcceleratorCode(short code)
                 TheKeycodeString = &ToolboxMembers[m_ContextMenuMember].Keycodes[m_ContextMenuSubmember][0];
                 EasycastListStart = 0;
                 FontAdditionalData = 0;
-                Popup->ShowPopupMenu(NULL, this, 7, 24);
+                Popup->ShowPopupMenu(nullptr, this, 7, 24);
             }
         }
         return 0;
@@ -5304,7 +5304,7 @@ int CToolbox::DefineAcceleratorCode(short code)
                 ToolboxNumMembers--;
             }
             Toolbox->AdjustPosition();
-            Toolbox->InvalidateRect(NULL, 0);
+            Toolbox->InvalidateRect(nullptr, 0);
             Toolbox->UpdateWindow();
         }
         return 0; //separator
@@ -5344,7 +5344,7 @@ int CToolbox::DefineAcceleratorCode(short code)
         ToolboxFontFormating.MixedAccKey = code;
 
 define_code_exit:
-    InvalidateRect(NULL, 0);
+    InvalidateRect(nullptr, 0);
     UpdateWindow();
     Sleep(200);
     return 1;
@@ -5441,7 +5441,7 @@ int CToolbox::AdjustKeyboardFont(void)
 
         if (any_change)
         {
-            Keyboard->InvalidateRect(NULL, 0);
+            Keyboard->InvalidateRect(nullptr, 0);
             Keyboard->UpdateWindow();
         }
     }
@@ -5524,7 +5524,7 @@ int CToolbox::PopupCloses(int UserParameter, int ExitCode)
             ToolboxKeyboardElements.Key[i]->DeselectExpression();
         }
         ToolboxFontFormating.MixedFormat->DeselectExpression();
-        Toolbox->Keyboard->InvalidateRect(NULL, 0);
+        Toolbox->Keyboard->InvalidateRect(nullptr, 0);
         Toolbox->Keyboard->UpdateWindow();
     }
     if ((UserParameter == 23) && (ExitCode != 0))
@@ -5559,7 +5559,7 @@ int CToolbox::PopupCloses(int UserParameter, int ExitCode)
     Toolbox->PaintToolboxHeader(Toolbox->GetDC());
     if (Toolbox->Subtoolbox->IsWindowVisible())
     {
-        Toolbox->Subtoolbox->InvalidateRect(NULL, 0);
+        Toolbox->Subtoolbox->InvalidateRect(nullptr, 0);
         Toolbox->Subtoolbox->UpdateWindow();
     }
 
@@ -5634,8 +5634,8 @@ void CToolbox::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
             if (ClipboardExpression)
             {
                 delete ClipboardExpression;
-                ClipboardExpression = NULL;
-                //SetCursor(::LoadCursor(NULL,IDC_ARROW));
+                ClipboardExpression = nullptr;
+                //SetCursor(::LoadCursor(nullptr,IDC_ARROW));
                 pMainView->SetMousePointer();
             }
         }
@@ -5665,7 +5665,7 @@ int CToolbox::SaveSettings(char* filename)
     //saves toolbox setings and menu options
 
     char DefaultFilename[512];
-    if (filename == NULL)
+    if (filename == nullptr)
     {
         int j;
         strcpy(DefaultFilename,GetCommandLine());
@@ -5802,9 +5802,9 @@ int CToolbox::SaveSettings(char* filename)
                     //we found a user-defined toolbox item
                     int len;
                     if (ToolboxMembers[i].Above[j] != -1)
-                        len = ToolboxMembers[i].Submembers[j]->XML_output(NULL, 0, 1);
+                        len = ToolboxMembers[i].Submembers[j]->XML_output(nullptr, 0, 1);
                     else
-                        len = ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(NULL, 0, 1);
+                        len = ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(nullptr, 0, 1);
                     char* data = (char*)malloc(len + 256);
 
                     if (ToolboxMembers[i].Above[j] != -1)
@@ -5901,7 +5901,7 @@ int CToolbox::LoadSettings(char* filename)
     char* orig_filename = filename;
 
     char DefaultFilename[512];
-    if (filename == NULL)
+    if (filename == nullptr)
     {
         is_first_load++;
         int j;
@@ -5937,7 +5937,7 @@ int CToolbox::LoadSettings(char* filename)
 
 
         //loading language strings (from the application folder, file Language.csv)
-        if (LanguageStrings == NULL)
+        if (LanguageStrings == nullptr)
         {
             strcat(filename, "Language.csv");
             FILE* fil;
@@ -6011,7 +6011,7 @@ int CToolbox::LoadSettings(char* filename)
                         sscanf(line, "%d", &id);
                         if ((id >= 0) && (id < 36000) && (text[0]))
                         {
-                            if (LanguageStrings == NULL)
+                            if (LanguageStrings == nullptr)
                             {
                                 LanguagePointers = (unsigned short*)malloc(sizeof(unsigned short) * 36000);
                                 memset(LanguagePointers, 0xFF, sizeof(unsigned short) * 36000);
@@ -6118,7 +6118,7 @@ int CToolbox::LoadSettings(char* filename)
         BaseToolboxSize = ToolboxSize;
         RECT tmpRect;
         fread(&tmpRect, sizeof(RECT), 1, fil);
-        if (orig_filename == NULL) MainWindowRect = tmpRect;
+        if (orig_filename == nullptr) MainWindowRect = tmpRect;
         fread(&ImageSize, sizeof(int), 1, fil);
         fread(&ForceHighQualityImage, sizeof(int), 1, fil);
         fread(&ForceHalftoneImage, sizeof(int), 1, fil);
@@ -6191,7 +6191,7 @@ int CToolbox::LoadSettings(char* filename)
             CExpression* tmp;
             if (!is_drawing)
             {
-                tmp = new CExpression(NULL,NULL, 100);
+                tmp = new CExpression(nullptr,nullptr, 100);
                 tmp->XML_input(data);
             }
             else
@@ -6324,9 +6324,9 @@ CExpression* CToolbox::CheckForKeycodes(char* keystrokes, int* len)
 {
     //first we check for double-strokes
     int l2 = *len;
-    if (l2 < 1) return NULL;
+    if (l2 < 1) return nullptr;
 
-    if ((!KeyboardEntryObject) || (((CExpression*)KeyboardEntryObject)->m_pPaternalElement == NULL) || (((CExpression*)
+    if ((!KeyboardEntryObject) || (((CExpression*)KeyboardEntryObject)->m_pPaternalElement == nullptr) || (((CExpression*)
         KeyboardEntryObject)->m_pPaternalElement->m_Type != 1)) //do not use double-strokes in indexes
         if (l2 >= 2)
         {
@@ -6385,7 +6385,7 @@ CExpression* CToolbox::CheckForKeycodes(char* keystrokes, int* len)
         *len = candidate_len;
         return ToolboxMembers[candidate_member].Submembers[candidate_submember];
     }
-    return NULL;
+    return nullptr;
 }
 
 CExpression* CToolbox::ReturnKeycode(int keycode_order, char** Keycode)
@@ -6406,8 +6406,8 @@ CExpression* CToolbox::ReturnKeycode(int keycode_order, char** Keycode)
             }
         }
     }
-    *Keycode = NULL;
-    return NULL;
+    *Keycode = nullptr;
+    return nullptr;
 }
 
 
@@ -6509,7 +6509,7 @@ void CToolbox::ShowHelptext(char* text, char* command, char* accelerator, char* 
         DC->TextOut(2, yy, bbf);
     }
 
-    DC->SelectClipRgn(NULL);
+    DC->SelectClipRgn(nullptr);
     mf->ReleaseDC(DC);
 }
 
@@ -6521,7 +6521,7 @@ void CToolbox::PickUpElementFromToolbox(int member, int submember)
     if (ClipboardExpression)
     {
         delete ClipboardExpression;
-        ClipboardExpression = NULL;
+        ClipboardExpression = nullptr;
     }
 
     if (this->m_IsMain)
@@ -6557,7 +6557,7 @@ void CToolbox::PickUpElementFromToolbox(int member, int submember)
     }
     else
     {
-        ClipboardExpression = new CExpression(NULL,NULL, 100);
+        ClipboardExpression = new CExpression(nullptr,nullptr, 100);
         ClipboardExpression->CopyExpression(ToolboxMembers[member].Submembers[submember], 0);
         short l, a, b;
         ClipboardExpression->CalculateSize(this->GetDC(), 100, &l, &a, &b);
@@ -6624,15 +6624,15 @@ int CToolbox::InsertIntoToolbox(void)
             }
             else
                 ToolboxMembers[member].NumSubmembers++;
-            ClipboardExpression = NULL;
+            ClipboardExpression = nullptr;
             AdjustPosition();
-            InvalidateRect(NULL, 0);
+            InvalidateRect(nullptr, 0);
             UpdateWindow();
         }
         else
         {
             delete ClipboardExpression;
-            ClipboardExpression = NULL;
+            ClipboardExpression = nullptr;
         }
         return 1;
     }
@@ -6661,7 +6661,7 @@ int CToolbox::InsertIntoToolbox(void)
 
         //we must temporarely store the drawing because it might get deleted while the message box is displayed
         CDrawing* cd = ClipboardDrawing;
-        ClipboardDrawing = NULL;
+        ClipboardDrawing = nullptr;
 
         if (ok)
         {
@@ -6684,7 +6684,7 @@ int CToolbox::InsertIntoToolbox(void)
             else
                 ToolboxMembers[member].NumSubmembers++;
             AdjustPosition();
-            InvalidateRect(NULL, 0);
+            InvalidateRect(nullptr, 0);
             UpdateWindow();
         }
         else

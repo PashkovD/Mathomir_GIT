@@ -91,7 +91,7 @@ DWORD WINAPI DrawingThread(LPVOID lpParameter)
     }
 
 PlotterThread_exit:
-    Plotter->ThreadHandle = NULL;
+    Plotter->ThreadHandle = nullptr;
     if (DrawingThreadUsed > 0) DrawingThreadUsed--;
     if (crit_sec) LeaveCriticalSection(&section);
     ExitThread(0);
@@ -115,7 +115,7 @@ int double_compare(const void* arg1, const void* arg2)
 CFunctionPlotter::CFunctionPlotter(CDrawing* BaseItem)
 {
     Base = BaseItem;
-    Plot = NULL;
+    Plot = nullptr;
     is_y_log = is_x_log = 0;
     abort_request = 0;
     show_no_scale = 0;
@@ -124,7 +124,7 @@ CFunctionPlotter::CFunctionPlotter(CDrawing* BaseItem)
     any_function_defined = 0;
     m_X1 = m_Y1 = m_X2 = m_Y2 = 0;
     ThreadID = 0;
-    ThreadHandle = NULL;
+    ThreadHandle = nullptr;
     TheState = 0;
     MX = 50;
     MY = 25;
@@ -158,9 +158,9 @@ int CFunctionPlotter::CopyFrom(CDrawing* Original)
     MX = org->MX;
     MY = org->MY;
     ThreadID = 0;
-    ThreadHandle = NULL;
+    ThreadHandle = nullptr;
     TheState = 0;
-    Plot = NULL;
+    Plot = nullptr;
 
     return 1;
 }
@@ -250,7 +250,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
 
             //start the plotting thread and create the bitmap
             if (GetCurrentThreadId() != ThreadID)
-                PlotFunction(1,NULL, zoom);
+                PlotFunction(1,nullptr, zoom);
         }
 
         if (Plot)
@@ -260,7 +260,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             if ((sz.cx != Xlen - LeftMargin) || (sz.cy != Ylen - BottomMargin))
             {
                 if (GetCurrentThreadId() != ThreadID)
-                    PlotFunction(1,NULL, zoom);
+                    PlotFunction(1,nullptr, zoom);
             }
 
             if (zoom > 12)
@@ -891,7 +891,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
 
         //now drawing X and Y names
 
-        if ((Base->NumItems >= 9) && (ThreadHandle == NULL))
+        if ((Base->NumItems >= 9) && (ThreadHandle == nullptr))
         {
             CExpression* var;
             for (int kk = 0; kk < 4; kk++)
@@ -905,7 +905,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                         char type;
                         if (func->PlotterGetEquationInfo(&var, &position, &start_point, &type))
                         {
-                            CExpression* tmp = new CExpression(NULL,NULL, 100);
+                            CExpression* tmp = new CExpression(nullptr,nullptr, 100);
                             if (start_point > 1)
                             {
                                 for (int i = 0; i < start_point - 1; i++)
@@ -929,7 +929,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                     }
                 }
         }
-        DC->SelectClipRgn(NULL);
+        DC->SelectClipRgn(nullptr);
         IsHighQualityRendering = prevquality;
     }
 
@@ -1462,7 +1462,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                 Base->NumItemsReserved++;
                 Base->Items = (tDrawingItem*)realloc(Base->Items, Base->NumItemsReserved * sizeof(tDrawingItem));
             }
-            (Base->Items + Base->NumItems)->pSubdrawing = (void*)new CExpression(NULL,NULL, 100);
+            (Base->Items + Base->NumItems)->pSubdrawing = (void*)new CExpression(nullptr,nullptr, 100);
             (Base->Items + Base->NumItems)->Type = 2;
             Base->NumItems++;
         }
@@ -1532,7 +1532,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             di->Y1 = 0;
             di->Y2 = 0;
             di->LineWidth = 0;
-            ClipboardExpression = NULL;
+            ClipboardExpression = nullptr;
             if (add_at_position <= 7)
                 PlotFunction(1);
             else
@@ -1559,7 +1559,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
         return 0;
     }
 
-    if (SpecialDrawingHover == NULL) return 0;
+    if (SpecialDrawingHover == nullptr) return 0;
     int mx, my;
     mx = (SpecialDrawingHover->absolute_X - ViewX) * ViewZoom / 100;
     my = (SpecialDrawingHover->absolute_Y - ViewY) * ViewZoom / 100;
@@ -1817,7 +1817,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
     }
     else
     {
-        if ((TheState) && (KeyboardEntryObject == NULL))
+        if ((TheState) && (KeyboardEntryObject == nullptr))
         {
             TheState = 0;
             return 1;
@@ -1840,7 +1840,7 @@ char* CFunctionPlotter::XML_input(char* file)
 
 //this function plots the mathematical function
 //first four items are the frame
-//inputs: reset_plot-(0-plot the funciton, 1 - prepare no Y ranging, 2-prepare with Y ranging);  PrintDC - when printing the device context, or NULL
+//inputs: reset_plot-(0-plot the funciton, 1 - prepare no Y ranging, 2-prepare with Y ranging);  PrintDC - when printing the device context, or nullptr
 int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
 {
     if (ViewZoom == 0)
@@ -1861,7 +1861,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
             {
                 TerminateThread(ThreadHandle, 0);
                 if (DrawingThreadUsed > 0) DrawingThreadUsed--;
-                ThreadHandle = NULL;
+                ThreadHandle = nullptr;
                 break;
             }
             cnt++;
@@ -1884,13 +1884,13 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
             if ((sz.cx != Xlen) || (sz.cy != Ylen))
             {
                 delete Plot;
-                Plot = NULL;
+                Plot = nullptr;
             }
         }
 
         //create the new bitmap if already not exists
         CDC* DC = pMainView->GetDC();
-        if (Plot == NULL)
+        if (Plot == nullptr)
         {
             Plot = new CBitmap();
             Plot->CreateCompatibleBitmap(DC, Xlen, Ylen);
@@ -1905,12 +1905,12 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
         mDC.SelectObject(prev_bitmap);
         pMainView->ReleaseDC(DC);
 
-        if (PrintDC == NULL)
+        if (PrintDC == nullptr)
         {
             //start the plotting thread (we are plotting in background except if we are printing)
             SECURITY_ATTRIBUTES sa;
             sa.bInheritHandle = FALSE;
-            sa.lpSecurityDescriptor = NULL;
+            sa.lpSecurityDescriptor = nullptr;
             sa.nLength = sizeof(sa);
             ThreadHandle = CreateThread(&sa, 0, DrawingThread, (LPVOID)this, 0, &(ThreadID));
             return 1;
@@ -1948,14 +1948,14 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
     int any_found = 0;
     for (int kk = 0; kk < 4; kk++, *pItem++)
     {
-        Func[kk] = NULL;
+        Func[kk] = nullptr;
         if (Base->NumItems >= kk + 9)
         {
             if ((pItem->pSubdrawing) &&
                 (((CExpression*)(pItem->pSubdrawing))->IsSuitableForComputation()) &&
                 (((CExpression*)(pItem->pSubdrawing))->m_pElementList->Type != 0))
             {
-                Func[kk] = new CExpression(NULL,NULL, 100);
+                Func[kk] = new CExpression(nullptr,nullptr, 100);
                 Func[kk]->CopyExpression((CExpression*)(pItem->pSubdrawing), 0);
                 any_found = 1;
             }
@@ -1987,10 +1987,10 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
         if (Func[kk])
         {
             VarPos[kk] = Func[kk]->PlotterPrepareVariablePositions();
-            if (VarPos[kk] == NULL)
+            if (VarPos[kk] == nullptr)
             {
                 delete Func[kk];
-                Func[kk] = NULL;
+                Func[kk] = nullptr;
             }
         }
     }
@@ -2057,7 +2057,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
         }
 
         //from time to type refresh the plotter (we don't do it very often because is slow)
-        if (((((!analyze) && (i % 32 == 31)) || ((analyze) && (i % 64 == 63))) && (PrintDC == NULL)) || (i == density *
+        if (((((!analyze) && (i % 32 == 31)) || ((analyze) && (i % 64 == 63))) && (PrintDC == nullptr)) || (i == density *
             Xlen - 1))
         {
             if (i == density * Xlen - 1) show_no_scale = 0;
@@ -2281,7 +2281,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
 
             start_drawing_point = i - 2;
 
-            if ((analyze) && (i == density * Xlen - 1) && (!abort_request) && (PrintDC == NULL) && (Func[0]) && (
+            if ((analyze) && (i == density * Xlen - 1) && (!abort_request) && (PrintDC == nullptr) && (Func[0]) && (
                 is_x_log == 0))
             {
                 //print out the numerically computed integral of the first function
@@ -2313,7 +2313,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
             }
 
             mDC.SelectObject(prev_bitmap);
-            if (PrintDC == NULL)
+            if (PrintDC == nullptr)
             {
                 CDC* DC = pMainView->GetDC();
                 Base->PaintDrawing(DC, ViewZoom, (absX - ViewX) * ViewZoom / 100, (absY - ViewY) * ViewZoom / 100, absX,
@@ -2356,7 +2356,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
                 PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,NULL, 0, 0, 1, &PF);
+                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
                 x->StrikeoutRemove(0, x->m_NumElements - 1);
                 *Xmax = PF.N1 / PF.N2;
             }
@@ -2373,7 +2373,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
                 PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,NULL, 0, 0, 1, &PF);
+                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
                 x->StrikeoutRemove(0, x->m_NumElements - 1);
                 *Xmin = PF.N1 / PF.N2;
             }
@@ -2390,7 +2390,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
                 PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,NULL, 0, 0, 1, &PF);
+                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
                 x->StrikeoutRemove(0, x->m_NumElements - 1);
                 *Ymax = PF.N1 / PF.N2;
             }
@@ -2407,7 +2407,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
                 PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,NULL, 0, 0, 1, &PF);
+                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
                 x->StrikeoutRemove(0, x->m_NumElements - 1);
                 *Ymin = PF.N1 / PF.N2;
             }

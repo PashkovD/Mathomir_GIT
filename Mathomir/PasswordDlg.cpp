@@ -29,7 +29,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 IMPLEMENT_DYNAMIC(CPasswordDlg, CDialog)
 
-CPasswordDlg::CPasswordDlg(CWnd* pParent /*=NULL*/)
+CPasswordDlg::CPasswordDlg(CWnd* pParent /*=nullptr*/)
     : CDialog(CPasswordDlg::IDD, pParent)
 {
 }
@@ -87,7 +87,7 @@ BOOL CPasswordDlg::OnInitDialog()
             this->GetWindowRect(&wr);
             this->GetClientRect(&cr);
             wr.bottom -= wr.top;
-            this->SetWindowPos(NULL, 0, 0, wr.right - wr.left, wr.bottom - cr.bottom + 50,SWP_NOMOVE | SWP_NOZORDER);
+            this->SetWindowPos(nullptr, 0, 0, wr.right - wr.left, wr.bottom - cr.bottom + 50,SWP_NOMOVE | SWP_NOZORDER);
         }
         else
         {

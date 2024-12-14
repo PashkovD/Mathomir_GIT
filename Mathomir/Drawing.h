@@ -39,7 +39,7 @@ public:
     int Delete(void);
     int InsertEmptyElement(int form, int Cx, int Cy);
     int CalculateSize(CDC* DC, short zoom, short* width, short* height);
-    void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = NULL, int color = 0);
+    void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = nullptr, int color = 0);
     void SelectDrawing(char select);
     int CalcChecksum(void);
     int CopyDrawing(CDrawing* Original);
@@ -66,7 +66,7 @@ public:
     int SetNodeEdit(int is_edit);
     int AnyNodeSelected(void);
     // returns coordinates of the real upper left corner
-    int FindRealCorner(int* X, int* Y, int* X2 = NULL, int* Y2 = NULL);
+    int FindRealCorner(int* X, int* Y, int* X2 = nullptr, int* Y2 = nullptr);
     int CopyToWindowsClipboard(void);
     int SplitLineAtPos(int X, int Y);
     int MouseClick(int X, int Y);
@@ -74,7 +74,7 @@ public:
     // returns lenght of the diagonal from given point to drawing lines
     int FindDiagonalLength(int X, int Y, int* l1, int* l2, int direction);
     int SetColor(int color);
-    int IsOpenPath(int close_path, char* is_closed_path = NULL, LPPOINT points = NULL, char* num_points_found = NULL);
+    int IsOpenPath(int close_path, char* is_closed_path = nullptr, LPPOINT points = nullptr, char* num_points_found = nullptr);
     int MakeDashed(char dash_dot);
     int FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X0, int Y0, int X1, int Y1);
     void FindBottomRightDrawingPoint(int* X, int* Y);
@@ -138,7 +138,7 @@ public:
     int XML_output(char* output, int num_tabs, char only_calculate);
     char* XML_input(char* file);
 
-    int PlotFunction(int reset_plot, CDC* PrintDC = NULL, short zoom = 0);
+    int PlotFunction(int reset_plot, CDC* PrintDC = nullptr, short zoom = 0);
     int PlotFunctionGetBondaries(double* Xmin, double* Xmax, double* Ymin, double* Ymax);
     int ShowNumberWithPrecision(double number, double precision, char* string);
 };

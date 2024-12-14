@@ -21,20 +21,18 @@
 
 #ifdef TEACHER_VERSION
 
-CDiffieHellman::CDiffieHellman(void)
-{
-}
+CDiffieHellman::CDiffieHellman() = default;
 
-CDiffieHellman::~CDiffieHellman(void)
+CDiffieHellman::~CDiffieHellman()
 {
 }
 
 //Raises X to the power Y in modulus N. the values of X, Y, and N can be massive, 
 //and this can be acheived by first calculating X to the power of 2 then 
 //using power chaining over modulus N
-__int64 CDiffieHellman::XpowYmodN(__int64 x, __int64 y, __int64 N)
+int64_t CDiffieHellman::XpowYmodN(int64_t x, int64_t y, int64_t N)
 {
-    __int64 tmp = 0;
+    int64_t tmp = 0;
     if (y == 1) return (x % N);
 
     if ((y & 1) == 0)
@@ -56,16 +54,16 @@ __int64 CDiffieHellman::XpowYmodN(__int64 x, __int64 y, __int64 N)
 //trials is the number of attempts to verify this, because the function
 //is not 100% accurate it may be a composite.  However setting the trial
 //value to around 5 should guarantee success even with very large primes
-bool CDiffieHellman::MillerRabin(__int64 n)
+bool CDiffieHellman::MillerRabin(int64_t n)
 {
-    __int64 a = 0;
+    int64_t a = 0;
 
     for (int i = 0; i < 5; i++) //5 trials to make a reasonable test
     {
-        a = (rand() % (n - 3)) + 2; // gets random value in [2..n-1] 
+        a = rand() % (n - 3) + 2; // gets random value in [2..n-1] 
 
         //test if n is prime
-        __int64 d = XpowYmodN(a, n - 1, n);
+        int64_t d = XpowYmodN(a, n - 1, n);
         if (d != 1) return false;
     }
 
@@ -76,16 +74,16 @@ bool CDiffieHellman::MillerRabin(__int64 n)
 // Generates a random number by first getting the RTSC of the CPU, then 
 // uses a Linear feedback shift register.
 // The RTSC is then added to fill the 64-bits
-unsigned __int64 CDiffieHellman::GenerateRandomNumber(void)
+uint64_t CDiffieHellman::GenerateRandomNumber()
 {
     static unsigned long dh_rnd = 0x41594c49;
     static unsigned long dh_x = 0x94c49514;
 
     LFSR(dh_x);
-    dh_rnd ^= ((unsigned long)GetTickCount()) ^ dh_x;
+    dh_rnd ^= GetTickCount() ^ dh_x;
     ROT(dh_rnd, 7);
 
-    return (unsigned __int64)GetTickCount() + dh_rnd;
+    return (uint64_t)GetTickCount() + dh_rnd;
 }
 
 
@@ -93,9 +91,9 @@ unsigned __int64 CDiffieHellman::GenerateRandomNumber(void)
 //choosing a randomly large integer, and ensuring the value is odd
 //then uses the miller-rabin primality test on it to see if it is prime
 //if not the value gets increased until it is prime
-unsigned __int64 CDiffieHellman::GeneratePrime()
+uint64_t CDiffieHellman::GeneratePrime()
 {
-    unsigned __int64 tmp = 0;
+    uint64_t tmp = 0;
 
     tmp = GenerateRandomNumber() % MAX_PRIME_NUMBER;
 
@@ -117,7 +115,7 @@ unsigned __int64 CDiffieHellman::GeneratePrime()
 //generates two important numbers  'N' and 'a'(the last one is derived from password and is 
 //kept secret). It then calculates number 'X'. Numbers 'N' and 'X' make public key 
 //and are transferred to the other side to be used for encription.
-void CDiffieHellman::DerivePublicKey(char* password, __int64* N, __int64* X)
+void CDiffieHellman::DerivePublicKey(char* password, int64_t* N, int64_t* X)
 {
     *N = GeneratePrime();
     while (*N < DH_G_NUMBER) *N = GeneratePrime();
@@ -127,16 +125,16 @@ void CDiffieHellman::DerivePublicKey(char* password, __int64* N, __int64* X)
     for (int i = 0; i < (int)strlen(password); i++)
         pswd[i % 8] += password[i];
 
-    a = *((__int64*)pswd);
+    a = *((int64_t*)pswd);
     a = a % MAX_RANDOM_INTEGER;
     if (a == 0) a = 0x112233;
 
-    if (X != NULL) *X = XpowYmodN(DH_G_NUMBER, a, *N);
+    if (X != nullptr) *X = XpowYmodN(DH_G_NUMBER, a, *N);
 }
 
 //creates decription key from helper value 'Y', 'N' (part of public key) and 'a' (secret part)
 //The decription key is equal to encription key but can be only calculated if 'a' is known.
-void CDiffieHellman::CreateDecryptionKey(__int64 Y, __int64 N, __int64* Key)
+void CDiffieHellman::CreateDecryptionKey(int64_t Y, int64_t N, int64_t* Key)
 {
     *Key = XpowYmodN(Y, a, N);
 }
@@ -145,9 +143,9 @@ void CDiffieHellman::CreateDecryptionKey(__int64 Y, __int64 N, __int64* Key)
 //is kept secret, but the helper value 'Y' is to be transferred to the other side to assist
 //during decription. (by knowing only numbers 'G', 'N', 'X' and 'Y' it is not possible to
 //make decription - the number 'a' is needed and is only known on the other side.)
-void CDiffieHellman::CreateEncryptionKey(__int64 N, __int64 X, __int64* Key, __int64* Y)
+void CDiffieHellman::CreateEncryptionKey(int64_t N, int64_t X, int64_t* Key, int64_t* Y)
 {
-    __int64 b = (__int64)(GenerateRandomNumber() % MAX_RANDOM_INTEGER);
+    int64_t b = (int64_t)(GenerateRandomNumber() % MAX_RANDOM_INTEGER);
     *Y = XpowYmodN(DH_G_NUMBER, b, N);
     *Key = XpowYmodN(X, b, N);
 }
