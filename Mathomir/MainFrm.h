@@ -61,7 +61,7 @@ public:
     int UndoInit();
     int UndoRestore();
     int UndoSave(const std::string& undo_text, int unique_ID = -1);
-    int UndoCheckText(char* text, int unique_ID = -1);
+    int UndoCheckText(const std::string& text_def, int unique_ID = -1);
     int UndoDisableSaving();
     int UndoEnableSaving();
     int ReleaseMyPainting(void);

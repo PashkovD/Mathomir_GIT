@@ -2554,7 +2554,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
         {
             //an HTML element
             if (Expression1)
-                ((CExpression*)Expression1)->PaintExpression(
+                Expression1->PaintExpression(
                     DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,RGB(0, 0, 192));
             if (Data1[0] == 'H')
             {
@@ -2593,13 +2593,13 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
         else
         {
             if (Expression1)
-                ((CExpression*)Expression1)->PaintExpression(
+                Expression1->PaintExpression(
                     DC, zoom, X + E1_posX, Y + E1_posY, ClipReg, color);
             if (Expression2)
-                ((CExpression*)Expression2)->PaintExpression(
+                Expression2->PaintExpression(
                     DC, zoom, X + E2_posX, Y + E2_posY, ClipReg, color);
             if (Expression3)
-                ((CExpression*)Expression3)->PaintExpression(
+                Expression3->PaintExpression(
                     DC, zoom, X + E3_posX, Y + E3_posY, ClipReg, color);
 
             DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), (IsBlue) ? 1 : 0, color));
@@ -2612,13 +2612,13 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
     if (m_Type == 10) //vertical line with condition list - as an element
     {
         if (Expression1)
-            ((CExpression*)Expression1)->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
+            Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
                                                          color);
         if (Expression2)
-            ((CExpression*)Expression2)->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
+            Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
                                                          color);
         if (Expression3)
-            ((CExpression*)Expression3)->PaintExpression(DC, zoom, X + E3_posX, Y + E3_posY, ClipReg,
+            Expression3->PaintExpression(DC, zoom, X + E3_posX, Y + E3_posY, ClipReg,
                                                          color);
 
         DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), (IsBlue) ? 1 : 0, color));
@@ -2733,43 +2733,43 @@ void CElement::Empty(char oper)
         if (oper >= 32) return; //for speed
 
         //special handling for exponent
-        if (oper == 1) strcpy(Data1, "1");
-        if (oper == 2) strcpy(Data1, "2");
-        if (oper == 3) strcpy(Data1, "3");
+        if (oper == 1) strcpy_s(Data1, "1");
+        if (oper == 2) strcpy_s(Data1, "2");
+        if (oper == 3) strcpy_s(Data1, "3");
         //special handling for e and pi, triple dots
         if (oper == 4)
         {
-            strcpy(Data1, "e");
+            strcpy_s(Data1, "e");
             Data2[0] = 0x22;
         }
         if (oper == 5)
         {
-            strcpy(Data1, "p");
+            strcpy_s(Data1, "p");
             Data2[0] = 0x60;
         }
         if (oper == 6)
         {
-            strcpy(Data1, "H");
+            strcpy_s(Data1, "H");
             Data2[0] = (char)0xE3;
         } //horizontal triple dot
         if (oper == 7)
         {
-            strcpy(Data1, "V");
+            strcpy_s(Data1, "V");
             Data2[0] = (char)0xE3;
         } //vertical triple dot
         if (oper == 8)
         {
-            strcpy(Data1, "A");
+            strcpy_s(Data1, "A");
             Data2[0] = (char)0xE3;
         } //angled triple dot
         if (oper == 9)
         {
-            strcpy(Data1, "U");
+            strcpy_s(Data1, "U");
             Data2[0] = (char)0xE3;
         } //up-angled triple dot
         if (oper == 13)
         {
-            strcpy(Data1, "%");
+            strcpy_s(Data1, "%");
             Data2[0] = (char)0xE3;
         } //permille
         //degrees centigrade
@@ -3496,7 +3496,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
     int len = 0;
     int tmp;
     short i;
-    char* E1 = nullptr;
+    std::string* E1 = nullptr;
     char* E2 = nullptr;
     char* E3 = nullptr;
 
@@ -3515,7 +3515,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 
     if ((XMLFileVersion == 1) || (m_Type >= 7))
     {
-        sprintf(tmpstr, "<elm tp=\"%d\" ", m_Type);
+        sprintf_s(tmpstr, "<elm tp=\"%d\" ", m_Type);
         tmp = (int)strlen(tmpstr);
         len += tmp;
         if (!only_calculate)
@@ -3688,11 +3688,11 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
                 strcat_s(tmpstr, "\"");
             }
 
-            if (Expression1) E1 = "i";
+            if (Expression1) *E1 = "i";
         }
         else
         {
-            if (Expression1) E1 = "";
+            if (Expression1) *E1 = "";
             if (Expression2) E2 = "i";
         }
     }
@@ -3716,29 +3716,29 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             sprintf_s(tmps, " tablen=\"%d\"", Data1[3]);
             strcat_s(tmpstr, tmps);
         }
-        if (Expression1) E1 = "upp";
+        if (Expression1) *E1 = "upp";
     }
 
     if (m_Type == 3) //exponent (power)
     {
-        strcpy(tmpstr, "");
-        if (Expression1) E1 = "";
+        strcpy_s(tmpstr, "");
+        if (Expression1) *E1 = "";
         if (Expression2) E2 = "e";
     }
 
     if (m_Type == 4) //fraction (rational number), a over b
     {
-        if (Data1[0] == '/') strcpy(tmpstr, "stp=\"semi-fraction\"");
-        else if (Data1[0] == ' ') strcpy(tmpstr, "stp=\"a-over-b\"");
-        else if (Data1[0] == 'd') strcpy(tmpstr, "stp=\"dfrac\"");
-        else strcpy(tmpstr, "stp=\"\"");
-        if (Expression1) E1 = "n";
+        if (Data1[0] == '/') strcpy_s(tmpstr, "stp=\"semi-fraction\"");
+        else if (Data1[0] == ' ') strcpy_s(tmpstr, "stp=\"a-over-b\"");
+        else if (Data1[0] == 'd') strcpy_s(tmpstr, "stp=\"dfrac\"");
+        else strcpy_s(tmpstr, "stp=\"\"");
+        if (Expression1) *E1 = "n";
         if (Expression2) E2 = "d";
     }
 
     if (m_Type == 5) //parentheses
     {
-        if (Expression1) E1 = "";
+        if (Expression1) *E1 = "";
         if (Expression2) E2 = "i";
     }
 
@@ -3782,18 +3782,18 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             }
         }
 
-        if (Expression1) E1 = "";
+        if (Expression1) *E1 = "";
         if (Expression2) E2 = "h";
         if (Expression3) E3 = "l";
     }
     if (m_Type == 8) //root
     {
-        if (Expression1) E1 = "";
+        if (Expression1) *E1 = "";
         if (Expression2) E2 = "ndx";
     }
     if (m_Type == 9) //condition list
     {
-        if (Expression1) E1 = "";
+        if (Expression1) *E1 = "";
         if (Expression2) E2 = "h";
         if (Expression3) E3 = "l";
         if ((Expression3 == 0) && (Expression2 == 0) && (Data1[0] == 'L'))
@@ -3838,7 +3838,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         itoa(Data2[0], tmp, 10);
         strcat(tmpstr, tmp);
         strcat(tmpstr, "\"");
-        if (Expression1) E1 = "h";
+        if (Expression1) *E1 = "h";
         if (Expression2) E2 = "m";
         if (Expression3) E3 = "l";
     }
@@ -3847,49 +3847,49 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
     {
         if (E1)
         {
-            strcat(tmpstr, " Exp1=\"");
-            strcat(tmpstr, E1);
-            strcat(tmpstr, "\"");
+            strcat_s(tmpstr, " Exp1=\"");
+            strcat_s(tmpstr, E1->c_str());
+            strcat_s(tmpstr, "\"");
         }
         if (E2)
         {
-            strcat(tmpstr, " Exp2=\"");
-            strcat(tmpstr, E2);
-            strcat(tmpstr, "\"");
+            strcat_s(tmpstr, " Exp2=\"");
+            strcat_s(tmpstr, E2);
+            strcat_s(tmpstr, "\"");
         }
         if (E3)
         {
-            strcat(tmpstr, " Exp3=\"");
-            strcat(tmpstr, E3);
-            strcat(tmpstr, "\"");
+            strcat_s(tmpstr, " Exp3=\"");
+            strcat_s(tmpstr, E3);
+            strcat_s(tmpstr, "\"");
         }
     }
     else
     {
         if (E1)
         {
-            strcat(tmpstr, " E1=\"");
-            strcat(tmpstr, E1);
-            strcat(tmpstr, "\"");
+            strcat_s(tmpstr, " E1=\"");
+            strcat_s(tmpstr, E1->c_str());
+            strcat_s(tmpstr, "\"");
         }
         if (E2)
         {
-            strcat(tmpstr, " E2=\"");
-            strcat(tmpstr, E2);
-            strcat(tmpstr, "\"");
+            strcat_s(tmpstr, " E2=\"");
+            strcat_s(tmpstr, E2);
+            strcat_s(tmpstr, "\"");
         }
         if (E3)
         {
-            strcat(tmpstr, " E3=\"");
-            strcat(tmpstr, E3);
-            strcat(tmpstr, "\"");
+            strcat_s(tmpstr, " E3=\"");
+            strcat_s(tmpstr, E3);
+            strcat_s(tmpstr, "\"");
         }
     }
 
     if ((Expression1 == nullptr) && (Expression2 == nullptr) && (Expression3 == nullptr))
-        strcat(tmpstr, " />\r\n");
+        strcat_s(tmpstr, " />\r\n");
     else
-        strcat(tmpstr, ">\r\n");
+        strcat_s(tmpstr, ">\r\n");
     tmp = (short)strlen(tmpstr);
     len += tmp;
     if (!only_calculate)
@@ -3900,19 +3900,19 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 
     if (Expression1)
     {
-        tmp = ((CExpression*)(Expression1))->XML_output(output, num_tabs, only_calculate);
+        tmp = Expression1->XML_output(output, num_tabs, only_calculate);
         len += tmp;
         if (!only_calculate) output += tmp;
     }
     if (Expression2)
     {
-        tmp = ((CExpression*)(Expression2))->XML_output(output, num_tabs, only_calculate);
+        tmp = Expression2->XML_output(output, num_tabs, only_calculate);
         len += tmp;
         if (!only_calculate) output += tmp;
     }
     if (Expression3)
     {
-        tmp = ((CExpression*)(Expression3))->XML_output(output, num_tabs, only_calculate);
+        tmp = Expression3->XML_output(output, num_tabs, only_calculate);
         len += tmp;
         if (!only_calculate) output += tmp;
     }
@@ -4230,11 +4230,11 @@ int CElement::CalcChecksum()
 //two helper functions and macros for mathml output
 #define OUTPUT(x) len+=MakeOutput(&output,tabs,only_calculate,x)
 #pragma optimize("s",on)
-int MakeOutput(char** output, char* tabs, char only_calculate, char* text1)
+int MakeOutput(char** output, char* tabs, char only_calculate, const char* text1)
 {
     char tmpstr[136];
-    strcpy(tmpstr, tabs);
-    strcat(tmpstr, text1);
+    strcpy_s(tmpstr, tabs);
+    strcat_s(tmpstr, text1);
     int tt = (int)strlen(tmpstr);
     if (!only_calculate)
     {
@@ -4243,6 +4243,7 @@ int MakeOutput(char** output, char* tabs, char only_calculate, char* text1)
     }
     return tt;
 }
+
 
 #define OUTPUT_EXPRESSION(x) len+=MakeExpressionOutput(&output,&tabs,num_tabs,only_calculate,output_type,x)
 #pragma optimize("s",on)
@@ -4883,8 +4884,8 @@ int CElement::LaTeX_output(char* output, char only_calculate)
                     OUTPUT("} ");
                 if (this->Expression1)
                     if ((this->Expression2 == nullptr) &&
-                        (((CExpression*)this->Expression1)->m_pElementList->Type == 1) &&
-                        (((CExpression*)this->Expression1)->m_DrawParentheses == 0) &&
+                        (this->Expression1->m_pElementList->Type == 1) &&
+                        (this->Expression1->m_DrawParentheses == 0) &&
                         (!is_squared_function))
                         OUTPUT("\\, ");
             }
@@ -4920,7 +4921,7 @@ int CElement::LaTeX_output(char* output, char only_calculate)
 
     if (m_Type == 2) //operator
     {
-        char* str = "";
+        std::string str = "";
         char fb = Data1[0];
         if (fb == (char)0xD7) str = "\\cdot";
         if (fb == (char)0xB1) str = "\\pm";
@@ -4995,14 +4996,14 @@ int CElement::LaTeX_output(char* output, char only_calculate)
         }
         else
         {
-            OUTPUT(str);
+            OUTPUT(str.c_str());
             OUTPUT(" ");
         }
     }
 
     if (m_Type == 3) //exponent (power) or
     {
-        CExpression* p = (CExpression*)this->Expression1;
+        CExpression* p = this->Expression1;
         if ((p->m_pElementList->Type == 6) && (p->m_NumElements == 1))
         {
             //this is form of: func^2(x)

@@ -195,7 +195,7 @@ public:
     int XML_output(char* output, int num_tabs, char only_calculate);
     char* XML_input(char* file);
     //int MathML_output(char * output, int num_tabs, char only_calculate,char output_type);
-    int LaTeX_output(char* output, char only_calculate);
+    int LaTeX_output(char* output, char only_calculate) const;
 
     int CalcChecksum(void);
     CObject* KeyboardFindEntryPos();
@@ -217,7 +217,7 @@ public:
     int GetKeyboardCursorPos(int* X, int* Y);
     int ChangeFontSize(float factor);
     int GetElementLen(const unsigned int StartPos, const unsigned int EndPos, const unsigned int Level,
-                      char* element_type, char* has_preoperator);
+                      char* element_type, char* has_preoperator) const;
     int FindLowestOperatorLevel(const unsigned int StartPos, const unsigned int EndPos, char default_operator = 0);
     int FindLowestOperatorLevel(char default_oper = 0);
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position

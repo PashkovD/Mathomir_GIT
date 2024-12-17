@@ -555,7 +555,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
 
         if ((m_ParenthesesFlags & 0x02) && //auto parentheses
             (m_pPaternalElement) &&
-            (m_pPaternalElement->Expression1 == (CObject*)this))
+            (m_pPaternalElement->Expression1 == this))
         {
             if (m_pPaternalElement->m_Type == 3) //exponent (power)
             {
@@ -688,8 +688,8 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
         int is_index = 0;
         if ((m_pPaternalElement) &&
             ((m_pPaternalElement->m_Type == 1) ||
-                ((m_pPaternalElement->m_Type == 5) && (m_pPaternalElement->Expression2 == (CObject*)this)) ||
-                ((m_pPaternalElement->m_Type == 6) && (m_pPaternalElement->Expression2 == (CObject*)this))))
+                ((m_pPaternalElement->m_Type == 5) && (m_pPaternalElement->Expression2 == this)) ||
+                ((m_pPaternalElement->m_Type == 6) && (m_pPaternalElement->Expression2 == this))))
             is_index = 1;
 
         //store margines for later usage
@@ -709,7 +709,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
             if (m_ParenthesesFlags & 0x81) *length = (PrecisionMarginX + 26) / 256;
         }
         if ((this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 3) && (this->m_pPaternalElement->
-                Expression1 == (CObject*)this) &&
+                Expression1 == this) &&
             ((this->m_ParenthesesFlags & 0x81) == 0))
         {
             //special handling for exponents - no insertion point in front of an exponent (for better rendering and simpler editing) //BABA
@@ -1534,8 +1534,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                 tElementStruct* pElementList = exp->m_pElementList;
 
                 if ((is_pater_object_selected == 0) && (ts) &&
-                    ((!exp->m_DrawParentheses) || (ParenthesesFlags & 0x18)) && (ts->pElementObject->Expression1 == ((
-                        CObject*)exp)))
+                    ((!exp->m_DrawParentheses) || (ParenthesesFlags & 0x18)) && ts->pElementObject->Expression1 == exp)
                 {
                     if (((ts->Type == 3) && ((Selection == 1) || ((IsKeyboardEntry == 1) && (KeyboardCursorPos == 0))))
                         ||
@@ -1612,8 +1611,8 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
         tElementStruct* theElement = m_pElementList;
         for (int i = 0; i < m_NumElements; i++, theElement++)
         {
-            if ((((theElement->IsSelected) || ((theElement->Type == 5) && (((CExpression*)theElement->pElementObject->
-                        Expression1)->m_ParenthesesSelected)))
+            if ((((theElement->IsSelected) || ((theElement->Type == 5) && (theElement->pElementObject->
+                        Expression1->m_ParenthesesSelected)))
                     && ((TouchMouseMode > 1) || ((GetKeyState(VK_SHIFT) & 0xFFFE) && (DisableMultitouch == 0)))) ||
                 (theElement->IsSelected == 2)) //painting blue-hue behind selected elements
             {
@@ -1644,10 +1643,10 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                         if ((this->m_pPaternalElement) &&
                             (this->m_pPaternalElement->m_Type == 7) &&
                             (theElement->IsSelected == 0) && (this->m_Selection == 0) &&
-                            (this->m_pPaternalElement->Expression2 == (CObject*)this) &&
+                            (this->m_pPaternalElement->Expression2 == this) &&
                             (this->m_pElementList->Type == 0) && (this->m_NumElements == 1) &&
-                            (this->m_pPaternalElement->Expression3 != KeyboardEntryObject) &&
-                            (((CExpression*)this->m_pPaternalElement->Expression3)->m_pElementList->Type))
+                            ((CObject*)this->m_pPaternalElement->Expression3 != KeyboardEntryObject) &&
+                            (this->m_pPaternalElement->Expression3->m_pElementList->Type))
                             paint = 0; //for signa or integral signs, no upper limit will be desplayed if empty
                         if (paint)
                         {
@@ -2487,15 +2486,15 @@ void CExpression::SelectElement(char Select, int position)
         {
             if (Select)
             {
-                if (object->Expression1) ((CExpression*)(object->Expression1))->SelectExpression(1);
-                if (object->Expression2) ((CExpression*)(object->Expression2))->SelectExpression(1);
-                if (object->Expression3) ((CExpression*)(object->Expression3))->SelectExpression(1);
+                if (object->Expression1) object->Expression1->SelectExpression(1);
+                if (object->Expression2) object->Expression2->SelectExpression(1);
+                if (object->Expression3) object->Expression3->SelectExpression(1);
             }
             else
             {
-                if (object->Expression1) ((CExpression*)(object->Expression1))->DeselectExpression();
-                if (object->Expression2) ((CExpression*)(object->Expression2))->DeselectExpression();
-                if (object->Expression3) ((CExpression*)(object->Expression3))->DeselectExpression();
+                if (object->Expression1) object->Expression1->DeselectExpression();
+                if (object->Expression2) object->Expression2->DeselectExpression();
+                if (object->Expression3) object->Expression3->DeselectExpression();
             }
         }
     }
@@ -2532,9 +2531,9 @@ void CExpression::SelectExpression(char Select)
             CElement* object = theElement->pElementObject;
             if (object)
             {
-                if (object->Expression1) ((CExpression*)(object->Expression1))->SelectExpression(Select);
-                if (object->Expression2) ((CExpression*)(object->Expression2))->SelectExpression(Select);
-                if (object->Expression3) ((CExpression*)(object->Expression3))->SelectExpression(Select);
+                if (object->Expression1) object->Expression1->SelectExpression(Select);
+                if (object->Expression2) object->Expression2->SelectExpression(Select);
+                if (object->Expression3) object->Expression3->SelectExpression(Select);
             }
         }
     }
@@ -2563,12 +2562,12 @@ void CExpression::DeselectExpressionExceptKeyboardSelection(void)
                 CElement* object = theElement->pElementObject;
                 if (object)
                 {
-                    if (object->Expression1) ((CExpression*)(object->Expression1))->
-                        DeselectExpressionExceptKeyboardSelection();
-                    if (object->Expression2) ((CExpression*)(object->Expression2))->
-                        DeselectExpressionExceptKeyboardSelection();
-                    if (object->Expression3) ((CExpression*)(object->Expression3))->
-                        DeselectExpressionExceptKeyboardSelection();
+                    if (object->Expression1) object->Expression1->
+                                                     DeselectExpressionExceptKeyboardSelection();
+                    if (object->Expression2) object->Expression2->
+                                                     DeselectExpressionExceptKeyboardSelection();
+                    if (object->Expression3) object->Expression3->
+                                                     DeselectExpressionExceptKeyboardSelection();
                 }
             }
         }
@@ -2592,9 +2591,9 @@ void CExpression::DeselectExpression()
             CElement* object = theElement->pElementObject;
             if (object)
             {
-                if (object->Expression1) ((CExpression*)(object->Expression1))->DeselectExpression();
-                if (object->Expression2) ((CExpression*)(object->Expression2))->DeselectExpression();
-                if (object->Expression3) ((CExpression*)(object->Expression3))->DeselectExpression();
+                if (object->Expression1) object->Expression1->DeselectExpression();
+                if (object->Expression2) object->Expression2->DeselectExpression();
+                if (object->Expression3) object->Expression3->DeselectExpression();
             }
         }
     }
@@ -2826,7 +2825,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                     //in some cases (variable with indexes or exponents) allow non-rectangle regions (so that index/exponent end insertion point can be touched)
                     if ((theElement->Type == 3) && (theElement->pElementObject->Expression1))
                     {
-                        CExpression* base = (CExpression*)theElement->pElementObject->Expression1;
+                        CExpression* base = theElement->pElementObject->Expression1;
                         int has_index = 0;
                         if (base->m_DrawParentheses == 0)
                         {
@@ -3805,7 +3804,7 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
                 for (i = 0; i < expr->m_pPaternalExpression->m_NumElements; i++)
                 {
                     tElementStruct* ts = (expr->m_pPaternalExpression->m_pElementList) + i;
-                    if ((ts->Type == 5) && (ts->pElementObject->Expression1 == (CObject*)expr))
+                    if ((ts->Type == 5) && (ts->pElementObject->Expression1 == expr))
                     {
                         int j;
                         for (j = 0; j < Original->m_NumElements; j++)
@@ -3843,7 +3842,7 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
         {
             //the original has parentheses (or is matrix/vector), we will add these also
             expr->InsertEmptyElement(pos, 5, 0);
-            expr = (CExpression*)(((expr->m_pElementList + pos)->pElementObject)->Expression1);
+            expr = (expr->m_pElementList + pos)->pElementObject->Expression1;
             expr->CopyExpression(Original, 0);
             /*if ((Original->m_DrawParentheses==0) && (OriginalIsText)) 
             {
@@ -3949,7 +3948,7 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
         {
             //the original has parentheses, we will add these also
             expr->InsertEmptyElement(first_found, 5, 0);
-            expr = (CExpression*)(((expr->m_pElementList + first_found)->pElementObject)->Expression1);
+            expr = (expr->m_pElementList + first_found)->pElementObject->Expression1;
             expr->CopyExpression(Original, 0);
             return expr;
         }
@@ -4099,22 +4098,22 @@ CExpression* CExpression::GetLabel()
                 el->Expression1))
             {
                 //label element found - now return its expression
-                return (CExpression*)el->Expression1;
+                return el->Expression1;
             }
             CExpression* found;
             if (el->Expression1)
             {
-                found = ((CExpression*)el->Expression1)->GetLabel();
+                found = el->Expression1->GetLabel();
                 if (found) return found;
             }
             if (el->Expression2)
             {
-                found = ((CExpression*)el->Expression2)->GetLabel();
+                found = el->Expression2->GetLabel();
                 if (found) return found;
             }
             if (el->Expression3)
             {
-                found = ((CExpression*)el->Expression3)->GetLabel();
+                found = el->Expression3->GetLabel();
                 if (found) return found;
             }
         }
@@ -4155,12 +4154,12 @@ CExpression* CExpression::AdjustSelection(char keyboard_select)
                 if ((j == 0) && (theElement->IsSelected)) ret = this;
                 else if (theElement->pElementObject)
                 {
-                    if ((j == 1) && (theElement->pElementObject->Expression1)) ret = ((CExpression*)theElement->
-                        pElementObject->Expression1)->AdjustSelection(keyboard_select);
-                    if ((j == 2) && (theElement->pElementObject->Expression2)) ret = ((CExpression*)theElement->
-                        pElementObject->Expression2)->AdjustSelection(keyboard_select);
-                    if ((j == 3) && (theElement->pElementObject->Expression3)) ret = ((CExpression*)theElement->
-                        pElementObject->Expression3)->AdjustSelection(keyboard_select);
+                    if ((j == 1) && (theElement->pElementObject->Expression1)) ret = theElement->
+                        pElementObject->Expression1->AdjustSelection(keyboard_select);
+                    if ((j == 2) && (theElement->pElementObject->Expression2)) ret = theElement->
+                        pElementObject->Expression2->AdjustSelection(keyboard_select);
+                    if ((j == 3) && (theElement->pElementObject->Expression3)) ret = theElement->
+                        pElementObject->Expression3->AdjustSelection(keyboard_select);
                 }
                 if (ret)
                 {
@@ -4190,9 +4189,9 @@ CExpression* CExpression::AdjustSelection(char keyboard_select)
                 CElement* elm = (m_pElementList + jj)->pElementObject;
                 if (elm)
                 {
-                    if (elm->Expression1 != nullptr) ((CExpression*)(elm->Expression1))->SelectExpression(1);
-                    if (elm->Expression2 != nullptr) ((CExpression*)(elm->Expression2))->SelectExpression(1);
-                    if (elm->Expression3 != nullptr) ((CExpression*)(elm->Expression3))->SelectExpression(1);
+                    if (elm->Expression1 != nullptr) elm->Expression1->SelectExpression(1);
+                    if (elm->Expression2 != nullptr) elm->Expression2->SelectExpression(1);
+                    if (elm->Expression3 != nullptr) elm->Expression3->SelectExpression(1);
                 }
             }
     }
@@ -4812,7 +4811,7 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
         else f = Toolbox->GetMixedFormatting(t, 0);
         DeleteElement(m_IsKeyboardEntry - 1);
         InsertEmptyElement(m_IsKeyboardEntry - 1, 6, 23, fcolor);
-        CExpression* b = (CExpression*)((m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression1);
+        CExpression* b = (m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression1;
         b->InsertEmptyElement(0, 1, t, fcolor);
         b->m_pElementList->pElementObject->Data2[0] = f;
         InsertEmptyElement(m_IsKeyboardEntry, 1, 0, fcolor);
@@ -4832,12 +4831,12 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
 
         DeleteElement(m_IsKeyboardEntry - 1);
         InsertEmptyElement(m_IsKeyboardEntry - 1, 4, 'd', fcolor);
-        CExpression* b = (CExpression*)((m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression2);
-        b = (CExpression*)b->m_pElementList->pElementObject->Expression1;
+        CExpression* b = (m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression2;
+        b = b->m_pElementList->pElementObject->Expression1;
         b->InsertEmptyElement(0, 1, t, fcolor);
         b->m_pElementList->pElementObject->Data2[0] = f;
-        b = (CExpression*)((m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression1);
-        b = (CExpression*)b->m_pElementList->pElementObject->Expression1;
+        b = (m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression1;
+        b = b->m_pElementList->pElementObject->Expression1;
         KeyboardRefocus(b, 0);
         return 2;
     }
@@ -4887,7 +4886,7 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
         }
         else if (greek) (b->m_pElementList + i)->pElementObject->Data2[0] = 0x60;
         strcpy((b->m_pElementList + i)->pElementObject->Data1, tmp + 5);
-        CExpression* arg = (CExpression*)(b->m_pElementList + i)->pElementObject->Expression1;
+        CExpression* arg = (b->m_pElementList + i)->pElementObject->Expression1;
         if ((nChar != '(') && (nChar != '[') && (nChar != '{'))
             if (strlen((b->m_pElementList + i)->pElementObject->Data1) <= 1)
             {
@@ -5106,12 +5105,11 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
                         (ListOfKnownFunctions[ii].type == 4)) //fraction
                     {
                         //m_IsKeyboardEntry=0;
-                        CExpression* NextObject = ((CExpression*)(theElement->pElementObject->Expression1));
+                        CExpression* NextObject = theElement->pElementObject->Expression1;
                         if ((NextObject->m_pElementList->Type == 6) && (ListOfKnownFunctions[ii].type == 4))
-                            NextObject = ((CExpression*)(NextObject->m_pElementList->pElementObject->Expression1));
-                        if ((theElement->Type == 8) && (theElement->pElementObject->Expression2) && (((CExpression*)
-                            theElement->pElementObject->Expression2)->m_pElementList->Type == 0))
-                            NextObject = ((CExpression*)(theElement->pElementObject->Expression2));
+                            NextObject = NextObject->m_pElementList->pElementObject->Expression1;
+                        if ((theElement->Type == 8) && (theElement->pElementObject->Expression2) && (theElement->pElementObject->Expression2->m_pElementList->Type == 0))
+                            NextObject = theElement->pElementObject->Expression2;
                         //for \root we jump into expression2
 
                         KeyboardRefocus(NextObject, 0);
@@ -5152,14 +5150,14 @@ resolve_known_functions_nounit:
             theElement = m_pElementList + m_IsKeyboardEntry - 1;
 
             memcpy(theElement->pElementObject->Data1, tmpdata, 23);
-            KeyboardRefocus((CExpression*)theElement->pElementObject->Expression1, 0);
+            KeyboardRefocus(theElement->pElementObject->Expression1, 0);
             if ((tmpdata[1] == 0) || ((tmpdata[strlen(tmpdata) - 1] <= '9')))
             {
                 //adding parentheses over single-letter functions or those whose name ends with a number ;
-                ((CExpression*)theElement->pElementObject->Expression1)->m_ParenthesesFlags = 1;
+                theElement->pElementObject->Expression1->m_ParenthesesFlags = 1;
                 if ((nChar == '(') || (nChar == '[') || (nChar == '{'))
                 {
-                    ((CExpression*)theElement->pElementObject->Expression1)->m_ParentheseShape = nChar;
+                    theElement->pElementObject->Expression1->m_ParentheseShape = nChar;
                     nChar = 6; //don't allow adding another parenthese
                 }
             }
@@ -5180,10 +5178,9 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
         KeyboardIndexMode = 0;
     else
     {
-        if ((new_focus->m_pPaternalElement->m_Type == 1) && ((CObject*)new_focus->m_pPaternalExpression == new_focus->
+        if ((new_focus->m_pPaternalElement->m_Type == 1) && (new_focus->m_pPaternalExpression == new_focus->
             m_pPaternalElement->Expression1)) KeyboardIndexMode = 0;
-        if (((new_focus->m_pPaternalElement->m_Type == 5) || (new_focus->m_pPaternalElement->m_Type == 6)) && ((CObject
-            *)new_focus->m_pPaternalExpression == new_focus->m_pPaternalElement->Expression2)) KeyboardIndexMode = 0;
+        if (((new_focus->m_pPaternalElement->m_Type == 5) || (new_focus->m_pPaternalElement->m_Type == 6)) && (new_focus->m_pPaternalExpression == new_focus->m_pPaternalElement->Expression2)) KeyboardIndexMode = 0;
     }
     if ((new_focus->m_pPaternalElement == 0) || (new_focus->m_pPaternalElement->m_Type != 3))
         KeyboardExponentMode = 0;
@@ -5392,9 +5389,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         unsigned char c1 = lastkeystrokes[0];
         if ((c1 != ' ') && (c1 != '+') && (c1 != '-') && (c1 != '/') && (c1 != '*') && (c1 != '\\'))
             if ((m_pPaternalElement) &&
-                (((m_pPaternalElement->m_Type == 1) && (m_pPaternalElement->Expression1 == (CObject*)this)) ||
+                (((m_pPaternalElement->m_Type == 1) && (m_pPaternalElement->Expression1 == this)) ||
                     (((m_pPaternalElement->m_Type == 6) || (m_pPaternalElement->m_Type == 5)) && (m_pPaternalElement->
-                        Expression2 == (CObject*)this))))
+                        Expression2 == this))))
             {
                 int is = IsSHIFTDown;
                 IsSHIFTDown = 0;
@@ -5419,7 +5416,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         unsigned char c1 = lastkeystrokes[0];
         if ((c1 != ' ') && (c1 != '+') && (c1 != '-') && (c1 != '/') && (c1 != '*') && (c1 != '\\'))
             if ((m_pPaternalElement) &&
-                ((m_pPaternalElement->m_Type == 3) && (m_pPaternalElement->Expression2 == (CObject*)this)))
+                ((m_pPaternalElement->m_Type == 3) && (m_pPaternalElement->Expression2 == this)))
             {
                 int is = IsSHIFTDown;
                 IsSHIFTDown = 0;
@@ -5437,7 +5434,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
     }
 
     if (((KeyboardExponentMode) && (this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 3) && (this->
-        m_pPaternalElement->Expression2 == (CObject*)this)))
+        m_pPaternalElement->Expression2 == this)))
     {
         //to make typing of the '+' sign easier with the Alt key (no need to hold the shift on some keyboards)
         unsigned char ch = (nChar) & 0xFF;
@@ -5480,7 +5477,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             {
                 if ((ClipboardExpression->m_NumElements == 1) &&
                     (ClipboardExpression->m_pElementList->Type == 5) &&
-                    (((CExpression*)(ClipboardExpression->m_pElementList->pElementObject->Expression1))->m_StartAsText))
+                    (ClipboardExpression->m_pElementList->pElementObject->Expression1->m_StartAsText))
                 {
                     m_StartAsText = 1; //convert the expression in text mode
                     m_Alignment = 1;
@@ -5511,7 +5508,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             if ((ClipboardExpression->m_NumElements == 1) &&
                 (ClipboardExpression->m_pElementList->pElementObject))
             {
-                CExpression* ex = (CExpression*)ClipboardExpression->m_pElementList->pElementObject->Expression1;
+                CExpression* ex = ClipboardExpression->m_pElementList->pElementObject->Expression1;
                 if ((ex) && (ex->m_NumElements == 1) && (ex->m_pElementList->Type == 0))
                 {
                     for (int jj = 0; jj < m_NumElements; jj++)
@@ -5561,19 +5558,19 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 {
                     if ((theElement->pElementObject) && (theElement->pElementObject->Expression1))
                     {
-                        CExpression* e = (CExpression*)(theElement->pElementObject->Expression1);
+                        CExpression* e = theElement->pElementObject->Expression1;
 
                         if ((theElement->Type == 8) && (theElement->pElementObject->Expression2) &&
-                            (((CExpression*)theElement->pElementObject->Expression2)->m_pElementList->Type == 0))
-                            e = (CExpression*)(theElement->pElementObject->Expression2);
+                            (theElement->pElementObject->Expression2->m_pElementList->Type == 0))
+                            e = theElement->pElementObject->Expression2;
                         //special handling for root symbol
 
                         if ((e->m_pElementList->Type == 0) ||
-                            ((e->m_pElementList->Type == 5) && (((CExpression*)e->m_pElementList->pElementObject->
-                                Expression1)->m_pElementList->Type == 0)) ||
+                            ((e->m_pElementList->Type == 5) && (e->m_pElementList->pElementObject->
+                                                                   Expression1->m_pElementList->Type == 0)) ||
                             ((e->m_pElementList->pElementObject->IsDifferential()) &&
-                                (((CExpression*)e->m_pElementList->pElementObject->Expression1)->m_NumElements == 1) &&
-                                (((CExpression*)e->m_pElementList->pElementObject->Expression1)->m_pElementList->Type ==
+                                (e->m_pElementList->pElementObject->Expression1->m_NumElements == 1) &&
+                                (e->m_pElementList->pElementObject->Expression1->m_pElementList->Type ==
                                     0)))
                         {
                             //the inserted object has expresson 1 empty (only dummy elemnt inside, or and empty 'd' element)
@@ -5581,9 +5578,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             CExpression* newone = e;
                             if ((e->m_pElementList->Type == 6) && (e->m_pPaternalElement) && (e->m_pPaternalElement->
                                 m_Type == 4))
-                                newone = (CExpression*)(e->m_pElementList->pElementObject->Expression1);
+                                newone = e->m_pElementList->pElementObject->Expression1;
                             if (e->m_pElementList->Type == 5)
-                                newone = (CExpression*)(e->m_pElementList->pElementObject->Expression1);
+                                newone = e->m_pElementList->pElementObject->Expression1;
 
                             m_Selection = 0;
                             KeyboardRefocus(newone, 0);
@@ -6232,8 +6229,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             DeselectExpression();
 
             if ((m_IsKeyboardEntry == 2) && (m_NumElements == 1) && (m_pElementList->Type != 5) &&
-                (m_pPaternalElement) && (m_pPaternalElement->m_Type == 3) && (m_pPaternalElement->Expression1 == (
-                    CObject*)this) &&
+                (m_pPaternalElement) && (m_pPaternalElement->m_Type == 3) && (m_pPaternalElement->Expression1 == this) &&
                 ((this->m_ParenthesesFlags & 0x81) == 0))
             {
                 //jumping over the first insertion point in an exponent base - //BABA
@@ -6357,7 +6353,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 int d2 = EL->E2_posX + EL->E2_length * 5 / 6;
                 int d3 = EL->E3_posX + EL->E3_length * 5 / 6;
 
-                if ((m_pPaternalElement->Expression1 == (CObject*)this) && (m_pPaternalElement->m_Type == 1))
+                if ((m_pPaternalElement->Expression1 == this) && (m_pPaternalElement->m_Type == 1))
                 {
                     //index of a variable - moving the cursor at the end of the variable
                     tElementStruct* ts = m_pPaternalExpression->GetElementStruct(m_pPaternalElement);
@@ -6372,23 +6368,19 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     }
                 }
 
-                if (m_pPaternalElement->Expression2 == (CObject*)this)
+                if (m_pPaternalElement->Expression2 == this)
                 {
                     d1 = EL->E2_posX - d1;
                     d3 = EL->E2_posX - d3;
-                    if (EL->Expression1) if ((d1 >= 0) && (abs(EL->E2_posY - EL->E1_posY) <= d1)) NextEditedObject = (
-                        CExpression*)m_pPaternalElement->Expression1;
-                    if (EL->Expression3) if ((d3 >= 0) && (abs(EL->E2_posY - EL->E3_posY) <= d3)) NextEditedObject = (
-                        CExpression*)m_pPaternalElement->Expression3;
+                    if (EL->Expression1) if ((d1 >= 0) && (abs(EL->E2_posY - EL->E1_posY) <= d1)) NextEditedObject = m_pPaternalElement->Expression1;
+                    if (EL->Expression3) if ((d3 >= 0) && (abs(EL->E2_posY - EL->E3_posY) <= d3)) NextEditedObject = m_pPaternalElement->Expression3;
                 }
-                if (m_pPaternalElement->Expression3 == (CObject*)this)
+                if (m_pPaternalElement->Expression3 == this)
                 {
                     d2 = EL->E3_posX - d2;
                     d1 = EL->E3_posX - d1;
-                    if (EL->Expression2) if ((d2 >= 0) && (abs(EL->E3_posY - EL->E2_posY) <= d2)) NextEditedObject = (
-                        CExpression*)m_pPaternalElement->Expression2;
-                    if (EL->Expression1) if ((d1 >= 0) && (abs(EL->E3_posY - EL->E1_posY) <= d1)) NextEditedObject = (
-                        CExpression*)m_pPaternalElement->Expression1;
+                    if (EL->Expression2) if ((d2 >= 0) && (abs(EL->E3_posY - EL->E2_posY) <= d2)) NextEditedObject = m_pPaternalElement->Expression2;
+                    if (EL->Expression1) if ((d1 >= 0) && (abs(EL->E3_posY - EL->E1_posY) <= d1)) NextEditedObject = m_pPaternalElement->Expression1;
                 }
 
                 if (NextEditedObject)
@@ -6405,10 +6397,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     CExpression* parent = m_pPaternalExpression;
                     CElement* pelement = m_pPaternalElement;
                     if ((parent) && (pelement) && ((pelement->m_Type == 6) || (pelement->m_Type == 5)) && (pelement->
-                            Expression1 == (CObject*)this) &&
+                            Expression1 == this) &&
                         (parent->m_pPaternalElement) && (parent->m_pPaternalElement->m_Type == 3) && (parent->
                             m_NumElements == 1) &&
-                        (parent->m_pPaternalElement->Expression1 == (CObject*)parent))
+                        (parent->m_pPaternalElement->Expression1 == parent))
                     {
                         //exponent over function! - we are jumping all the way out of the exponent element -//BABA
                         pelement = parent->m_pPaternalElement;
@@ -6447,9 +6439,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 CExpression* newpos;
                 if (theElement->pElementObject->E1_length + 2 * this->m_MarginX >= theElement->pElementObject->
                     E2_length)
-                    newpos = (CExpression*)theElement->pElementObject->Expression1;
+                    newpos = theElement->pElementObject->Expression1;
                 else
-                    newpos = (CExpression*)theElement->pElementObject->Expression2;
+                    newpos = theElement->pElementObject->Expression2;
                 KeyboardRefocus(newpos, newpos->m_NumElements);
                 return 1;
             }
@@ -6484,7 +6476,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     //Expression1 defined. If yes we will edit it. (Expression2 and 3 will not be tested)
                     if ((theElement->pElementObject) && (theElement->pElementObject->Expression1))
                     {
-                        CExpression* NextEditedObject = (CExpression*)theElement->pElementObject->Expression1;
+                        CExpression* NextEditedObject = theElement->pElementObject->Expression1;
                         KeyboardRefocus(NextEditedObject, NextEditedObject->m_NumElements);
                         return 1;
                     }
@@ -6782,19 +6774,15 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 CExpression* NextEditedObject = nullptr;
                 CElement* EL = m_pPaternalElement;
 
-                if (m_pPaternalElement->Expression2 == (CObject*)this)
+                if (m_pPaternalElement->Expression2 == this)
                 {
-                    if (EL->Expression1) if ((EL->E1_posX) > (EL->E2_posX + EL->E2_length)) NextEditedObject = (
-                        CExpression*)m_pPaternalElement->Expression1;
-                    if (EL->Expression3) if ((EL->E3_posX) > (EL->E2_posX + EL->E2_length)) NextEditedObject = (
-                        CExpression*)m_pPaternalElement->Expression3;
+                    if (EL->Expression1) if ((EL->E1_posX) > (EL->E2_posX + EL->E2_length)) NextEditedObject = m_pPaternalElement->Expression1;
+                    if (EL->Expression3) if ((EL->E3_posX) > (EL->E2_posX + EL->E2_length)) NextEditedObject = m_pPaternalElement->Expression3;
                 }
-                if (m_pPaternalElement->Expression3 == (CObject*)this)
+                if (m_pPaternalElement->Expression3 == this)
                 {
-                    if (EL->Expression2) if ((EL->E2_posX) > (EL->E3_posX + EL->E3_length)) NextEditedObject = (
-                        CExpression*)m_pPaternalElement->Expression2;
-                    if (EL->Expression1) if ((EL->E1_posX) > (EL->E3_posX + EL->E3_length)) NextEditedObject = (
-                        CExpression*)m_pPaternalElement->Expression1;
+                    if (EL->Expression2) if ((EL->E2_posX) > (EL->E3_posX + EL->E3_length)) NextEditedObject = m_pPaternalElement->Expression2;
+                    if (EL->Expression1) if ((EL->E1_posX) > (EL->E3_posX + EL->E3_length)) NextEditedObject = m_pPaternalElement->Expression1;
                 }
 
                 if (NextEditedObject)
@@ -6809,10 +6797,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     CExpression* parent = m_pPaternalExpression;
                     CElement* pelement = m_pPaternalElement;
 
-                    if ((pelement->m_Type == 6) && (pelement->Expression1 == (CObject*)this) &&
+                    if ((pelement->m_Type == 6) && (pelement->Expression1 == this) &&
                         (parent->m_pPaternalElement) && (parent->m_pPaternalElement->m_Type == 3) && (parent->
                             m_NumElements == 1) &&
-                        (parent->m_pPaternalElement->Expression1 == (CObject*)parent))
+                        (parent->m_pPaternalElement->Expression1 == parent))
                     {
                         //function with exponent!!! - special handling as we don't want to jump over insertion point of the exponent function //BABA
                         pelement = parent->m_pPaternalElement;
@@ -6854,9 +6842,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 CExpression* newpos;
                 if (theElement->pElementObject->E1_length + 2 * this->m_MarginX >= theElement->pElementObject->
                     E2_length)
-                    newpos = (CExpression*)theElement->pElementObject->Expression1;
+                    newpos = theElement->pElementObject->Expression1;
                 else
-                    newpos = (CExpression*)theElement->pElementObject->Expression2;
+                    newpos = theElement->pElementObject->Expression2;
                 KeyboardRefocus(newpos, 0);
                 return 1;
             }
@@ -6885,11 +6873,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     //Expression1 defined. If yes we will edit it. (Expression2 and 3 will not be tested)
                     if ((theElement->pElementObject) && (theElement->pElementObject->Expression1))
                     {
-                        CExpression* NextEditedObject = (CExpression*)theElement->pElementObject->Expression1;
+                        CExpression* NextEditedObject = theElement->pElementObject->Expression1;
                         int pos = 0;
                         if ((theElement->Type == 3) && (NextEditedObject->m_pElementList->Type) &&
-                            (theElement->pElementObject->Expression1) && ((((CExpression*)theElement->pElementObject->
-                                Expression1)->m_ParenthesesFlags & 0x81) == 0))
+                            (theElement->pElementObject->Expression1) && ((theElement->pElementObject->
+                                Expression1->m_ParenthesesFlags & 0x81) == 0))
                             pos = 1; //jumping over the frist insertion point in an exponent - //BABA
                         KeyboardRefocus(NextEditedObject, pos);
                         return 1;
@@ -7216,8 +7204,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (ch == 'C')
                 {
                     InsertEmptyElement(mx + 1, 9, 0, fcolor);
-                    CExpression* base = (CExpression*)((m_pElementList + mx + 1)->pElementObject->Expression1);
-                    CExpression* low = (CExpression*)((m_pElementList + mx + 1)->pElementObject->Expression3);
+                    CExpression* base = (m_pElementList + mx + 1)->pElementObject->Expression1;
+                    CExpression* low = (m_pElementList + mx + 1)->pElementObject->Expression3;
                     for (int ii = mi; ii <= mx; ii++)
                     {
                         if ((m_pElementList + mi)->pElementObject)
@@ -7232,8 +7220,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if ((ch == '/') || (ch == '#') || (ch == '`'))
                 {
                     InsertEmptyElement(mx + 1, 4, 0, fcolor);
-                    CExpression* num = (CExpression*)((m_pElementList + mx + 1)->pElementObject->Expression1);
-                    CExpression* denom = (CExpression*)((m_pElementList + mx + 1)->pElementObject->Expression2);
+                    CExpression* num = (m_pElementList + mx + 1)->pElementObject->Expression1;
+                    CExpression* denom = (m_pElementList + mx + 1)->pElementObject->Expression2;
                     for (int ii = mi; ii <= mx; ii++)
                     {
                         if ((m_pElementList + mi)->pElementObject)
@@ -7249,7 +7237,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if ((ch >= '0') && (ch <= '9'))
                 {
                     InsertEmptyElement(mx + 1, 3, ch, fcolor);
-                    CExpression* num = (CExpression*)((m_pElementList + mx + 1)->pElementObject->Expression1);
+                    CExpression* num = (m_pElementList + mx + 1)->pElementObject->Expression1;
                     for (int ii = mi; ii <= mx; ii++)
                     {
                         if ((m_pElementList + mi)->pElementObject)
@@ -7268,7 +7256,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if ((ch == '\\'))
                 {
                     InsertEmptyElement(mx + 1, 6, 36, fcolor);
-                    CExpression* num = (CExpression*)((m_pElementList + mx + 1)->pElementObject->Expression1);
+                    CExpression* num = (m_pElementList + mx + 1)->pElementObject->Expression1;
                     for (int ii = mi; ii <= mx; ii++)
                     {
                         if ((m_pElementList + mi)->pElementObject)
@@ -7285,7 +7273,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if ((ch == '(') || (ch == '[') || (ch == '{') || (ch == '|') || (ch == '}'))
                 {
                     InsertEmptyElement(mx + 1, 5, (ch == '}') ? '{' : ch, fcolor);
-                    CExpression* num = (CExpression*)((m_pElementList + mx + 1)->pElementObject->Expression1);
+                    CExpression* num = (m_pElementList + mx + 1)->pElementObject->Expression1;
                     for (int ii = mi; ii <= mx; ii++)
                     {
                         if ((m_pElementList + mi)->pElementObject)
@@ -7502,35 +7490,34 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         CExpression* NextEditedObject = nullptr;
         if (m_pPaternalElement->m_Type == 4) //fractions
         {
-            if ((m_pPaternalElement->Expression1 == (CObject*)this) && (((CExpression*)(m_pPaternalElement->
-                Expression1))->m_pElementList->Type))
+            if ((m_pPaternalElement->Expression1 == this) && (m_pPaternalElement->Expression1->m_pElementList->Type))
             {
-                CExpression* e2 = ((CExpression*)m_pPaternalElement->Expression2);
+                CExpression* e2 = m_pPaternalElement->Expression2;
                 if (e2->m_NumElements == 1)
                 {
-                    if (e2->m_pElementList->Type == 0) NextEditedObject = (CExpression*)m_pPaternalElement->Expression2;
+                    if (e2->m_pElementList->Type == 0) NextEditedObject = m_pPaternalElement->Expression2;
                     else if (e2->m_pElementList->Type == 6)
                     {
                         CElement* el = e2->m_pElementList->pElementObject;
-                        if ((el->Expression1) && (((CExpression*)el->Expression1)->m_pElementList->Type == 0))
+                        if ((el->Expression1) && (el->Expression1->m_pElementList->Type == 0))
                             if (el->IsDifferential())
-                                NextEditedObject = (CExpression*)el->Expression1;
+                                NextEditedObject = el->Expression1;
                     }
                 }
             }
-            if ((m_pPaternalElement->Expression2 == (CObject*)this) &&
-                (((CExpression*)(m_pPaternalElement->Expression2))->m_pElementList->Type) &&
-                (((CExpression*)(m_pPaternalElement->Expression1))->m_pElementList->Type == 0))
-                NextEditedObject = (CExpression*)m_pPaternalElement->Expression1;
+            if ((m_pPaternalElement->Expression2 == this) &&
+                (m_pPaternalElement->Expression2->m_pElementList->Type) &&
+                (m_pPaternalElement->Expression1->m_pElementList->Type == 0))
+                NextEditedObject = m_pPaternalElement->Expression1;
         }
         if (m_pPaternalElement->m_Type == 3) //exponent
         {
-            if (m_pPaternalElement->Expression2 == (CObject*)this)
-                if ((((CExpression*)(m_pPaternalElement->Expression1))->m_pElementList->Type == 6) &&
-                    (((CExpression*)(m_pPaternalElement->Expression1))->m_NumElements == 1))
+            if (m_pPaternalElement->Expression2 == this)
+                if ((m_pPaternalElement->Expression1->m_pElementList->Type == 6) &&
+                    (m_pPaternalElement->Expression1->m_NumElements == 1))
                 {
-                    CExpression* tmp = (CExpression*)(((CExpression*)(m_pPaternalElement->Expression1))->m_pElementList
-                        ->pElementObject->Expression1);
+                    CExpression* tmp = m_pPaternalElement->Expression1->m_pElementList
+                                                         ->pElementObject->Expression1;
                     if ((tmp) && (tmp->m_pElementList->Type == 0))
                         NextEditedObject = tmp;
                 }
@@ -7540,34 +7527,34 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         {
             if (m_pPaternalElement->Expression1)
             {
-                if (m_pPaternalElement->Expression2 == (CObject*)this)
-                    if (((CExpression*)(m_pPaternalElement->Expression1))->m_pElementList->Type == 0)
-                        NextEditedObject = (CExpression*)m_pPaternalElement->Expression1;
+                if (m_pPaternalElement->Expression2 == this)
+                    if (m_pPaternalElement->Expression1->m_pElementList->Type == 0)
+                        NextEditedObject = m_pPaternalElement->Expression1;
             }
         }
 
         if (m_pPaternalElement->m_Type == 9) //condition
         {
-            if (m_pPaternalElement->Expression2 == (CObject*)this)
-                NextEditedObject = (CExpression*)m_pPaternalElement->Expression3;
+            if (m_pPaternalElement->Expression2 == this)
+                NextEditedObject = m_pPaternalElement->Expression3;
         }
         if (m_pPaternalElement->m_Type == 7) //sigma, pi , integral
         {
-            if ((m_pPaternalElement->Expression3 == (CObject*)this) &&
-                (((CExpression*)(m_pPaternalElement->Expression3))->m_pElementList->Type) &&
+            if ((m_pPaternalElement->Expression3 == this) &&
+                (m_pPaternalElement->Expression3->m_pElementList->Type) &&
                 //(((CExpression*)(m_pPaternalElement->Expression3))->m_NumElements>1) &&
-                (((CExpression*)(m_pPaternalElement->Expression2))->m_pElementList->Type == 0))
-                NextEditedObject = (CExpression*)m_pPaternalElement->Expression2;
+                (m_pPaternalElement->Expression2->m_pElementList->Type == 0))
+                NextEditedObject = m_pPaternalElement->Expression2;
             //from upper to lower limit (if lower limit not defined)
-            if ((m_pPaternalElement->Expression2 == (CObject*)this) &&
-                (((CExpression*)(m_pPaternalElement->Expression2))->m_pElementList->Type) &&
-                (((CExpression*)(m_pPaternalElement->Expression3))->m_pElementList->Type == 0))
-                NextEditedObject = (CExpression*)m_pPaternalElement->Expression3;
+            if ((m_pPaternalElement->Expression2 == this) &&
+                (m_pPaternalElement->Expression2->m_pElementList->Type) &&
+                (m_pPaternalElement->Expression3->m_pElementList->Type == 0))
+                NextEditedObject = m_pPaternalElement->Expression3;
             //from lower to upper limit (if upper limit not defined)
-            if ((NextEditedObject == 0) && (m_pPaternalElement->Expression1 != (CObject*)this))
+            if ((NextEditedObject == 0) && (m_pPaternalElement->Expression1 != this))
             {
                 //from any limit into the function argument, if the argument is empty (or contains 'd' or 'partial' empty function)
-                CExpression* e = (CExpression*)m_pPaternalElement->Expression1;
+                CExpression* e = m_pPaternalElement->Expression1;
                 char is_empty = 0;
                 if (e->m_NumElements)
                 {
@@ -7576,8 +7563,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     else if (e->m_pElementList->Type == 6)
                     {
                         if (e->m_pElementList->pElementObject->IsDifferential())
-                            if ((((CExpression*)e->m_pElementList->pElementObject->Expression1)->m_NumElements == 1) &&
-                                (((CExpression*)e->m_pElementList->pElementObject->Expression1)->m_pElementList->Type ==
+                            if ((e->m_pElementList->pElementObject->Expression1->m_NumElements == 1) &&
+                                (e->m_pElementList->pElementObject->Expression1->m_pElementList->Type ==
                                     0))
                                 is_empty = 1;
                     }
@@ -7588,14 +7575,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             if (NextEditedObject == 0)
             {
                 //we will put the cursor into the 'd' element if it is empty
-                CExpression* e = (CExpression*)m_pPaternalElement->Expression1;
+                CExpression* e = m_pPaternalElement->Expression1;
                 if ((e->m_NumElements) && ((e->m_pElementList + e->m_NumElements - 1)->Type == 6) && (prevkeyboardentry
                     < e->m_NumElements))
                 {
                     CElement* el = (e->m_pElementList + e->m_NumElements - 1)->pElementObject;
                     if (el)
                     {
-                        CExpression* e2 = (CExpression*)el->Expression1;
+                        CExpression* e2 = el->Expression1;
                         if (el->IsDifferential())
                             if ((e2->m_NumElements == 1) && (e2->m_pElementList->Type == 0))
                                 NextEditedObject = e2;
@@ -7605,13 +7592,13 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         }
         if (m_pPaternalElement->m_Type == 10) //conditions
         {
-            if (m_pPaternalElement->Expression1 == (CObject*)this)
+            if (m_pPaternalElement->Expression1 == this)
             {
-                NextEditedObject = (CExpression*)m_pPaternalElement->Expression2;
-                if (NextEditedObject == nullptr) NextEditedObject = (CExpression*)m_pPaternalElement->Expression3;
+                NextEditedObject = m_pPaternalElement->Expression2;
+                if (NextEditedObject == nullptr) NextEditedObject = m_pPaternalElement->Expression3;
             }
-            if (m_pPaternalElement->Expression2 == (CObject*)this)
-                NextEditedObject = (CExpression*)m_pPaternalElement->Expression3;
+            if (m_pPaternalElement->Expression2 == this)
+                NextEditedObject = m_pPaternalElement->Expression3;
         }
 
         if (NextEditedObject)
@@ -7619,15 +7606,15 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             //we will continue editing next expression of the same element
             int delete_var_index = 0;
             if ((this->m_pElementList->Type == 0) && (this->m_NumElements < 2) &&
-                ((m_pPaternalElement->m_Type == 6) && ((CObject*)this == m_pPaternalElement->Expression2)))
+                ((m_pPaternalElement->m_Type == 6) && (this == m_pPaternalElement->Expression2)))
             {
                 delete_var_index = 2;
             }
 
             KeyboardRefocus(NextEditedObject, 0);
-            if ((delete_var_index) && (NextEditedObject == (CExpression*)this->m_pPaternalElement->Expression1))
+            if ((delete_var_index) && (NextEditedObject == this->m_pPaternalElement->Expression1))
             {
-                CExpression* exp = (CExpression*)this->m_pPaternalElement->Expression2;
+                CExpression* exp = this->m_pPaternalElement->Expression2;
                 this->m_pPaternalElement->Expression2 = nullptr;
                 delete exp;
             }
@@ -7658,10 +7645,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             }
 
 
-            if ((pelement->m_Type == 6) && (pelement->Expression1 == (CObject*)this) &&
+            if ((pelement->m_Type == 6) && (pelement->Expression1 == this) &&
                 (parent->m_pPaternalElement) && (parent->m_pPaternalElement->m_Type == 3) && (parent->m_NumElements ==
                     1) &&
-                (parent->m_pPaternalElement->Expression1 == (CObject*)parent))
+                (parent->m_pPaternalElement->Expression1 == parent))
             {
                 //exponent over function! - we are jumping all the way out of the exponent element -//BABA
                 pelement = parent->m_pPaternalElement;
@@ -7675,15 +7662,15 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             if (ii==parent->m_NumElements) return 0;*/
 
 
-            if ((pelement->m_Type == 3) && (this == (CExpression*)(pelement->Expression2)) && (this->m_NumElements == 1)
+            if ((pelement->m_Type == 3) && (this == pelement->Expression2) && (this->m_NumElements == 1)
                 && (this->m_pElementList->Type == 0))
             {
                 //we are removing exponent because it is empty
-                CExpression* base = (CExpression*)pelement->Expression1;
+                CExpression* base = pelement->Expression1;
                 if ((base->m_NumElements > 1) || (base->m_MaxNumRows > 1) || (base->m_MaxNumColumns > 1))
                 {
                     parent->InsertEmptyElement(ii, 5, '(', fcolor);
-                    ((CExpression*)((parent->m_pElementList + ii)->pElementObject->Expression1))->CopyExpression(
+                    (parent->m_pElementList + ii)->pElementObject->Expression1->CopyExpression(
                         base, 0, 0, 0);
                     KeyboardRefocus(parent, ii + 1);
                     parent->DeleteElement(ii + 2);
@@ -7700,17 +7687,17 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
             int delete_var_index = 0;
             if ((this->m_pElementList->Type == 0) && (this->m_NumElements < 2) &&
-                (((m_pPaternalElement->m_Type == 1) && ((CObject*)this == m_pPaternalElement->Expression1)) ||
-                    ((m_pPaternalElement->m_Type == 6) && ((CObject*)this == m_pPaternalElement->Expression2)) ||
-                    ((m_pPaternalElement->m_Type == 6) && ((CObject*)this == m_pPaternalElement->Expression1)) ||
-                    ((m_pPaternalElement->m_Type == 5) && ((CObject*)this == m_pPaternalElement->Expression2))))
+                (((m_pPaternalElement->m_Type == 1) && (this == m_pPaternalElement->Expression1)) ||
+                    ((m_pPaternalElement->m_Type == 6) && (this == m_pPaternalElement->Expression2)) ||
+                    ((m_pPaternalElement->m_Type == 6) && (this == m_pPaternalElement->Expression1)) ||
+                    ((m_pPaternalElement->m_Type == 5) && (this == m_pPaternalElement->Expression2))))
             {
                 if ((m_pPaternalExpression->m_pPaternalElement) && (m_pPaternalExpression->m_pPaternalElement->m_Type ==
                         4) &&
                     (m_pPaternalExpression->m_pPaternalElement->Data1[0] == 'd'))
                     delete_var_index = 0;
                 else
-                    delete_var_index = ((CObject*)this == m_pPaternalElement->Expression1) ? 1 : 2;
+                    delete_var_index = (this == m_pPaternalElement->Expression1) ? 1 : 2;
             }
 
             KeyboardRefocus(parent, ii + 1);
@@ -7719,12 +7706,12 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 pelement = m_pPaternalElement;
                 if (delete_var_index == 1)
                 {
-                    delete (CExpression*)(pelement->Expression1);
+                    delete pelement->Expression1;
                     pelement->Expression1 = nullptr;
                 }
                 else
                 {
-                    delete (CExpression*)(pelement->Expression2);
+                    delete pelement->Expression2;
                     pelement->Expression2 = nullptr;
                 }
             }
@@ -7927,7 +7914,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (((this->m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression1) &&
                     ((this->m_pElementList + m_IsKeyboardEntry - 1)->Type == 1))
                 {
-                    delete (CExpression*)((this->m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression1);
+                    delete (this->m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression1;
                     (this->m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->Expression1 = nullptr;
                 }
 
@@ -8003,8 +7990,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             int type = m_pPaternalElement->m_Type;
 
             //check if this is an index expression of variable/function/parenheses - if yes, we delete the index expression
-            if (((type == 1) && (m_pPaternalElement->Expression1 == (CObject*)this)) ||
-                (((type == 5) || (type == 6)) && (m_pPaternalElement->Expression2 == (CObject*)this)))
+            if (((type == 1) && (m_pPaternalElement->Expression1 == this)) ||
+                (((type == 5) || (type == 6)) && (m_pPaternalElement->Expression2 == this)))
             {
                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("backspace key", 20305);
 
@@ -8025,12 +8012,12 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 CExpression* tmp;
                 if (type == 1)
                 {
-                    tmp = ((CExpression*)(m_pPaternalElement->Expression1));
+                    tmp = m_pPaternalElement->Expression1;
                     m_pPaternalElement->Expression1 = nullptr;
                 }
                 else
                 {
-                    tmp = ((CExpression*)(m_pPaternalElement->Expression2));
+                    tmp = m_pPaternalElement->Expression2;
                     m_pPaternalElement->Expression2 = nullptr;
                 }
                 delete tmp; //deleting it as the last operation!
@@ -8052,19 +8039,19 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
 
             //if this is exponent expression, then we will delete the exponent
-            if ((type == 3) && (m_pPaternalElement->Expression2 == (CObject*)this))
+            if ((type == 3) && (m_pPaternalElement->Expression2 == this))
             {
                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("backspace key", 20305);
 
-                CExpression* Base = (CExpression*)m_pPaternalElement->Expression1;
+                CExpression* Base = m_pPaternalElement->Expression1;
                 CExpression* NextEditedObject = m_pPaternalExpression;
                 tDocumentStruct* tmp = KeyboardEntryBaseObject;
                 if (Base->m_ParenthesesFlags & 0x80)
                 {
                     NextEditedObject->InsertEmptyElement(i + 1, 5, Base->m_ParentheseShape, fcolor);
                     for (int jj = 0; jj < Base->m_NumElements; jj++)
-                        ((CExpression*)((NextEditedObject->m_pElementList + i + 1)->pElementObject->Expression1))->
-                            InsertElement(Base->m_pElementList + jj, jj);
+                        (NextEditedObject->m_pElementList + i + 1)->pElementObject->Expression1->
+                                                                    InsertElement(Base->m_pElementList + jj, jj);
                     NextEditedObject->InsertEmptyElement(i + 2, 1, 0, fcolor);
                     NextEditedObject->DeleteElement(i);
                     NextEditedObject->m_IsKeyboardEntry = i + 2;
@@ -8086,7 +8073,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
             //we can delete elements from inside (two-step) for functions, sigma/integral, root, exponents and parentheses
             if ((type != 6) && (type != 7) && (type != 8) && (type != 3) && (type != 5)) return 1;
-            if (m_pPaternalElement->Expression1 != (CObject*)this) return 1;
+            if (m_pPaternalElement->Expression1 != this) return 1;
             if ((m_pPaternalExpression->m_pElementList + i)->IsSelected)
             {
                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("backspace key", 20305);
@@ -8114,7 +8101,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         {
             //if the variable has a very simple index then delete it, if the
             //index is more complex, then move the cursor into it
-            CExpression* index = (CExpression*)theElement->pElementObject->Expression1;
+            CExpression* index = theElement->pElementObject->Expression1;
             if (index)
             {
                 if ((index->m_NumElements == 1) && (index->m_pElementList->Type == 1) && (strlen(
@@ -8183,14 +8170,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             //special handling for simple exponents - a simple exponent is immediately deleted (no two-step deletion)
             if (theElement->Type == 3)
             {
-                CExpression* exp = (CExpression*)(theElement->pElementObject->Expression2);
+                CExpression* exp = theElement->pElementObject->Expression2;
                 if (((exp) && (exp->m_NumElements == 1) && (exp->m_pElementList->Type <= 2)) ||
                     ((exp) && (exp->m_NumElements == 2) && (exp->m_pElementList->Type <= 2) && ((exp->m_pElementList +
                         1)->Type <= 2)))
                 {
                     int i = m_IsKeyboardEntry;
-                    CExpression* exp = (CExpression*)theElement->pElementObject->Expression2;
-                    CExpression* Base = (CExpression*)theElement->pElementObject->Expression1;
+                    CExpression* exp = theElement->pElementObject->Expression2;
+                    CExpression* Base = theElement->pElementObject->Expression1;
                     if (Base->m_NumElements == 1)
                     {
                         InsertElement(Base->m_pElementList, i);
@@ -8290,14 +8277,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         //if we are in the empty function argument then we delete the function argument box (as if we hit the Enter key)
         if ((IsEditedVariableEmpty) && (this->m_NumElements == 1) &&
             (this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 6) && (this->m_pPaternalElement->
-                Expression1 == (CObject*)this))
+                Expression1 == this))
         {
             int pos = this->m_pPaternalElement->GetPaternalPosition();
             this->m_pPaternalExpression->InsertEmptyElement(pos + 1, 1, 0, -1);
             KeyboardRefocus(this->m_pPaternalExpression, pos + 1);
 
             this->m_pPaternalElement->Expression1 = nullptr;
-            delete ((CExpression*)(this->m_pPaternalElement->Expression1));
+            delete this->m_pPaternalElement->Expression1;
             return 1;
         }
 
@@ -8316,7 +8303,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if ((theElement->pElementObject->Data1[0] == 0) &&
                     (theElement->pElementObject->Expression1))
                 {
-                    delete (CExpression*)(theElement->pElementObject->Expression1);
+                    delete theElement->pElementObject->Expression1;
                     theElement->pElementObject->Expression1 = nullptr;
                 }
                 if (theElement->pElementObject->Data1[0] == 0)
@@ -8342,7 +8329,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     ((m_pElementList->Type == 1) && (m_pElementList->pElementObject->Data1[0] == 0)))
                 {
                     if ((this->m_pPaternalElement) &&
-                        (this->m_pPaternalElement->Expression1 == (CObject*)this) &&
+                        (this->m_pPaternalElement->Expression1 == this) &&
                         (this->m_pPaternalElement->m_Type != 4) && (this->m_pPaternalElement->m_Type != 1))
                     {
                         CExpression* parent = this->m_pPaternalExpression;
@@ -8490,11 +8477,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                                 if (!KeyboardIndexMode)
                                     if ((this->m_pPaternalElement) &&
                                         (((this->m_pPaternalElement->m_Type == 1) && (this->m_pPaternalElement->
-                                                Expression1 == (CObject*)this)) ||
+                                                Expression1 == this)) ||
                                             ((this->m_pPaternalElement->m_Type == 5) && (this->m_pPaternalElement->
-                                                Expression2 == (CObject*)this)) ||
+                                                Expression2 == this)) ||
                                             ((this->m_pPaternalElement->m_Type == 6) && (this->m_pPaternalElement->
-                                                Expression2 == (CObject*)this) && (strcmp(
+                                                Expression2 == this) && (strcmp(
                                                 this->m_pPaternalElement->Data1, "lim")))))
                                     {
                                         int iii;
@@ -8526,11 +8513,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                                             if (lastkeystrokes[0] == 32) lastkeystrokes[0] = 0x0D;
                                             //just because the spacebar would prevent 'mighty dot' operation
                                             if ((this->m_pPaternalElement->m_Type == 6) &&
-                                                (((CExpression*)(this->m_pPaternalElement->Expression1))->m_pElementList
-                                                    ->Type == 0))
+                                                (this->m_pPaternalElement->Expression1->m_pElementList
+                                                     ->Type == 0))
                                             {
-                                                CExpression* arg = (CExpression*)((this->m_pPaternalElement)->
-                                                    Expression1);
+                                                CExpression* arg = this->m_pPaternalElement->
+                                                                         Expression1;
                                                 KeyboardRefocus(arg, 0);
                                                 ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
                                                     DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
@@ -8626,8 +8613,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     char chx = ')';
                     if (ch != '(') chx = ch - 2;
                     InsertEmptyElement(m_IsKeyboardEntry - 1, 5, chx, fcolor);
-                    CExpression* e = (CExpression*)(m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->
-                        Expression1;
+                    CExpression* e = (m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->
+                                                                               Expression1;
                     e->m_ParenthesesFlags |= 0x08; //no right bracket
                     e->m_Alignment = 2;
 
@@ -8649,8 +8636,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     //support for < | parentheses (bra)
                     DeleteElement(m_IsKeyboardEntry - 2);
                     InsertEmptyElement(m_IsKeyboardEntry - 2, 5, 'a', fcolor);
-                    CExpression* e = (CExpression*)((m_pElementList + m_IsKeyboardEntry - 2)->pElementObject->
-                        Expression1);
+                    CExpression* e = (m_pElementList + m_IsKeyboardEntry - 2)->pElementObject->
+                                                                               Expression1;
                     KeyboardRefocus(e, 0);
                     return 1;
                 }
@@ -8704,10 +8691,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         if (exp->m_pPaternalExpression == nullptr) exp = this;
                         CExpression* parent = exp->m_pPaternalExpression;
                         CElement* pelement = exp->m_pPaternalElement;
-                        if ((pelement->m_Type == 6) && (pelement->Expression1 == (CObject*)this) &&
+                        if ((pelement->m_Type == 6) && (pelement->Expression1 == this) &&
                             (parent->m_pPaternalElement) && (parent->m_pPaternalElement->m_Type == 3) && (parent->
                                 m_NumElements == 1) &&
-                            (parent->m_pPaternalElement->Expression1 == (CObject*)parent))
+                            (parent->m_pPaternalElement->Expression1 == parent))
                         {
                             //exponent over function! - we are jumping all the way out of the exponent element -//BABA
                             pelement = parent->m_pPaternalElement;
@@ -8760,7 +8747,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         if (theElement->Type == 6)
                         {
                             //if we were editing function name (keyboard implanting)
-                            CExpression* arg = (CExpression*)(theElement->pElementObject->Expression1);
+                            CExpression* arg = theElement->pElementObject->Expression1;
                             arg->m_ParenthesesFlags |= 0x01;
                             arg->m_ParentheseShape = ch;
                             //arg->m_ParentheseHeightFactor=1;
@@ -8773,7 +8760,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         if (((CExpression*)(KeyboardEntryObject))->m_pPaternalElement)
                         {
                             CElement* elm = ((CExpression*)(KeyboardEntryObject))->m_pPaternalElement;
-                            if ((elm->m_Type == 6) && ((CObject*)this == elm->Expression1))
+                            if ((elm->m_Type == 6) && (this == elm->Expression1))
                             {
                                 //we are in the argument of function
                                 if (!InhibitParentheseMerging)
@@ -8788,11 +8775,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                                         return 1;
                                     }
                             }
-                            if ((elm->m_Type == 5) && ((CObject*)this == elm->Expression1) &&
-                                (((CExpression*)elm->Expression1)->m_ParentheseShape == '|') &&
+                            if ((elm->m_Type == 5) && (this == elm->Expression1) &&
+                                (elm->Expression1->m_ParentheseShape == '|') &&
                                 (lastkeystrokes[2] == '|') && (lastkeystrokes[1] == -1) && (ch == '|'))
                             {
-                                ((CExpression*)elm->Expression1)->m_ParentheseShape = '\\'; //double-bar
+                                elm->Expression1->m_ParentheseShape = '\\'; //double-bar
                                 return 1;
                             }
                         }
@@ -8803,7 +8790,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             if (IsEditedVariableEmpty) DeleteElement(m_IsKeyboardEntry - 1);
                             CExpression* e;
                             e = new CExpression((theElement - 1)->pElementObject, this, this->m_FontSize);
-                            (theElement - 1)->pElementObject->Expression1 = (CObject*)e;
+                            (theElement - 1)->pElementObject->Expression1 = e;
                             e->m_ParenthesesFlags |= 0x01;
                             e->m_ParentheseShape = ch;
                             //e->m_ParentheseHeightFactor=1;
@@ -8829,12 +8816,12 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     theElement = m_pElementList + m_IsKeyboardEntry - 1;
                     if (single_side)
                     {
-                        CExpression* e = (CExpression*)theElement->pElementObject->Expression1;
+                        CExpression* e = theElement->pElementObject->Expression1;
                         e->m_ParenthesesFlags |= 0x10; //no right bracket
                         e->m_Alignment = 1;
                     }
 
-                    KeyboardRefocus(((CExpression*)(theElement->pElementObject->Expression1)), 0);
+                    KeyboardRefocus(theElement->pElementObject->Expression1, 0);
                     return 1;
                 }
             }
@@ -8883,9 +8870,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         {
             CElement* pelem = this->m_pPaternalElement;
             if ((this->m_NumElements == 1) && (m_KeyboardCursorPos == 0) && (IsEditedVariableEmpty))
-                if ((pelem) && (pelem->m_Type == 3) && (pelem->Expression2 == (CObject*)this))
-                    if ((((CExpression*)pelem->Expression1)->m_NumElements == 1) &&
-                        (((CExpression*)pelem->Expression1)->m_pElementList->Type == 1))
+                if ((pelem) && (pelem->m_Type == 3) && (pelem->Expression2 == this))
+                    if ((pelem->Expression1->m_NumElements == 1) &&
+                        (pelem->Expression1->m_pElementList->Type == 1))
                     {
                         //this handles sequence ^*	(putting the star)
                         int i;
@@ -8894,7 +8881,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         {
                             if ((baseline->m_pElementList + i)->pElementObject == pelem)
                             {
-                                baseline->InsertElement(((CExpression*)pelem->Expression1)->m_pElementList, i);
+                                baseline->InsertElement(pelem->Expression1->m_pElementList, i);
 
                                 int len = (int)strlen((baseline->m_pElementList + i)->pElementObject->Data1);
                                 char tx = baseline->DetermineInsertionPointType(i);
@@ -9095,12 +9082,12 @@ keyboardkeyhit_addtoexponent:
 
             char is_in_index = 0;
             if ((this->m_pPaternalElement) &&
-                (((this->m_pPaternalElement->m_Type == 1) && (this == (CExpression*)this->m_pPaternalElement->
-                        Expression1)) ||
-                    ((this->m_pPaternalElement->m_Type == 6) && (this == (CExpression*)this->m_pPaternalElement->
-                        Expression2)) ||
-                    ((this->m_pPaternalElement->m_Type == 5) && (this == (CExpression*)this->m_pPaternalElement->
-                        Expression2))))
+                (((this->m_pPaternalElement->m_Type == 1) && (this == this->m_pPaternalElement->
+                                                                            Expression1)) ||
+                    ((this->m_pPaternalElement->m_Type == 6) && (this == this->m_pPaternalElement->
+                                                                               Expression2)) ||
+                    ((this->m_pPaternalElement->m_Type == 5) && (this == this->m_pPaternalElement->
+                                                                               Expression2))))
                 is_in_index = 1;
 
             if (ch != 'o')
@@ -9447,10 +9434,10 @@ keyboardkeyhit_addtoexponent:
                         //DA LI SE OVO IKAD KORISTI???
                         //if we are editing function name, any operator will jump into the 
                         //function argument
-                        if (((CExpression*)theElement->pElementObject->Expression1))
-                            if (((CExpression*)theElement->pElementObject->Expression1)->m_pElementList->Type == 0)
+                        if (theElement->pElementObject->Expression1)
+                            if (theElement->pElementObject->Expression1->m_pElementList->Type == 0)
                             {
-                                KeyboardRefocus((CExpression*)theElement->pElementObject->Expression1, 0);
+                                KeyboardRefocus(theElement->pElementObject->Expression1, 0);
                                 /*this->m_IsKeyboardEntry=0;
                                 KeyboardEntryObject=theElement->pElementObject->Expression1;
                                 ((CExpression*)KeyboardEntryObject)->InsertEmptyElement(0,1,0,fcolor);
@@ -9504,12 +9491,12 @@ keyboardkeyhit_addtoexponent:
                                     break;
                         if (paternal_pos > 0)
                             if ((m_pPaternalElement) && (m_pPaternalElement->m_Type == 4) && (m_pPaternalElement->Data1[
-                                0] == 0) && (m_pPaternalElement->Expression2 == (CObject*)this))
+                                0] == 0) && (m_pPaternalElement->Expression2 == this))
                             {
                                 //suck-in the object into the numerator
 
                                 tElementStruct* ts1 = m_pPaternalExpression->m_pElementList + paternal_pos - 1;
-                                CExpression* num = (CExpression*)m_pPaternalElement->Expression1;
+                                CExpression* num = m_pPaternalElement->Expression1;
                                 if ((ts1->Type != 11) && (ts1->Type != 12))
                                 {
                                     num->InsertElement(ts1, 0);
@@ -9531,14 +9518,14 @@ keyboardkeyhit_addtoexponent:
                         }
 
                         InsertEmptyElement(m_IsKeyboardEntry - 1, 4, 0, fcolor);
-                        CExpression* nom = ((CExpression*)(m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->
-                            Expression1);
+                        CExpression* nom = (m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->
+                            Expression1;
                         if ((m_IsKeyboardEntry > 1) && ((m_pElementList + m_IsKeyboardEntry - 2)->Type != 2) && ((
                             m_pElementList + m_IsKeyboardEntry - 2)->Type != 12) && ((m_pElementList + m_IsKeyboardEntry
                             - 2)->Type != 11))
                         {
-                            CExpression* denom = ((CExpression*)(m_pElementList + m_IsKeyboardEntry - 1)->pElementObject
-                                ->Expression2);
+                            CExpression* denom = (m_pElementList + m_IsKeyboardEntry - 1)->pElementObject
+                                ->Expression2;
                             nom->InsertElement(m_pElementList + m_IsKeyboardEntry - 2, 0);
                             DeleteElement(m_IsKeyboardEntry - 2);
                             KeyboardRefocus(denom, 0);
@@ -9591,7 +9578,7 @@ keyboardkeyhit_addtoexponent:
                                             DeleteElement(m_IsKeyboardEntry - 2);
                                             InsertEmptyElement(m_IsKeyboardEntry - 2, 4, 0, fcolor);
                                             //ts=(m_pElementList+m_IsKeyboardEntry-2);
-                                            KeyboardRefocus((CExpression*)ts->pElementObject->Expression1, 0);
+                                            KeyboardRefocus(ts->pElementObject->Expression1, 0);
                                             /*m_IsKeyboardEntry=0;
                                             ((CExpression*)(ts->pElementObject->Expression1))->InsertEmptyElement(0,1,0,fcolor);
                                             KeyboardEntryObject=ts->pElementObject->Expression1;
@@ -9686,7 +9673,7 @@ keyboardkeyhit_addtoexponent:
                                             DeleteElement(m_IsKeyboardEntry - 1);
                                             DeleteElement(m_IsKeyboardEntry - 2);
                                             InsertEmptyElement(m_IsKeyboardEntry - 2, 5, '<', fcolor);
-                                            CExpression* a = (CExpression*)(this->m_pElementList + m_IsKeyboardEntry -
+                                            CExpression* a = (this->m_pElementList + m_IsKeyboardEntry -
                                                 2)->pElementObject->Expression1;
                                             KeyboardRefocus(a, 0);
                                             return 1;
@@ -9861,7 +9848,7 @@ keyboardkeyhit_addtoexponent:
             //first check if we are in variable index
             if ((this->m_pPaternalElement) &&
                 (m_pPaternalElement->m_Type == 1) &&
-                (m_pPaternalElement->Expression1 == (CObject*)this))
+                (m_pPaternalElement->Expression1 == this))
             {
                 base_exp = this->m_pPaternalExpression;
                 int ii;
@@ -9892,7 +9879,7 @@ keyboardkeyhit_addtoexponent:
                     else ff = ff & 0xFC;
                     funcfont[ii] = ff;
                 }
-                index = (CExpression*)base_elm->pElementObject->Expression1;
+                index = base_elm->pElementObject->Expression1;
 
                 if (IsSimpleVariableMode)
                 {
@@ -9990,8 +9977,8 @@ keyboardkeyhit_addtoexponent:
                         if (elm->Expression1)
                         {
                             //automatically adds parentheses to single-letter functions
-                            ((CExpression*)elm->Expression1)->m_ParenthesesFlags |= 0x01;
-                            ((CExpression*)elm->Expression1)->m_ParentheseShape = '(';
+                            elm->Expression1->m_ParenthesesFlags |= 0x01;
+                            elm->Expression1->m_ParentheseShape = '(';
                             //((CExpression*)elm->Expression1)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
                         }
                     }
@@ -9999,8 +9986,8 @@ keyboardkeyhit_addtoexponent:
                 if (index)
                 {
                     if (elm->Expression2 == nullptr)
-                        elm->Expression2 = (CObject*)new CExpression(elm, base_exp, elm->FontSizeForType(2));
-                    ((CExpression*)elm->Expression2)->CopyExpression(index, 0);
+                        elm->Expression2 = new CExpression(elm, base_exp, elm->FontSizeForType(2));
+                    elm->Expression2->CopyExpression(index, 0);
                 }
 
                 if (IsSimpleVariableMode)
@@ -10010,7 +9997,7 @@ keyboardkeyhit_addtoexponent:
                         {
                             //handling differentials and then functions, for example: d<dot>sin<dot>
                             //without this handling it would not be recognized that this is a differential of sinus functon
-                            CExpression* e = (CExpression*)(base_exp->m_pElementList + start_ord + 1)->pElementObject->
+                            CExpression* e = (base_exp->m_pElementList + start_ord + 1)->pElementObject->
                                 Expression1;
                             if (e)
                             {
@@ -10028,9 +10015,9 @@ keyboardkeyhit_addtoexponent:
                         //KeyboardRefocus(this,m_IsKeyboardEntry);
                     }
                     else if ((func_type == 0) || (func_type > 2))
-                        KeyboardRefocus((CExpression*)elm->Expression1, 0);
+                        KeyboardRefocus(elm->Expression1, 0);
                     else
-                        KeyboardRefocus((CExpression*)elm->Expression2, 0);
+                        KeyboardRefocus(elm->Expression2, 0);
                 }
 
                 for (int i = start_ord; i <= end_ord; i++)
@@ -10165,10 +10152,10 @@ keyboardkeyhit_addtoexponent:
                 CElement* el = (m_pElementList + m_IsKeyboardEntry - 2)->pElementObject;
                 if ((el) && (el->Expression1) && (el->Expression2))
                 {
-                    CExpression* base = (CExpression*)el->Expression1;
+                    CExpression* base = el->Expression1;
                     if ((base->m_NumElements > 1) || (base->m_pElementList->Type != 6))
                     {
-                        CExpression* exp = (CExpression*)el->Expression2;
+                        CExpression* exp = el->Expression2;
                         KeyboardRefocus(exp, exp->m_NumElements);
                         return 1;
                     }
@@ -10176,7 +10163,7 @@ keyboardkeyhit_addtoexponent:
             }
 
             if ((this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 7) && (this->m_pPaternalElement->
-                Expression1 == (CObject*)this))
+                Expression1 == this))
             {
                 //special handling for sigma/product/integral with limits defined - force limit editing
                 int a = 1, b = 0;
@@ -10188,22 +10175,22 @@ keyboardkeyhit_addtoexponent:
                 }
                 if ((m_IsKeyboardEntry == a) && (m_KeyboardCursorPos == b) && (this->m_pPaternalElement->Expression2))
                 {
-                    KeyboardRefocus((CExpression*)this->m_pPaternalElement->Expression2,
-                                    ((CExpression*)(this->m_pPaternalElement->Expression2))->m_NumElements);
+                    KeyboardRefocus(this->m_pPaternalElement->Expression2,
+                                    this->m_pPaternalElement->Expression2->m_NumElements);
                     return 1;
                 }
             }
             if ((this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 3) && (this->m_pPaternalElement->
-                    Expression1 == (CObject*)this) &&
+                    Expression1 == this) &&
                 (m_IsKeyboardEntry >= m_NumElements))
             {
                 //special handling for the exponent - go into exponent
-                KeyboardRefocus((CExpression*)this->m_pPaternalElement->Expression2, 0);
+                KeyboardRefocus(this->m_pPaternalElement->Expression2, 0);
                 return 1;
             }
 
             if ((this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 1) && (this->m_pPaternalElement->
-                    Expression1 == (CObject*)this) &&
+                    Expression1 == this) &&
                 (m_IsKeyboardEntry == 1) && (m_KeyboardCursorPos == 0))
             {
                 //special handling for variable indexes - moving the cursor at the end of the variable
@@ -10216,12 +10203,12 @@ keyboardkeyhit_addtoexponent:
             }
 
             if ((this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 8) && (this->m_pPaternalElement->
-                    Expression1 == (CObject*)this) &&
+                    Expression1 == this) &&
                 (m_IsKeyboardEntry == 1) && (m_KeyboardCursorPos == 0) && (this->m_pPaternalElement->Expression2))
             {
                 //special handling for root
-                KeyboardRefocus((CExpression*)this->m_pPaternalElement->Expression2,
-                                ((CExpression*)this->m_pPaternalElement->Expression2)->m_NumElements);
+                KeyboardRefocus(this->m_pPaternalElement->Expression2,
+                                this->m_pPaternalElement->Expression2->m_NumElements);
                 return 1;
             }
             m_IsKeyboardEntry = 0;
@@ -10330,7 +10317,7 @@ keyboardkeyhit_addtoexponent:
 
             RemoveEmptyVariable(DC, theElement, 1);
             if ((this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 7) && (this->m_pPaternalElement->
-                Expression1 == (CObject*)this))
+                Expression1 == this))
             {
                 //special handling for sigma/product/integral with limits defined - force limit editing
                 int a = 1, b = 0;
@@ -10342,8 +10329,8 @@ keyboardkeyhit_addtoexponent:
                 }
                 if ((m_IsKeyboardEntry == a) && (m_KeyboardCursorPos == b) && (this->m_pPaternalElement->Expression3))
                 {
-                    KeyboardRefocus((CExpression*)this->m_pPaternalElement->Expression3,
-                                    ((CExpression*)(this->m_pPaternalElement->Expression3))->m_NumElements);
+                    KeyboardRefocus(this->m_pPaternalElement->Expression3,
+                                    this->m_pPaternalElement->Expression3->m_NumElements);
                     return 1;
                 }
             }
@@ -10475,7 +10462,7 @@ keyboardkeyhit_addtoexponent:
                     ((m_IsKeyboardEntry > 2) && ((theElement - 1)->Type == 2) && ((theElement - 2)->Type != 2) && ((
                         theElement - 2)->pElementObject)) ||
                     ((this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 6) && (this->m_pPaternalElement
-                        ->Expression1 == (CObject*)this) && ((m_IsKeyboardEntry == 1) || ((m_IsKeyboardEntry == 2) && ((
+                        ->Expression1 == this) && ((m_IsKeyboardEntry == 1) || ((m_IsKeyboardEntry == 2) && ((
                         theElement - 1)->Type == 2)))))
                     ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("exponent entry", 20310);
                 else
@@ -10517,8 +10504,8 @@ keyboardkeyhit_addtoexponent:
                     + Basepos)->Type == 3))
                 {
                     //we are only adding to the existing exponent
-                    CExpression* exp = (CExpression*)((Baseline->m_pElementList + Basepos)->pElementObject->
-                        Expression2);
+                    CExpression* exp = (Baseline->m_pElementList + Basepos)->pElementObject->
+                                                                             Expression2;
                     KeyboardRefocus(exp, exp->m_NumElements);
                     return 1;
                 }
@@ -10537,12 +10524,12 @@ keyboardkeyhit_addtoexponent:
                 if (theElement2->pElementObject->Expression1)
                 {
                     if (theElement->pElementObject) theElement->pElementObject->m_Text = 0;
-                    ((CExpression*)(theElement2->pElementObject->Expression1))->InsertElement(theElement, 0);
+                    theElement2->pElementObject->Expression1->InsertElement(theElement, 0);
                     if (move_operator)
-                        ((CExpression*)(theElement2->pElementObject->Expression2))->InsertElement(theElement + 1, 0);
+                        theElement2->pElementObject->Expression2->InsertElement(theElement + 1, 0);
                     //copy the operator into exponent
 
-                    KeyboardRefocus((CExpression*)theElement2->pElementObject->Expression2, move_operator);
+                    KeyboardRefocus(theElement2->pElementObject->Expression2, move_operator);
                     Baseline->DeleteElement(Basepos + 1);
                     if (move_operator) Baseline->DeleteElement(Basepos + 1); //delete the operator
 
@@ -10559,7 +10546,7 @@ keyboardkeyhit_addtoexponent:
             {
                 if (((m_IsKeyboardEntry == 1) || ((m_IsKeyboardEntry == 2) && (this->m_pElementList->Type == 2))) &&
                     (m_KeyboardCursorPos == 0) &&
-                    (this->m_pPaternalElement) && (this->m_pPaternalElement->Expression1 == (CObject*)this) &&
+                    (this->m_pPaternalElement) && (this->m_pPaternalElement->Expression1 == this) &&
                     ((this->m_pPaternalElement->m_Type == 6) || (this->m_pPaternalElement->m_Type == 7)))
                 {
                     // the underscore was hit while in function argument 
@@ -10573,7 +10560,7 @@ keyboardkeyhit_addtoexponent:
                     CElement* elm = this->m_pPaternalElement;
                     if (elm->Expression2 == nullptr)
                     {
-                        elm->Expression2 = (CObject*)new CExpression(elm, (CExpression*)elm->m_pPaternalExpression,
+                        elm->Expression2 = new CExpression(elm, (CExpression*)elm->m_pPaternalExpression,
                                                                      elm->FontSizeForType(2));
 
                         //((CExpression*)(elm->Expression2))->m_FontSizeHQ=elm->FontSizeForTypeHQ(2);
@@ -10585,9 +10572,9 @@ keyboardkeyhit_addtoexponent:
                         //((CExpression*)(elm->Expression3))->m_FontSizeHQ=elm->FontSizeForTypeHQ(3);
                     }
 
-                    CExpression* ee = (CExpression*)((this->m_pPaternalElement->m_Type == 6)
-                                                         ? elm->Expression2
-                                                         : elm->Expression3);
+                    CExpression* ee = this->m_pPaternalElement->m_Type == 6
+                                          ? elm->Expression2
+                                          : elm->Expression3;
 
                     int d = ee->m_NumElements;
                     if (ee->m_pElementList->Type == 0) d = 0;
@@ -10604,12 +10591,11 @@ keyboardkeyhit_addtoexponent:
                 if ((m_KeyboardCursorPos) ||
                     ((m_IsKeyboardEntry > 1) &&
                         (((m_pElementList + m_IsKeyboardEntry - 2)->Type == 1) ||
-                            (((m_pElementList + m_IsKeyboardEntry - 2)->Type == 3) && (((CExpression*)(m_pElementList +
-                                m_IsKeyboardEntry - 2)->pElementObject->Expression1)->m_NumElements == 1) && ((((
-                                    CExpression*)(m_pElementList + m_IsKeyboardEntry - 2)->pElementObject->Expression1)
+                            (((m_pElementList + m_IsKeyboardEntry - 2)->Type == 3) && ((m_pElementList +
+                                m_IsKeyboardEntry - 2)->pElementObject->Expression1->m_NumElements == 1) && (((m_pElementList + m_IsKeyboardEntry - 2)->pElementObject->Expression1
                                 ->
-                                m_pElementList->Type == 1) || (((CExpression*)(m_pElementList + m_IsKeyboardEntry - 2)->
-                                                                              pElementObject->Expression1)->
+                                m_pElementList->Type == 1) || ((m_pElementList + m_IsKeyboardEntry - 2)->
+                                                               pElementObject->Expression1->
                                 m_pElementList->
                                 Type == 6))) ||
                             ((m_pElementList + m_IsKeyboardEntry - 2)->Type == 5) ||
@@ -10623,7 +10609,7 @@ keyboardkeyhit_addtoexponent:
                     (m_KeyboardCursorPos == 0) &&
                     (m_pElementList->pElementObject->Data1[0] == 0) &&
                     (m_pPaternalElement) &&
-                    (m_pPaternalElement->Expression1 == (CObject*)this) &&
+                    (m_pPaternalElement->Expression1 == this) &&
                     ((m_pPaternalElement->m_Type == 1)
                         /*|| (((CElement*)m_pPaternalElement)->m_Type==6)*/))
                 {
@@ -10645,7 +10631,7 @@ keyboardkeyhit_addtoexponent:
                                 exp->m_KeyboardCursorPos = len + 1;
                                 m_IsKeyboardEntry = 0;
                                 m_KeyboardCursorPos = 0;
-                                delete (CExpression*)ts->pElementObject->Expression1;
+                                delete ts->pElementObject->Expression1;
                                 ts->pElementObject->Expression1 = 0;
 
                                 return 2;
@@ -10675,13 +10661,13 @@ keyboardkeyhit_addtoexponent:
 
                     if (theElement->pElementObject->IsDifferential(1))
                     {
-                        theElement = ((CExpression*)theElement->pElementObject->Expression1)->m_pElementList;
+                        theElement = theElement->pElementObject->Expression1->m_pElementList;
                     }
                     else if (theElement->Type == 3)
                     {
-                        theElement = ((CExpression*)theElement->pElementObject->Expression1)->m_pElementList;
+                        theElement = theElement->pElementObject->Expression1->m_pElementList;
                         if (theElement->pElementObject->IsDifferential(1))
-                            theElement = ((CExpression*)theElement->pElementObject->Expression1)->m_pElementList;
+                            theElement = theElement->pElementObject->Expression1->m_pElementList;
                     }
 
                     short typ = theElement->Type;
@@ -10693,12 +10679,12 @@ keyboardkeyhit_addtoexponent:
                         if (typ == 1)
                         {
                             expr = 1;
-                            index = (CExpression*)theElement->pElementObject->Expression1;
+                            index = theElement->pElementObject->Expression1;
                         }
                         else
                         {
                             expr = 2;
-                            index = (CExpression*)theElement->pElementObject->Expression2;
+                            index = theElement->pElementObject->Expression2;
                         }
 
                         if (!index)
@@ -10708,9 +10694,9 @@ keyboardkeyhit_addtoexponent:
                                                     theElement->pElementObject->FontSizeForType(expr));
                             //index->m_FontSizeHQ=theElement->pElementObject->FontSizeForTypeHQ(expr);
                             if (typ == 1)
-                                theElement->pElementObject->Expression1 = (CObject*)index;
+                                theElement->pElementObject->Expression1 = index;
                             else
-                                theElement->pElementObject->Expression2 = (CObject*)index;
+                                theElement->pElementObject->Expression2 = index;
 
                             index->m_pPaternalElement = theElement->pElementObject;
                             index->m_pPaternalExpression = (CExpression*)theElement->pElementObject->
@@ -10870,10 +10856,8 @@ keyboardkeyhit_addtoexponent:
             if (nChar != '\'')
                 if ((this->m_pPaternalElement == nullptr) ||
                     ((this->m_pPaternalElement->m_Type != 1) &&
-                        ((this->m_pPaternalElement->m_Type != 6) || (this->m_pPaternalElement->Expression2 != (CObject*)
-                            this)) &&
-                        ((this->m_pPaternalElement->m_Type != 5) || (this->m_pPaternalElement->Expression2 != (CObject*)
-                            this))))
+                        ((this->m_pPaternalElement->m_Type != 6) || (this->m_pPaternalElement->Expression2 != this)) &&
+                        ((this->m_pPaternalElement->m_Type != 5) || (this->m_pPaternalElement->Expression2 != this))))
                 {
                     //this is an expression (non-index of variable)
                     int previousnumber = 0;
@@ -12137,12 +12121,12 @@ int CExpression::Autocomplete(int is_internal)
                     {
                         Points += 10;
                     }
-                    if ((b->m_pPaternalElement->m_Type == 3) && (b->m_pPaternalElement->Expression2 == (CObject*)b) && (
-                        a->m_pPaternalElement->Expression2 == (CObject*)a))
+                    if ((b->m_pPaternalElement->m_Type == 3) && (b->m_pPaternalElement->Expression2 == b) && (
+                        a->m_pPaternalElement->Expression2 == a))
                     {
                         //if exponent bases are equal, then we can copy exponent
-                        CExpression* base = ((CExpression*)(b->m_pPaternalElement->Expression1));
-                        CExpression* base2 = ((CExpression*)(a->m_pPaternalElement->Expression1));
+                        CExpression* base = b->m_pPaternalElement->Expression1;
+                        CExpression* base2 = a->m_pPaternalElement->Expression1;
                         if (base->IsSuitableForComputation())
                             if (base2->IsSuitableForComputation())
                                 if (base->CompareExpressions(0, -1, base2, 0, -1))
@@ -12152,12 +12136,12 @@ int CExpression::Autocomplete(int is_internal)
                         Points += 10;
                     if (Points)
                     {
-                        if ((a->m_pPaternalElement->Expression1 == (CObject*)a) && (b->m_pPaternalElement->Expression1
-                            != (CObject*)b)) Points = 0;
-                        if ((a->m_pPaternalElement->Expression2 == (CObject*)a) && (b->m_pPaternalElement->Expression2
-                            != (CObject*)b)) Points = 0;
-                        if ((a->m_pPaternalElement->Expression3 == (CObject*)a) && (b->m_pPaternalElement->Expression3
-                            != (CObject*)b)) Points = 0;
+                        if ((a->m_pPaternalElement->Expression1 == a) && (b->m_pPaternalElement->Expression1
+                            != b)) Points = 0;
+                        if ((a->m_pPaternalElement->Expression2 == a) && (b->m_pPaternalElement->Expression2
+                            != b)) Points = 0;
+                        if ((a->m_pPaternalElement->Expression3 == a) && (b->m_pPaternalElement->Expression3
+                            != b)) Points = 0;
                     }
                     if (Points)
                     {
@@ -12169,9 +12153,9 @@ int CExpression::Autocomplete(int is_internal)
                         while (p1->m_pPaternalExpression)
                         {
                             depth1 += (p1->m_pPaternalElement->m_Type * f);
-                            if (p1->m_pPaternalElement->Expression1 == (CObject*)p1) depth1 += 10;
-                            if (p1->m_pPaternalElement->Expression2 == (CObject*)p1) depth1 += 20;
-                            if (p1->m_pPaternalElement->Expression3 == (CObject*)p1) depth1 += 30;
+                            if (p1->m_pPaternalElement->Expression1 == p1) depth1 += 10;
+                            if (p1->m_pPaternalElement->Expression2 == p1) depth1 += 20;
+                            if (p1->m_pPaternalElement->Expression3 == p1) depth1 += 30;
                             p1 = p1->m_pPaternalExpression;
                         }
                         f = 2;
@@ -12179,9 +12163,9 @@ int CExpression::Autocomplete(int is_internal)
                         while (p1->m_pPaternalExpression)
                         {
                             depth2 += (p1->m_pPaternalElement->m_Type * f);
-                            if (p1->m_pPaternalElement->Expression1 == (CObject*)p1) depth2 += 10;
-                            if (p1->m_pPaternalElement->Expression2 == (CObject*)p1) depth2 += 20;
-                            if (p1->m_pPaternalElement->Expression3 == (CObject*)p1) depth2 += 30;
+                            if (p1->m_pPaternalElement->Expression1 == p1) depth2 += 10;
+                            if (p1->m_pPaternalElement->Expression2 == p1) depth2 += 20;
+                            if (p1->m_pPaternalElement->Expression3 == p1) depth2 += 30;
                             p1 = p1->m_pPaternalExpression;
                         }
                         if (depth1 == depth2) Points += 8;
@@ -12215,53 +12199,53 @@ int CExpression::Autocomplete(int is_internal)
                         }
                     }
                     //check if other expressions in the same object are the same - if yes, add some more points
-                    if ((a->m_pPaternalElement->Expression1 != (CObject*)a) &&
-                        (b->m_pPaternalElement->Expression1 != (CObject*)b) &&
+                    if ((a->m_pPaternalElement->Expression1 != a) &&
+                        (b->m_pPaternalElement->Expression1 != b) &&
                         (a->m_pPaternalElement->Expression1) && (b->m_pPaternalElement->Expression1))
                     {
                         int ttmp = CalcStructuralChecksumOnly;
                         CalcStructuralChecksumOnly = 1;
-                        if (((CExpression*)a->m_pPaternalElement->Expression1)->CalcChecksum() == ((CExpression*)b->
-                            m_pPaternalElement->Expression1)->CalcChecksum())
+                        if (a->m_pPaternalElement->Expression1->CalcChecksum() == b->
+                            m_pPaternalElement->Expression1->CalcChecksum())
                             Points += 10;
-                        else if ((((CExpression*)a->m_pPaternalElement->Expression1)->IsSuitableForComputation()) &&
-                            (((CExpression*)b->m_pPaternalElement->Expression1)->IsSuitableForComputation()) &&
-                            (((CExpression*)a->m_pPaternalElement->Expression1)->CompareExpressions(
-                                0, -1, (CExpression*)b->m_pPaternalElement->Expression1, 0, -1)))
+                        else if ((a->m_pPaternalElement->Expression1->IsSuitableForComputation()) &&
+                            (b->m_pPaternalElement->Expression1->IsSuitableForComputation()) &&
+                            (a->m_pPaternalElement->Expression1->CompareExpressions(
+                                0, -1, b->m_pPaternalElement->Expression1, 0, -1)))
                             Points += 5;
                         CalcStructuralChecksumOnly = ttmp;
                     }
 
-                    if ((a->m_pPaternalElement->Expression2 != (CObject*)a) &&
-                        (b->m_pPaternalElement->Expression2 != (CObject*)b) &&
+                    if ((a->m_pPaternalElement->Expression2 != a) &&
+                        (b->m_pPaternalElement->Expression2 != b) &&
                         (a->m_pPaternalElement->Expression2) && (b->m_pPaternalElement->Expression2))
                     {
                         int ttmp = CalcStructuralChecksumOnly;
                         CalcStructuralChecksumOnly = 1;
-                        if (((CExpression*)a->m_pPaternalElement->Expression2)->CalcChecksum() == ((CExpression*)b->
-                            m_pPaternalElement->Expression2)->CalcChecksum())
+                        if (a->m_pPaternalElement->Expression2->CalcChecksum() == b->
+                            m_pPaternalElement->Expression2->CalcChecksum())
                             Points += 10;
-                        else if ((((CExpression*)a->m_pPaternalElement->Expression2)->IsSuitableForComputation()) &&
-                            (((CExpression*)b->m_pPaternalElement->Expression2)->IsSuitableForComputation()) &&
-                            (((CExpression*)a->m_pPaternalElement->Expression2)->CompareExpressions(
-                                0, -1, (CExpression*)b->m_pPaternalElement->Expression2, 0, -1)))
+                        else if ((a->m_pPaternalElement->Expression2->IsSuitableForComputation()) &&
+                            (b->m_pPaternalElement->Expression2->IsSuitableForComputation()) &&
+                            (a->m_pPaternalElement->Expression2->CompareExpressions(
+                                0, -1, b->m_pPaternalElement->Expression2, 0, -1)))
                             Points += 5;
                         CalcStructuralChecksumOnly = ttmp;
                     }
 
-                    if ((a->m_pPaternalElement->Expression3 != (CObject*)a) &&
-                        (b->m_pPaternalElement->Expression3 != (CObject*)b) &&
+                    if ((a->m_pPaternalElement->Expression3 != a) &&
+                        (b->m_pPaternalElement->Expression3 != b) &&
                         (a->m_pPaternalElement->Expression3) && (b->m_pPaternalElement->Expression3))
                     {
                         int ttmp = CalcStructuralChecksumOnly;
                         CalcStructuralChecksumOnly = 1;
-                        if (((CExpression*)a->m_pPaternalElement->Expression3)->CalcChecksum() == ((CExpression*)b->
-                            m_pPaternalElement->Expression3)->CalcChecksum())
+                        if (a->m_pPaternalElement->Expression3->CalcChecksum() == b->
+                            m_pPaternalElement->Expression3->CalcChecksum())
                             Points += 10;
-                        else if ((((CExpression*)a->m_pPaternalElement->Expression3)->IsSuitableForComputation()) &&
-                            (((CExpression*)b->m_pPaternalElement->Expression3)->IsSuitableForComputation()) &&
-                            (((CExpression*)a->m_pPaternalElement->Expression3)->CompareExpressions(
-                                0, -1, (CExpression*)b->m_pPaternalElement->Expression3, 0, -1)))
+                        else if ((a->m_pPaternalElement->Expression3->IsSuitableForComputation()) &&
+                            (b->m_pPaternalElement->Expression3->IsSuitableForComputation()) &&
+                            (a->m_pPaternalElement->Expression3->CompareExpressions(
+                                0, -1, b->m_pPaternalElement->Expression3, 0, -1)))
                             Points += 5;
                         CalcStructuralChecksumOnly = ttmp;
                     }
@@ -12287,9 +12271,9 @@ int CExpression::Autocomplete(int is_internal)
             tElementStruct* ts = m_pElementList + i;
             if (ts->pElementObject)
             {
-                if (ts->pElementObject->Expression1) ((CExpression*)ts->pElementObject->Expression1)->Autocomplete(1);
-                if (ts->pElementObject->Expression2) ((CExpression*)ts->pElementObject->Expression2)->Autocomplete(1);
-                if (ts->pElementObject->Expression3) ((CExpression*)ts->pElementObject->Expression3)->Autocomplete(1);
+                if (ts->pElementObject->Expression1) ts->pElementObject->Expression1->Autocomplete(1);
+                if (ts->pElementObject->Expression2) ts->pElementObject->Expression2->Autocomplete(1);
+                if (ts->pElementObject->Expression3) ts->pElementObject->Expression3->Autocomplete(1);
             }
         }
         return 1;
@@ -13304,7 +13288,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 */
 
 #pragma optimize("s",on)
-int CExpression::LaTeX_output(char* output, char only_calculate)
+int CExpression::LaTeX_output(char* output, char only_calculate) const
 {
     int len = 0;
     static char tmpstr[136];
@@ -13727,7 +13711,7 @@ int IsCharacterLow(char ch, char font)
 int CExpression::CalcChecksum()
 {
     if ((m_NumElements == 1) && (m_pElementList->Type == 5)) //special () =()	
-        return ((CExpression*)(m_pElementList->pElementObject->Expression1))->CalcChecksum();
+        return m_pElementList->pElementObject->Expression1->CalcChecksum();
 
     int c = m_NumElements;
     c += 8 * (m_ParenthesesFlags & 0x1F);
@@ -13854,14 +13838,14 @@ CObject* CExpression::KeyboardFindEntryPos()
         if (ts->pElementObject)
         {
             CObject* ret = nullptr;
-            if (ts->pElementObject->Expression1) ret = ((CExpression*)(ts->pElementObject->Expression1))->
-                KeyboardFindEntryPos();
+            if (ts->pElementObject->Expression1) ret = ts->pElementObject->Expression1->
+                                                           KeyboardFindEntryPos();
             if (ret) return ret;
-            if (ts->pElementObject->Expression2) ret = ((CExpression*)(ts->pElementObject->Expression2))->
-                KeyboardFindEntryPos();
+            if (ts->pElementObject->Expression2) ret = ts->pElementObject->Expression2->
+                                                           KeyboardFindEntryPos();
             if (ret) return ret;
-            if (ts->pElementObject->Expression3) ret = ((CExpression*)(ts->pElementObject->Expression3))->
-                KeyboardFindEntryPos();
+            if (ts->pElementObject->Expression3) ret = ts->pElementObject->Expression3->
+                                                           KeyboardFindEntryPos();
             if (ret) return ret;
         }
     }
@@ -14566,8 +14550,7 @@ int CExpression::IsTextContained(int position, char unmark_at_line_start)
         //also if we are not in the main equation line
         if (m_pPaternalElement)
         {
-            if ((m_pPaternalElement->Expression2 == (CObject*)this) || (m_pPaternalElement->Expression3 == (CObject*)
-                this))
+            if ((m_pPaternalElement->Expression2 == this) || (m_pPaternalElement->Expression3 == this))
                 return 0;
             if (m_pPaternalElement->m_Type == 4) return 0;
         }
@@ -14959,7 +14942,7 @@ int CExpression::ConvertToPlainText(int buffer_size, char* compile, char force_p
 
             if ((ts->Type == 6) && (ts->pElementObject->Expression1))
             {
-                int ret = ((CExpression*)ts->pElementObject->Expression1)->ConvertToPlainText(buffer_size, compile, 1);
+                int ret = ts->pElementObject->Expression1->ConvertToPlainText(buffer_size, compile, 1);
                 if (ret == 0) return 0;
             }
         }
@@ -14974,18 +14957,18 @@ int CExpression::ConvertToPlainText(int buffer_size, char* compile, char force_p
         }
         else if (ts->Type == 3)
         {
-            int ret = ((CExpression*)ts->pElementObject->Expression1)->ConvertToPlainText(
-                buffer_size, compile, (((CExpression*)ts->pElementObject->Expression1)->m_NumElements > 1) ? 1 : 0);
+            int ret = ts->pElementObject->Expression1->ConvertToPlainText(
+                buffer_size, compile, (ts->pElementObject->Expression1->m_NumElements > 1) ? 1 : 0);
             if (ret == 0) return 0;
             strcat(compile + len, "^");
-            ret = ((CExpression*)ts->pElementObject->Expression2)->ConvertToPlainText(
-                buffer_size, compile, (((CExpression*)ts->pElementObject->Expression2)->m_NumElements > 1) ? 1 : 0);
+            ret = ts->pElementObject->Expression2->ConvertToPlainText(
+                buffer_size, compile, (ts->pElementObject->Expression2->m_NumElements > 1) ? 1 : 0);
             if (ret == 0) return 0;
             wordend = 0;
         }
         else if (ts->Type == 5)
         {
-            int ret = ((CExpression*)ts->pElementObject->Expression1)->ConvertToPlainText(buffer_size, compile);
+            int ret = ts->pElementObject->Expression1->ConvertToPlainText(buffer_size, compile);
             if (ret == 0) return 0;
             wordend = 0;
         }
@@ -14996,13 +14979,13 @@ int CExpression::ConvertToPlainText(int buffer_size, char* compile, char force_p
             else if (ch == 'P') strcat(compile, "prod");
             else if (ch == 'I') strcat(compile, "int");
             else strcat(compile + len, "\01");
-            int ret = ((CExpression*)ts->pElementObject->Expression1)->ConvertToPlainText(buffer_size, compile, 1);
+            int ret = ts->pElementObject->Expression1->ConvertToPlainText(buffer_size, compile, 1);
             if (ret == 0) return 0;
             wordend = 0;
         }
         else if (ts->Type == 9)
         {
-            int ret = ((CExpression*)ts->pElementObject->Expression1)->ConvertToPlainText(buffer_size, compile);
+            int ret = ts->pElementObject->Expression1->ConvertToPlainText(buffer_size, compile);
             if (ret == 0) return 0;
             strcat(compile + len, "\01");
             wordend = 0;
@@ -15049,9 +15032,9 @@ int CExpression::SearchForString(char* str)
         tElementStruct* ts = this->m_pElementList + i;
         if (ts->pElementObject)
         {
-            CExpression* e1 = ((CExpression*)ts->pElementObject->Expression1);
-            CExpression* e2 = ((CExpression*)ts->pElementObject->Expression2);
-            CExpression* e3 = ((CExpression*)ts->pElementObject->Expression3);
+            CExpression* e1 = ts->pElementObject->Expression1;
+            CExpression* e2 = ts->pElementObject->Expression2;
+            CExpression* e3 = ts->pElementObject->Expression3;
 
             if (ts->Type == 4)
             {
@@ -15364,19 +15347,19 @@ int CExpression::KeyboardStartAt(int X, int Y, char direction, char between)
                 tElementStruct* ts = m_pPaternalExpression->m_pElementList + ii;
                 if ((ts->pElementObject) && (ts->Type != 0) && (ts->Type != 11) && (ts->Type != 12))
                 {
-                    if (ts->pElementObject->Expression1 == (CObject*)this)
+                    if (ts->pElementObject->Expression1 == this)
                     {
                         X += ts->X_pos + ts->pElementObject->E1_posX;
                         Y += ts->Y_pos + ts->pElementObject->E1_posY;
                         break;
                     }
-                    if (ts->pElementObject->Expression2 == (CObject*)this)
+                    if (ts->pElementObject->Expression2 == this)
                     {
                         X += ts->X_pos + ts->pElementObject->E2_posX;
                         Y += ts->Y_pos + ts->pElementObject->E2_posY;
                         break;
                     }
-                    if (ts->pElementObject->Expression3 == (CObject*)this)
+                    if (ts->pElementObject->Expression3 == this)
                     {
                         X += ts->X_pos + ts->pElementObject->E3_posX;
                         Y += ts->Y_pos + ts->pElementObject->E3_posY;
@@ -15565,9 +15548,9 @@ int CExpression::KeyboardStartAt(int X, int Y, char direction, char between)
         if ((ts->pElementObject) && (ts->Type != 0) && (ts->Type != 11) && (ts->Type != 12))
         {
             int is_ok = 7;
-            CExpression* e1 = (CExpression*)ts->pElementObject->Expression1;
-            CExpression* e2 = (CExpression*)ts->pElementObject->Expression2;
-            CExpression* e3 = (CExpression*)ts->pElementObject->Expression3;
+            CExpression* e1 = ts->pElementObject->Expression1;
+            CExpression* e2 = ts->pElementObject->Expression2;
+            CExpression* e3 = ts->pElementObject->Expression3;
 
             //special handlings
             if (KSAoriginal == this)
@@ -15655,21 +15638,21 @@ int CExpression::GetKeyboardCursorPos(int* X, int* Y)
         if ((ts->Type != 0) && (ts->Type != 11) && (ts->Type != 12) && (ts->pElementObject))
         {
             if (ts->pElementObject->Expression1)
-                if (((CExpression*)(ts->pElementObject->Expression1))->GetKeyboardCursorPos(X, Y))
+                if (ts->pElementObject->Expression1->GetKeyboardCursorPos(X, Y))
                 {
                     *X += ts->X_pos + ts->pElementObject->E1_posX;
                     *Y += ts->Y_pos + ts->pElementObject->E1_posY;
                     goto getkeyboardcursorpos_finish;
                 }
             if (ts->pElementObject->Expression2)
-                if (((CExpression*)(ts->pElementObject->Expression2))->GetKeyboardCursorPos(X, Y))
+                if (ts->pElementObject->Expression2->GetKeyboardCursorPos(X, Y))
                 {
                     *X += ts->X_pos + ts->pElementObject->E2_posX;
                     *Y += ts->Y_pos + ts->pElementObject->E2_posY;
                     goto getkeyboardcursorpos_finish;
                 }
             if (ts->pElementObject->Expression3)
-                if (((CExpression*)(ts->pElementObject->Expression3))->GetKeyboardCursorPos(X, Y))
+                if (ts->pElementObject->Expression3->GetKeyboardCursorPos(X, Y))
                 {
                     *X += ts->X_pos + ts->pElementObject->E3_posX;
                     *Y += ts->Y_pos + ts->pElementObject->E3_posY;
@@ -15707,11 +15690,11 @@ int CExpression::ChangeFontSize(float factor)
         if ((theElement->Type > 0) && (theElement->pElementObject))
         {
             if (theElement->pElementObject->Expression1)
-                ((CExpression*)(theElement->pElementObject->Expression1))->ChangeFontSize(factor);
+                theElement->pElementObject->Expression1->ChangeFontSize(factor);
             if (theElement->pElementObject->Expression2)
-                ((CExpression*)(theElement->pElementObject->Expression2))->ChangeFontSize(factor);
+                theElement->pElementObject->Expression2->ChangeFontSize(factor);
             if (theElement->pElementObject->Expression3)
-                ((CExpression*)(theElement->pElementObject->Expression3))->ChangeFontSize(factor);
+                theElement->pElementObject->Expression3->ChangeFontSize(factor);
         }
     }
     return 0;
@@ -15771,7 +15754,7 @@ char CExpression::GetDefaultElementType(const int Level)
 // for example in expression  -a*b*c+g-h*d and for Level that equals '+' operator
 // the function will return 6 (length of '-a*b*c') and will set element_type to '-' and has_preoperator to 1)
 int CExpression::GetElementLen(const unsigned int StartPos, const unsigned int EndPos, const unsigned int Level,
-                               char* element_type, char* has_preoperator)
+                               char* element_type, char* has_preoperator) const
 {
     unsigned char prev_elm_type;
     unsigned char oper_type;
@@ -16105,12 +16088,12 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
 
         char shape = this->m_ParentheseShape;
         tmp->InsertEmptyElement(0, 5, shape);
-        CExpression* tmptmp = (CExpression*)tmp->m_pElementList->pElementObject->Expression1;
+        CExpression* tmptmp = tmp->m_pElementList->pElementObject->Expression1;
         tmptmp->CopyExpression(this, 0);
         if (tmp->ComputeParentheses(0, 5, ComputationType, OutsideLevel))
         {
             if ((tmp->m_NumElements > 1) || (tmp->m_pElementList->Type != 5) ||
-                (((CExpression*)((tmp->m_pElementList->pElementObject)->Expression1))->m_ParentheseShape != shape))
+                (tmp->m_pElementList->pElementObject->Expression1->m_ParentheseShape != shape))
                 this->CopyExpression(tmp, 0);
             else
                 this->CopyExpression(tmptmp, 0);
@@ -16367,17 +16350,17 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
             {
             compute_continue_unknown:
                 if (ts->pElementObject->Expression1)
-                    while ((((CExpression*)(ts->pElementObject->Expression1))->Compute(0, -1, ComputationType)) && (cnt
+                    while ((ts->pElementObject->Expression1->Compute(0, -1, ComputationType)) && (cnt
                         < 50)) cnt++;
                 if (cnt) rval = -1;
                 cnt = 0;
                 if (ts->pElementObject->Expression2)
-                    while ((((CExpression*)(ts->pElementObject->Expression2))->Compute(0, -1, ComputationType)) && (cnt
+                    while ((ts->pElementObject->Expression2->Compute(0, -1, ComputationType)) && (cnt
                         < 50)) cnt++;
                 if (cnt) rval = -1;
                 cnt = 0;
                 if (ts->pElementObject->Expression3)
-                    while ((((CExpression*)(ts->pElementObject->Expression3))->Compute(0, -1, ComputationType)) && (cnt
+                    while ((ts->pElementObject->Expression3->Compute(0, -1, ComputationType)) && (cnt
                         < 50)) cnt++;
                 if (cnt) rval = -1;
             }
@@ -16562,7 +16545,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         tElementStruct* ts = m_pElementList + StartPos;
         if (ts->Type == 5)
         {
-            int retval = ((CExpression*)(ts->pElementObject->Expression1))->MultiplyElements(
+            int retval = ts->pElementObject->Expression1->MultiplyElements(
                 0, -1, inv, Other, StartPos2, EndPos2, inv2, ComputationType);
             if (retval)
                 xreturn(retval);
@@ -16575,9 +16558,9 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         if (ts->Type == 5)
         {
             if (ComputationType == 10) //special handling for 1/(2/3)
-                ((CExpression*)(ts->pElementObject->Expression1))->
+                ts->pElementObject->Expression1->
                     Compute(0, -1, ComputationType,GetOperatorLevel('/'));
-            int retval = MultiplyElements(StartPos, EndPos, inv, (CExpression*)(ts->pElementObject->Expression1), 0, -1,
+            int retval = MultiplyElements(StartPos, EndPos, inv, ts->pElementObject->Expression1, 0, -1,
                                           inv2, ComputationType);
             if (retval)
                 xreturn(retval);
@@ -16589,11 +16572,11 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         tElementStruct* ts = m_pElementList + StartPos;
         if (ts->Type == 4)
         {
-            int retval = ((CExpression*)(ts->pElementObject->Expression1))->MultiplyElements(
+            int retval = ts->pElementObject->Expression1->MultiplyElements(
                 0, -1, inv, Other, StartPos2, EndPos2, inv2, ComputationType);
             if (retval)
                 xreturn(retval);
-            retval = ((CExpression*)(ts->pElementObject->Expression2))->MultiplyElements(
+            retval = ts->pElementObject->Expression2->MultiplyElements(
                 0, -1, -inv, Other, StartPos2, EndPos2, inv2, ComputationType);
             if (retval)
                 xreturn(retval);
@@ -16605,11 +16588,11 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         tElementStruct* ts = Other->m_pElementList + StartPos2;
         if (ts->Type == 4)
         {
-            int retval = MultiplyElements(StartPos, EndPos, inv, (CExpression*)(ts->pElementObject->Expression1), 0, -1,
+            int retval = MultiplyElements(StartPos, EndPos, inv, ts->pElementObject->Expression1, 0, -1,
                                           inv2, ComputationType);
             if (retval)
                 xreturn(retval);
-            retval = MultiplyElements(StartPos, EndPos, inv, (CExpression*)(ts->pElementObject->Expression2), 0, -1,
+            retval = MultiplyElements(StartPos, EndPos, inv, ts->pElementObject->Expression2, 0, -1,
                                       -inv2, ComputationType);
             if (retval)
                 xreturn(retval);
@@ -16624,10 +16607,10 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         if ((StartPos == EndPos) && ((m_pElementList + StartPos)->Type == 1))
             if (inv2 == inv)
             {
-                CExpression* argument = (CExpression*)((Other->m_pElementList + StartPos2)->pElementObject->
-                    Expression1);
-                CExpression* exponent = (CExpression*)((Other->m_pElementList + StartPos2)->pElementObject->
-                    Expression2);
+                CExpression* argument = (Other->m_pElementList + StartPos2)->pElementObject->
+                                                                             Expression1;
+                CExpression* exponent = (Other->m_pElementList + StartPos2)->pElementObject->
+                                                                             Expression2;
                 int prec1, prec2, prec3;
                 double N1, N2, N3;
                 if (IsPureNumber(StartPos, 1, &N1, &prec1))
@@ -16935,11 +16918,11 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         if (kk)
                             tmp->InsertEmptyElement(tmp->m_NumElements, 2, '+');
                         tmp->InsertEmptyElement(tmp->m_NumElements, 5, '(');
-                        CExpression* f1 = (CExpression*)((tmp->m_pElementList + tmp->m_NumElements - 1)->pElementObject
-                            ->Expression1);
+                        CExpression* f1 = (tmp->m_pElementList + tmp->m_NumElements - 1)->pElementObject
+                            ->Expression1;
                         tmp->InsertEmptyElement(tmp->m_NumElements, 5, '(');
-                        CExpression* f2 = (CExpression*)((tmp->m_pElementList + tmp->m_NumElements - 1)->pElementObject
-                            ->Expression1);
+                        CExpression* f2 = (tmp->m_pElementList + tmp->m_NumElements - 1)->pElementObject
+                            ->Expression1;
                         int pos = this->FindMatrixElement(ii, kk, 0);
                         if (pos < 0) pos = 0;
                         while ((pos < this->m_NumElements) && ((this->m_pElementList + pos)->Type < 11))
@@ -16990,7 +16973,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
 
         if ((ts) && (start == end) && ((pe->m_pElementList + start)->Type == 5))
         {
-            CExpression* tt = (CExpression*)((pe->m_pElementList + start)->pElementObject->Expression1);
+            CExpression* tt = (pe->m_pElementList + start)->pElementObject->Expression1;
             if (tt->FindLowestOperatorLevel((char)0xD7) == GetOperatorLevel((char)0xFF))
                 ts = nullptr;
         }
@@ -17045,7 +17028,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     if (lv2 < MulLevel)
                     {
                         arg->InsertEmptyElement(pos + p, 5, '(');
-                        CExpression* tmp = (CExpression*)((arg->m_pElementList + pos + p)->pElementObject->Expression1);
+                        CExpression* tmp = (arg->m_pElementList + pos + p)->pElementObject->Expression1;
                         for (int iii = pos + p + 1; iii < pos + l + 1; iii++)
                         {
                             tmp->InsertElement(arg->m_pElementList + pos + p + 1, tmp->m_NumElements);
@@ -17060,8 +17043,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         if ((ll < MulLevel) || ((pe->m_pElementList + start)->Type == 2))
                         {
                             arg->InsertEmptyElement(pos + p, 5, '(');
-                            CExpression* tmp = (CExpression*)((arg->m_pElementList + pos + p)->pElementObject->
-                                Expression1);
+                            CExpression* tmp = (arg->m_pElementList + pos + p)->pElementObject->
+                                Expression1;
                             l++;
                             for (int kk = start; kk <= end; kk++)
                                 tmp->InsertElement(pe->m_pElementList + kk, kk - start);
@@ -17088,8 +17071,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                                 ((pe->m_NumElements > 1) && (use_inversion)))
                             {
                                 arg->InsertEmptyElement(pos + l, 5, '(');
-                                CExpression* tmp = (CExpression*)((arg->m_pElementList + pos + l)->pElementObject->
-                                    Expression1);
+                                CExpression* tmp = (arg->m_pElementList + pos + l)->pElementObject->
+                                    Expression1;
                                 l++;
                                 for (int kk = start; kk <= end; kk++)
                                     tmp->InsertElement(pe->m_pElementList + kk, kk - start);
@@ -17101,10 +17084,10 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         else
                         {
                             arg->InsertEmptyElement(pos + l, 4, 0);
-                            CExpression* n = (CExpression*)((arg->m_pElementList + pos + l)->pElementObject->
-                                Expression1);
-                            CExpression* d = (CExpression*)((arg->m_pElementList + pos + l)->pElementObject->
-                                Expression2);
+                            CExpression* n = (arg->m_pElementList + pos + l)->pElementObject->
+                                                                              Expression1;
+                            CExpression* d = (arg->m_pElementList + pos + l)->pElementObject->
+                                                                              Expression2;
                             n->InsertEmptyElement(0, 1, '1');
                             l++;
                             for (int kk = start; kk <= end; kk++)
@@ -17225,14 +17208,14 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
 
         if ((ts->Type == 8) && (ts2->Type == 8))
         {
-            CExpression* base1 = (CExpression*)(ts->pElementObject->Expression2);
-            CExpression* base2 = (CExpression*)(ts2->pElementObject->Expression2);
+            CExpression* base1 = ts->pElementObject->Expression2;
+            CExpression* base2 = ts2->pElementObject->Expression2;
             if (((base1 == nullptr) && (base2 == nullptr)) ||
                 ((base1) && (base2) && (base1->CompareExpressions(0, base1->m_NumElements - 1, base2, 0,
                                                                   base2->m_NumElements - 1))))
             {
-                CExpression* arg1 = (CExpression*)(ts->pElementObject->Expression1);
-                CExpression* arg2 = (CExpression*)(ts2->pElementObject->Expression1);
+                CExpression* arg1 = ts->pElementObject->Expression1;
+                CExpression* arg2 = ts2->pElementObject->Expression1;
 
                 int lvl1 = arg1->FindLowestOperatorLevel((char)0xD7);
                 int lvl2 = arg2->FindLowestOperatorLevel((char)0xD7);
@@ -17266,8 +17249,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     if (inv != inv2)
                     {
                         arg1->InsertEmptyElement(0, 4, 0);
-                        CExpression* n = (CExpression*)(arg1->m_pElementList->pElementObject->Expression1);
-                        CExpression* d = (CExpression*)(arg1->m_pElementList->pElementObject->Expression2);
+                        CExpression* n = arg1->m_pElementList->pElementObject->Expression1;
+                        CExpression* d = arg1->m_pElementList->pElementObject->Expression2;
                         n->InsertSequence('+', 0, arg1, 1, arg1->m_NumElements - 1);
                         while (arg1->m_NumElements > 1)
                             arg1->DeleteElement(1);
@@ -17278,7 +17261,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         if (lvl1 < MulLevel)
                         {
                             arg1->InsertEmptyElement(0, 5, '(');
-                            CExpression* a = (CExpression*)((arg1->m_pElementList)->pElementObject->Expression1);
+                            CExpression* a = arg1->m_pElementList->pElementObject->Expression1;
                             int ttt = arg1->m_NumElements;
                             for (int kk = 1; kk < ttt; kk++)
                             {
@@ -17304,19 +17287,19 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
 
         if ((ts->Type == 3) && (ts2->Type == 3))
         {
-            CExpression* base1 = (CExpression*)(ts->pElementObject->Expression2);
-            CExpression* base2 = (CExpression*)(ts2->pElementObject->Expression2);
+            CExpression* base1 = ts->pElementObject->Expression2;
+            CExpression* base2 = ts2->pElementObject->Expression2;
             if ((base1) && (base2) && (base1->CompareExpressions(0, base1->m_NumElements - 1, base2, 0,
                                                                  base2->m_NumElements - 1)))
             {
-                CExpression* arg1 = (CExpression*)(ts->pElementObject->Expression1);
-                CExpression* arg2 = (CExpression*)(ts2->pElementObject->Expression1);
+                CExpression* arg1 = ts->pElementObject->Expression1;
+                CExpression* arg2 = ts2->pElementObject->Expression1;
 
                 if (inv != inv2)
                 {
                     arg1->InsertEmptyElement(0, 4, 0);
-                    CExpression* n = (CExpression*)(arg1->m_pElementList->pElementObject->Expression1);
-                    CExpression* d = (CExpression*)(arg1->m_pElementList->pElementObject->Expression2);
+                    CExpression* n = arg1->m_pElementList->pElementObject->Expression1;
+                    CExpression* d = arg1->m_pElementList->pElementObject->Expression2;
                     n->InsertSequence('+', 0, arg1, 1, arg1->m_NumElements - 1);
                     while (arg1->m_NumElements > 1)
                         arg1->DeleteElement(1);
@@ -17327,7 +17310,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     if (arg1->FindLowestOperatorLevel((char)0xD7) < MulLevel)
                     {
                         arg1->InsertEmptyElement(0, 5, '(');
-                        CExpression* a = (CExpression*)((arg1->m_pElementList)->pElementObject->Expression1);
+                        CExpression* a = arg1->m_pElementList->pElementObject->Expression1;
                         int ttt = arg1->m_NumElements;
                         for (int kk = 1; kk < ttt; kk++)
                         {
@@ -17369,8 +17352,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
     if (StartPos == EndPos)
         if (((m_pElementList + StartPos)->Type == 3) && ((m_pElementList + StartPos)->pElementObject))
         {
-            arg_first = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-            exp_first = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression2);
+            arg_first = (m_pElementList + StartPos)->pElementObject->Expression1;
+            exp_first = (m_pElementList + StartPos)->pElementObject->Expression2;
             if (((arg_first->m_NumElements == 1) && (arg_first->m_pElementList->Type == 5))
                 || (arg_first->m_NumElements > 1))
                 if (ComputationType == 0)
@@ -17380,8 +17363,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
     if (StartPos2 == EndPos2)
         if (((Other->m_pElementList + StartPos2)->Type == 3) && ((Other->m_pElementList + StartPos2)->pElementObject))
         {
-            arg_second = (CExpression*)((Other->m_pElementList + StartPos2)->pElementObject->Expression1);
-            exp_second = (CExpression*)((Other->m_pElementList + StartPos2)->pElementObject->Expression2);
+            arg_second = (Other->m_pElementList + StartPos2)->pElementObject->Expression1;
+            exp_second = (Other->m_pElementList + StartPos2)->pElementObject->Expression2;
             if (((arg_second->m_NumElements == 1) && (arg_second->m_pElementList->Type == 5))
                 || (arg_second->m_NumElements > 1))
                 if (ComputationType == 0)
@@ -17398,7 +17381,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             if (((m_pElementList + StartPos)->Type == 5) && (inv == inv2) && (ComputationType == 0))
             {
                 //for ComputationType==0 we never calculate (a+b)(a+b) into (a+b)^2
-                CExpression* a = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
+                CExpression* a = (m_pElementList + StartPos)->pElementObject->Expression1;
                 if (a->FindLowestOperatorLevel() == PlusLevel)
                     xreturn(0);
             }
@@ -17417,8 +17400,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         else
         {
             InsertEmptyElement(StartPos, 3, '2');
-            CExpression* arg = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-            CExpression* exp = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression2);
+            CExpression* arg = (m_pElementList + StartPos)->pElementObject->Expression1;
+            CExpression* exp = (m_pElementList + StartPos)->pElementObject->Expression2;
 
             for (int k = StartPos; k <= EndPos; k++)
                 arg->InsertElement(m_pElementList + k + 1, k - StartPos);
@@ -17444,8 +17427,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             if (Other->CompareExpressions(StartPos2, EndPos2, arg_first, 0, arg_first->m_NumElements - 1) == 0)
                 xreturn(0);
         }
-        CExpression* arg = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-        CExpression* exp = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression2);
+        CExpression* arg = (m_pElementList + StartPos)->pElementObject->Expression1;
+        CExpression* exp = (m_pElementList + StartPos)->pElementObject->Expression2;
 
         double N;
         int prec;
@@ -17467,7 +17450,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 int k = 0;
                 while (exp->m_NumElements > 1)
                 {
-                    ((CExpression*)(exp->m_pElementList->pElementObject->Expression1))->InsertElement(
+                    exp->m_pElementList->pElementObject->Expression1->InsertElement(
                         exp->m_pElementList + 1, k++);
                     exp->DeleteElement(1);
                 }
@@ -17505,8 +17488,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 xreturn(0);
         }
         InsertEmptyElement(StartPos, 3, 0);
-        CExpression* arg = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-        CExpression* exp = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression2);
+        CExpression* arg = (m_pElementList + StartPos)->pElementObject->Expression1;
+        CExpression* exp = (m_pElementList + StartPos)->pElementObject->Expression2;
         double N;
         int prec;
         if (exp_second->IsPureNumber(0, exp_second->m_NumElements, &N, &prec))
@@ -17527,7 +17510,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 int k = 0;
                 while (exp_second->m_NumElements > 1)
                 {
-                    ((CExpression*)(exp_second->m_pElementList->pElementObject->Expression1))->InsertElement(
+                    exp_second->m_pElementList->pElementObject->Expression1->InsertElement(
                         exp_second->m_pElementList + 1, k++);
                     exp_second->DeleteElement(1);
                 }
@@ -17570,7 +17553,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             int k = 0;
             while (exp_first->m_NumElements > 1)
             {
-                ((CExpression*)(exp_first->m_pElementList->pElementObject->Expression1))->InsertElement(
+                exp_first->m_pElementList->pElementObject->Expression1->InsertElement(
                     exp_first->m_pElementList + 1, k++);
                 exp_first->DeleteElement(1);
             }
@@ -17583,13 +17566,13 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             int k = 0;
             while (exp_second->m_NumElements > 1)
             {
-                ((CExpression*)(exp_second->m_pElementList->pElementObject->Expression1))->InsertElement(
+                exp_second->m_pElementList->pElementObject->Expression1->InsertElement(
                     exp_second->m_pElementList + 1, k++);
                 exp_second->DeleteElement(1);
             }
         }
-        CExpression* arg = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-        CExpression* exp = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression2);
+        CExpression* arg = (m_pElementList + StartPos)->pElementObject->Expression1;
+        CExpression* exp = (m_pElementList + StartPos)->pElementObject->Expression2;
         exp->InsertEmptyElement(exp->m_NumElements, 2, (inv != inv2) ? '-' : '+');
         for (int k = 0; k < exp_second->m_NumElements; k++)
             exp->InsertElement(exp_second->m_pElementList + k, exp->m_NumElements);
@@ -17802,8 +17785,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
             ((m_pElementList + StartPos)->Type == 5) &&
             ((m_pElementList + StartPos2)->Type == 5))
         {
-            CExpression* inside1 = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-            CExpression* inside2 = (CExpression*)((m_pElementList + StartPos2)->pElementObject->Expression1);
+            CExpression* inside1 = (m_pElementList + StartPos)->pElementObject->Expression1;
+            CExpression* inside2 = (m_pElementList + StartPos2)->pElementObject->Expression1;
 
             int lvl1 = inside1->FindLowestOperatorLevel((char)0xD7);
             int lvl2 = inside2->FindLowestOperatorLevel((char)0xD7);
@@ -17828,8 +17811,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                         for (int jj = 0; jj < columns1; jj++)
                         {
                             tmp->InsertEmptyElement(tmp->m_NumElements, 5, '(');
-                            CExpression* a = (CExpression*)((tmp->m_pElementList + tmp->m_NumElements - 1)->
-                                                            pElementObject->Expression1);
+                            CExpression* a = (tmp->m_pElementList + tmp->m_NumElements - 1)->
+                                             pElementObject->Expression1;
                             int pos = inside1->FindMatrixElement(ii, jj, 0);
                             if (pos < 0) pos = 0;
                             while (((inside1->m_pElementList + pos)->Type < 11) && (pos < inside1->m_NumElements))
@@ -17850,8 +17833,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                                 tmp->InsertEmptyElement(tmp->m_NumElements, 2, element_type2);
 
                             tmp->InsertEmptyElement(tmp->m_NumElements, 5, '(');
-                            a = (CExpression*)((tmp->m_pElementList + tmp->m_NumElements - 1)->pElementObject->
-                                Expression1);
+                            a = (tmp->m_pElementList + tmp->m_NumElements - 1)->pElementObject->
+                                Expression1;
                             pos = inside2->FindMatrixElement(ii, jj, 0);
                             if (pos < 0) pos = 0;
                             while (((inside2->m_pElementList + pos)->Type < 11) && (pos < inside2->m_NumElements))
@@ -17900,11 +17883,11 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                         {
                             fraction_found = 1;
                             if (et == '/')
-                                fraction_denom = (CExpression*)((m_pElementList + pos + p)->pElementObject->
-                                    Expression1);
+                                fraction_denom = (m_pElementList + pos + p)->pElementObject->
+                                                                             Expression1;
                             else
-                                fraction_denom = (CExpression*)((m_pElementList + pos + p)->pElementObject->
-                                    Expression2);
+                                fraction_denom = (m_pElementList + pos + p)->pElementObject->
+                                                                             Expression2;
                         }
                         else
                         {
@@ -17934,9 +17917,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                             fraction_found2 = 1;
                             CExpression* d1;
                             if (et == '/')
-                                d1 = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression1);
+                                d1 = (m_pElementList + pos + p)->pElementObject->Expression1;
                             else
-                                d1 = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression2);
+                                d1 = (m_pElementList + pos + p)->pElementObject->Expression2;
 
                             if (d1->CompareExpressions(0, d1->m_NumElements - 1, fraction_denom, 0,
                                                        fraction_denom->m_NumElements - 1) == 0)
@@ -17960,8 +17943,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
             if ((fraction_found) && (fraction_found2))
             {
                 InsertEmptyElement(StartPos, 4, 0);
-                CExpression* num = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-                CExpression* denom = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression2);
+                CExpression* num = (m_pElementList + StartPos)->pElementObject->Expression1;
+                CExpression* denom = (m_pElementList + StartPos)->pElementObject->Expression2;
                 InsertEmptyElement(StartPos + 1, 2, element_type);
                 StartPos += 2;
                 EndPos += 2;
@@ -17980,12 +17963,12 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                     {
                         CExpression* n;
                         if (et == '/')
-                            n = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression2);
+                            n = (m_pElementList + pos + p)->pElementObject->Expression2;
                         else
-                            n = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression1);
+                            n = (m_pElementList + pos + p)->pElementObject->Expression1;
                         num->InsertEmptyElement(num->m_NumElements, 5, '(');
-                        CExpression* a = (CExpression*)((num->m_pElementList + num->m_NumElements - 1)->pElementObject->
-                            Expression1);
+                        CExpression* a = (num->m_pElementList + num->m_NumElements - 1)->pElementObject->
+                            Expression1;
                         a->CopyExpression(n, 0);
                         a->m_ParenthesesFlags = 0x02;
                     }
@@ -18019,12 +18002,12 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                     {
                         CExpression* n;
                         if (et == '/')
-                            n = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression2);
+                            n = (m_pElementList + pos + p)->pElementObject->Expression2;
                         else
-                            n = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression1);
+                            n = (m_pElementList + pos + p)->pElementObject->Expression1;
                         num->InsertEmptyElement(num->m_NumElements, 5, '(');
-                        CExpression* a = (CExpression*)((num->m_pElementList + num->m_NumElements - 1)->pElementObject->
-                            Expression1);
+                        CExpression* a = (num->m_pElementList + num->m_NumElements - 1)->pElementObject->
+                            Expression1;
                         a->CopyExpression(n, 0);
                         a->m_ParenthesesFlags = 0x02;
                     }
@@ -18094,8 +18077,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 //yes, there is at least one fraction in these two summands so we will continue
                 //create the 'summed' fration
                 InsertEmptyElement(StartPos, 4, 0);
-                CExpression* num = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-                CExpression* denom = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression2);
+                CExpression* num = (m_pElementList + StartPos)->pElementObject->Expression1;
+                CExpression* denom = (m_pElementList + StartPos)->pElementObject->Expression2;
                 InsertEmptyElement(StartPos + 1, 2, element_type);
                 StartPos += 2;
                 EndPos += 2;
@@ -18126,8 +18109,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
 
                     if ((l - p == 1) && ((m_pElementList + pos + p)->Type == 4))
                     {
-                        CExpression* n = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression1);
-                        CExpression* d = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression2);
+                        CExpression* n = (m_pElementList + pos + p)->pElementObject->Expression1;
+                        CExpression* d = (m_pElementList + pos + p)->pElementObject->Expression2;
                         if (et == '/')
                         {
                             CExpression* t = n;
@@ -18140,8 +18123,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                         {
                             num->InsertEmptyElement(P1++, 5, '(');
                             P2++;
-                            CExpression* a = (CExpression*)((num->m_pElementList + P1 - 1)->pElementObject->
-                                Expression1);
+                            CExpression* a = (num->m_pElementList + P1 - 1)->pElementObject->
+                                                                             Expression1;
                             for (int k = 0; k < n->m_NumElements; k++)
                                 a->InsertElement(n->m_pElementList + k, a->m_NumElements);
                         }
@@ -18159,8 +18142,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                                 d->m_pElementList->pElementObject->Data1[0]) == PlusLevel)))
                         {
                             num->InsertEmptyElement(P2++, 5, '(');
-                            CExpression* a = (CExpression*)((num->m_pElementList + P2 - 1)->pElementObject->
-                                Expression1);
+                            CExpression* a = (num->m_pElementList + P2 - 1)->pElementObject->
+                                                                             Expression1;
                             for (int k = 0; k < d->m_NumElements; k++)
                                 a->InsertElement(d->m_pElementList + k, a->m_NumElements);
                             denom->InsertElement(num->m_pElementList + P2 - 1, denom->m_NumElements);
@@ -18197,8 +18180,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
 
                     if ((l - p == 1) && ((m_pElementList + pos + p)->Type == 4))
                     {
-                        CExpression* n = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression1);
-                        CExpression* d = (CExpression*)((m_pElementList + pos + p)->pElementObject->Expression2);
+                        CExpression* n = (m_pElementList + pos + p)->pElementObject->Expression1;
+                        CExpression* d = (m_pElementList + pos + p)->pElementObject->Expression2;
                         if (et == '/')
                         {
                             CExpression* t = n;
@@ -18210,8 +18193,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                                 n->m_pElementList->pElementObject->Data1[0]) == PlusLevel)))
                         {
                             num->InsertEmptyElement(P2++, 5, '(');
-                            CExpression* a = (CExpression*)((num->m_pElementList + P2 - 1)->pElementObject->
-                                Expression1);
+                            CExpression* a = (num->m_pElementList + P2 - 1)->pElementObject->
+                                                                             Expression1;
                             for (int k = 0; k < n->m_NumElements; k++)
                                 a->InsertElement(n->m_pElementList + k, a->m_NumElements);
                         }
@@ -18227,8 +18210,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                         {
                             num->InsertEmptyElement(P1++, 5, '(');
                             P2++;
-                            CExpression* a = (CExpression*)((num->m_pElementList + P1 - 1)->pElementObject->
-                                Expression1);
+                            CExpression* a = (num->m_pElementList + P1 - 1)->pElementObject->
+                                                                             Expression1;
                             for (int k = 0; k < d->m_NumElements; k++)
                                 a->InsertElement(d->m_pElementList + k, a->m_NumElements);
                             denom->InsertElement(num->m_pElementList + P1 - 1, denom->m_NumElements);
@@ -18374,8 +18357,8 @@ int CExpression::IsPureNumber(const int StartPos, const int Len, double* number,
         double N2;
         int prec1, prec2;
 
-        CExpression* a = (CExpression*)(theElement->pElementObject->Expression1);
-        CExpression* e = (CExpression*)(theElement->pElementObject->Expression2);
+        CExpression* a = theElement->pElementObject->Expression1;
+        CExpression* e = theElement->pElementObject->Expression2;
         if ((a->m_NumElements <= 2) && (e->m_NumElements <= 2))
             if (a->IsPureNumber(0, a->m_NumElements, &N1, &prec1))
                 if (e->IsPureNumber(0, e->m_NumElements, &N2, &prec2))
@@ -18394,7 +18377,7 @@ int CExpression::IsPureNumber(const int StartPos, const int Len, double* number,
     if ((theElement->Type == 5)) //parentheses
     {
         double N1;
-        CExpression* a = (CExpression*)(theElement->pElementObject->Expression1);
+        CExpression* a = theElement->pElementObject->Expression1;
         if ((a->m_NumElements <= 2) && (a->IsPureNumber(0, a->m_NumElements, &N1, precision)))
         {
             *number = N1;
@@ -18411,8 +18394,8 @@ int CExpression::IsPureNumber(const int StartPos, const int Len, double* number,
     {
         double N1, N2;
         int prec1, prec2;
-        CExpression* nom = (CExpression*)(theElement->pElementObject->Expression1);
-        CExpression* denom = (CExpression*)(theElement->pElementObject->Expression2);
+        CExpression* nom = theElement->pElementObject->Expression1;
+        CExpression* denom = theElement->pElementObject->Expression2;
         if ((nom->m_NumElements <= 2) && (denom->m_NumElements <= 2))
             if (nom->IsPureNumber(0, nom->m_NumElements, &N1, &prec1))
             {
@@ -18478,7 +18461,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
                 return 2;
             }
             InsertEmptyElement(position, 5, '(');
-            CExpression* tmp = (CExpression*)((m_pElementList + position)->pElementObject->Expression1);
+            CExpression* tmp = (m_pElementList + position)->pElementObject->Expression1;
             tmp->InsertEmptyElement(0, 2, '-');
             tmp->InsertEmptyElement(1, 1, '0');
             memcpy((tmp->m_pElementList + 1)->pElementObject->Data1, buffer, 24);
@@ -18557,7 +18540,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
                 return 2;
             }
             InsertEmptyElement(position, 5, '(');
-            CExpression* tmp = (CExpression*)((m_pElementList + position)->pElementObject->Expression1);
+            CExpression* tmp = (m_pElementList + position)->pElementObject->Expression1;
             tmp->InsertEmptyElement(0, 2, '-');
             tmp->InsertEmptyElement(1, 1, '0');
             memcpy((tmp->m_pElementList + 1)->pElementObject->Data1, buffer, 24);
@@ -18696,7 +18679,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
             {
                 //otherwise, generate the number inside parentheses
                 InsertEmptyElement(position, 5, '(');
-                tmp = (CExpression*)((m_pElementList + position)->pElementObject->Expression1);
+                tmp = (m_pElementList + position)->pElementObject->Expression1;
                 position = 0;
             }
             if (rr < 0) tmp->InsertEmptyElement(position++, 2, '-');
@@ -18708,7 +18691,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
                 memset(buffer, 0, 24);
                 tmp->InsertEmptyElement(position++, 2, (char)0xD7);
                 tmp->InsertEmptyElement(position++, 3, 5);
-                CExpression* tmp2 = (CExpression*)((tmp->m_pElementList + position - 1)->pElementObject->Expression2);
+                CExpression* tmp2 = (tmp->m_pElementList + position - 1)->pElementObject->Expression2;
                 tmp2->InsertEmptyElement(0, 1, '0');
                 itoa(abs(exxp), buffer, 10);
                 strcpy((tmp2->m_pElementList + 0)->pElementObject->Data1, buffer);
@@ -18780,22 +18763,22 @@ int CExpression::CompareElement(const tElementStruct* ts1, const tElementStruct*
 
     if ((ts1->pElementObject->Expression1) && (ts2->pElementObject->Expression1))
     {
-        if (((CExpression*)(ts1->pElementObject->Expression1))->CompareExpressions(
-            0, -1, ((CExpression*)(ts2->pElementObject->Expression1)), 0, -1) == 0) return 0;
+        if (ts1->pElementObject->Expression1->CompareExpressions(
+            0, -1, ts2->pElementObject->Expression1, 0, -1) == 0) return 0;
     }
     else if (ts1->pElementObject->Expression1 != ts2->pElementObject->Expression1) return 0;
 
     if ((ts1->pElementObject->Expression2) && (ts2->pElementObject->Expression2))
     {
-        if (((CExpression*)(ts1->pElementObject->Expression2))->CompareExpressions(
-            0, -1, ((CExpression*)(ts2->pElementObject->Expression2)), 0, -1) == 0) return 0;
+        if (ts1->pElementObject->Expression2->CompareExpressions(
+            0, -1, ts2->pElementObject->Expression2, 0, -1) == 0) return 0;
     }
     else if (ts1->pElementObject->Expression2 != ts2->pElementObject->Expression2) return 0;
 
     if ((ts1->pElementObject->Expression3) && (ts2->pElementObject->Expression3))
     {
-        if (((CExpression*)(ts1->pElementObject->Expression3))->CompareExpressions(
-            0, -1, ((CExpression*)(ts2->pElementObject->Expression3)), 0, -1) == 0) return 0;
+        if (ts1->pElementObject->Expression3->CompareExpressions(
+            0, -1, ts2->pElementObject->Expression3, 0, -1) == 0) return 0;
     }
     else if (ts1->pElementObject->Expression3 != ts2->pElementObject->Expression3) return 0;
 
@@ -18815,8 +18798,8 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
 
     PROFILE_CNT(&PROFILER.ComputeExponent);
 
-    CExpression* exp = (CExpression*)(ts->pElementObject->Expression2);
-    CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
+    CExpression* exp = ts->pElementObject->Expression2;
+    CExpression* arg = ts->pElementObject->Expression1;
 
     //take care about exponent
 
@@ -18912,17 +18895,17 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                 if (n == 2)
                 {
                     InsertEmptyElement(Position, 5, '(');
-                    ((CExpression*)((m_pElementList + Position)->pElementObject->Expression1))->InsertEmptyElement(
+                    (m_pElementList + Position)->pElementObject->Expression1->InsertEmptyElement(
                         0, 2, '-');
-                    ((CExpression*)((m_pElementList + Position)->pElementObject->Expression1))->InsertEmptyElement(
+                    (m_pElementList + Position)->pElementObject->Expression1->InsertEmptyElement(
                         1, 1, '1');
                 }
                 if (n == 3)
                 {
                     InsertEmptyElement(Position, 5, '(');
-                    ((CExpression*)((m_pElementList + Position)->pElementObject->Expression1))->InsertEmptyElement(
+                    (m_pElementList + Position)->pElementObject->Expression1->InsertEmptyElement(
                         0, 2, '-');
-                    ((CExpression*)((m_pElementList + Position)->pElementObject->Expression1))->InsertEmptyElement(
+                    (m_pElementList + Position)->pElementObject->Expression1->InsertEmptyElement(
                         1, 1, ImaginaryUnit);
                 }
             }
@@ -19025,7 +19008,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                         else
                         {
                             InsertEmptyElement(Position, 8, 1);
-                            CExpression* tmp = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+                            CExpression* tmp = (m_pElementList + Position)->pElementObject->Expression1;
                             tmp->InsertEmptyElement(0, 2, '-');
                             tmp->InsertEmptyElement(1, 1, '1');
                         }
@@ -19042,13 +19025,13 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                         DeleteElement(Position);
 
                         InsertEmptyElement(Position, 5, '(');
-                        CExpression* tmp = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+                        CExpression* tmp = (m_pElementList + Position)->pElementObject->Expression1;
                         if (ImaginaryUnit)
                             tmp->InsertEmptyElement(0, 1, ImaginaryUnit);
                         else
                         {
                             tmp->InsertEmptyElement(0, 8, 1);
-                            CExpression* tmp2 = (CExpression*)((tmp->m_pElementList)->pElementObject->Expression1);
+                            CExpression* tmp2 = tmp->m_pElementList->pElementObject->Expression1;
                             tmp2->InsertEmptyElement(0, 2, '-');
                             tmp2->InsertEmptyElement(1, 1, '1');
                         }
@@ -19089,7 +19072,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     {
         CExpression* a = arg;
         if ((arg->m_NumElements == 1) && (arg->m_pElementList->Type == 5))
-            a = (CExpression*)(arg->m_pElementList->pElementObject->Expression1);
+            a = arg->m_pElementList->pElementObject->Expression1;
         if (a->FindLowestOperatorLevel() == GetOperatorLevel((char)0xFF))
         {
             if (a->MatrixInvert(ComputationType))
@@ -19109,7 +19092,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     {
         CExpression* a = arg;
         if ((arg->m_NumElements == 1) && (arg->m_pElementList->Type == 5))
-            a = (CExpression*)(arg->m_pElementList->pElementObject->Expression1);
+            a = arg->m_pElementList->pElementObject->Expression1;
         if (a->FindLowestOperatorLevel() == GetOperatorLevel((char)0xFF))
         {
             int rows, columns;
@@ -19175,7 +19158,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                     ((m_pElementList + Position - 1)->pElementObject->Data1[0] == element_type))
                     Position--;
                 InsertEmptyElement(Position, 5, '(');
-                CExpression* tmp = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+                CExpression* tmp = (m_pElementList + Position)->pElementObject->Expression1;
                 tmp->InsertEmptyElement(0, 2, *ch);
                 tmp->InsertEmptyElement(1, 1, '1');
                 arg->DeleteElement(0);
@@ -19195,7 +19178,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                 for (int kk = 0; kk < n; kk++)
                 {
                     InsertEmptyElement(Position + 1, 5, '(');
-                    CExpression* tmp = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                    CExpression* tmp = (m_pElementList + Position + 1)->pElementObject->Expression1;
                     tmp->CopyExpression(arg, 0);
                     tmp->m_ParenthesesFlags = 0x02;
                     if (kk < n - 1)
@@ -19210,24 +19193,24 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     //exponent of fraction
     if ((arg->m_NumElements == 1) && (arg->m_pElementList->Type == 4))
     {
-        CExpression* nom = (CExpression*)(arg->m_pElementList->pElementObject->Expression1);
-        CExpression* denom = (CExpression*)(arg->m_pElementList->pElementObject->Expression2);
+        CExpression* nom = arg->m_pElementList->pElementObject->Expression1;
+        CExpression* denom = arg->m_pElementList->pElementObject->Expression2;
         if ((nom) && (denom))
         {
             InsertEmptyElement(Position + 1, 4, 0);
-            CExpression* n = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
-            CExpression* d = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression2);
+            CExpression* n = (m_pElementList + Position + 1)->pElementObject->Expression1;
+            CExpression* d = (m_pElementList + Position + 1)->pElementObject->Expression2;
 
             n->InsertEmptyElement(0, 3, 0);
-            CExpression* tmp = (CExpression*)(n->m_pElementList->pElementObject->Expression1);
-            CExpression* tmp2 = (CExpression*)(n->m_pElementList->pElementObject->Expression2);
+            CExpression* tmp = n->m_pElementList->pElementObject->Expression1;
+            CExpression* tmp2 = n->m_pElementList->pElementObject->Expression2;
             tmp2->CopyExpression(exp, 0);
             tmp->CopyExpression(nom, 0);
             tmp->m_ParenthesesFlags = 0x02;;
 
             d->InsertEmptyElement(0, 3, 0);
-            tmp = (CExpression*)(d->m_pElementList->pElementObject->Expression1);
-            tmp2 = (CExpression*)(d->m_pElementList->pElementObject->Expression2);
+            tmp = d->m_pElementList->pElementObject->Expression1;
+            tmp2 = d->m_pElementList->pElementObject->Expression2;
             tmp2->CopyExpression(exp, 0);
             tmp->CopyExpression(denom, 0);
             tmp->m_ParenthesesFlags = 0x02;
@@ -19240,15 +19223,15 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     //exponent of exponent
     if ((arg->m_NumElements == 1) && (arg->m_pElementList->Type == 3))
     {
-        CExpression* a = (CExpression*)(arg->m_pElementList->pElementObject->Expression1);
-        CExpression* e = (CExpression*)(arg->m_pElementList->pElementObject->Expression2);
+        CExpression* a = arg->m_pElementList->pElementObject->Expression1;
+        CExpression* e = arg->m_pElementList->pElementObject->Expression2;
         if ((a) && (e))
         {
             int explevel = exp->FindLowestOperatorLevel((char)0xD7);
             if (explevel < MulLevel)
             {
                 exp->InsertEmptyElement(0, 5, '(');
-                CExpression* tmp = (CExpression*)(exp->m_pElementList->pElementObject->Expression1);
+                CExpression* tmp = exp->m_pElementList->pElementObject->Expression1;
                 int cc = exp->m_NumElements;
                 for (int kk = 1; kk < cc; kk++)
                 {
@@ -19260,8 +19243,8 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             if ((exp2level < MulLevel) || (e->m_pElementList->Type == 2))
             {
                 exp->InsertEmptyElement(exp->m_NumElements, 5, '(');
-                CExpression* tmp = (CExpression*)((exp->m_pElementList + exp->m_NumElements - 1)->pElementObject->
-                    Expression1);
+                CExpression* tmp = (exp->m_pElementList + exp->m_NumElements - 1)->pElementObject->
+                    Expression1;
                 tmp->CopyExpression(e, 0);
                 tmp->m_ParenthesesFlags = 0x02;
             }
@@ -19292,12 +19275,12 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             is_ln = 1;
         if ((is_log) || (is_ln))
         {
-            CExpression* a = (CExpression*)(exp->m_pElementList->pElementObject->Expression1);
-            CExpression* base = (CExpression*)(exp->m_pElementList->pElementObject->Expression2);
+            CExpression* a = exp->m_pElementList->pElementObject->Expression1;
+            CExpression* base = exp->m_pElementList->pElementObject->Expression2;
             if ((a) && (base) && (arg->CompareExpressions(0, -1, base, 0, -1)))
             {
                 InsertEmptyElement(Position + 1, 5, '(');
-                CExpression* tmp = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                CExpression* tmp = (m_pElementList + Position + 1)->pElementObject->Expression1;
                 tmp->CopyExpression(a, 0);
                 DeleteElement(Position);
                 return 1;
@@ -19310,7 +19293,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                     if (fabs(N - 10.0) < 1e-100)
                     {
                         InsertEmptyElement(Position + 1, 5, '(');
-                        CExpression* tmp = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                        CExpression* tmp = (m_pElementList + Position + 1)->pElementObject->Expression1;
                         tmp->CopyExpression(a, 0);
                         DeleteElement(Position);
                         return 1;
@@ -19323,7 +19306,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                     (((arg->m_pElementList->pElementObject->Data2[0]) & 0xE4) == 0))
                 {
                     InsertEmptyElement(Position + 1, 5, '(');
-                    CExpression* tmp = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                    CExpression* tmp = (m_pElementList + Position + 1)->pElementObject->Expression1;
                     tmp->CopyExpression(a, 0);
                     DeleteElement(Position);
                     return 1;
@@ -19335,14 +19318,14 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     //exponent of root  sqrt(x)^y
     if ((arg->m_NumElements == 1) && (arg->m_pElementList->Type == 8))
     {
-        CExpression* a = (CExpression*)(arg->m_pElementList->pElementObject->Expression1);
-        CExpression* base = (CExpression*)(arg->m_pElementList->pElementObject->Expression2);
+        CExpression* a = arg->m_pElementList->pElementObject->Expression1;
+        CExpression* base = arg->m_pElementList->pElementObject->Expression2;
         if (a)
         {
             if ((base) && (base->CompareExpressions(0, -1, exp, 0, -1)))
             {
                 InsertEmptyElement(Position + 1, 5, '(');
-                CExpression* tmp = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                CExpression* tmp = (m_pElementList + Position + 1)->pElementObject->Expression1;
                 tmp->CopyExpression(a, 0);
                 tmp->m_ParenthesesFlags = 0x02;
                 DeleteElement(Position);
@@ -19354,7 +19337,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                 if (fabs(N - 2.0) < 1e-100)
                 {
                     InsertEmptyElement(Position + 1, 5, '(');
-                    CExpression* tmp = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                    CExpression* tmp = (m_pElementList + Position + 1)->pElementObject->Expression1;
                     tmp->CopyExpression(a, 0);
                     tmp->m_ParenthesesFlags = 0x02;
                     DeleteElement(Position);
@@ -19381,15 +19364,15 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                     if (fabs(n - (long long)n) < 1e-100)
                     {
                         InsertEmptyElement(Position + 1, 5, '(');
-                        CExpression* tmp = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                        CExpression* tmp = (m_pElementList + Position + 1)->pElementObject->Expression1;
                         tmp->InsertEmptyElement(0, 3, 0);
-                        CExpression* tmp2 = (CExpression*)(tmp->m_pElementList->pElementObject->Expression1);
-                        CExpression* tmp3 = (CExpression*)(tmp->m_pElementList->pElementObject->Expression2);
+                        CExpression* tmp2 = tmp->m_pElementList->pElementObject->Expression1;
+                        CExpression* tmp3 = tmp->m_pElementList->pElementObject->Expression2;
                         tmp2->CopyExpression(a, 0);
                         tmp2->m_ParenthesesFlags = 0x02;
                         tmp3->InsertEmptyElement(0, 4, 0);
-                        CExpression* tmp4 = (CExpression*)(tmp3->m_pElementList->pElementObject->Expression1);
-                        CExpression* tmp5 = (CExpression*)(tmp3->m_pElementList->pElementObject->Expression2);
+                        CExpression* tmp4 = tmp3->m_pElementList->pElementObject->Expression1;
+                        CExpression* tmp5 = tmp3->m_pElementList->pElementObject->Expression2;
                         tmp4->CopyExpression(exp, 0);
                         if (base)
                             tmp5->CopyExpression(base, 0);
@@ -19413,7 +19396,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
         int Level = ArgLevel;
         if ((arg->m_NumElements == 1) && (arg->m_pElementList->Type == 5))
         {
-            marg = (CExpression*)(arg->m_pElementList->pElementObject->Expression1);
+            marg = arg->m_pElementList->pElementObject->Expression1;
             Level = marg->FindLowestOperatorLevel();
         }
         if (Level == MulLevel)
@@ -19436,8 +19419,8 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                         gg++;
                     }
                 InsertEmptyElement(Position + 1 + gg, 3, 0);
-                CExpression* a = (CExpression*)((m_pElementList + Position + 1 + gg)->pElementObject->Expression1);
-                CExpression* e = (CExpression*)((m_pElementList + Position + 1 + gg)->pElementObject->Expression2);
+                CExpression* a = (m_pElementList + Position + 1 + gg)->pElementObject->Expression1;
+                CExpression* e = (m_pElementList + Position + 1 + gg)->pElementObject->Expression2;
                 gg++;
                 for (int kk = pos + p; kk < pos + l; kk++)
                     a->InsertElement(marg->m_pElementList + kk, a->m_NumElements);
@@ -19459,7 +19442,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
         int lvl = exp->FindLowestOperatorLevel();
         if (lvl == PlusLevel)
         {
-            CExpression* tmpb = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+            CExpression* tmpb = (m_pElementList + Position)->pElementObject->Expression1;
             int pos = 0;
             int zz = 0;
             while (true)
@@ -19471,10 +19454,10 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
 
                 zz++;
                 InsertEmptyElement(Position + zz, 3, 0);
-                CExpression* tmpa = (CExpression*)((m_pElementList + Position + zz)->pElementObject->Expression1);
+                CExpression* tmpa = (m_pElementList + Position + zz)->pElementObject->Expression1;
                 tmpa->CopyExpression(tmpb, 0);
                 tmpa->m_ParenthesesFlags = tmpb->m_ParenthesesFlags;
-                CExpression* tmp = (CExpression*)((m_pElementList + Position + zz)->pElementObject->Expression2);
+                CExpression* tmp = (m_pElementList + Position + zz)->pElementObject->Expression2;
                 for (int kk = pos + p; kk < pos + l; kk++)
                     tmp->InsertElement(exp->m_pElementList + kk, kk - pos - p);
                 if (et != '+') tmp->InsertEmptyElement(0, 2, et);
@@ -19554,7 +19537,7 @@ factorizeexpression_try_again:
             {
                 if (ts->Type == 5)
                 {
-                    CExpression* tmp = (CExpression*)(ts->pElementObject->Expression1);
+                    CExpression* tmp = ts->pElementObject->Expression1;
                     if (tmp) if (tmp->FactorizeExpression()) any_change = 1;
                 }
             }
@@ -20084,7 +20067,7 @@ factorizeexpression_try_again:
             if (groups > 1)
             {
                 factorized->InsertEmptyElement(0, 5, '(');
-                arg = (CExpression*)((factorized->m_pElementList + 0)->pElementObject->Expression1);
+                arg = (factorized->m_pElementList + 0)->pElementObject->Expression1;
             }
             else
                 arg = factorized;
@@ -20110,8 +20093,8 @@ factorizeexpression_try_again:
 
 
             factorized->InsertEmptyElement(factorized->m_NumElements, 5, '(');
-            arg = (CExpression*)((factorized->m_pElementList + factorized->m_NumElements - 1)->pElementObject->
-                Expression1);
+            arg = (factorized->m_pElementList + factorized->m_NumElements - 1)->pElementObject->
+                Expression1;
             for (int k = 0; k < n; k++)
             {
                 int rpos = sstate[0].summand_rpos[k];
@@ -20183,13 +20166,13 @@ factorizeexpression_try_again:
                     tmp->StrikeoutRemove(0, l - 2);
                     if (fabs(aPF.N1 / aPF.N2 - 1.00) > 1e-100)
                     {
-                        CExpression* arg = (CExpression*)((tmp->m_pElementList + l - 1)->pElementObject->Expression1);
+                        CExpression* arg = (tmp->m_pElementList + l - 1)->pElementObject->Expression1;
                         CExpression* variable = new CExpression(nullptr,nullptr, 100);
                         variable->CopyExpression(arg, 0);
 
                         tmp->InsertEmptyElement(0, 5, '(');
                         for (int jj = 1; jj < tmp->m_NumElements; jj++)
-                            ((CExpression*)tmp->m_pElementList->pElementObject->Expression1)->InsertElement(
+                            tmp->m_pElementList->pElementObject->Expression1->InsertElement(
                                 tmp->m_pElementList + jj, jj - 1);
                         while (tmp->m_NumElements > 1)
                             tmp->DeleteElement(1);
@@ -20204,8 +20187,8 @@ factorizeexpression_try_again:
                         //goto factorizeexpression_finish;
                     }
                 }
-                CExpression* exp = (CExpression*)((tmp->m_pElementList + l - 1)->pElementObject->Expression2);
-                CExpression* arg = (CExpression*)((tmp->m_pElementList + l - 1)->pElementObject->Expression1);
+                CExpression* exp = (tmp->m_pElementList + l - 1)->pElementObject->Expression2;
+                CExpression* arg = (tmp->m_pElementList + l - 1)->pElementObject->Expression1;
                 double N;
                 int prec;
                 if ((arg) && (exp) && (exp->IsPureNumber(0, exp->m_NumElements, &N, &prec)) &&
@@ -20225,20 +20208,20 @@ factorizeexpression_try_again:
                             {
                                 //build tmp2
                                 tmp2->InsertEmptyElement(0, 5, '(');
-                                CExpression* factor1 = (CExpression*)(tmp2->m_pElementList->pElementObject->
-                                                                            Expression1);
+                                CExpression* factor1 = tmp2->m_pElementList->pElementObject->
+                                                             Expression1;
                                 for (int kk = 0; kk < arg->m_NumElements; kk++)
                                     factor1->InsertElement(arg->m_pElementList + kk, factor1->m_NumElements);
                                 factor1->InsertEmptyElement(factor1->m_NumElements, 2, '-');
                                 factor1->InsertEmptyElement(factor1->m_NumElements, 4, 0);
-                                CExpression* nom = (CExpression*)((factor1->m_pElementList + factor1->m_NumElements - 1)
-                                                                  ->pElementObject->Expression1);
-                                CExpression* denom = (CExpression*)((factor1->m_pElementList + factor1->m_NumElements -
-                                    1)->pElementObject->Expression2);
+                                CExpression* nom = (factor1->m_pElementList + factor1->m_NumElements - 1)
+                                                   ->pElementObject->Expression1;
+                                CExpression* denom = (factor1->m_pElementList + factor1->m_NumElements -
+                                    1)->pElementObject->Expression2;
                                 nom->InsertEmptyElement(0, 2, '-');
                                 nom->InsertEmptyElement(1, 5, '(');
-                                CExpression* arg2 = (CExpression*)((nom->m_pElementList + 1)->pElementObject->
-                                    Expression1);
+                                CExpression* arg2 = (nom->m_pElementList + 1)->pElementObject->
+                                                                               Expression1;
                                 for (int kk = l; kk < l + l2 - arg->m_NumElements; kk++)
                                     arg2->InsertElement(tmp->m_pElementList + kk, arg2->m_NumElements);
                                 if ((arg2->m_pElementList->Type == 0) ||
@@ -20246,15 +20229,15 @@ factorizeexpression_try_again:
                                     arg2->InsertEmptyElement(arg2->m_NumElements, 1, '1');
                                 nom->InsertEmptyElement(2, 2, '+');
                                 nom->InsertEmptyElement(3, 8, 1);
-                                CExpression* arg3 = (CExpression*)((nom->m_pElementList + 3)->pElementObject->
-                                    Expression1);
+                                CExpression* arg3 = (nom->m_pElementList + 3)->pElementObject->
+                                                                               Expression1;
                                 arg3->InsertElement(nom->m_pElementList + 1, 0);
                                 arg3->InsertElement(nom->m_pElementList + 1, 1);
                                 arg3->InsertEmptyElement(2, 2, '-');
                                 arg3->InsertEmptyElement(3, 1, '4');
                                 arg3->InsertEmptyElement(4, 5, '(');
-                                CExpression* arg4 = (CExpression*)((arg3->m_pElementList + 4)->pElementObject->
-                                    Expression1);
+                                CExpression* arg4 = (arg3->m_pElementList + 4)->pElementObject->
+                                    Expression1;
                                 for (int kk = 0; kk < l - 1; kk++)
                                     arg4->InsertElement(tmp->m_pElementList + kk, arg4->m_NumElements);
                                 if ((arg4->m_pElementList->Type == 0) ||
@@ -20262,16 +20245,16 @@ factorizeexpression_try_again:
                                     arg4->InsertEmptyElement(arg4->m_NumElements, 1, '1');
 
                                 arg3->InsertEmptyElement(5, 5, '(');
-                                CExpression* arg5 = (CExpression*)((arg3->m_pElementList + 5)->pElementObject->
-                                    Expression1);
+                                CExpression* arg5 = (arg3->m_pElementList + 5)->pElementObject->
+                                    Expression1;
                                 for (int kk = l + l2; kk < l + l2 + l3; kk++)
                                     arg5->InsertElement(tmp->m_pElementList + kk, arg5->m_NumElements);
                                 if ((arg5->m_pElementList->Type == 0) ||
                                     ((arg5->m_NumElements == 1) && (arg5->m_pElementList->Type == 2)))
                                     arg5->InsertEmptyElement(arg5->m_NumElements, 1, '1');
                                 denom->InsertEmptyElement(0, 5, '(');
-                                CExpression* arg6 = (CExpression*)((denom->m_pElementList->pElementObject->
-                                                                           Expression1));
+                                CExpression* arg6 = denom->m_pElementList->pElementObject->
+                                                           Expression1;
                                 arg6->CopyExpression(arg4, 0);
                                 denom->InsertEmptyElement(0, 1, '2');
 
@@ -20291,8 +20274,8 @@ factorizeexpression_try_again:
                                     if (/*(!rslt) || */(PF.N1 * PF.N2 > -(1e-100)))
                                     {
                                         tmp2->InsertEmptyElement(1, 5, '(');
-                                        CExpression* factor2 = (CExpression*)((tmp2->m_pElementList + 1)->pElementObject
-                                            ->Expression1);
+                                        CExpression* factor2 = (tmp2->m_pElementList + 1)->pElementObject
+                                            ->Expression1;
                                         factor2->CopyExpression(factor1, 0);
                                         (nom->m_pElementList + 2)->pElementObject->Data1[0] = '-';
 
@@ -20334,16 +20317,16 @@ factorizeexpression_try_again:
                         {
                             //this is factor for x^0
                             tmp2->InsertEmptyElement(0, 5, '(');
-                            CExpression* factor1 = (CExpression*)(tmp2->m_pElementList->pElementObject->Expression1);
+                            CExpression* factor1 = tmp2->m_pElementList->pElementObject->Expression1;
                             for (int kk = 0; kk < arg->m_NumElements; kk++)
                                 factor1->InsertElement(arg->m_pElementList + kk, factor1->m_NumElements);
                             factor1->InsertEmptyElement(factor1->m_NumElements, 2, '-');
                             factor1->InsertEmptyElement(factor1->m_NumElements, 8, 1);
-                            CExpression* arg1 = (CExpression*)((factor1->m_pElementList + factor1->m_NumElements - 1)->
-                                                               pElementObject->Expression1);
+                            CExpression* arg1 = (factor1->m_pElementList + factor1->m_NumElements - 1)->
+                                                pElementObject->Expression1;
                             arg1->InsertEmptyElement(0, 4, 0);
-                            CExpression* nom = (CExpression*)(arg1->m_pElementList->pElementObject->Expression1);
-                            CExpression* denom = (CExpression*)(arg1->m_pElementList->pElementObject->Expression2);
+                            CExpression* nom = arg1->m_pElementList->pElementObject->Expression1;
+                            CExpression* denom = arg1->m_pElementList->pElementObject->Expression2;
                             for (int kk = 0; kk < l - 1; kk++)
                                 denom->InsertElement(tmp->m_pElementList + kk, denom->m_NumElements);
                             if ((denom->m_pElementList->Type == 0) ||
@@ -20372,8 +20355,8 @@ factorizeexpression_try_again:
                                 if (/*(!rslt) ||*/ (PF.N1 * PF.N2 > -(1e-100)))
                                 {
                                     tmp2->InsertEmptyElement(1, 5, '(');
-                                    CExpression* factor2 = (CExpression*)((tmp2->m_pElementList + 1)->pElementObject->
-                                        Expression1);
+                                    CExpression* factor2 = (tmp2->m_pElementList + 1)->pElementObject->
+                                        Expression1;
                                     factor2->CopyExpression(factor1, 0);
                                     (factor2->m_pElementList + factor2->m_NumElements - 2)->pElementObject->Data1[0] =
                                         '+';
@@ -20414,7 +20397,7 @@ factorizeexpression_try_again:
                 {
                     tmp2->InsertEmptyElement(0, 5, '(');
                     for (int jj = 1; jj < tmp2->m_NumElements; jj++)
-                        ((CExpression*)tmp2->m_pElementList->pElementObject->Expression1)->InsertElement(
+                        tmp2->m_pElementList->pElementObject->Expression1->InsertElement(
                             tmp2->m_pElementList + jj, jj - 1);
                     while (tmp2->m_NumElements > 1)
                         tmp2->DeleteElement(1);
@@ -20470,8 +20453,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
     tElementStruct* ts = m_pElementList + Position;
     if (ts->Type != 8) return 0;
 
-    CExpression* base = (CExpression*)(ts->pElementObject->Expression2);
-    CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
+    CExpression* base = ts->pElementObject->Expression2;
+    CExpression* arg = ts->pElementObject->Expression1;
     if (arg == nullptr) return 0;
     if (ComputationType == 2) return 0; //fraction summation, root multiplication
     if (ComputationType == 3) return 0; //simple calculations only
@@ -20527,15 +20510,15 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                 if ((arg->m_pElementList + pos + p1)->Type == 4)
                 {
                     //calculates root of fraction (by calculating root of nominator and denominator)
-                    CExpression* nom = (CExpression*)((arg->m_pElementList + pos + p1)->pElementObject->Expression1);
-                    CExpression* denom = (CExpression*)((arg->m_pElementList + pos + p1)->pElementObject->Expression2);
+                    CExpression* nom = (arg->m_pElementList + pos + p1)->pElementObject->Expression1;
+                    CExpression* denom = (arg->m_pElementList + pos + p1)->pElementObject->Expression2;
 
                     CExpression* tmp = new CExpression(nullptr,nullptr, 100);
                     CExpression* tmp2 = new CExpression(nullptr,nullptr, 100);
 
                     tmp->InsertEmptyElement(0, 4, 0);
-                    CExpression* n = (CExpression*)(tmp->m_pElementList->pElementObject->Expression1);
-                    CExpression* d = (CExpression*)(tmp->m_pElementList->pElementObject->Expression2);
+                    CExpression* n = tmp->m_pElementList->pElementObject->Expression1;
+                    CExpression* d = tmp->m_pElementList->pElementObject->Expression2;
                     if (et1 == '/')
                     {
                         CExpression* ttt;
@@ -20551,12 +20534,12 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                     else
                     {
                         n->InsertEmptyElement(0, 8, 0);
-                        ((CExpression*)(n->m_pElementList->pElementObject->Expression2))->CopyExpression(base, 0);
+                        n->m_pElementList->pElementObject->Expression2->CopyExpression(base, 0);
                         d->InsertEmptyElement(0, 8, 0);
-                        ((CExpression*)(n->m_pElementList->pElementObject->Expression2))->CopyExpression(base, 0);
+                        n->m_pElementList->pElementObject->Expression2->CopyExpression(base, 0);
                     }
-                    ((CExpression*)(n->m_pElementList->pElementObject->Expression1))->CopyExpression(nom, 0);
-                    ((CExpression*)(d->m_pElementList->pElementObject->Expression1))->CopyExpression(denom, 0);
+                    n->m_pElementList->pElementObject->Expression1->CopyExpression(nom, 0);
+                    d->m_pElementList->pElementObject->Expression1->CopyExpression(denom, 0);
 
                     //make the calculation
                     int cnt = 0;
@@ -20566,8 +20549,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
 
                     //evaluate the result - separate factors that are now outside of root
                     tmp2->InsertEmptyElement(0, 4, 0);
-                    nom = (CExpression*)((tmp2->m_pElementList)->pElementObject->Expression1);
-                    denom = (CExpression*)((tmp2->m_pElementList)->pElementObject->Expression2);
+                    nom = tmp2->m_pElementList->pElementObject->Expression1;
+                    denom = tmp2->m_pElementList->pElementObject->Expression2;
 
                     int found_anything = 0;
                     for (int iii = 0; iii < 2; iii++)
@@ -20581,8 +20564,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
 
                             if ((l - p == 1) && ((n->m_pElementList + poss + p)->Type == 8))
                             {
-                                CExpression* a = (CExpression*)((n->m_pElementList + poss + p)->pElementObject->
-                                    Expression1);
+                                CExpression* a = (n->m_pElementList + poss + p)->pElementObject->
+                                    Expression1;
                                 nom->InsertSequence(et, nom->m_NumElements, a, 0, a->m_NumElements - 1);
                                 n->RemoveSequence(MulLevel, poss + p, poss + l - 1);
                                 l = 0;
@@ -20629,8 +20612,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                 else if ((arg->m_pElementList + pos + p1)->Type == 3)
                 {
                     int make_reduction = 0;
-                    CExpression* e = (CExpression*)((arg->m_pElementList + pos + p1)->pElementObject->Expression2);
-                    CExpression* a = (CExpression*)((arg->m_pElementList + pos + p1)->pElementObject->Expression1);
+                    CExpression* e = (arg->m_pElementList + pos + p1)->pElementObject->Expression2;
+                    CExpression* a = (arg->m_pElementList + pos + p1)->pElementObject->Expression1;
                     int Level2 = e->FindLowestOperatorLevel((char)0xD7);
                     if (Level2 == MulLevel)
                     {
@@ -20830,10 +20813,10 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                             (((arg->m_pElementList + p)->pElementObject->Data2[0] & 0xE0) != 0x60))
                         {
                             InsertEmptyElement(Position, 4, 0);
-                            CExpression* n = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
-                            CExpression* d = (CExpression*)((m_pElementList + Position)->pElementObject->Expression2);
+                            CExpression* n = (m_pElementList + Position)->pElementObject->Expression1;
+                            CExpression* d = (m_pElementList + Position)->pElementObject->Expression2;
                             d->InsertEmptyElement(0, 8, 1);
-                            CExpression* a = (CExpression*)(d->m_pElementList->pElementObject->Expression1);
+                            CExpression* a = d->m_pElementList->pElementObject->Expression1;
                             a->InsertEmptyElement(0, 1, '2');
                             n->InsertEmptyElement(0, 1, ImaginaryUnit);
                             n->InsertEmptyElement(1, 2, ch);
@@ -20965,8 +20948,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                         if (denom_leftover != 1)
                         {
                             arg->InsertEmptyElement(pp, 4, 0);
-                            CExpression* t = (CExpression*)((arg->m_pElementList + pp)->pElementObject->Expression1);
-                            CExpression* v = (CExpression*)((arg->m_pElementList + pp)->pElementObject->Expression2);
+                            CExpression* t = (arg->m_pElementList + pp)->pElementObject->Expression1;
+                            CExpression* v = (arg->m_pElementList + pp)->pElementObject->Expression2;
                             t->GenerateASCIINumber((double)nom_leftover, nom_leftover, 1, 0, 0);
                             v->GenerateASCIINumber((double)denom_leftover, denom_leftover, 1, 0, 0);
                         }
@@ -21003,8 +20986,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                 if ((((int)N1) % 2) == 1)
                                 {
                                     InsertEmptyElement(Position, 5, 0);
-                                    CExpression* t = (CExpression*)((m_pElementList + Position)->pElementObject->
-                                        Expression1);
+                                    CExpression* t = (m_pElementList + Position)->pElementObject->
+                                        Expression1;
                                     t->InsertEmptyElement(0, 2, '-');
                                     t->InsertEmptyElement(1, 1, '1');
                                 }
@@ -21015,8 +20998,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                     else
                                     {
                                         InsertEmptyElement(Position, 8, 1);
-                                        CExpression* t = (CExpression*)((m_pElementList + Position)->pElementObject->
-                                            Expression1);
+                                        CExpression* t = (m_pElementList + Position)->pElementObject->
+                                            Expression1;
                                         t->InsertEmptyElement(0, 2, '-');
                                         t->InsertEmptyElement(1, 1, '1');
                                     }
@@ -21034,8 +21017,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                 if ((((int)N1) % 2) == 1)
                                 {
                                     InsertEmptyElement(Position, 5, 0);
-                                    CExpression* t = (CExpression*)((m_pElementList + Position)->pElementObject->
-                                        Expression1);
+                                    CExpression* t = (m_pElementList + Position)->pElementObject->
+                                        Expression1;
                                     t->InsertEmptyElement(0, 2, '-');
                                     t->InsertEmptyElement(1, 1, '1');
                                 }
@@ -21046,8 +21029,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                     else
                                     {
                                         InsertEmptyElement(Position, 8, 1);
-                                        CExpression* t = (CExpression*)((m_pElementList + Position)->pElementObject->
-                                            Expression1);
+                                        CExpression* t = (m_pElementList + Position)->pElementObject->
+                                            Expression1;
                                         t->InsertEmptyElement(0, 2, '-');
                                         t->InsertEmptyElement(1, 1, '1');
                                     }
@@ -21055,8 +21038,8 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                 if (element_type == '/') InsertEmptyElement(Position, 2, '/');
                             }
                             InsertEmptyElement(Position, 4, 0);
-                            CExpression* n = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
-                            CExpression* d = (CExpression*)((m_pElementList + Position)->pElementObject->Expression2);
+                            CExpression* n = (m_pElementList + Position)->pElementObject->Expression1;
+                            CExpression* d = (m_pElementList + Position)->pElementObject->Expression2;
                             n->GenerateASCIINumber(nom, (long long)nom, (fabs(nom - (long long)nom) < 1e-100) ? 1 : 0,
                                                    prec2 + 2, 0);
                             d->GenerateASCIINumber(denom, (long long)denom,
@@ -21079,27 +21062,27 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
         if ((arg->m_NumElements == 1) && (arg->m_pElementList->Type == 4))
         {
             InsertEmptyElement(Position + 1, 4, 0);
-            CExpression* n = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
-            CExpression* d = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression2);
-            CExpression* cn = (CExpression*)((arg->m_pElementList)->pElementObject->Expression1);
-            CExpression* cd = (CExpression*)((arg->m_pElementList)->pElementObject->Expression2);
+            CExpression* n = (m_pElementList + Position + 1)->pElementObject->Expression1;
+            CExpression* d = (m_pElementList + Position + 1)->pElementObject->Expression2;
+            CExpression* cn = arg->m_pElementList->pElementObject->Expression1;
+            CExpression* cd = arg->m_pElementList->pElementObject->Expression2;
             if (base == nullptr)
             {
                 n->InsertEmptyElement(0, 8, 1);
-                n = (CExpression*)(n->m_pElementList->pElementObject->Expression1);
+                n = n->m_pElementList->pElementObject->Expression1;
                 d->InsertEmptyElement(0, 8, 1);
-                d = (CExpression*)(d->m_pElementList->pElementObject->Expression1);
+                d = d->m_pElementList->pElementObject->Expression1;
             }
             else
             {
                 n->InsertEmptyElement(0, 8, 0);
-                CExpression* t = (CExpression*)(n->m_pElementList->pElementObject->Expression2);
+                CExpression* t = n->m_pElementList->pElementObject->Expression2;
                 t->CopyExpression(base, 0);
-                n = (CExpression*)(n->m_pElementList->pElementObject->Expression1);
+                n = n->m_pElementList->pElementObject->Expression1;
                 d->InsertEmptyElement(0, 8, 0);
-                t = (CExpression*)(d->m_pElementList->pElementObject->Expression2);
+                t = d->m_pElementList->pElementObject->Expression2;
                 t->CopyExpression(base, 0);
-                d = (CExpression*)(d->m_pElementList->pElementObject->Expression1);
+                d = d->m_pElementList->pElementObject->Expression1;
             }
             n->CopyExpression(cn, 0);
             d->CopyExpression(cd, 0);
@@ -21126,10 +21109,10 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                     tt++;
                 }
                 InsertEmptyElement(Position + 1 + tt, 8, (base) ? 0 : 1);
-                CExpression* a = (CExpression*)((m_pElementList + Position + 1 + tt)->pElementObject->Expression1);
+                CExpression* a = (m_pElementList + Position + 1 + tt)->pElementObject->Expression1;
                 if (base)
                 {
-                    CExpression* b = (CExpression*)((m_pElementList + Position + 1 + tt)->pElementObject->Expression2);
+                    CExpression* b = (m_pElementList + Position + 1 + tt)->pElementObject->Expression2;
                     b->CopyExpression(base, 0);
                 }
 
@@ -21155,8 +21138,8 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
     tElementStruct* ts = m_pElementList + Position;
 
     //reduce fraction
-    CExpression* nom = (CExpression*)(ts->pElementObject->Expression1);
-    CExpression* denom = (CExpression*)(ts->pElementObject->Expression2);
+    CExpression* nom = ts->pElementObject->Expression1;
+    CExpression* denom = ts->pElementObject->Expression2;
 
     int Level1 = nom->FindLowestOperatorLevel((char)0xD7);
     int Level2 = denom->FindLowestOperatorLevel((char)0xD7);
@@ -21172,15 +21155,15 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             (*(unsigned short*)(denom->m_pElementList->pElementObject->Data1) == 0x0064) && //this is "d" string
             ((denom->m_pElementList->pElementObject->Data2[0] & 0xE0) != 0x60))
         {
-            CExpression* arg = (CExpression*)(nom->m_pElementList->pElementObject->Expression1);
-            CExpression* var = (CExpression*)(denom->m_pElementList->pElementObject->Expression1);
+            CExpression* arg = nom->m_pElementList->pElementObject->Expression1;
+            CExpression* var = denom->m_pElementList->pElementObject->Expression1;
             if ((arg) && (var))
                 if (arg->ContainsVariable(0, arg->m_NumElements - 1, var, 0, var->m_NumElements))
                 {
                     if (arg->Derivate(var))
                     {
                         InsertEmptyElement(Position, 5, '(');
-                        CExpression* a = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+                        CExpression* a = (m_pElementList + Position)->pElementObject->Expression1;
                         a->CopyExpression(arg, 0);
                         a->m_ParenthesesFlags = 0x02;
                         DeleteElement(Position + 1);
@@ -21304,7 +21287,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                         if ((l2 + l == denom->m_NumElements) && ((et2 == '+') || (et2 == '-')))
                         {
                             denom->InsertEmptyElement(0, 5, '(');
-                            CExpression* tmp = (CExpression*)(denom->m_pElementList->pElementObject->Expression1);
+                            CExpression* tmp = denom->m_pElementList->pElementObject->Expression1;
 
                             if (et2 != '+')
                                 tmp->InsertEmptyElement(0, 2, et2);
@@ -21318,7 +21301,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                                 denom->DeleteElement(1);
 
                             nom->InsertEmptyElement(0, 5, '(');
-                            tmp = (CExpression*)(nom->m_pElementList->pElementObject->Expression1);
+                            tmp = nom->m_pElementList->pElementObject->Expression1;
                             int ccc = nom->m_NumElements;
                             for (int k = 1; k < ccc; k++)
                             {
@@ -21327,7 +21310,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                             }
 
                             nom->InsertElement(denom->m_pElementList, 1);
-                            tmp = (CExpression*)((nom->m_pElementList + 1)->pElementObject->Expression1);
+                            tmp = (nom->m_pElementList + 1)->pElementObject->Expression1;
                             if (((tmp->m_pElementList + sign_pos)->Type == 2) && ((tmp->m_pElementList + sign_pos)->
                                 pElementObject->Data1[0] == et))
                             {
@@ -21416,7 +21399,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             if (l1 < MulLevel)
             {
                 nom->InsertEmptyElement(0, 5, '(');
-                CExpression* tmp = (CExpression*)(nom->m_pElementList->pElementObject->Expression1);
+                CExpression* tmp = nom->m_pElementList->pElementObject->Expression1;
                 for (int kk = 1; kk < nom->m_NumElements; kk++)
                     tmp->InsertElement(nom->m_pElementList + kk, tmp->m_NumElements);
                 while (nom->m_NumElements > 1) nom->DeleteElement(1);
@@ -21429,7 +21412,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             if (l2 < MulLevel)
             {
                 denom->InsertEmptyElement(0, 5, '(');
-                CExpression* tmp = (CExpression*)(denom->m_pElementList->pElementObject->Expression1);
+                CExpression* tmp = denom->m_pElementList->pElementObject->Expression1;
                 for (int kk = 1; kk < denom->m_NumElements; kk++)
                     tmp->InsertElement(denom->m_pElementList + kk, tmp->m_NumElements);
                 while (denom->m_NumElements > 1) denom->DeleteElement(1);
@@ -21486,7 +21469,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                 else
                 {
                     InsertEmptyElement(Position + 1, 5, '(');
-                    CExpression* arg = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                    CExpression* arg = (m_pElementList + Position + 1)->pElementObject->Expression1;
                     arg->CopyExpression(nom, 0);
                     arg->m_ParenthesesFlags = 0x02;
                     DeleteElement(Position);
@@ -21496,11 +21479,11 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             if (fabs(N + 1.0) < 1e-100) //-1
             {
                 InsertEmptyElement(Position + 1, 5, '(');
-                CExpression* arg = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                CExpression* arg = (m_pElementList + Position + 1)->pElementObject->Expression1;
                 arg->CopyExpression(nom, 0);
                 arg->m_ParenthesesFlags = 0x02;
                 InsertEmptyElement(Position + 1, 5, '(');
-                arg = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                arg = (m_pElementList + Position + 1)->pElementObject->Expression1;
                 arg->InsertEmptyElement(0, 2, '-');
                 arg->InsertEmptyElement(0, 1, '1');
                 DeleteElement(Position);
@@ -21556,7 +21539,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                         if (Level2 < Level1) //put denominator into parentheses
                         {
                             denom->InsertEmptyElement(0, 5, '(');
-                            CExpression* tmp = (CExpression*)((denom->m_pElementList)->pElementObject->Expression1);
+                            CExpression* tmp = denom->m_pElementList->pElementObject->Expression1;
                             int kk = 0;
                             while (denom->m_NumElements > 1)
                             {
@@ -21565,8 +21548,8 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                             }
                         }
                         denom->InsertEmptyElement(denom->m_NumElements, 5, '(');
-                        CExpression* tmp = (CExpression*)((denom->m_pElementList + denom->m_NumElements - 1)->
-                                                          pElementObject->Expression1);
+                        CExpression* tmp = (denom->m_pElementList + denom->m_NumElements - 1)->
+                                           pElementObject->Expression1;
                         tmp->InsertEmptyElement(0, 2, '-');
                         tmp->InsertEmptyElement(1, 1, ImaginaryUnit);
                         for (int kk = n_pos; kk < n_pos + l_nom; kk++)
@@ -21583,7 +21566,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                     if (Level2 < Level1) //put denominator into parentheses
                     {
                         denom->InsertEmptyElement(0, 5, '(');
-                        CExpression* tmp = (CExpression*)((denom->m_pElementList)->pElementObject->Expression1);
+                        CExpression* tmp = denom->m_pElementList->pElementObject->Expression1;
                         int kk = 0;
                         while (denom->m_NumElements > 1)
                         {
@@ -21606,7 +21589,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                 //put elements with negtive exponents to the other side of fraction
                 if ((l_nom - p1 == 1) && (et1 == (char)0xD7) && ((nom->m_pElementList + n_pos + p1)->Type == 3))
                 {
-                    CExpression* exp = (CExpression*)((nom->m_pElementList + n_pos + p1)->pElementObject->Expression2);
+                    CExpression* exp = (nom->m_pElementList + n_pos + p1)->pElementObject->Expression2;
                     tPureFactors PF;
                     PF.N1 = PF.N2 = PF.N3 = PF.N4 = 1.0;
                     PF.is_frac1 = PF.is_frac2 = 0;
@@ -21633,7 +21616,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                         if (Level2 < Level1) //put denominator into parentheses
                         {
                             denom->InsertEmptyElement(0, 5, '(');
-                            CExpression* tmp = (CExpression*)((denom->m_pElementList)->pElementObject->Expression1);
+                            CExpression* tmp = denom->m_pElementList->pElementObject->Expression1;
                             int kk = 0;
                             while (denom->m_NumElements > 1)
                             {
@@ -21660,8 +21643,8 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                 //if there are subfractions
                 if ((l_nom - p1 == 1) && (et1 == (char)0xD7) && ((nom->m_pElementList + n_pos + p1)->Type == 4))
                 {
-                    CExpression* nn = (CExpression*)((nom->m_pElementList + n_pos + p1)->pElementObject->Expression1);
-                    CExpression* dd = (CExpression*)((nom->m_pElementList + n_pos + p1)->pElementObject->Expression2);
+                    CExpression* nn = (nom->m_pElementList + n_pos + p1)->pElementObject->Expression1;
+                    CExpression* dd = (nom->m_pElementList + n_pos + p1)->pElementObject->Expression2;
                     int nnl = nn->FindLowestOperatorLevel();
                     if (nnl == -1) nnl = Level1;
                     int ddl = dd->FindLowestOperatorLevel();
@@ -21669,8 +21652,8 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
 
                     {
                         nom->InsertEmptyElement(nom->m_NumElements, 5, '(');
-                        CExpression* tmp = (CExpression*)((nom->m_pElementList + nom->m_NumElements - 1)->pElementObject
-                            ->Expression1);
+                        CExpression* tmp = (nom->m_pElementList + nom->m_NumElements - 1)->pElementObject
+                            ->Expression1;
                         for (int kk = 0; kk < nn->m_NumElements; kk++)
                             tmp->InsertElement(nn->m_pElementList + kk, tmp->m_NumElements);
                     }
@@ -21678,7 +21661,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                     if (Level2 < Level1) //put denominator into parentheses
                     {
                         denom->InsertEmptyElement(0, 5, '(');
-                        CExpression* tmp = (CExpression*)((denom->m_pElementList)->pElementObject->Expression1);
+                        CExpression* tmp = denom->m_pElementList->pElementObject->Expression1;
                         int kk = 0;
                         while (denom->m_NumElements > 1)
                         {
@@ -21689,8 +21672,8 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
 
                     {
                         denom->InsertEmptyElement(denom->m_NumElements, 5, '(');
-                        CExpression* tmp = (CExpression*)((denom->m_pElementList + denom->m_NumElements - 1)->
-                                                          pElementObject->Expression1);
+                        CExpression* tmp = (denom->m_pElementList + denom->m_NumElements - 1)->
+                                           pElementObject->Expression1;
                         for (int kk = 0; kk < dd->m_NumElements; kk++)
                             tmp->InsertElement(dd->m_pElementList + kk, tmp->m_NumElements);
                     }
@@ -21745,8 +21728,8 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                 jj++;
 
                 InsertEmptyElement(Position + jj, 4, 0);
-                CExpression* n = (CExpression*)((m_pElementList + Position + jj)->pElementObject->Expression1);
-                CExpression* d = (CExpression*)((m_pElementList + Position + jj)->pElementObject->Expression2);
+                CExpression* n = (m_pElementList + Position + jj)->pElementObject->Expression1;
+                CExpression* d = (m_pElementList + Position + jj)->pElementObject->Expression2;
                 d->CopyExpression(denom, 0);
                 for (int kk = pos + p; kk < pos + l; kk++)
                     n->InsertElement(nom->m_pElementList + kk, n->m_NumElements);
@@ -21840,15 +21823,15 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
         }
         else if ((ts->Type == 5) && (l - p == 1))
         {
-            CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
+            CExpression* arg = ts->pElementObject->Expression1;
             if (arg->ExtractVariables(0, arg->m_NumElements - 1, ord, summand_no, VarList, exponent, stl))
                 retval = 1;
         }
         else if ((ts->Type == 4) && (l - p == 1))
         {
             stl |= 0x01;
-            CExpression* nom = (CExpression*)(ts->pElementObject->Expression1);
-            CExpression* denom = (CExpression*)(ts->pElementObject->Expression2);
+            CExpression* nom = ts->pElementObject->Expression1;
+            CExpression* denom = ts->pElementObject->Expression2;
             if (nom->ExtractVariables(0, nom->m_NumElements - 1, ord, summand_no, VarList, exponent, stl))
                 retval = 1;
             if (denom->ExtractVariables(0, denom->m_NumElements - 1, -ord, summand_no, VarList, exponent, stl))
@@ -21857,8 +21840,8 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
         else if ((ts->Type == 3) && (l - p == 1))
         {
             int pure_order = 0;
-            CExpression* a = (CExpression*)(ts->pElementObject->Expression1);
-            CExpression* e = (CExpression*)(ts->pElementObject->Expression2);
+            CExpression* a = ts->pElementObject->Expression1;
+            CExpression* e = ts->pElementObject->Expression2;
             tPureFactors PF;
             PF.N1 = PF.N2 = 1.0;
             PF.prec1 = 0;
@@ -21905,8 +21888,8 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
                 if (exponent)
                 {
                     var->InsertEmptyElement(var->m_NumElements, 5, '(');
-                    CExpression* tmp = (CExpression*)((var->m_pElementList + var->m_NumElements - 1)->pElementObject->
-                        Expression1);
+                    CExpression* tmp = (var->m_pElementList + var->m_NumElements - 1)->pElementObject->
+                        Expression1;
                     tmp->CopyExpression(exponent, 0);
                     tmp->m_ParenthesesFlags = 0x02;
                 }
@@ -22232,8 +22215,8 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                         }
 
                         polynome->InsertEmptyElement(polynome->m_NumElements, 5, '(');
-                        arg = (CExpression*)((polynome->m_pElementList + polynome->m_NumElements - 1)->pElementObject->
-                            Expression1);
+                        arg = (polynome->m_pElementList + polynome->m_NumElements - 1)->pElementObject->
+                            Expression1;
                         residuum_pos = 0;
                     }
                     else
@@ -22252,10 +22235,10 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                     else if (order)
                     {
                         polynome->InsertEmptyElement(polynome->m_NumElements, 3, 0);
-                        a = (CExpression*)((polynome->m_pElementList + polynome->m_NumElements - 1)->pElementObject->
-                            Expression1);
-                        e = (CExpression*)((polynome->m_pElementList + polynome->m_NumElements - 1)->pElementObject->
-                            Expression2);
+                        a = (polynome->m_pElementList + polynome->m_NumElements - 1)->pElementObject->
+                            Expression1;
+                        e = (polynome->m_pElementList + polynome->m_NumElements - 1)->pElementObject->
+                            Expression2;
 
                         e->GenerateASCIINumber(order, order, 1, 0, 0);
                     }
@@ -22288,10 +22271,10 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                     if (fabs(N2 - 1.0) > 1e-100)
                     {
                         arg->InsertEmptyElement(residuum_pos++, 4, 0);
-                        CExpression* n = (CExpression*)((arg->m_pElementList + residuum_pos - 1)->pElementObject->
-                            Expression1);
-                        CExpression* d = (CExpression*)((arg->m_pElementList + residuum_pos - 1)->pElementObject->
-                            Expression2);
+                        CExpression* n = (arg->m_pElementList + residuum_pos - 1)->pElementObject->
+                            Expression1;
+                        CExpression* d = (arg->m_pElementList + residuum_pos - 1)->pElementObject->
+                            Expression2;
                         n->GenerateASCIINumber(N1, (long long)(N1 + ((N1 > 0) ? 0.01 : -0.01)),
                                                (fabs(N1 - (long long)N1) < 1e-100) ? 1 : 0, prec, 0);
                         d->GenerateASCIINumber(N2, (long long)(N2 + ((N2 > 0) ? 0.01 : -0.01)),
@@ -22327,10 +22310,10 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                     if (numerator2 == nullptr)
                                     {
                                         a->InsertEmptyElement(a->m_NumElements, 4, 0);
-                                        numerator2 = (CExpression*)((a->m_pElementList + a->m_NumElements - 1)->
-                                                                    pElementObject->Expression1);
-                                        denominator2 = (CExpression*)((a->m_pElementList + a->m_NumElements - 1)->
-                                                                      pElementObject->Expression2);
+                                        numerator2 = (a->m_pElementList + a->m_NumElements - 1)->
+                                                     pElementObject->Expression1;
+                                        denominator2 = (a->m_pElementList + a->m_NumElements - 1)->
+                                                       pElementObject->Expression2;
                                     }
                                     if (order2 > 0) a2 = numerator2;
                                     if (order2 < 0)
@@ -22350,10 +22333,10 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                     (order2 != 1))
                                 {
                                     a2->InsertEmptyElement(a2->m_NumElements, 3, 0);
-                                    CExpression* aa = (CExpression*)((a2->m_pElementList + a2->m_NumElements - 1)->
-                                                                     pElementObject->Expression1);
-                                    CExpression* ee = (CExpression*)((a2->m_pElementList + a2->m_NumElements - 1)->
-                                                                     pElementObject->Expression2);
+                                    CExpression* aa = (a2->m_pElementList + a2->m_NumElements - 1)->
+                                                      pElementObject->Expression1;
+                                    CExpression* ee = (a2->m_pElementList + a2->m_NumElements - 1)->
+                                                      pElementObject->Expression2;
                                     if (VarList->Variables[i].exponent)
                                         ee->CopyExpression(VarList->Variables[i].exponent, 0);
                                     int pp = 0;
@@ -22372,8 +22355,8 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                     VarList->Variables[i].pos + VarList->Variables[i].len - 1, (char)0xD7) < MulLevel)
                                 {
                                     a2->InsertEmptyElement(a2->m_NumElements, 5, '(');
-                                    CExpression* tmp = (CExpression*)((a2->m_pElementList + a2->m_NumElements - 1)->
-                                                                      pElementObject->Expression1);
+                                    CExpression* tmp = (a2->m_pElementList + a2->m_NumElements - 1)->
+                                                       pElementObject->Expression1;
                                     for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                                         tmp->InsertElement(
                                             VarList->Variables[i].variable->m_pElementList + VarList->Variables[i].pos +
@@ -22400,10 +22383,10 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                 if (numerator == nullptr)
                                 {
                                     arg->InsertEmptyElement(residuum_pos, 4, 0);
-                                    numerator = (CExpression*)((arg->m_pElementList + residuum_pos)->pElementObject->
-                                        Expression1);
-                                    denominator = (CExpression*)((arg->m_pElementList + residuum_pos)->pElementObject->
-                                        Expression2);
+                                    numerator = (arg->m_pElementList + residuum_pos)->pElementObject->
+                                        Expression1;
+                                    denominator = (arg->m_pElementList + residuum_pos)->pElementObject->
+                                        Expression2;
                                     residuum_pos++;
                                 }
                                 if (order2 > 0) { arg2 = numerator; }
@@ -22431,10 +22414,10 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                 (order2 != 1))
                             {
                                 arg2->InsertEmptyElement(xresiduum_pos, 3, 0);
-                                CExpression* aa = (CExpression*)((arg2->m_pElementList + xresiduum_pos)->pElementObject
-                                    ->Expression1);
-                                CExpression* ee = (CExpression*)((arg2->m_pElementList + xresiduum_pos)->pElementObject
-                                    ->Expression2);
+                                CExpression* aa = (arg2->m_pElementList + xresiduum_pos)->pElementObject
+                                    ->Expression1;
+                                CExpression* ee = (arg2->m_pElementList + xresiduum_pos)->pElementObject
+                                    ->Expression2;
                                 xresiduum_pos++;
                                 if (VarList->Variables[i].exponent)
                                     ee->CopyExpression(VarList->Variables[i].exponent, 0);
@@ -22450,8 +22433,8 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                 (char)0xD7) < MulLevel)
                             {
                                 arg2->InsertEmptyElement(xresiduum_pos, 5, '(');
-                                CExpression* tmp = (CExpression*)((arg2->m_pElementList + xresiduum_pos)->pElementObject
-                                    ->Expression1);
+                                CExpression* tmp = (arg2->m_pElementList + xresiduum_pos)->pElementObject
+                                    ->Expression1;
                                 xresiduum_pos++;
                                 for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                                     tmp->InsertElement(
@@ -22547,8 +22530,8 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         tElementStruct* ts = P->m_pElementList + pos + l - 1;
         if (ts->Type == 3)
         {
-            CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
-            CExpression* exp = (CExpression*)(ts->pElementObject->Expression2);
+            CExpression* arg = ts->pElementObject->Expression1;
+            CExpression* exp = ts->pElementObject->Expression2;
             double N;
             int prec;
             if ((exp->IsPureNumber(0, exp->m_NumElements, &N, &prec)) && (N > 0) && (fabs(N - (long long)N) < 1e-100))
@@ -22631,8 +22614,8 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
 
         tmp->Delete();
         tmp->InsertEmptyElement(0, 4, 0);
-        CExpression* num = (CExpression*)(tmp->m_pElementList->pElementObject->Expression1);
-        CExpression* denom = (CExpression*)(tmp->m_pElementList->pElementObject->Expression2);
+        CExpression* num = tmp->m_pElementList->pElementObject->Expression1;
+        CExpression* denom = tmp->m_pElementList->pElementObject->Expression2;
         num->CopyExpression(factors[num_factors], 0);
         for (int kk = p2; kk < l2f; kk++)
             denom->InsertElement(Q->m_pElementList + kk, denom->m_NumElements);
@@ -22660,10 +22643,10 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         if (num_factors > orderQ)
         {
             result->InsertEmptyElement(result->m_NumElements, 3, 0);
-            CExpression* arg = (CExpression*)((result->m_pElementList + result->m_NumElements - 1)->pElementObject->
-                Expression1);
-            CExpression* exp = (CExpression*)((result->m_pElementList + result->m_NumElements - 1)->pElementObject->
-                Expression2);
+            CExpression* arg = (result->m_pElementList + result->m_NumElements - 1)->pElementObject->
+                Expression1;
+            CExpression* exp = (result->m_pElementList + result->m_NumElements - 1)->pElementObject->
+                Expression2;
             arg->CopyExpression(variable, 0);
             exp->GenerateASCIINumber(num_factors - orderQ, num_factors - orderQ, 1, 0, 0);
         }
@@ -23090,7 +23073,7 @@ int CExpression::InsertSequence(char element_type, int Position, CExpression* So
             else InsertEmptyElement(Position++, 2, element_type);
         }
         InsertEmptyElement(Position++, 5, pt);
-        CExpression* tmp = (CExpression*)((m_pElementList + Position - 1)->pElementObject->Expression1);
+        CExpression* tmp = (m_pElementList + Position - 1)->pElementObject->Expression1;
         for (int kk = StartPos; kk <= EndPos; kk++)
             tmp->InsertElement(Source->m_pElementList + kk, tmp->m_NumElements);
     }
@@ -23637,9 +23620,9 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                                 CExpression* first = nullptr;
                                 CExpression* second = nullptr;
                                 if ((type1 == 3) && (l - p == 1))
-                                    first = (CExpression*)(firstElement1->pElementObject->Expression1);
+                                    first = firstElement1->pElementObject->Expression1;
                                 if ((type2 == 3) && (l2 - p2 == 1))
-                                    second = (CExpression*)(firstElement2->pElementObject->Expression1);
+                                    second = firstElement2->pElementObject->Expression1;
                                 if (((type1 == 4) || (type1 == 5)) && (l - p == 1)) second = nullptr;
                                 //we skip if fraction or parenthese
                                 if (((type2 == 4) || (type2 == 5)) && (l2 - p2 == 1)) first = nullptr;
@@ -23677,10 +23660,10 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                                         PF.N1 = PF.N2 = PF.N3 = PF.N4 = 1.0;
                                         PF.prec1 = PF.prec2 = 0;
                                         PF.is_frac1 = PF.is_frac2 = 0;
-                                        if (first != this) exp1 = (CExpression*)(firstElement1->pElementObject->
-                                            Expression2);
-                                        if (second != Other) exp2 = (CExpression*)(firstElement2->pElementObject->
-                                            Expression2);
+                                        if (first != this) exp1 = firstElement1->pElementObject->
+                                            Expression2;
+                                        if (second != Other) exp2 = firstElement2->pElementObject->
+                                            Expression2;
 
                                         int rval = 0;
                                         if ((exp1) && (exp2))
@@ -23803,7 +23786,7 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                     {
                         if ((firstElement2->Type == 5) && (invert == invert2))
                         {
-                            CExpression* tmp = (CExpression*)(firstElement2->pElementObject->Expression1);
+                            CExpression* tmp = firstElement2->pElementObject->Expression1;
                             StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp, 0, tmp->m_NumElements - 1,
                                                    invert2, PureFactors, UseDeepCalculation);
                             int all_pures = 1;
@@ -23824,8 +23807,8 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                         if (firstElement2->Type == 4)
                         {
                             if (PureFactors) PureFactors->is_frac2 = 1;
-                            CExpression* tmp = (CExpression*)(firstElement2->pElementObject->Expression1);
-                            CExpression* tmp2 = (CExpression*)(firstElement2->pElementObject->Expression2);
+                            CExpression* tmp = firstElement2->pElementObject->Expression1;
+                            CExpression* tmp2 = firstElement2->pElementObject->Expression2;
                             StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp, 0, tmp->m_NumElements - 1,
                                                    invert2, PureFactors, UseDeepCalculation);
                             StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp2, 0, tmp2->m_NumElements - 1,
@@ -23872,7 +23855,7 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                 {
                     if ((firstElement1->Type == 5) && (invert == invert2))
                     {
-                        CExpression* tmp = (CExpression*)(firstElement1->pElementObject->Expression1);
+                        CExpression* tmp = firstElement1->pElementObject->Expression1;
                         tmp->StrikeoutCommonFactors(0, tmp->m_NumElements - 1, invert, Other, pos2 + p2, pos2 + l2 - 1,
                                                     invert2, PureFactors, UseDeepCalculation);
                         int all_pures = 1;
@@ -23894,8 +23877,8 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                     if (firstElement1->Type == 4)
                     {
                         if (PureFactors) PureFactors->is_frac1 = 1;
-                        CExpression* tmp = (CExpression*)(firstElement1->pElementObject->Expression1);
-                        CExpression* tmp2 = (CExpression*)(firstElement1->pElementObject->Expression2);
+                        CExpression* tmp = firstElement1->pElementObject->Expression1;
+                        CExpression* tmp2 = firstElement1->pElementObject->Expression2;
 
                         tmp->StrikeoutCommonFactors(0, tmp->m_NumElements - 1, invert, Other, pos2 + p2, pos2 + l2 - 1,
                                                     invert2, PureFactors, UseDeepCalculation);
@@ -24030,7 +24013,7 @@ int CExpression::StrikeoutRemove(int StartPos, int EndPos, char test_value)
                 tPureFactors PF;
                 PF.prec1 = PF.prec2 = 0;
                 PF.is_frac1 = PF.is_frac2 = 0;
-                CExpression* exp = (CExpression*)(theElement->pElementObject->Expression2);
+                CExpression* exp = theElement->pElementObject->Expression2;
                 exp->StrikeoutCommonFactors(0, exp->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
                 exp->StrikeoutRemove(0, exp->m_NumElements - 1, 2);
                 int pp = 0;
@@ -24043,8 +24026,8 @@ int CExpression::StrikeoutRemove(int StartPos, int EndPos, char test_value)
             (theElement->IsSelected) &= 0x01;
             if ((theElement->Type == 4) || (theElement->Type == 5))
             {
-                CExpression* E1 = (CExpression*)(theElement->pElementObject->Expression1);
-                CExpression* E2 = (CExpression*)(theElement->pElementObject->Expression2);
+                CExpression* E1 = theElement->pElementObject->Expression1;
+                CExpression* E2 = theElement->pElementObject->Expression2;
 
                 if (E1) if (E1->StrikeoutRemove(0, -1, test_value)) retval = 1;
                 if (E2) if (E2->StrikeoutRemove(0, -1, test_value)) retval = 1;
@@ -24128,11 +24111,11 @@ int CExpression::MakeExpressionBeautiful(void)
     //remove parenthese if the whole expression is inside it: (a+b+c)
     if ((this->m_pPaternalElement == nullptr) && (this->m_NumElements == 1) && (this->m_pElementList->Type == 5) &&
         (m_pElementList->pElementObject->Expression2 == nullptr) &&
-        (((CExpression*)m_pElementList->pElementObject->Expression1)->m_ParentheseShape != 'c') && //not for ceiling
-        (((CExpression*)m_pElementList->pElementObject->Expression1)->m_ParentheseShape != 'f') && //not for floor
-        ((((CExpression*)m_pElementList->pElementObject->Expression1)->m_ParenthesesFlags & 0x1C) == 0))
+        (m_pElementList->pElementObject->Expression1->m_ParentheseShape != 'c') && //not for ceiling
+        (m_pElementList->pElementObject->Expression1->m_ParentheseShape != 'f') && //not for floor
+        ((m_pElementList->pElementObject->Expression1->m_ParenthesesFlags & 0x1C) == 0))
     {
-        CExpression* arg = (CExpression*)m_pElementList->pElementObject->Expression1;
+        CExpression* arg = m_pElementList->pElementObject->Expression1;
         int istable = 0;
         for (int j = 0; j < arg->m_NumElements; j++)
             if ((arg->m_pElementList + j)->Type > 8)
@@ -24153,12 +24136,12 @@ int CExpression::MakeExpressionBeautiful(void)
     {
         tElementStruct* ts = m_pElementList + i;
         if ((ts->Type == 5) && (ts->pElementObject) && (ts->pElementObject->Expression2 == nullptr) &&
-            (((CExpression*)ts->pElementObject->Expression1)->m_NumElements == 1) &&
-            (((CExpression*)ts->pElementObject->Expression1)->m_ParentheseShape != 'c') && //not for ceiling
-            (((CExpression*)ts->pElementObject->Expression1)->m_ParentheseShape != 'f') && //not for floor
-            ((((CExpression*)ts->pElementObject->Expression1)->m_ParenthesesFlags & 0x1C) == 0))
+            (ts->pElementObject->Expression1->m_NumElements == 1) &&
+            (ts->pElementObject->Expression1->m_ParentheseShape != 'c') && //not for ceiling
+            (ts->pElementObject->Expression1->m_ParentheseShape != 'f') && //not for floor
+            ((ts->pElementObject->Expression1->m_ParenthesesFlags & 0x1C) == 0))
         {
-            CExpression* arg = (CExpression*)ts->pElementObject->Expression1;
+            CExpression* arg = ts->pElementObject->Expression1;
             int istable = 0;
             for (int j = 0; j < arg->m_NumElements; j++)
                 if ((arg->m_pElementList + j)->Type > 8)
@@ -24168,7 +24151,7 @@ int CExpression::MakeExpressionBeautiful(void)
                 }
             if (!istable)
             {
-                InsertElement(((CExpression*)ts->pElementObject->Expression1)->m_pElementList, i);
+                InsertElement(ts->pElementObject->Expression1->m_pElementList, i);
                 DeleteElement(i + 1);
             }
         }
@@ -24181,12 +24164,12 @@ int CExpression::MakeExpressionBeautiful(void)
 
         if ((ts->Type != 0) && (ts->Type != 11) && (ts->Type != 12) && (ts->Type != 2) && (ts->Type != 1))
         {
-            if (ts->pElementObject->Expression1) ((CExpression*)(ts->pElementObject->Expression1))->
-                MakeExpressionBeautiful();
-            if (ts->pElementObject->Expression2) ((CExpression*)(ts->pElementObject->Expression2))->
-                MakeExpressionBeautiful();
-            if (ts->pElementObject->Expression3) ((CExpression*)(ts->pElementObject->Expression3))->
-                MakeExpressionBeautiful();
+            if (ts->pElementObject->Expression1) ts->pElementObject->Expression1->
+                                                     MakeExpressionBeautiful();
+            if (ts->pElementObject->Expression2) ts->pElementObject->Expression2->
+                                                     MakeExpressionBeautiful();
+            if (ts->pElementObject->Expression3) ts->pElementObject->Expression3->
+                                                     MakeExpressionBeautiful();
         }
         if ((i == 0) ||
             ((i > 0) && ((ts - 1)->Type == 11)) ||
@@ -24337,7 +24320,7 @@ int CExpression::MakeExpressionBeautiful(void)
             int p1, p2;
             if (IsPureNumber(i, 1, &N1, &p1)) //only if the first number is an integer
             {
-                CExpression* num = ((CExpression*)(ts2->pElementObject->Expression1));
+                CExpression* num = ts2->pElementObject->Expression1;
                 if ((num->m_NumElements >= 1) && (num->m_NumElements <= 2) && (num->m_pElementList->Type >= 1) && (num->
                     m_pElementList->Type <= 2) && (num->IsPureNumber(0, num->m_NumElements, &N2, &p2)))
                 {
@@ -24477,19 +24460,19 @@ int CExpression::IsSuitableForComputation(int autocorrect)
             non_operator_found = 1;
             if (ts->pElementObject->Expression1)
             {
-                int rv = ((CExpression*)(ts->pElementObject->Expression1))->IsSuitableForComputation();
+                int rv = ts->pElementObject->Expression1->IsSuitableForComputation();
                 if (rv == 0) return 0;
                 if (rv == 1) non_pure_number_found = 1;
             }
             if (ts->pElementObject->Expression2)
             {
-                int rv = ((CExpression*)(ts->pElementObject->Expression2))->IsSuitableForComputation();
+                int rv = ts->pElementObject->Expression2->IsSuitableForComputation();
                 if (rv == 0) return 0;
                 if (rv == 1) non_pure_number_found = 1;
             }
             if (ts->pElementObject->Expression3)
             {
-                int rv = ((CExpression*)(ts->pElementObject->Expression3))->IsSuitableForComputation();
+                int rv = ts->pElementObject->Expression3->IsSuitableForComputation();
                 if (rv == 0) return 0;
                 if (rv == 1) non_pure_number_found = 1;
             }
@@ -24523,8 +24506,8 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
 
     //TODO - logaritam razlomka, logaritam potencije, logaritam korjiena
 
-    CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
-    CExpression* base = (CExpression*)(ts->pElementObject->Expression2);
+    CExpression* arg = ts->pElementObject->Expression1;
+    CExpression* base = ts->pElementObject->Expression2;
 
     if (arg)
     {
@@ -24594,8 +24577,8 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
     //make blind compare of logharitm base and argument
     if ((arg->m_NumElements == 1) && (arg->m_pElementList->Type == 3))
     {
-        CExpression* a = (CExpression*)((arg->m_pElementList)->pElementObject->Expression1);
-        CExpression* e = (CExpression*)((arg->m_pElementList)->pElementObject->Expression2);
+        CExpression* a = arg->m_pElementList->pElementObject->Expression1;
+        CExpression* e = arg->m_pElementList->pElementObject->Expression2;
         if (((base) && (base->CompareExpressions(0, base->m_NumElements - 1, a, 0, a->m_NumElements - 1))) ||
             ((is_log) && (a->m_NumElements == 1) && (a->m_pElementList->Type == 1) && (strcmp(
                 a->m_pElementList->pElementObject->Data1, "10") == 0)) ||
@@ -24604,7 +24587,7 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
                 Data2[0] & 0xE0) != 0x60)))
         {
             InsertEmptyElement(Position, 5, '(');
-            a = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+            a = (m_pElementList + Position)->pElementObject->Expression1;
             a->CopyExpression(e, 0);
             a->m_ParenthesesFlags = 0x02;
             DeleteElement(Position + 1);
@@ -24652,7 +24635,7 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
                     VarList->Constants[0].N2 - 1.0) > 1e-100))))
             {
                 InsertEmptyElement(Position + 1, 5, '(');
-                solution = (CExpression*)((m_pElementList + Position + 1)->pElementObject->Expression1);
+                solution = (m_pElementList + Position + 1)->pElementObject->Expression1;
 
                 for (int i = -1; i < VarList->NumVariables; i++)
                 {
@@ -24675,10 +24658,10 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
                         memcpy(t->pElementObject->Data2, t2->pElementObject->Data2, 4);
                         if (base)
                         {
-                            CExpression* b = (CExpression*)(t->pElementObject->Expression2);
+                            CExpression* b = t->pElementObject->Expression2;
                             b->CopyExpression(base, 0);
                         }
-                        CExpression* a = (CExpression*)(t->pElementObject->Expression1);
+                        CExpression* a = t->pElementObject->Expression1;
 
                         a->GenerateASCIINumber(N, (long long)(N + ((N > 0) ? 0.01 : -0.01)),
                                                (fabs(N - (long long)N) < 1e-100) ? 1 : 0, VarList->Constants[0].prec,
@@ -24760,10 +24743,10 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
                         memcpy(t->pElementObject->Data2, t2->pElementObject->Data2, 4);
                         if (base)
                         {
-                            CExpression* b = (CExpression*)(t->pElementObject->Expression2);
+                            CExpression* b = t->pElementObject->Expression2;
                             b->CopyExpression(base, 0);
                         }
-                        CExpression* a = (CExpression*)(t->pElementObject->Expression1);
+                        CExpression* a = t->pElementObject->Expression1;
 
 
                         for (int k = VarList->Variables[i].pos; k < VarList->Variables[i].pos + VarList->Variables[i].
@@ -24844,22 +24827,22 @@ int CExpression::ContainsVariable(int StartPos, int EndPos, CExpression* variabl
 
         if (ts->pElementObject->Expression1)
         {
-            if (((CExpression*)(ts->pElementObject->Expression1))->ContainsVariable(
-                0, ((CExpression*)(ts->pElementObject->Expression1))->m_NumElements - 1, variable, VarPos, VarLen,
+            if (ts->pElementObject->Expression1->ContainsVariable(
+                0, ts->pElementObject->Expression1->m_NumElements - 1, variable, VarPos, VarLen,
                 alternative_variable, is_greek))
                 return 1;
         }
         if (ts->pElementObject->Expression2)
         {
-            if (((CExpression*)(ts->pElementObject->Expression2))->ContainsVariable(
-                0, ((CExpression*)(ts->pElementObject->Expression2))->m_NumElements - 1, variable, VarPos, VarLen,
+            if (ts->pElementObject->Expression2->ContainsVariable(
+                0, ts->pElementObject->Expression2->m_NumElements - 1, variable, VarPos, VarLen,
                 alternative_variable, is_greek))
                 return 1;
         }
         if (ts->pElementObject->Expression3)
         {
-            if (((CExpression*)(ts->pElementObject->Expression3))->ContainsVariable(
-                0, ((CExpression*)(ts->pElementObject->Expression3))->m_NumElements - 1, variable, VarPos, VarLen,
+            if (ts->pElementObject->Expression3->ContainsVariable(
+                0, ts->pElementObject->Expression3->m_NumElements - 1, variable, VarPos, VarLen,
                 alternative_variable, is_greek))
                 return 1;
         }
@@ -25106,7 +25089,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                     CExpression* tmp = new CExpression(nullptr,nullptr, 100);
                     tmp->InsertElement(m_pElementList + End1 + 1, 0);
                     tmp->InsertEmptyElement(1, 5, '(');
-                    CExpression* a = (CExpression*)((tmp->m_pElementList + 1)->pElementObject->Expression1);
+                    CExpression* a = (tmp->m_pElementList + 1)->pElementObject->Expression1;
 
                     for (int i = Start2; i <= End2; i++)
                         a->InsertElement(m_pElementList + i, a->m_NumElements);
@@ -25144,7 +25127,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
         if (((m_pElementList + Start1)->Type == 2) && ((m_pElementList + Start1)->pElementObject->Data1[0] == '-'))
         {
             InsertEmptyElement(Start2, 5, '(');
-            CExpression* tmp = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression1);
+            CExpression* tmp = (m_pElementList + Start2)->pElementObject->Expression1;
             for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
             {
                 tmp->InsertElement(m_pElementList + Start2 + 1, tmp->m_NumElements);
@@ -25179,8 +25162,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 if (strcmp(ts->pElementObject->Data1, "ln") == 0) is_log = 2;
                 if (is_log)
                 {
-                    CExpression* b = (CExpression*)(ts->pElementObject->Expression2);
-                    CExpression* a = (CExpression*)(ts->pElementObject->Expression1);
+                    CExpression* b = ts->pElementObject->Expression2;
+                    CExpression* a = ts->pElementObject->Expression1;
                     if ((a->ContainsVariable(0, a->m_NumElements - 1, variable, VarPos, VarLen)) &&
                         ((b == nullptr) || (!b->ContainsVariable(0, b->m_NumElements - 1, variable, VarPos, VarLen))))
                     {
@@ -25192,8 +25175,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                             InsertEmptyElement(Start2, 3, 4);
                         else
                             InsertEmptyElement(Start2, 3, 5);
-                        CExpression* aa = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression1);
-                        CExpression* ee = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression2);
+                        CExpression* aa = (m_pElementList + Start2)->pElementObject->Expression1;
+                        CExpression* ee = (m_pElementList + Start2)->pElementObject->Expression2;
                         if (b) aa->CopyExpression(b, 0);
 
                         for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
@@ -25211,16 +25194,16 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
             if (ts->Type == 8) //root
             {
-                CExpression* b = (CExpression*)(ts->pElementObject->Expression2);
-                CExpression* a = (CExpression*)(ts->pElementObject->Expression1);
+                CExpression* b = ts->pElementObject->Expression2;
+                CExpression* a = ts->pElementObject->Expression1;
                 if ((a->ContainsVariable(0, a->m_NumElements - 1, variable, VarPos, VarLen)) &&
                     ((b == nullptr) || (!b->ContainsVariable(0, b->m_NumElements - 1, variable, VarPos, VarLen))))
                 {
                     if (ComputationLevel == 3) goto extract_variable_midstep_exit;
 
                     InsertEmptyElement(Start2, 3, 0);
-                    CExpression* aa = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression1);
-                    CExpression* ee = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression2);
+                    CExpression* aa = (m_pElementList + Start2)->pElementObject->Expression1;
+                    CExpression* ee = (m_pElementList + Start2)->pElementObject->Expression2;
                     if (b == nullptr)
                         ee->InsertEmptyElement(0, 1, '2');
                     else
@@ -25239,8 +25222,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
             }
             if (ts->Type == 4) //fraction
             {
-                CExpression* d = (CExpression*)(ts->pElementObject->Expression2);
-                CExpression* n = (CExpression*)(ts->pElementObject->Expression1);
+                CExpression* d = ts->pElementObject->Expression2;
+                CExpression* n = ts->pElementObject->Expression1;
 
                 //variable is in denominator
                 if ((d->ContainsVariable(0, d->m_NumElements - 1, variable, VarPos, VarLen)) &&
@@ -25249,8 +25232,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                     if (ComputationLevel == 3) goto extract_variable_midstep_exit;
 
                     InsertEmptyElement(Start2, 4, 0);
-                    CExpression* nn = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression1);
-                    CExpression* dd = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression2);
+                    CExpression* nn = (m_pElementList + Start2)->pElementObject->Expression1;
+                    CExpression* dd = (m_pElementList + Start2)->pElementObject->Expression2;
 
                     for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                     {
@@ -25267,8 +25250,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
             if (ts->Type == 3) //exponent
             {
-                CExpression* e = (CExpression*)(ts->pElementObject->Expression2);
-                CExpression* a = (CExpression*)(ts->pElementObject->Expression1);
+                CExpression* e = ts->pElementObject->Expression2;
+                CExpression* a = ts->pElementObject->Expression1;
 
                 if (e->ContainsVariable(0, a->m_NumElements - 1, variable, VarPos, VarLen))
                 {
@@ -25285,7 +25268,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                         type = 17;
 
                     InsertEmptyElement(Start2, 6, type);
-                    CExpression* tmp = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression1);
+                    CExpression* tmp = (m_pElementList + Start2)->pElementObject->Expression1;
                     for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                     {
                         tmp->InsertElement(m_pElementList + Start2 + 1, tmp->m_NumElements);
@@ -25293,16 +25276,16 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                     }
                     if (type == 18)
                     {
-                        CExpression* b = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression2);
+                        CExpression* b = (m_pElementList + Start2)->pElementObject->Expression2;
                         b->CopyExpression(a, 0);
                     }
                     InsertEmptyElement(Start1, 6, type);
                     if (type == 18)
                     {
-                        CExpression* b = (CExpression*)((m_pElementList + Start1)->pElementObject->Expression2);
+                        CExpression* b = (m_pElementList + Start1)->pElementObject->Expression2;
                         b->CopyExpression(a, 0);
                     }
-                    tmp = (CExpression*)((m_pElementList + Start1)->pElementObject->Expression1);
+                    tmp = (m_pElementList + Start1)->pElementObject->Expression1;
                     for (int ii = Start1 + 1; ii <= End1 + 1; ii++)
                     {
                         tmp->InsertElement(m_pElementList + Start1 + 1, tmp->m_NumElements);
@@ -25322,8 +25305,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                             e->DeleteElement(0);
                             InsertEmptyElement(Start2, 4, 0);
-                            CExpression* n = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression1);
-                            CExpression* d = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression2);
+                            CExpression* n = (m_pElementList + Start2)->pElementObject->Expression1;
+                            CExpression* d = (m_pElementList + Start2)->pElementObject->Expression2;
                             n->InsertEmptyElement(0, 1, '1');
                             for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                             {
@@ -25346,10 +25329,10 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                         else
                         {
                             InsertEmptyElement(Start2, 8, 0);
-                            ((CExpression*)((m_pElementList + Start2)->pElementObject->Expression2))->CopyExpression(
+                            (m_pElementList + Start2)->pElementObject->Expression2->CopyExpression(
                                 e, 0);
                         }
-                        CExpression* t = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression1);
+                        CExpression* t = (m_pElementList + Start2)->pElementObject->Expression1;
                         for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                         {
                             t->InsertElement(m_pElementList + Start2 + 1, t->m_NumElements);
@@ -25365,11 +25348,11 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                         if (ComputationLevel == 3) goto extract_variable_midstep_exit;
 
                         InsertEmptyElement(Start2, 3, 0);
-                        CExpression* aa = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression1);
-                        CExpression* ee = (CExpression*)((m_pElementList + Start2)->pElementObject->Expression2);
+                        CExpression* aa = (m_pElementList + Start2)->pElementObject->Expression1;
+                        CExpression* ee = (m_pElementList + Start2)->pElementObject->Expression2;
                         ee->InsertEmptyElement(0, 4, 0);
-                        CExpression* n = (CExpression*)((ee->m_pElementList)->pElementObject->Expression1);
-                        CExpression* d = (CExpression*)((ee->m_pElementList)->pElementObject->Expression2);
+                        CExpression* n = ee->m_pElementList->pElementObject->Expression1;
+                        CExpression* d = ee->m_pElementList->pElementObject->Expression2;
                         n->InsertEmptyElement(0, 1, '1');
                         d->CopyExpression(e, 0);
 
@@ -25539,8 +25522,8 @@ int CExpression::SynthetizeExpression(int Position, void* VList, int summand_no)
     if (fabs(N2 - 1.0) > 1e-100)
     {
         this->InsertEmptyElement(Position++, 4, 0);
-        numerator = (CExpression*)((this->m_pElementList + Position - 1)->pElementObject->Expression1);
-        denominator = (CExpression*)((this->m_pElementList + Position - 1)->pElementObject->Expression2);
+        numerator = (this->m_pElementList + Position - 1)->pElementObject->Expression1;
+        denominator = (this->m_pElementList + Position - 1)->pElementObject->Expression2;
         numerator->GenerateASCIINumber(N1, (long long)(N1 + ((N1 > 0) ? 0.01 : -0.01)),
                                        (fabs(N1 - (long long)N1) < 1e-100) ? 1 : 0, VarList->Constants[summand_no].prec,
                                        0);
@@ -25582,9 +25565,9 @@ int CExpression::SynthetizeExpression(int Position, void* VList, int summand_no)
                     if (numerator == nullptr)
                     {
                         this->InsertEmptyElement(Position++, 4, 0);
-                        numerator = (CExpression*)((this->m_pElementList + Position - 1)->pElementObject->Expression1);
-                        denominator = (CExpression*)((this->m_pElementList + Position - 1)->pElementObject->
-                            Expression2);
+                        numerator = (this->m_pElementList + Position - 1)->pElementObject->Expression1;
+                        denominator = (this->m_pElementList + Position - 1)->pElementObject->
+                                                                             Expression2;
                     }
                     destpos = &tmpPos;
                     if (ord >= 0)
@@ -25607,8 +25590,8 @@ int CExpression::SynthetizeExpression(int Position, void* VList, int summand_no)
             {
                 dest->InsertEmptyElement(*destpos, 3, 0);
                 (*destpos)++;
-                CExpression* aa = (CExpression*)((dest->m_pElementList + (*destpos) - 1)->pElementObject->Expression1);
-                CExpression* ee = (CExpression*)((dest->m_pElementList + (*destpos) - 1)->pElementObject->Expression2);
+                CExpression* aa = (dest->m_pElementList + *destpos - 1)->pElementObject->Expression1;
+                CExpression* ee = (dest->m_pElementList + *destpos - 1)->pElementObject->Expression2;
                 for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                     aa->InsertElement(VarList->Variables[i].variable->m_pElementList + VarList->Variables[i].pos + kk,
                                       aa->m_NumElements);
@@ -25634,8 +25617,8 @@ int CExpression::SynthetizeExpression(int Position, void* VList, int summand_no)
                 {
                     dest->InsertEmptyElement((*destpos), 5, '(');
                     (*destpos)++;
-                    CExpression* aa = (CExpression*)((dest->m_pElementList + (*destpos) - 1)->pElementObject->
-                        Expression1);
+                    CExpression* aa = (dest->m_pElementList + *destpos - 1)->pElementObject->
+                                                                             Expression1;
                     for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                         aa->InsertElement(
                             VarList->Variables[i].variable->m_pElementList + VarList->Variables[i].pos + kk,
@@ -25679,7 +25662,7 @@ int CExpression::ComputeMatrixDeterminant(int ComputationType)
         CExpression* a = new CExpression(nullptr,nullptr, 100);
 
         a->InsertEmptyElement(0, 5, '(');
-        CExpression* aa = (CExpression*)(a->m_pElementList->pElementObject->Expression1);
+        CExpression* aa = a->m_pElementList->pElementObject->Expression1;
 
         int pos = FindMatrixElement(0, 0, 0);
         while ((pos < m_NumElements) && ((m_pElementList + pos)->Type < 11))
@@ -25688,7 +25671,7 @@ int CExpression::ComputeMatrixDeterminant(int ComputationType)
             pos++;
         }
         a->InsertEmptyElement(1, 5, '(');
-        aa = (CExpression*)((a->m_pElementList + 1)->pElementObject->Expression1);
+        aa = (a->m_pElementList + 1)->pElementObject->Expression1;
         pos = FindMatrixElement(1, 1, 0);
         while ((pos < m_NumElements) && ((m_pElementList + pos)->Type < 11))
         {
@@ -25697,7 +25680,7 @@ int CExpression::ComputeMatrixDeterminant(int ComputationType)
         }
         a->InsertEmptyElement(2, 2, '-');
         a->InsertEmptyElement(3, 5, '(');
-        aa = (CExpression*)((a->m_pElementList + 3)->pElementObject->Expression1);
+        aa = (a->m_pElementList + 3)->pElementObject->Expression1;
         pos = FindMatrixElement(0, 1, 0);
         while ((pos < m_NumElements) && ((m_pElementList + pos)->Type < 11))
         {
@@ -25705,7 +25688,7 @@ int CExpression::ComputeMatrixDeterminant(int ComputationType)
             pos++;
         }
         a->InsertEmptyElement(4, 5, '(');
-        aa = (CExpression*)((a->m_pElementList + 4)->pElementObject->Expression1);
+        aa = (a->m_pElementList + 4)->pElementObject->Expression1;
         pos = FindMatrixElement(1, 0, 0);
         while ((pos < m_NumElements) && ((m_pElementList + pos)->Type < 11))
         {
@@ -25730,7 +25713,7 @@ int CExpression::ComputeMatrixDeterminant(int ComputationType)
             a->InsertEmptyElement(a->m_NumElements, 2, '+');
 
         a->InsertEmptyElement(a->m_NumElements, 5, '(');
-        CExpression* aa = (CExpression*)((a->m_pElementList + a->m_NumElements - 1)->pElementObject->Expression1);
+        CExpression* aa = (a->m_pElementList + a->m_NumElements - 1)->pElementObject->Expression1;
         int pos = FindMatrixElement(0, i, 0);
         while ((pos < m_NumElements) && ((m_pElementList + pos)->Type < 11))
         {
@@ -25739,7 +25722,7 @@ int CExpression::ComputeMatrixDeterminant(int ComputationType)
         }
 
         a->InsertEmptyElement(a->m_NumElements, 5, '|');
-        aa = (CExpression*)((a->m_pElementList + a->m_NumElements - 1)->pElementObject->Expression1);
+        aa = (a->m_pElementList + a->m_NumElements - 1)->pElementObject->Expression1;
         for (int ii = 1; ii < rows; ii++)
         {
             for (int jj = 0; jj < cols; jj++)
@@ -25811,12 +25794,12 @@ int CExpression::MatrixInvert(int ComputationType)
                 if (j != 0) C->InsertEmptyElement(C->m_NumElements, 11, 0);
                 if ((i + j) % 2) C->InsertEmptyElement(C->m_NumElements, 2, '-');
                 C->InsertEmptyElement(C->m_NumElements, 4, 0);
-                CExpression* n = (CExpression*)((C->m_pElementList + C->m_NumElements - 1)->pElementObject->
-                    Expression1);
-                CExpression* d = (CExpression*)((C->m_pElementList + C->m_NumElements - 1)->pElementObject->
-                    Expression2);
+                CExpression* n = (C->m_pElementList + C->m_NumElements - 1)->pElementObject->
+                                                                             Expression1;
+                CExpression* d = (C->m_pElementList + C->m_NumElements - 1)->pElementObject->
+                                                                             Expression2;
                 n->InsertEmptyElement(0, 5, (columns > 2) ? '|' : '(');
-                CExpression* subdet = (CExpression*)(n->m_pElementList->pElementObject->Expression1);
+                CExpression* subdet = n->m_pElementList->pElementObject->Expression1;
                 d->CopyExpression(det, 0);
                 int first_row = 1;
                 for (int ii = 0; ii < rows; ii++)
@@ -26137,7 +26120,7 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
 {
     int retval = 0;
 
-    CExpression* argument = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+    CExpression* argument = (m_pElementList + Position)->pElementObject->Expression1;
 
     if (((argument->m_ParentheseShape == '|') || (argument->m_ParentheseShape == '\\')) && ((argument->
         m_ParenthesesFlags & 0x1C) == 0))
@@ -26304,18 +26287,18 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
                     {
                         (argument->m_pElementList + ii)->pElementObject->m_pPaternalExpression = (CObject*)this;
                         if ((argument->m_pElementList + ii)->pElementObject->Expression1)
-                            ((CExpression*)((argument->m_pElementList + ii)->pElementObject->Expression1))->
-                                m_pPaternalExpression = this;
+                            (argument->m_pElementList + ii)->pElementObject->Expression1->
+                                                             m_pPaternalExpression = this;
                         if ((argument->m_pElementList + ii)->pElementObject->Expression2)
-                            ((CExpression*)((argument->m_pElementList + ii)->pElementObject->Expression2))->
-                                m_pPaternalExpression = this;
+                            (argument->m_pElementList + ii)->pElementObject->Expression2->
+                                                             m_pPaternalExpression = this;
                         if ((argument->m_pElementList + ii)->pElementObject->Expression3)
-                            ((CExpression*)((argument->m_pElementList + ii)->pElementObject->Expression3))->
-                                m_pPaternalExpression = this;
+                            (argument->m_pElementList + ii)->pElementObject->Expression3->
+                                                             m_pPaternalExpression = this;
                     }
                     *(m_pElementList + ii + Position) = *(argument->m_pElementList + ii);
                 }
-                ((CExpression*)(element->Expression1))->m_NumElements = 0; //to suppres deletion of sub-elements
+                element->Expression1->m_NumElements = 0; //to suppres deletion of sub-elements
                 delete element;
                 this->m_IsComputed = 0;
                 return 1;
@@ -26389,8 +26372,8 @@ int CExpression::GenerateASCIIFraction(int Position, double num, double denom, i
     if ((is_fraction) && (fabs(denom) > 1e-100))
     {
         InsertEmptyElement(Position, 4, 0);
-        CExpression* n = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
-        CExpression* d = (CExpression*)((m_pElementList + Position)->pElementObject->Expression2);
+        CExpression* n = (m_pElementList + Position)->pElementObject->Expression1;
+        CExpression* d = (m_pElementList + Position)->pElementObject->Expression2;
 
         n->GenerateASCIINumber(num, (long long)(num + (num > 0) ? 0.01 : -0.01),
                                (fabs(num - (long long)num) < 1e-100) ? 1 : 0, precision, 0);
@@ -26469,7 +26452,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
     if (strcmp((m_pElementList + Position)->pElementObject->Data1, "cosec") == 0) function_type = 6;
     if (strcmp((m_pElementList + Position)->pElementObject->Data1, "csc") == 0) function_type = 6;
 
-    CExpression* arg = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+    CExpression* arg = (m_pElementList + Position)->pElementObject->Expression1;
     if (!arg) return 0;
 
     {
@@ -26496,7 +26479,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
             if ((function_type == 1) || (function_type == 3) || (function_type == 4))
             {
                 InsertEmptyElement(Position, 5, '(');
-                CExpression* a = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+                CExpression* a = (m_pElementList + Position)->pElementObject->Expression1;
                 a->InsertEmptyElement(0, 2, '-');
                 a->InsertElement(m_pElementList + Position + 1, 1);
                 DeleteElement(Position + 1);
@@ -26712,17 +26695,17 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
                                     if (up >= 0)
                                     {
                                         InsertEmptyElement(Position, 4, 0);
-                                        CExpression* n = (CExpression*)((m_pElementList + Position)->pElementObject->
-                                            Expression1);
-                                        CExpression* d = (CExpression*)((m_pElementList + Position)->pElementObject->
-                                            Expression2);
+                                        CExpression* n = (m_pElementList + Position)->pElementObject->
+                                            Expression1;
+                                        CExpression* d = (m_pElementList + Position)->pElementObject->
+                                            Expression2;
                                         if (is_minus)
                                             n->InsertEmptyElement(0, 2, '-');
                                         if ((is_sqrt) && (up > 1))
                                         {
                                             n->InsertEmptyElement(n->m_NumElements, 8, 1);
-                                            CExpression* a = (CExpression*)((n->m_pElementList + n->m_NumElements - 1)->
-                                                                            pElementObject->Expression1);
+                                            CExpression* a = (n->m_pElementList + n->m_NumElements - 1)->
+                                                             pElementObject->Expression1;
                                             a->InsertEmptyElement(0, 1, '0' + up);
                                         }
                                         else
@@ -26730,8 +26713,8 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
                                         if ((is_sqrt) && (up == 1))
                                         {
                                             d->InsertEmptyElement(d->m_NumElements, 8, 1);
-                                            CExpression* a = (CExpression*)((d->m_pElementList + n->m_NumElements - 1)->
-                                                                            pElementObject->Expression1);
+                                            CExpression* a = (d->m_pElementList + n->m_NumElements - 1)->
+                                                             pElementObject->Expression1;
                                             a->InsertEmptyElement(0, 1, '0' + down);
                                         }
                                         else
@@ -26810,8 +26793,8 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
                                         if (sign)
                                         {
                                             InsertEmptyElement(Position, 5, '(');
-                                            CExpression* a = (CExpression*)((m_pElementList + Position)->pElementObject
-                                                ->Expression1);
+                                            CExpression* a = (m_pElementList + Position)->pElementObject
+                                                ->Expression1;
                                             a->InsertEmptyElement(0, 2, '-');
                                             a->InsertElement(m_pElementList + Position + 1, 1);
                                             DeleteElement(Position + 1);
@@ -26938,7 +26921,7 @@ int CExpression::ComputeASinCos(int Position, char element_type, int Computation
     if (strcmp((m_pElementList + Position)->pElementObject->Data1, "arcsec") == 0) function_type = 5;
     if (strcmp((m_pElementList + Position)->pElementObject->Data1, "arccsc") == 0) function_type = 6;
 
-    CExpression* arg = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+    CExpression* arg = (m_pElementList + Position)->pElementObject->Expression1;
     if (!arg) return 0;
 
     {
@@ -27030,7 +27013,7 @@ int CExpression::ComputeHSinCos(int Position, char element_type, int Computation
     if (strcmp((m_pElementList + Position)->pElementObject->Data1, "th") == 0) function_type = 3;
     if (strcmp((m_pElementList + Position)->pElementObject->Data1, "cth") == 0) function_type = 4;
 
-    CExpression* arg = (CExpression*)((m_pElementList + Position)->pElementObject->Expression1);
+    CExpression* arg = (m_pElementList + Position)->pElementObject->Expression1;
     if (!arg) return 0;
 
     {
@@ -27149,15 +27132,15 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
 
             if (ts->Type == 3)
             {
-                CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
-                CExpression* exp = (CExpression*)(ts->pElementObject->Expression2);
+                CExpression* arg = ts->pElementObject->Expression1;
+                CExpression* exp = ts->pElementObject->Expression2;
 
                 if (exp->ContainsVariable(0, exp->m_NumElements - 1, variable, 0, variable->m_NumElements) == 0)
                 {
                     //derivation of exponent f(x)^y
 
                     InsertEmptyElement(pos, 5, '(');
-                    CExpression* a2 = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
+                    CExpression* a2 = (m_pElementList + pos)->pElementObject->Expression1;
                     a2->CopyExpression(exp, 0);
                     a2->m_ParenthesesFlags = 0x02;
                     exp->InsertEmptyElement(exp->m_NumElements, 2, '-');
@@ -27166,7 +27149,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                     tmp->CopyExpression(arg, 0);
                     tmp->Derivate(variable, 1);
                     InsertEmptyElement(m_NumElements, 5, '(');
-                    CExpression* a = (CExpression*)((m_pElementList + m_NumElements - 1)->pElementObject->Expression1);
+                    CExpression* a = (m_pElementList + m_NumElements - 1)->pElementObject->Expression1;
                     a->CopyExpression(tmp, 0);
                     a->m_ParenthesesFlags = 0x02;
                     delete tmp;
@@ -27176,23 +27159,23 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
             if (ts->Type == 4)
             {
                 //derivation of fraction
-                CExpression* n = (CExpression*)(ts->pElementObject->Expression1);
-                CExpression* d = (CExpression*)(ts->pElementObject->Expression2);
+                CExpression* n = ts->pElementObject->Expression1;
+                CExpression* d = ts->pElementObject->Expression2;
 
                 InsertEmptyElement(pos, 4, 0);
-                CExpression* n2 = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
-                CExpression* d2 = (CExpression*)((m_pElementList + pos)->pElementObject->Expression2);
+                CExpression* n2 = (m_pElementList + pos)->pElementObject->Expression1;
+                CExpression* d2 = (m_pElementList + pos)->pElementObject->Expression2;
                 n2->InsertEmptyElement(0, 5, '(');
-                CExpression* a1 = (CExpression*)((n2->m_pElementList + 0)->pElementObject->Expression1);
+                CExpression* a1 = (n2->m_pElementList + 0)->pElementObject->Expression1;
                 n2->InsertEmptyElement(1, 5, '(');
-                CExpression* a2 = (CExpression*)((n2->m_pElementList + 1)->pElementObject->Expression1);
+                CExpression* a2 = (n2->m_pElementList + 1)->pElementObject->Expression1;
                 n2->InsertEmptyElement(2, 2, '-');
                 n2->InsertEmptyElement(3, 5, '(');
-                CExpression* a3 = (CExpression*)((n2->m_pElementList + 3)->pElementObject->Expression1);
+                CExpression* a3 = (n2->m_pElementList + 3)->pElementObject->Expression1;
                 n2->InsertEmptyElement(4, 5, '(');
-                CExpression* a4 = (CExpression*)((n2->m_pElementList + 4)->pElementObject->Expression1);
+                CExpression* a4 = (n2->m_pElementList + 4)->pElementObject->Expression1;
                 d2->InsertEmptyElement(0, 3, '2'); //square
-                CExpression* a5 = (CExpression*)((d2->m_pElementList + 0)->pElementObject->Expression1);
+                CExpression* a5 = (d2->m_pElementList + 0)->pElementObject->Expression1;
                 a5->CopyExpression(d, 0);
                 a5->m_ParenthesesFlags = 0x02;
                 a2->CopyExpression(d, 0);
@@ -27219,7 +27202,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
             if (ts->Type == 5)
             {
                 //derivation of parentheses
-                CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
+                CExpression* arg = ts->pElementObject->Expression1;
                 arg->Derivate(variable, 1);
                 return 1;
             }
@@ -27228,7 +27211,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
             {
                 //derivation of function
                 int done = 0;
-                CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
+                CExpression* arg = ts->pElementObject->Expression1;
                 CExpression* tmp = new CExpression(nullptr,nullptr, 100);
                 tmp->CopyExpression(arg, 0);
                 tmp->Derivate(variable, 1);
@@ -27238,7 +27221,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                     if ((strnicmp(ts->pElementObject->Data1, "log", 3) == 0) ||
                         (strnicmp(ts->pElementObject->Data1, "ln", 2) == 0))
                     {
-                        CExpression* base = (CExpression*)(ts->pElementObject->Expression2);
+                        CExpression* base = ts->pElementObject->Expression2;
                         int is_base_null = 0;
                         if (base == nullptr)
                         {
@@ -27255,10 +27238,10 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                             }
                         }
                         InsertEmptyElement(pos, 4, 0);
-                        CExpression* n = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
-                        CExpression* d = (CExpression*)((m_pElementList + pos)->pElementObject->Expression2);
+                        CExpression* n = (m_pElementList + pos)->pElementObject->Expression1;
+                        CExpression* d = (m_pElementList + pos)->pElementObject->Expression2;
                         n->InsertEmptyElement(0, 6, 17); //ln  (the natural logarithm)
-                        CExpression* a1 = (CExpression*)(n->m_pElementList->pElementObject->Expression1);
+                        CExpression* a1 = n->m_pElementList->pElementObject->Expression1;
                         a1->CopyExpression(base, 0);
                         a1->m_ParenthesesFlags = 0x02;
                         d->CopyExpression(arg, 0);
@@ -27271,7 +27254,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                     else if (strnicmp(ts->pElementObject->Data1, "sin", 3) == 0)
                     {
                         InsertEmptyElement(pos, 6, 2); //cos
-                        CExpression* a1 = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
+                        CExpression* a1 = (m_pElementList + pos)->pElementObject->Expression1;
                         a1->CopyExpression(arg, 0);
                         a1->m_ParenthesesFlags = 0x02;
                         DeleteElement(pos + 1);
@@ -27280,10 +27263,10 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                     else if (strnicmp(ts->pElementObject->Data1, "cos", 3) == 0)
                     {
                         InsertEmptyElement(pos, 5, '(');
-                        CExpression* a1 = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
+                        CExpression* a1 = (m_pElementList + pos)->pElementObject->Expression1;
                         a1->InsertEmptyElement(1, 2, '-');
                         a1->InsertEmptyElement(1, 6, 1); //sin
-                        CExpression* a3 = (CExpression*)((a1->m_pElementList + 1)->pElementObject->Expression1);
+                        CExpression* a3 = (a1->m_pElementList + 1)->pElementObject->Expression1;
                         a3->CopyExpression(arg, 0);
                         a3->m_ParenthesesFlags = 0x02;
                         DeleteElement(pos + 1);
@@ -27293,10 +27276,10 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                         (strnicmp(ts->pElementObject->Data1, "tan", 3) == 0))
                     {
                         InsertEmptyElement(pos, 5, '(');
-                        CExpression* a1 = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
+                        CExpression* a1 = (m_pElementList + pos)->pElementObject->Expression1;
                         a1->InsertEmptyElement(1, 2, '-');
                         a1->InsertEmptyElement(1, 6, 4); //ctg
-                        CExpression* a3 = (CExpression*)((a1->m_pElementList + 1)->pElementObject->Expression1);
+                        CExpression* a3 = (a1->m_pElementList + 1)->pElementObject->Expression1;
                         a3->CopyExpression(arg, 0);
                         a3->m_ParenthesesFlags = 0x02;
                         DeleteElement(pos + 1);
@@ -27305,10 +27288,10 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                     else if (strnicmp(ts->pElementObject->Data1, "cot", 3) == 0)
                     {
                         InsertEmptyElement(pos, 5, '(');
-                        CExpression* a1 = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
+                        CExpression* a1 = (m_pElementList + pos)->pElementObject->Expression1;
                         a1->InsertEmptyElement(1, 2, '-');
                         a1->InsertEmptyElement(1, 6, 3); //tg
-                        CExpression* a3 = (CExpression*)((a1->m_pElementList + 1)->pElementObject->Expression1);
+                        CExpression* a3 = (a1->m_pElementList + 1)->pElementObject->Expression1;
                         a3->CopyExpression(arg, 0);
                         a3->m_ParenthesesFlags = 0x02;
                         DeleteElement(pos + 1);
@@ -27318,7 +27301,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                 if (done)
                 {
                     InsertEmptyElement(pos, 5, '(');
-                    CExpression* a2 = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
+                    CExpression* a2 = (m_pElementList + pos)->pElementObject->Expression1;
                     a2->CopyExpression(tmp, 0);
                     a2->m_ParenthesesFlags = 0x02;
                 }
@@ -27329,8 +27312,8 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
             if (ts->Type == 8)
             {
                 //derivation of root
-                CExpression* base = (CExpression*)(ts->pElementObject->Expression2);
-                CExpression* arg = (CExpression*)(ts->pElementObject->Expression1);
+                CExpression* base = ts->pElementObject->Expression2;
+                CExpression* arg = ts->pElementObject->Expression1;
 
                 if ((base == nullptr) || (base->ContainsVariable(0, base->m_NumElements - 1, variable, 0,
                                                               variable->m_NumElements) == 0))
@@ -27345,29 +27328,29 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                     CExpression* tmp = new CExpression(nullptr,nullptr, 100);
 
                     InsertEmptyElement(pos, 4, 0);
-                    CExpression* n = (CExpression*)((m_pElementList + pos)->pElementObject->Expression1);
-                    CExpression* d = (CExpression*)((m_pElementList + pos)->pElementObject->Expression2);
+                    CExpression* n = (m_pElementList + pos)->pElementObject->Expression1;
+                    CExpression* d = (m_pElementList + pos)->pElementObject->Expression2;
                     tmp->CopyExpression(arg, 0);
                     tmp->Derivate(variable, 1);
                     n->CopyExpression(tmp, 0);
 
                     d->InsertEmptyElement(0, 5, '(');
-                    CExpression* a1 = (CExpression*)((d->m_pElementList + 0)->pElementObject->Expression1);
+                    CExpression* a1 = (d->m_pElementList + 0)->pElementObject->Expression1;
                     a1->CopyExpression(base, 0);
                     a1->m_ParenthesesFlags = 0x02;
                     if (is_base_null)
                         d->InsertEmptyElement(1, 8, 1);
                     else
                         d->InsertEmptyElement(1, 8, 0);
-                    CExpression* a2 = (CExpression*)((d->m_pElementList + 1)->pElementObject->Expression1);
-                    CExpression* a3 = (CExpression*)((d->m_pElementList + 1)->pElementObject->Expression2);
+                    CExpression* a2 = (d->m_pElementList + 1)->pElementObject->Expression1;
+                    CExpression* a3 = (d->m_pElementList + 1)->pElementObject->Expression2;
                     if (a3)
                     {
                         a3->CopyExpression(base, 0);
                     }
                     a2->InsertEmptyElement(0, 3, 0);
-                    CExpression* a4 = (CExpression*)(a2->m_pElementList->pElementObject->Expression1);
-                    CExpression* a5 = (CExpression*)(a2->m_pElementList->pElementObject->Expression2);
+                    CExpression* a4 = a2->m_pElementList->pElementObject->Expression1;
+                    CExpression* a5 = a2->m_pElementList->pElementObject->Expression2;
                     a4->CopyExpression(arg, 0);
                     a4->m_ParenthesesFlags = 0x02;
                     a5->CopyExpression(base, 0);
@@ -27395,14 +27378,14 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
 
         Delete();
         InsertEmptyElement(0, 5, '(');
-        CExpression* a1 = (CExpression*)((m_pElementList + 0)->pElementObject->Expression1);
+        CExpression* a1 = (m_pElementList + 0)->pElementObject->Expression1;
         InsertEmptyElement(1, 5, '(');
-        CExpression* a2 = (CExpression*)((m_pElementList + 1)->pElementObject->Expression1);
+        CExpression* a2 = (m_pElementList + 1)->pElementObject->Expression1;
         InsertEmptyElement(2, 2, '+');
         InsertEmptyElement(3, 5, '(');
-        CExpression* a3 = (CExpression*)((m_pElementList + 3)->pElementObject->Expression1);
+        CExpression* a3 = (m_pElementList + 3)->pElementObject->Expression1;
         InsertEmptyElement(4, 5, '(');
-        CExpression* a4 = (CExpression*)((m_pElementList + 4)->pElementObject->Expression1);
+        CExpression* a4 = (m_pElementList + 4)->pElementObject->Expression1;
 
         a2->CopyExpression(tmp2, 0);
         a2->m_ParenthesesFlags = 0x02;
@@ -27444,8 +27427,8 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
             if (p)
                 res->InsertEmptyElement(res->m_NumElements, 2, et);
             res->InsertEmptyElement(res->m_NumElements, 5, '(');
-            CExpression* a = (CExpression*)((res->m_pElementList + res->m_NumElements - 1)->pElementObject->
-                Expression1);
+            CExpression* a = (res->m_pElementList + res->m_NumElements - 1)->pElementObject->
+                                                                             Expression1;
             a->CopyExpression(tmp, 0);
             a->m_ParenthesesFlags = 0x02;
 
@@ -27463,10 +27446,10 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
     if (!internal_call) return 0;
 
     InsertEmptyElement(0, 4, 1); //derivation
-    CExpression* n = (CExpression*)(m_pElementList->pElementObject->Expression1);
-    CExpression* d = (CExpression*)(m_pElementList->pElementObject->Expression2);
-    CExpression* narg = (CExpression*)(n->m_pElementList->pElementObject->Expression1);
-    CExpression* darg = (CExpression*)(d->m_pElementList->pElementObject->Expression1);
+    CExpression* n = m_pElementList->pElementObject->Expression1;
+    CExpression* d = m_pElementList->pElementObject->Expression2;
+    CExpression* narg = n->m_pElementList->pElementObject->Expression1;
+    CExpression* darg = d->m_pElementList->pElementObject->Expression1;
     int ccc = m_NumElements;
     for (int kk = 1; kk < ccc; kk++)
     {
@@ -27552,13 +27535,13 @@ int CExpression::PlotterGetEquationInfo(CExpression** variable, int* position, i
         if ((ts->Type != 0) && (ts->Type != 2) && (ts->Type != 11) && (ts->Type != 12))
         {
             if (ts->pElementObject->Expression1)
-                if (((CExpression*)(ts->pElementObject->Expression1))->PlotterGetEquationInfo(
+                if (ts->pElementObject->Expression1->PlotterGetEquationInfo(
                     variable, position,nullptr,nullptr)) { return 1; }
             if (ts->pElementObject->Expression2)
-                if (((CExpression*)(ts->pElementObject->Expression2))->PlotterGetEquationInfo(
+                if (ts->pElementObject->Expression2->PlotterGetEquationInfo(
                     variable, position,nullptr,nullptr)) { return 1; }
             if (ts->pElementObject->Expression3)
-                if (((CExpression*)(ts->pElementObject->Expression3))->PlotterGetEquationInfo(
+                if (ts->pElementObject->Expression3->PlotterGetEquationInfo(
                     variable, position,nullptr,nullptr)) { return 1; }
         }
     }
@@ -27645,11 +27628,11 @@ void* CExpression::PlotterPrepareVariablePositions(void* VP)
             if ((ts->Type != 0) && (ts->Type != 2) && (ts->Type != 11) && (ts->Type != 12))
             {
                 if (ts->pElementObject->Expression1)
-                    ((CExpression*)(ts->pElementObject->Expression1))->PlotterPrepareVariablePositions(VarPos);
+                    ts->pElementObject->Expression1->PlotterPrepareVariablePositions(VarPos);
                 if (ts->pElementObject->Expression2)
-                    ((CExpression*)(ts->pElementObject->Expression2))->PlotterPrepareVariablePositions(VarPos);
+                    ts->pElementObject->Expression2->PlotterPrepareVariablePositions(VarPos);
                 if (ts->pElementObject->Expression3)
-                    ((CExpression*)(ts->pElementObject->Expression3))->PlotterPrepareVariablePositions(VarPos);
+                    ts->pElementObject->Expression3->PlotterPrepareVariablePositions(VarPos);
             }
         }
     }
@@ -28188,12 +28171,12 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
     {
         if (this->m_pPaternalElement)
         {
-            if (((this->m_pPaternalElement->m_Type == 1) && (this == (CExpression*)this->m_pPaternalElement->
-                    Expression1)) ||
-                ((this->m_pPaternalElement->m_Type == 6) && (this == (CExpression*)this->m_pPaternalElement->
-                    Expression2)) ||
-                ((this->m_pPaternalElement->m_Type == 5) && (this == (CExpression*)this->m_pPaternalElement->
-                    Expression2)))
+            if (((this->m_pPaternalElement->m_Type == 1) && (this == this->m_pPaternalElement->
+                                                                           Expression1)) ||
+                ((this->m_pPaternalElement->m_Type == 6) && (this == this->m_pPaternalElement->
+                                                                           Expression2)) ||
+                ((this->m_pPaternalElement->m_Type == 5) && (this == this->m_pPaternalElement->
+                                                                           Expression2)))
                 return 0; //we do not replace in indexes
         }
         //the find shuld not have leading minus or plus (for MulLevel)
@@ -28209,7 +28192,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                         2))
                     {
                         Replace->InsertEmptyElement(0, 5, '(');
-                        CExpression* a = (CExpression*)(Replace->m_pElementList->pElementObject->Expression1);
+                        CExpression* a = Replace->m_pElementList->pElementObject->Expression1;
                         while (Replace->m_NumElements > 1)
                         {
                             a->InsertElement(Replace->m_pElementList + 1, a->m_NumElements);
@@ -28265,14 +28248,14 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
         if ((ts->pElementObject) && (ts->Type))
         {
             if (ts->pElementObject->Expression1)
-                occr += ((CExpression*)ts->pElementObject->Expression1)->FindReplace(
-                    0, ((CExpression*)ts->pElementObject->Expression1)->m_NumElements - 1, Find, Replace);
+                occr += ts->pElementObject->Expression1->FindReplace(
+                    0, ts->pElementObject->Expression1->m_NumElements - 1, Find, Replace);
             if (ts->pElementObject->Expression2)
-                occr += ((CExpression*)ts->pElementObject->Expression2)->FindReplace(
-                    0, ((CExpression*)ts->pElementObject->Expression2)->m_NumElements - 1, Find, Replace);
+                occr += ts->pElementObject->Expression2->FindReplace(
+                    0, ts->pElementObject->Expression2->m_NumElements - 1, Find, Replace);
             if (ts->pElementObject->Expression3)
-                occr += ((CExpression*)ts->pElementObject->Expression3)->FindReplace(
-                    0, ((CExpression*)ts->pElementObject->Expression3)->m_NumElements - 1, Find, Replace);
+                occr += ts->pElementObject->Expression3->FindReplace(
+                    0, ts->pElementObject->Expression3->m_NumElements - 1, Find, Replace);
         }
     }
 
@@ -28600,8 +28583,8 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     if (powert != 1)
                     {
                         InsertEmptyElement(StartPos, 3, 0);
-                        CExpression* b = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression1);
-                        CExpression* e = (CExpression*)((m_pElementList + StartPos)->pElementObject->Expression2);
+                        CExpression* b = (m_pElementList + StartPos)->pElementObject->Expression1;
+                        CExpression* e = (m_pElementList + StartPos)->pElementObject->Expression2;
                         b->CopyExpression(Replace, 0);
                         b->m_ParenthesesFlags = 0x02;
                         b->m_ParentheseShape = '(';
@@ -28644,7 +28627,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                 (m_pElementList + i)->Decoration &= 0x3F;
                 if ((m_pElementList + i)->Type == 5)
                 {
-                    CExpression* a = (CExpression*)((m_pElementList + i)->pElementObject->Expression1);
+                    CExpression* a = (m_pElementList + i)->pElementObject->Expression1;
                     for (int j = 0; j < a->m_NumElements; j++)
                         (a->m_pElementList + j)->Decoration &= 0x3F;
                 }
@@ -28926,22 +28909,22 @@ int CExpression::CountVariablesInSystem(CExpression* System[], int NumEquations,
             int t;
             if (ts->pElementObject->Expression1)
             {
-                t = ((CExpression*)(ts->pElementObject->Expression1))->CountVariablesInSystem(
-                    (CExpression**)&(ts->pElementObject->Expression1), 1, VariableStorage);
+                t = ts->pElementObject->Expression1->CountVariablesInSystem(
+                    &ts->pElementObject->Expression1, 1, VariableStorage);
                 if (t < 0) return t;
                 ret += t;
             }
             if (ts->pElementObject->Expression2)
             {
-                t = ((CExpression*)(ts->pElementObject->Expression2))->CountVariablesInSystem(
-                    (CExpression**)&(ts->pElementObject->Expression2), 1, VariableStorage);
+                t = ts->pElementObject->Expression2->CountVariablesInSystem(
+                    &ts->pElementObject->Expression2, 1, VariableStorage);
                 if (t < 0) return t;
                 ret += t;
             }
             if (ts->pElementObject->Expression3)
             {
-                t = ((CExpression*)(ts->pElementObject->Expression3))->CountVariablesInSystem(
-                    (CExpression**)&(ts->pElementObject->Expression3), 1, VariableStorage);
+                t = ts->pElementObject->Expression3->CountVariablesInSystem(
+                    &ts->pElementObject->Expression3, 1, VariableStorage);
                 if (t < 0) return t;
                 ret += t;
             }
@@ -29019,11 +29002,11 @@ int CExpression::CodeDecodeUnitsOfMeasurement(int StartPos, int EndPos)
                 if (ts->pElementObject)
                 {
                     if (ts->pElementObject->Expression1)
-                        ((CExpression*)(ts->pElementObject->Expression1))->CodeDecodeUnitsOfMeasurement(0, -1);
+                        ts->pElementObject->Expression1->CodeDecodeUnitsOfMeasurement(0, -1);
                     if (ts->pElementObject->Expression2)
-                        ((CExpression*)(ts->pElementObject->Expression2))->CodeDecodeUnitsOfMeasurement(0, -1);
+                        ts->pElementObject->Expression2->CodeDecodeUnitsOfMeasurement(0, -1);
                     if (ts->pElementObject->Expression3)
-                        ((CExpression*)(ts->pElementObject->Expression3))->CodeDecodeUnitsOfMeasurement(0, -1);
+                        ts->pElementObject->Expression3->CodeDecodeUnitsOfMeasurement(0, -1);
                 }
             }
         }

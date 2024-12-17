@@ -1586,22 +1586,21 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
 
 
 //extern tDocumentStruct *SpecialDrawingHover;
-int CMainFrame::UndoCheckText(char* text, int unique_ID)
+int CMainFrame::UndoCheckText(const std::string& text_def, int unique_ID)
 {
     if (UndoNumLevels == 0) return 0;
 
+    std::string text = text_def;
     if ((LanguageStrings) && (unique_ID >= 20000) && (unique_ID < 30000))
     {
         unsigned short pntr = LanguagePointers[unique_ID];
         if (pntr != 0xFFFF)
         {
-            text = &LanguageStrings[pntr];
-            if (strlen(text) > 31) text[31] = 0;
+            text = LanguageStrings[pntr];
         }
     }
 
-    if (memcmp(UndoStruct[UndoNumLevels - 1].text, text, strlen(text)) == 0) return 1;
-    return 0;
+    return text != UndoStruct[UndoNumLevels - 1].text;
 }
 
 

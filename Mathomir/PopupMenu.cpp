@@ -146,7 +146,7 @@ int PopupMenu::AddCheckedMenuOptionButton(int X, const std::string& text, int is
 }
 
 #pragma optimize("s",on)
-int PopupMenu::AddCheckedMenuOption(int X, int Cx, const std::string& const std::string&  text, int is_checked, int Data, int new_line)
+int PopupMenu::AddCheckedMenuOption(int X, int Cx, const std::string& text, int is_checked, int Data, int new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
@@ -4141,9 +4141,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     else
                     {
                         ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index add", 20214);
-                        m_theSelectedElement->pElementObject->Expression1 = (CObject*)(new CExpression(
+                        m_theSelectedElement->pElementObject->Expression1 = new CExpression(
                             m_theSelectedElement->pElementObject, m_Expression,
-                            m_theSelectedElement->pElementObject->FontSizeForType(1)));
+                            m_theSelectedElement->pElementObject->FontSizeForType(1));
                         //((CExpression*)(m_theSelectedElement->pElementObject->Expression1))->m_FontSizeHQ=m_theSelectedElement->pElementObject->FontSizeForTypeHQ(1);
                     }
                 }
@@ -4158,12 +4158,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     newElement->Empty(1);
                     if (m_theSelectedElement->pElementObject->Expression1)
                     {
-                        newElement->Expression2 = (CObject*)new CExpression(
+                        newElement->Expression2 = new CExpression(
                             newElement, (CExpression*)(newElement->m_pPaternalExpression),
-                            ((CExpression*)(m_theSelectedElement->pElementObject->Expression1))->m_FontSize);
+                            m_theSelectedElement->pElementObject->Expression1->m_FontSize);
                         //((CExpression*)(newElement->Expression2))->m_FontSizeHQ=((CExpression*)(m_theSelectedElement->pElementObject->Expression1))->m_FontSizeHQ;
-                        ((CExpression*)(newElement->Expression2))->CopyExpression(
-                            ((CExpression*)(m_theSelectedElement->pElementObject->Expression1)), 0);
+                        newElement->Expression2->CopyExpression(
+                            m_theSelectedElement->pElementObject->Expression1, 0);
                     }
                     newElement->m_Type = 6;
                     newElement->m_Color = m_theSelectedElement->pElementObject->m_Color;
@@ -4182,22 +4182,21 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         //for parentheses
                         CExpression* tmpExpression = m_Expression;
-                        if (m_MenuType == 4) tmpExpression = ((CExpression*)(m_theSelectedElement->pElementObject->
-                            Expression1));
+                        if (m_MenuType == 4) tmpExpression = m_theSelectedElement->pElementObject->Expression1;
                         if (tmpExpression->m_pPaternalElement)
                         {
                             if (tmpExpression->m_pPaternalElement->Expression2)
                             {
                                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index remove", 20213);
-                                delete ((CExpression*)(tmpExpression->m_pPaternalElement->Expression2));
+                                delete tmpExpression->m_pPaternalElement->Expression2;
                                 tmpExpression->m_pPaternalElement->Expression2 = nullptr;
                             }
                             else
                             {
                                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index add", 20214);
-                                tmpExpression->m_pPaternalElement->Expression2 = (CObject*)(new CExpression(
+                                tmpExpression->m_pPaternalElement->Expression2 = new CExpression(
                                     tmpExpression->m_pPaternalElement, tmpExpression->m_pPaternalExpression,
-                                    tmpExpression->m_pPaternalElement->FontSizeForType(2)));
+                                    tmpExpression->m_pPaternalElement->FontSizeForType(2));
                                 //((CExpression*)(tmpExpression->m_pPaternalElement->Expression2))->m_FontSizeHQ=((CElement*)(tmpExpression->m_pPaternalElement))->FontSizeForTypeHQ(2);
                             }
                         }
@@ -4215,7 +4214,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         else
                         {
                             ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index add", 20214);
-                            m_theSelectedElement->pElementObject->Expression2 = (CObject*)(new CExpression(
+                            m_theSelectedElement->pElementObject->Expression2 = (new CExpression(
                                 m_theSelectedElement->pElementObject, m_Expression,
                                 m_theSelectedElement->pElementObject->FontSizeForType(2)));
                             //((CExpression*)(m_theSelectedElement->pElementObject->Expression2))->m_FontSizeHQ=m_theSelectedElement->pElementObject->FontSizeForTypeHQ(2);
@@ -4232,12 +4231,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     CElement* newElement = new CElement();
                     if (m_theSelectedElement->pElementObject->Expression2)
                     {
-                        newElement->Expression1 = (CObject*)new CExpression(
+                        newElement->Expression1 = new CExpression(
                             newElement, ((CExpression*)newElement->m_pPaternalExpression),
-                            ((CExpression*)(m_theSelectedElement->pElementObject->Expression2))->m_FontSize);
+                            m_theSelectedElement->pElementObject->Expression2->m_FontSize);
                         //((CExpression*)(newElement->Expression1))->m_FontSizeHQ=((CExpression*)(m_theSelectedElement->pElementObject->Expression2))->m_FontSizeHQ;
-                        ((CExpression*)(newElement->Expression1))->CopyExpression(
-                            ((CExpression*)(m_theSelectedElement->pElementObject->Expression2)), 0);
+                        newElement->Expression1->CopyExpression(
+                            m_theSelectedElement->pElementObject->Expression2, 0);
                     }
                     newElement->m_Type = 1;
                     newElement->m_Color = m_theSelectedElement->pElementObject->m_Color;

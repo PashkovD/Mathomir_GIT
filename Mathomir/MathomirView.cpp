@@ -11201,7 +11201,7 @@ void CMathomirView::KeyboardSelectionPaste()
                                         //exits high-order structures
                                         if (((e->m_Type == 3)) || ((e->m_Type == 6)) || ((e->m_Type == 8)) ||
                                             ((e->m_Type == 1)) ||
-                                            ((e->m_Type == 5) && (e->Expression2 == KeyboardEntryObject)) ||
+                                            ((e->m_Type == 5) && ((CObject*)e->Expression2 == KeyboardEntryObject)) ||
                                             ((e->m_Type == 7)))
                                             ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
                                                 DC, ViewZoom, 13, 0, flags, fcolor, 0);
