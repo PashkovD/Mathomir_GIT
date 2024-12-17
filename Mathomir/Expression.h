@@ -156,7 +156,7 @@ public:
     void CalculateSize(CDC& DC, short int zoom, short int& length, short int* above, short int* below, char HQR = -1,
                        char optimize_for_readability = 0);
     void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg = nullptr, int color = 0);
-    short GetActualFontSize(short zoom);
+    short GetActualFontSize(short zoom) const;
     int InsertEmptyElement(short position, short Type, char Operator, int color = -1);
     void SelectExpression(char Select);
     void DeselectExpressionExceptKeyboardSelection(void/*char preserve_keyboard_selection*/);
@@ -192,12 +192,12 @@ public:
                                    char Type, short data, char IsBlue, int color = 0);
 
     int KeyboardStop(void);
-    int XML_output(char* output, int num_tabs, char only_calculate);
+    int XML_output(char* output, int num_tabs, bool only_calculate);
     char* XML_input(char* file);
     //int MathML_output(char * output, int num_tabs, char only_calculate,char output_type);
     int LaTeX_output(char* output, char only_calculate) const;
 
-    int CalcChecksum(void);
+    int CalcChecksum(void) const;
     CObject* KeyboardFindEntryPos();
     int CopyToWindowsClipboard(void);
     // select element of the matris at (row,column)
@@ -222,7 +222,7 @@ public:
     int FindLowestOperatorLevel(char default_oper = 0);
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position
     int Autocomplete(int is_internal);
-    tElementStruct* GetElementStruct(CElement* element);
+    tElementStruct* GetElementStruct(CElement* element) const;
     CElement* DecodeInternalInsertionPoint();
     //returns nullptr if no insertion point found, otherwise the element (type=1) with the insertion point
     int ContainsBlinkingCursor();
@@ -281,7 +281,7 @@ public:
     int Derivate(CExpression* variable, int internall_call = 0);
 
     void* PlotterPrepareVariablePositions(void* VarPos = nullptr);
-    double PlotterCalculateFunctionValue(double X, void* VarPos);
+    double PlotterCalculateFunctionValue(double X, void* VarPos) const;
     int PlotterReleaseVariablePositions(void* VarPos);
     int PlotterGetEquationInfo(CExpression** variable, int* position, int* starting_point, char* equation_type);
     int SetColor(int color);

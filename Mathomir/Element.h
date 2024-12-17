@@ -39,22 +39,22 @@ public:
                          int color = 0);
     void Empty(char oper);
     void CopyElement(const CElement* Element);
-    int FontSizeForType(int subelement_no);
+    int FontSizeForType(int subelement_no) const;
 
     CObject* SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
                            short paternal_position);
     int XML_output(char* output, int num_tabs, char only_calculate);
-    int LaTeX_output(char* output, char only_calculate);
+    int LaTeX_output(char* output, char only_calculate) const;
     char* XML_input(char* file, void* element_struct);
-    int CalcChecksum();
+    int CalcChecksum() const;
 
-    int IsMeasurementUnit();
+    int IsMeasurementUnit() const;
     int SetColor(int color);
-    int IsDifferential(int only_nonparentheses = 0);
+    int IsDifferential(int only_nonparentheses = 0) const;
 
-    CElement* GetPreviousElement();
-    CElement* GetNextElement();
-    int GetPaternalPosition();
-    int ContainsBlinkingCursor();
+    CElement* GetPreviousElement() const;
+    CElement* GetNextElement() const;
+    int GetPaternalPosition() const;
+    int ContainsBlinkingCursor() const;
     void CalculateSizeReadjust(short zoom, short* length, short* above, short* below, char align);
 };

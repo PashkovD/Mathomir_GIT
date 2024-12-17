@@ -186,7 +186,7 @@ HFONT GetFontFromPool(char combination, unsigned short Size);
 void ClearFontPool();
 HPEN GetPenFromPool(short width, char IsBlue, int color = 0);
 int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked);
-void DisplayShortText(std::string text, int x, int y, int LanguageID, int flags = 0);
+void DisplayShortText(const std::string& text, int x, int y, int LanguageID, int flags = 0);
 int AddDocumentObject(int type, int X, int Y);
 int CopyTranslatedString(char* dest, const char* defstr, int id, int destlen);
 std::string GetTranslatedString(const std::string& eng_defstr, int id);

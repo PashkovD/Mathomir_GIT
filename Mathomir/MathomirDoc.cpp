@@ -113,11 +113,10 @@ void CMathomirDoc::OnFileSave()
     if (TheFileType == 'v') return; //the view-only files are not saved (but can be saved using Save-As)
 
     //main menu: Save
-    CString path;
-    path = GetPathName();
+    CString path = GetPathName();
 
     //if the document does not have a name (file) yet, call the save-as dialog
-    if ((path != "") && (path.Right(9) != "\\Untitled"))
+    if (path != "" && path.Right(9) != "\\Untitled")
         SaveMOMFile(path.GetBuffer(), TheFileType);
     else
         OnFileSaveAs();
@@ -127,7 +126,6 @@ void CMathomirDoc::OnFileSave()
 void CMathomirDoc::OnFileOpen()
 {
     DetermineTillensData(0x7FFFFFFF); //to prevend crash when a document is double-clicked to load
-    char str[120];
     if (!SaveModified()) return;
     std::string filter = GetTranslatedString("MOM files", 5010) + "|*.mom|"
         + GetTranslatedString("All files", 5011) + "|*.*||\0";
@@ -146,17 +144,17 @@ void CMathomirDoc::OnFileNew()
     DetermineTillensData(0x7FFFFFFF); //to prevend crash when a shell command is used
     if (!SaveModified()) return;
     AutosavePoints = AutosaveTime = 0;
-    ((CMainFrame*)(theApp.m_pMainWnd))->ClearDocument();
+    ((CMainFrame*)theApp.m_pMainWnd)->ClearDocument();
     SetPathName("\\Untitled", 0); //ClearPathName does not exist??
     SetModifiedFlag(0);
     Toolbox->LoadSettings(nullptr);
     ViewOnlyMode = 0;
     IsDrawingMode = 0;
-    ToolboxSize = (BaseToolboxSize) ? BaseToolboxSize : 60;
-    if ((theApp.m_pMainWnd) && (theApp.m_pMainWnd->IsWindowVisible()))
+    ToolboxSize = BaseToolboxSize ? BaseToolboxSize : 60;
+    if (theApp.m_pMainWnd && theApp.m_pMainWnd->IsWindowVisible())
         if (Toolbox) Toolbox->ShowWindow(SW_SHOW);
-    ((CMainFrame*)(theApp.m_pMainWnd))->UndoInit();
-    ((CMainFrame*)(theApp.m_pMainWnd))->AdjustMenu();
+    ((CMainFrame*)theApp.m_pMainWnd)->UndoInit();
+    ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
     pMainView->AdjustPosition();
     pMainView->RepaintTheView(1);
     Toolbox->InvalidateRect(nullptr, 1);
@@ -201,7 +199,7 @@ void CMathomirDoc::OnFileSaveAs()
         if (fd.m_pOFN->nFilterIndex == 3) type = 's';
         if (fd.m_pOFN->nFilterIndex == 4) type = 'e';
         if (fd.m_pOFN->nFilterIndex == 5) type = 'v';
-        if ((fd.m_pOFN->nFilterIndex == 1) && (TheFileType == 'r')) type = 'r';
+        if (fd.m_pOFN->nFilterIndex == 1 && TheFileType == 'r') type = 'r';
         SaveMOMFile(fd.m_pOFN->lpstrFile, type);
         if (fd.m_pOFN->nFilterIndex != 4)
         {
@@ -234,7 +232,7 @@ extern char dont_empty_clipboard;
 #pragma optimize("s",on)
 int CMathomirDoc::OpenMOMFile(char* filename)
 {
-    XMLFileVersion = (filename) ? 1 : 2;
+    XMLFileVersion = filename ? 1 : 2;
     int OrigNumElements;
     char* file_buffer = nullptr;
     char* file_pointer;
@@ -276,21 +274,21 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                 if (TheDocument[i].Object)
                 {
                     if (TheDocument[i].Type == 1)
-                        ((CExpression*)(TheDocument[i].Object))->DeselectExpressionExceptKeyboardSelection();
+                        ((CExpression*)TheDocument[i].Object)->DeselectExpressionExceptKeyboardSelection();
                     if (TheDocument[i].Type == 2)
-                        ((CDrawing*)(TheDocument[i].Object))->SelectDrawing(0);
+                        ((CDrawing*)TheDocument[i].Object)->SelectDrawing(0);
                 }
         }
 
         //opening the clipobard and accessing data
-        if ((theApp.m_pMainWnd) && (theApp.m_pMainWnd->OpenClipboard()))
+        if (theApp.m_pMainWnd && theApp.m_pMainWnd->OpenClipboard())
         {
             UINT format;
 #ifdef TEACHER_VERSION
             if (TheFileType == 'r')
             {
                 char ff[32];
-                sprintf(ff, "MATHOMIR_%d", RandomNumber);
+                sprintf_s(ff, "MATHOMIR_%d", RandomNumber);
                 format = RegisterClipboardFormat(ff);
             }
             else
@@ -321,7 +319,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
     if (filename != nullptr)
     {
         //clear the entire documment
-        ((CMainFrame*)(theApp.m_pMainWnd))->ClearDocument();
+        ((CMainFrame*)theApp.m_pMainWnd)->ClearDocument();
 
         //get data from file
         fread(file_buffer, len, 1, fil);
@@ -330,8 +328,8 @@ int CMathomirDoc::OpenMOMFile(char* filename)
         //check if file is valid
         int i = 0;
         for (i = 0; i < len; i++)
-            if (((unsigned char)file_buffer[i]) > 32) break;
-        if ((i == len) || (file_buffer[i] != '<'))
+            if ((unsigned char)file_buffer[i] > 32) break;
+        if (i == len || file_buffer[i] != '<')
         {
             if (len) AfxMessageBox("Invalid file - cannot continue",MB_OK | MB_ICONSTOP);
             SetPathName("\\Untitled", 0);
@@ -348,8 +346,8 @@ int CMathomirDoc::OpenMOMFile(char* filename)
         //adjust menu and init undo buffer
         if (theApp.m_pMainWnd)
         {
-            ((CMainFrame*)(theApp.m_pMainWnd))->UndoInit();
-            ((CMainFrame*)(theApp.m_pMainWnd))->AdjustMenu();
+            ((CMainFrame*)theApp.m_pMainWnd)->UndoInit();
+            ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
         }
     }
     else
@@ -377,7 +375,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
         int x = 0, y = 0;
         while (true)
         {
-            file_pointer = ((CMainFrame*)(theApp.m_pMainWnd))->XML_search("", file_pointer);
+            file_pointer = ((CMainFrame*)theApp.m_pMainWnd)->XML_search("", file_pointer);
             if (file_pointer == 0) goto openMOMfile_end; //no more objects, we finished
 
             if (*file_pointer == 'o')
@@ -385,7 +383,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                 try
                 {
                     file_pointer++;
-                    while ((*file_pointer != ' ') && (*file_pointer != '>')) file_pointer++;
+                    while (*file_pointer != ' ' && *file_pointer != '>') file_pointer++;
                     //jumps over 'obj' or 'o' tags
 
                     int lock = 0;
@@ -393,11 +391,11 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                     char value[128];
                     do
                     {
-                        file_pointer = ((CMainFrame*)(theApp.m_pMainWnd))->XML_read_attribute(
+                        file_pointer = ((CMainFrame*)theApp.m_pMainWnd)->XML_read_attribute(
                             attribute, value, file_pointer, 128);
                         if (file_pointer == 0) goto openMOMfile_end; //unexpected end of file
 
-                        if ((strcmp(attribute, "type") == 0) || (strcmp(attribute, "t") == 0)) type = atoi(value);
+                        if (strcmp(attribute, "type") == 0 || strcmp(attribute, "t") == 0) type = atoi(value);
                         if (strcmp(attribute, "ver") == 0)
                         {
                             XMLFileVersion = atoi(value);
@@ -406,9 +404,9 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                         if (strcmp(attribute, "X") == 0) x = atoi(value);
                         if (strcmp(attribute, "Y") == 0) y = atoi(value);
                         if (strcmp(attribute, "lock") == 0) lock = atoi(value);
-                        if ((filename) && (strcmp(attribute, "page_w") == 0)) PaperWidth = atoi(value);
-                        if ((filename) && (strcmp(attribute, "page_h") == 0)) PaperHeight = atoi(value);
-                        if ((filename) && (strcmp(attribute, "numbering") == 0)) PageNumeration = atoi(value);
+                        if (filename && strcmp(attribute, "page_w") == 0) PaperWidth = atoi(value);
+                        if (filename && strcmp(attribute, "page_h") == 0) PaperHeight = atoi(value);
+                        if (filename && strcmp(attribute, "numbering") == 0) PageNumeration = atoi(value);
                     }
                     while (attribute[0]);
 
@@ -416,7 +414,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                     {
                         if (AddDocumentObject(type, x, y) == 0) goto openMOMfile_end; //irregular end!
                         tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
-                        ds->MovingDotState = (lock) ? 5 : 1;
+                        ds->MovingDotState = lock ? 5 : 1;
 
                         if (type == 1) //object of type==1 - the expression
                         {
@@ -472,7 +470,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                             ds->Length = l * 100 / ViewZoom;
                             ds->Above = a * 100 / ViewZoom;
                             ds->Below = b * 100 / ViewZoom;
-                            if (ds->MovingDotState != 5) ds->MovingDotState = (filename == nullptr) ? 3 : 0;
+                            if (ds->MovingDotState != 5) ds->MovingDotState = filename == nullptr ? 3 : 0;
                             //automaticaly select object pasted from clipboard
                             theApp.m_pMainWnd->ReleaseDC(DC);
                         }
@@ -493,9 +491,9 @@ openMOMfile_end:
             delete TheKeyboardClipboard;
             TheKeyboardClipboard = nullptr;
         }
-        if ((NumDocumentElements - OrigNumElements == 1) &&
-            (TheDocument[OrigNumElements].Type == 1) &&
-            (KeyboardEntryObject))
+        if (NumDocumentElements - OrigNumElements == 1 &&
+            TheDocument[OrigNumElements].Type == 1 &&
+            KeyboardEntryObject)
         {
             //we are pasting into the keyboard clipboard			
             TheKeyboardClipboard = new CExpression(nullptr,nullptr, 100);
@@ -564,7 +562,7 @@ openMOMfile_end:
         if (theApp.m_pMainWnd)
         {
             pMainView->RepaintTheView(0);
-            if ((!ViewOnlyMode) && (filename)) DetermineTillensData(-1);
+            if (!ViewOnlyMode && filename) DetermineTillensData(-1);
 
             if (filename)
             {
@@ -585,14 +583,14 @@ openMOMfile_end:
 #pragma optimize("s",on)
 int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
 {
-    if ((filetype == '2') || (filename == nullptr)) XMLFileVersion = 2;
+    if (filetype == '2' || filename == nullptr) XMLFileVersion = 2;
     else XMLFileVersion = 1;
     char dummy[128];
     int len = 0;
     int i;
     char save_keyboard_clipboard = 0;
-    if ((filename == (char*)TheKeyboardClipboard) &&
-        (TheKeyboardClipboard))
+    if (filename == (char*)TheKeyboardClipboard &&
+        TheKeyboardClipboard)
     {
         filename = nullptr;
         save_keyboard_clipboard = 1;
@@ -600,7 +598,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     }
 
 #ifdef TEACHER_VERSION
-    if ((filename) && (TheFileType == 'r'))
+    if (filename && TheFileType == 'r')
     {
         char tmpbuf[128];
         CExpression* exp = new CExpression(nullptr,nullptr, 80);
@@ -621,9 +619,9 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         exp->m_Color = 3;
         SYSTEMTIME st;
         GetLocalTime(&st);
-        sprintf(tmpbuf, "%04d-%02d-%02d", st.wYear, st.wMonth, st.wDay);
+        sprintf_s(tmpbuf, "%04d-%02d-%02d", st.wYear, st.wMonth, st.wDay);
         strcpy_s((exp->m_pElementList + 0)->pElementObject->Data1, tmpbuf);
-        sprintf(tmpbuf, "%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
+        sprintf_s(tmpbuf, "%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
         strcpy_s((exp->m_pElementList + 1)->pElementObject->Data1, tmpbuf);
         DWORD lnn = 23;
         GetUserName(tmpbuf, &lnn);
@@ -646,10 +644,10 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         {
             try
             {
-                if ((filename) || (ds->MovingDotState == 3))
+                if (filename || ds->MovingDotState == 3)
                 {
-                    if (ds->Type == 1) len += ((CExpression*)(ds->Object))->XML_output(dummy, 0, 1);
-                    else if (ds->Type == 2) len += ((CDrawing*)(ds->Object))->XML_output(dummy, 0, 1);
+                    if (ds->Type == 1) len += ((CExpression*)ds->Object)->XML_output(dummy, 0, 1);
+                    else if (ds->Type == 2) len += ((CDrawing*)ds->Object)->XML_output(dummy, 0, 1);
                 }
             }
             catch (...)
@@ -704,8 +702,8 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         {
             try
             {
-                if (((filename) || (ds->MovingDotState == 3)) && (ds->absolute_Y < 2000000) && (ds->absolute_Y > -
-                    10000))
+                if ((filename || ds->MovingDotState == 3) && ds->absolute_Y < 2000000 && ds->absolute_Y > -
+                    10000)
                 {
                     if (XMLFileVersion == 1)
                     {
@@ -737,7 +735,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
                     if (x != ds->absolute_X)
                     {
                         x = ds->absolute_X;
-                        sprintf(dummy, " X=\"%d\"", x);
+                        sprintf_s(dummy, " X=\"%d\"", x);
                         int ll = (int)strlen(dummy);
                         memcpy(file_pointer, dummy, ll + 1);
                         file_pointer += ll;
@@ -746,7 +744,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
                     if (y != ds->absolute_Y)
                     {
                         y = ds->absolute_Y;
-                        sprintf(dummy, " Y=\"%d\"", y);
+                        sprintf_s(dummy, " Y=\"%d\"", y);
                         int ll = (int)strlen(dummy);
                         memcpy(file_pointer, dummy, ll + 1);
                         file_pointer += ll;
@@ -761,7 +759,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
                     if (i == 0)
                     {
                         //only the first object has some global attributs
-                        sprintf(dummy, " page_w=\"%d\" page_h=\"%d\" numbering=\"%d\" ver=\"%d\"", PaperWidth,
+                        sprintf_s(dummy, " page_w=\"%d\" page_h=\"%d\" numbering=\"%d\" ver=\"%d\"", PaperWidth,
                                 PaperHeight, PageNumeration, XMLFileVersion);
                         int ll = (int)strlen(dummy);
                         memcpy(file_pointer, dummy, ll + 1);
@@ -774,9 +772,9 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
 
                     int tmp = 0;
                     if (ds->Type == 1)
-                        tmp = ((CExpression*)(ds->Object))->XML_output(file_pointer, 0, 0);
+                        tmp = ((CExpression*)ds->Object)->XML_output(file_pointer, 0, 0);
                     else
-                        tmp = ((CDrawing*)(ds->Object))->XML_output(file_pointer, 0, 0);
+                        tmp = ((CDrawing*)ds->Object)->XML_output(file_pointer, 0, 0);
                     len += tmp;
                     file_pointer += tmp;
 
@@ -805,10 +803,10 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     len += 13;
 
 #ifdef TEACHER_VERSION
-    if ((TheFileType == 'r') && (filename))
+    if (TheFileType == 'r' && filename)
     {
         NumDocumentElements--;
-        delete ((CExpression*)(TheDocument[NumDocumentElements].Object));
+        delete (CExpression*)TheDocument[NumDocumentElements].Object;
     }
 #endif
     if (filename)
@@ -839,7 +837,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     {
         //save to clipboard
 
-        if ((theApp.m_pMainWnd->OpenClipboard()) && (EmptyClipboard()))
+        if (theApp.m_pMainWnd->OpenClipboard() && EmptyClipboard())
         {
             HANDLE hmem = GlobalAlloc(GMEM_ZEROINIT, alloc_len);
             LPVOID pntr = GlobalLock(hmem);
@@ -850,7 +848,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
             if (TheFileType == 'r')
             {
                 char ff[32];
-                sprintf(ff, "MATHOMIR_%d", RandomNumber);
+                sprintf_s(ff, "MATHOMIR_%d", RandomNumber);
                 format = RegisterClipboardFormat(ff);
             }
             else
@@ -882,7 +880,7 @@ tPasswordDlgStruct* PasswordDlgStruct;
 #pragma optimize("s",on)
 int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
 {
-    if ((type == 0) || (type == '2'))
+    if (type == 0 || type == '2')
     {
         TheFileType = 0;
         return len;
@@ -890,7 +888,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
 
     char passw[25];
     passw[0] = 0;
-    if ((type == 's') || (type == 'e'))
+    if (type == 's' || type == 'e')
     {
         //encrypted MOM file or exam file - ask for password
         PasswordDlgStruct = new tPasswordDlgStruct;
@@ -974,7 +972,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
                 int k = 0;
                 while (k < 200)
                 {
-                    if ((buf[i + k] != buf[i + k + 2]) || (buf[i + k + 1] != buf[i + k + 3])) break;
+                    if (buf[i + k] != buf[i + k + 2] || buf[i + k + 1] != buf[i + k + 3]) break;
                     k += 2;
                 }
                 if (k > 5)
@@ -1001,20 +999,20 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
 
 #ifdef TEACHER_VERSION
     unsigned char* pkey = nullptr;
-    if ((type == 'r') || (type == 'e'))
+    if (type == 'r' || type == 'e')
     {
         //if this is an exam or exam result
         pkey = (unsigned char*)malloc(1026);
         CDiffieHellman* DH = new CDiffieHellman();
-        __int64 N, X, Y, key;
+        int64_t N, X, Y, key;
 
         if (type == 'e')
         {
             for (int i = 0; i < 64; i++)
             {
                 DH->DerivePublicKey(passw, &N, &X);
-                (*(__int64*)(pkey + 16 * i)) = N;
-                (*(__int64*)(pkey + 16 * i + 8)) = X;
+                *(int64_t*)(pkey + 16 * i) = N;
+                *(int64_t*)(pkey + 16 * i + 8) = X;
             }
             passw[0] = 0;
             pkey[1024] = PasswordDlgStruct->time_limit;
@@ -1026,9 +1024,9 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
             for (int i = 0; i < 64; i++)
             {
                 DH->CreateEncryptionKey(PublicKey[i].N, PublicKey[i].X, &key, &Y);
-                (*(__int64*)(pkey + 16 * i)) = PublicKey[i].N;
-                (*(__int64*)(pkey + 16 * i + 8)) = Y;
-                (*(__int64*)(&passw[i % 16])) += key;
+                *(int64_t*)(pkey + 16 * i) = PublicKey[i].N;
+                *(int64_t*)(pkey + 16 * i + 8) = Y;
+                *(int64_t*)&passw[i % 16] += key;
             }
             for (int i = 0; i < 16; i++) if (passw[i] == 0) passw[i] = 1;
             passw[16] = 0;
@@ -1039,7 +1037,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
 
 
     //scramble with password
-    if ((passw) && (strlen(passw) >= 1))
+    if (passw && strlen(passw) >= 1)
     {
         int passlen = (int)strlen(passw);
 
@@ -1101,7 +1099,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
     memmove(buf + 8, buf, len);
     strcpy(buf, "MOM");
     buf[3] = type;
-    *((int*)(buf + 4)) = olen;
+    *(int*)(buf + 4) = olen;
 
     if (PasswordDlgStruct)
     {
@@ -1109,7 +1107,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
         PasswordDlgStruct = nullptr;
     }
 
-    if ((type != 'e') && (type != 'v')) TheFileType = type; //change the file type according to saved format
+    if (type != 'e' && type != 'v') TheFileType = type; //change the file type according to saved format
 
     return len + 8;
 }
@@ -1120,7 +1118,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
 int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
 {
     ViewOnlyMode = 0;
-    ToolboxSize = (BaseToolboxSize) ? BaseToolboxSize : 60;
+    ToolboxSize = BaseToolboxSize ? BaseToolboxSize : 60;
     if (Toolbox) Toolbox->ShowWindow(SW_SHOW);
 
     if (strncmp(*buffer, "MOM", 3))
@@ -1142,7 +1140,7 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         PublicKey = (tPublicKey*)calloc(sizeof(tPublicKey), 64);
     }
 #endif
-    if ((type == 'r') || (type == 's'))
+    if (type == 'r' || type == 's')
     {
         //exam result file or scrambled (encrypted) file - ask for password
         PasswordDlgStruct = new tPasswordDlgStruct;
@@ -1162,18 +1160,18 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         PasswordDlgStruct = nullptr;
     }
 
-    int olen = *((int*)(*buffer + 4)); //original file length
+    int olen = *(int*)(*buffer + 4); //original file length
 
     //remove header
     len -= 8;
-    memmove(*buffer, (*buffer + 8), len);
+    memmove(*buffer, *buffer + 8, len);
 
 #ifdef TEACHER_VERSION
-    if ((type == 'e') || (type == 'r'))
+    if (type == 'e' || type == 'r')
     {
         //if this is an exam or exam result
         CDiffieHellman* DH = new CDiffieHellman();
-        __int64 N, Y, key;
+        int64_t N, Y, key;
 
         if (type == 'r')
         {
@@ -1181,10 +1179,10 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
             memset(passw, 0, 24);
             for (int i = 0; i < 64; i++)
             {
-                N = (*(__int64*)(*buffer + 16 * i));
-                Y = (*(__int64*)(*buffer + 16 * i + 8));
+                N = *(int64_t*)(*buffer + 16 * i);
+                Y = *(int64_t*)(*buffer + 16 * i + 8);
                 DH->CreateDecryptionKey(Y, N, &key);
-                (*(__int64*)(&passw[i % 16])) += key;
+                *(int64_t*)&passw[i % 16] += key;
             }
             for (int i = 0; i < 16; i++) if (passw[i] == 0) passw[i] = 1;
             passw[16] = 0;
@@ -1193,19 +1191,19 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         {
             for (int i = 0; i < 64; i++)
             {
-                PublicKey[i].N = (*(__int64*)(*buffer + 16 * i));
-                PublicKey[i].X = (*(__int64*)(*buffer + 16 * i + 8));
+                PublicKey[i].N = *(__int64*)(*buffer + 16 * i);
+                PublicKey[i].X = *(__int64*)(*buffer + 16 * i + 8);
             }
             TheTimeLimit = *(unsigned char*)(*buffer + 1024);
             TheMathFlags = *(unsigned char*)(*buffer + 1025);
         }
         len -= 1026;
-        memmove(*buffer, (*buffer + 1026), len);
+        memmove(*buffer, *buffer + 1026, len);
         delete DH;
     }
 #endif
 
-    if ((passw) && (strlen(passw) >= 1))
+    if (passw && strlen(passw) >= 1)
     {
         //if password is defined, then we unscramble this file
         char* buf2;
@@ -1225,7 +1223,7 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
                 for (int kk = 0; kk < x; kk++)
                 {
                     if (i >= kk)
-                        if (((i - kk) % x) == 0)
+                        if ((i - kk) % x == 0)
                         {
                             jj = num + (i - kk) / x;
                             break;
@@ -1255,8 +1253,8 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
     int inside_quotation = 0;
     for (int i = 0; i < len; i++)
     {
-        char c = *((*buffer) + i);
-        if ((i == 0) && (c != '<')) break;
+        char c = *(*buffer + i);
+        if (i == 0 && c != '<') break;
         if (c == '"')
         {
             if (inside_quotation) inside_quotation = 0;
@@ -1266,7 +1264,7 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         {
             if (c != 13)
                 if (c != 10)
-                    if ((c < 31) || (c > 250))
+                    if (c < 31 || c > 250)
                         c += 0;
             if (c == 1)
             {
@@ -1467,11 +1465,11 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         {
             if (c == 18)
             {
-                int k = *((*buffer) + i + 1);
+                int k = *(*buffer + i + 1);
                 for (int n = 0; n < k + 1; n++)
                 {
-                    buf[j++] = *((*buffer) + i + 2);
-                    buf[j++] = *((*buffer) + i + 3);
+                    buf[j++] = *(*buffer + i + 2);
+                    buf[j++] = *(*buffer + i + 3);
                 }
                 i += 3;
                 continue;
@@ -1496,7 +1494,7 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
 
     if (TheFileType == 'v') { ViewOnlyMode = 1; }
 #ifdef TEACHER_VERSION
-    if ((len) && (TheFileType == 'r'))
+    if (len && TheFileType == 'r')
     {
         TheExamStartTime = GetTickCount();
         DisableEditing = 0;

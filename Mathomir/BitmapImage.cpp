@@ -173,8 +173,8 @@ int CBitmapImage::MouseClick(int X, int Y)
                     editing = 0;
                     char filename[340];
                     GetTempPath(340, filename);
-                    if (filename[strlen(filename) - 1] != '\\') strcat(filename, "\\");
-                    strcat(filename, "MoM_bmp.bmp");
+                    if (filename[strlen(filename) - 1] != '\\') strcat_s(filename, "\\");
+                    strcat_s(filename, "MoM_bmp.bmp");
                     LoadImageFromFile((CObject*)Base, filename);
                 }
                 else
@@ -275,7 +275,7 @@ int CBitmapImage::MouseMove(CDC* DC, int X, int Y, UINT flags)
 }
 
 #pragma optimize("s",on)
-int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate)
+int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) const
 {
     static char tmpstr[256];
 
@@ -372,7 +372,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate)
             if (d3 == 92) d3 = 125;
             if (d4 == 92) d4 = 125;
 
-            sprintf(tmpstr, "%c%c%c%c", d1, d2, d3, d4);
+            sprintf_s(tmpstr, "%c%c%c%c", d1, d2, d3, d4);
             len += 4;
             if (!only_calculate)
             {
@@ -385,7 +385,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate)
         if (j > 190)
         {
             repeater = 0;
-            sprintf(tmpstr, "\" />\r\n<bmp b=\"");
+            sprintf_s(tmpstr, "\" />\r\n<bmp b=\"");
             len += (int)strlen(tmpstr);
             if (!only_calculate)
             {
@@ -396,7 +396,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate)
         }
         i += 3;
     }
-    sprintf(tmpstr, "\" />\r\n");
+    sprintf_s(tmpstr, "\" />\r\n");
     len += (int)strlen(tmpstr);
     if (!only_calculate)
     {
@@ -583,8 +583,8 @@ int CBitmapImage::SaveImageToFileForEditing(CObject* dwg)
 
     char filename[340];
     GetTempPath(340, filename);
-    if (filename[strlen(filename) - 1] != '\\') strcat(filename, "\\");
-    strcat(filename, "MoM_bmp.bmp");
+    if (filename[strlen(filename) - 1] != '\\') strcat_s(filename, "\\");
+    strcat_s(filename, "MoM_bmp.bmp");
 
     FILE* fil;
     fil = fopen(filename, "w+b");

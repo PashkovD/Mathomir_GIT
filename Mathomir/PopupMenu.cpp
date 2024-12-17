@@ -980,8 +980,8 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 }
                 e->ConvertToPlainText(100, buff, is_label);
                 if ((e->m_NumElements == 1) && (e->m_pElementList->Type == 0))
-                    if (is_label) sprintf(buff, "(#%d)", EasycastListStart + 1);
-                    else sprintf(buff, "#%d", EasycastListStart + 1);
+                    if (is_label) sprintf_s(buff, "(#%d)", EasycastListStart + 1);
+                    else sprintf_s(buff, "#%d", EasycastListStart + 1);
                 buff[39] = 0;
                 CSize sz = DC->GetTextExtent(buff);
                 int tmp = 0;
@@ -1199,7 +1199,7 @@ int PopupMenu::PrepareParenthesesMenu(int y)
     int isMultiline = 0;
     CExpression* theexp;
     if (m_MenuType == 1) theexp = m_Expression;
-    else theexp = ((CExpression*)(m_theSelectedElement->pElementObject->Expression1));
+    else theexp = m_theSelectedElement->pElementObject->Expression1;
     if (!theexp) return 0;
     haveParentheses = theexp->m_ParenthesesFlags & 0xFD; //bit 2 represents automatic (bits 1 and 8 represent forcing)
     Shape = theexp->m_ParentheseShape;
@@ -2040,7 +2040,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if ((elm->Data1[0] == 'H') && (elm->Expression1) && (elm->Expression2 == nullptr) && (elm->
                                 Expression3 == nullptr)) //hyperlink element
                             {
-                                CExpression* exp = (CExpression*)elm->Expression1;
+                                CExpression* exp = elm->Expression1;
                                 if (*((char**)elm->Data3) == nullptr)
                                 {
                                     char* link = (char*)malloc(340);
@@ -3522,7 +3522,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     m_Expression->InsertEmptyElement(0, 5, m_Expression->m_ParentheseShape);
                     m_Expression->m_ParenthesesFlags &= 0x02;
-                    CExpression* exp = ((CExpression*)(m_Expression->m_pElementList->pElementObject->Expression1));
+                    CExpression* exp = m_Expression->m_pElementList->pElementObject->Expression1;
                     exp->m_Alignment = m_Expression->m_Alignment;
                     exp->m_StartAsText = m_Expression->m_StartAsText;
                     exp->m_FontSize = m_Expression->m_FontSize;
@@ -3613,32 +3613,32 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 if (data == 72) //left aligned
                 {
                     m_theSelectedElement->pElementObject->Data2[0] = 0;
-                    if (m_theSelectedElement->pElementObject->Expression1) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression1))->m_Alignment = 1;
-                    if (m_theSelectedElement->pElementObject->Expression2) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression2))->m_Alignment = 1;
-                    if (m_theSelectedElement->pElementObject->Expression3) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression3))->m_Alignment = 1;
+                    if (m_theSelectedElement->pElementObject->Expression1) m_theSelectedElement->
+                                                                           pElementObject->Expression1->m_Alignment = 1;
+                    if (m_theSelectedElement->pElementObject->Expression2) m_theSelectedElement->
+                                                                           pElementObject->Expression2->m_Alignment = 1;
+                    if (m_theSelectedElement->pElementObject->Expression3) m_theSelectedElement->
+                                                                           pElementObject->Expression3->m_Alignment = 1;
                 }
                 if (data == 73)
                 {
                     m_theSelectedElement->pElementObject->Data2[0] = 1; //center aligned
-                    if (m_theSelectedElement->pElementObject->Expression1) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression1))->m_Alignment = 0;
-                    if (m_theSelectedElement->pElementObject->Expression2) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression2))->m_Alignment = 0;
-                    if (m_theSelectedElement->pElementObject->Expression3) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression3))->m_Alignment = 0;
+                    if (m_theSelectedElement->pElementObject->Expression1) m_theSelectedElement->
+                                                                           pElementObject->Expression1->m_Alignment = 0;
+                    if (m_theSelectedElement->pElementObject->Expression2) m_theSelectedElement->
+                                                                           pElementObject->Expression2->m_Alignment = 0;
+                    if (m_theSelectedElement->pElementObject->Expression3) m_theSelectedElement->
+                                                                           pElementObject->Expression3->m_Alignment = 0;
                 }
                 if (data == 74)
                 {
                     m_theSelectedElement->pElementObject->Data2[0] = 2; //right aligned
-                    if (m_theSelectedElement->pElementObject->Expression1) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression1))->m_Alignment = 2;
-                    if (m_theSelectedElement->pElementObject->Expression2) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression2))->m_Alignment = 2;
-                    if (m_theSelectedElement->pElementObject->Expression3) ((CExpression*)(m_theSelectedElement->
-                        pElementObject->Expression3))->m_Alignment = 2;
+                    if (m_theSelectedElement->pElementObject->Expression1) m_theSelectedElement->
+                                                                           pElementObject->Expression1->m_Alignment = 2;
+                    if (m_theSelectedElement->pElementObject->Expression2) m_theSelectedElement->
+                                                                           pElementObject->Expression2->m_Alignment = 2;
+                    if (m_theSelectedElement->pElementObject->Expression3) m_theSelectedElement->
+                                                                           pElementObject->Expression3->m_Alignment = 2;
                 }
 
                 if (data == 78) //converting to hyperlink
@@ -3651,8 +3651,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             m_Expression->InsertEmptyElement(i, 9, 'H'); //adds hyperlink element
                             l++;
 
-                            CExpression* e = (CExpression*)((m_Expression->m_pElementList + i)->pElementObject->
-                                Expression1);
+                            CExpression* e = (m_Expression->m_pElementList + i)->pElementObject->
+                                Expression1;
                             for (int j = i + 1; j < l; j++)
                             {
                                 tElementStruct* ts = m_Expression->m_pElementList + j;
@@ -4056,7 +4056,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 //parenthese menu handling
                 CExpression* tmpExpression = m_Expression;
                 if (m_MenuType == 4)
-                    tmpExpression = ((CExpression*)(m_theSelectedElement->pElementObject->Expression1));
+                    tmpExpression = m_theSelectedElement->pElementObject->Expression1;
 
                 int data = Options[m_SelectedOption].Data;
 
@@ -4135,7 +4135,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if (m_theSelectedElement->pElementObject->Expression1)
                     {
                         ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index remove", 20213);
-                        delete ((CExpression*)(m_theSelectedElement->pElementObject->Expression1));
+                        delete m_theSelectedElement->pElementObject->Expression1;
                         m_theSelectedElement->pElementObject->Expression1 = nullptr;
                     }
                     else
@@ -4208,7 +4208,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (m_theSelectedElement->pElementObject->Expression2)
                         {
                             ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("index remove", 20213);
-                            delete ((CExpression*)(m_theSelectedElement->pElementObject->Expression2));
+                            delete m_theSelectedElement->pElementObject->Expression2;
                             m_theSelectedElement->pElementObject->Expression2 = nullptr;
                         }
                         else
@@ -5066,10 +5066,10 @@ int PopupMenu::SymbolicComputation(void)
                 }
                 E1->InsertEmptyElement(E1->m_NumElements, 2, (char)0xD7);
                 E1->InsertEmptyElement(E1->m_NumElements, 3, 0);
-                CExpression* a = (CExpression*)((E1->m_pElementList + E1->m_NumElements - 1)->pElementObject->
-                    Expression1);
-                CExpression* e = (CExpression*)((E1->m_pElementList + E1->m_NumElements - 1)->pElementObject->
-                    Expression2);
+                CExpression* a = (E1->m_pElementList + E1->m_NumElements - 1)->pElementObject->
+                                                                               Expression1;
+                CExpression* e = (E1->m_pElementList + E1->m_NumElements - 1)->pElementObject->
+                                                                               Expression2;
                 a->GenerateASCIINumber(10.0, 10, 1, 0, 0);
                 if (exp < 0)
                 {
@@ -5132,10 +5132,10 @@ int PopupMenu::SymbolicComputation(void)
                             if (result->m_pElementList->Type)
                                 result->InsertEmptyElement(result->m_NumElements, 2, (char)0xD7);
                             result->InsertEmptyElement(result->m_NumElements, 3, 0);
-                            CExpression* a = ((CExpression*)(result->m_pElementList + result->m_NumElements - 1)->
-                                                            pElementObject->Expression1);
-                            CExpression* e = ((CExpression*)(result->m_pElementList + result->m_NumElements - 1)->
-                                                            pElementObject->Expression2);
+                            CExpression* a = (result->m_pElementList + result->m_NumElements - 1)->
+                                             pElementObject->Expression1;
+                            CExpression* e = (result->m_pElementList + result->m_NumElements - 1)->
+                                             pElementObject->Expression2;
                             a->GenerateASCIINumber((double)z, z, 1, 0, 0);
                             e->GenerateASCIINumber(cnt, cnt, 1, 0, 0);
                         }

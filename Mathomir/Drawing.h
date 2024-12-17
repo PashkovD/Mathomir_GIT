@@ -38,13 +38,13 @@ public:
     int UpdateCreatingItem(int X, int Y, int absX, int absY);
     int Delete(void);
     int InsertEmptyElement(int form, int Cx, int Cy);
-    int CalculateSize(CDC* DC, short zoom, short* width, short* height);
+    int CalculateSize(CDC* DC, short zoom, short* width, short* height) const;
     void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = nullptr, int color = 0);
     void SelectDrawing(char select);
-    int CalcChecksum(void);
+    int CalcChecksum(void) const;
     int CopyDrawing(CDrawing* Original);
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, int* NodeEdit, int internal_call = 0);
-    int XML_output(char* output, int num_tabs, char only_calculate);
+    int XML_output(char* output, int num_tabs, char only_calculate) const;
     char* XML_input(char* file);
 
     // Erases the square drawing part
@@ -58,27 +58,27 @@ public:
     int BreakApart(tDrawingItem* di, CDrawing* parent);
     int CopyDrawingIntoSubgroup(CDrawing* Original, int x, int y);
     int CopyExpressionIntoSubgroup(CExpression* Original, int x, int y, int widht, int height);
-    int SetLineWidth(int width);
+    int SetLineWidth(int width) const;
     int ScaleForFactor(float factorx, float factory);
     int RotateForAngle(float angle, int centerX, int centerY, int* newX1, int* newY1, int* newW, int* newH);
     int MoveNodeCoordinate(int X, int Y);
     int AdjustCoordinates(int* x1, int* y1, int* w, int* h, int absX = 0x7FFFFFFF, int absY = 0x7FFFFFFF);
     int SetNodeEdit(int is_edit);
-    int AnyNodeSelected(void);
+    int AnyNodeSelected(void) const;
     // returns coordinates of the real upper left corner
-    int FindRealCorner(int* X, int* Y, int* X2 = nullptr, int* Y2 = nullptr);
-    int CopyToWindowsClipboard(void);
+    int FindRealCorner(int* X, int* Y, int* X2 = nullptr, int* Y2 = nullptr) const;
+    int CopyToWindowsClipboard(void) const;
     int SplitLineAtPos(int X, int Y);
-    int MouseClick(int X, int Y);
-    int MouseMove(CDC* DC, int X, int Y, UINT flags);
+    int MouseClick(int X, int Y) const;
+    int MouseMove(CDC* DC, int X, int Y, UINT flags) const;
     // returns lenght of the diagonal from given point to drawing lines
-    int FindDiagonalLength(int X, int Y, int* l1, int* l2, int direction);
+    int FindDiagonalLength(int X, int Y, int* l1, int* l2, int direction) const;
     int SetColor(int color);
     int IsOpenPath(int close_path, char* is_closed_path = nullptr, LPPOINT points = nullptr, char* num_points_found = nullptr);
     int MakeDashed(char dash_dot);
     int FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X0, int Y0, int X1, int Y1);
-    void FindBottomRightDrawingPoint(int* X, int* Y);
-    int AllowQuickEditNodes(void);
+    void FindBottomRightDrawingPoint(int* X, int* Y) const;
+    int AllowQuickEditNodes(void) const;
 };
 
 
@@ -106,8 +106,8 @@ public:
     int XML_output(char* output, int num_tabs, char only_calculate);
     char* XML_input(char* file);
 
-    int ExecuteCommandLine(short X, short Y, int absX, int absY);
-    void GetDrawingBoxGrid(int* unit_size_x, int* unit_size_y, int* startx, int* starty);
+    int ExecuteCommandLine(short X, short Y, int absX, int absY) const;
+    void GetDrawingBoxGrid(int* unit_size_x, int* unit_size_y, int* startx, int* starty) const;
 };
 
 class CFunctionPlotter
@@ -139,7 +139,7 @@ public:
     char* XML_input(char* file);
 
     int PlotFunction(int reset_plot, CDC* PrintDC = nullptr, short zoom = 0);
-    int PlotFunctionGetBondaries(double* Xmin, double* Xmax, double* Ymin, double* Ymax);
+    int PlotFunctionGetBondaries(double* Xmin, double* Xmax, double* Ymin, double* Ymax) const;
     int ShowNumberWithPrecision(double number, double precision, char* string);
 };
 
@@ -160,7 +160,7 @@ public:
     int MouseMove(CDC* DC, int X, int Y, UINT flags);
     int CopyFrom(CDrawing* Original);
     int MouseClick(int X, int Y);
-    int XML_output(char* output, int num_tabs, char only_calculate);
+    int XML_output(char* output, int num_tabs, char only_calculate) const;
     char* XML_input(char* file);
 
     int LoadImageFromFile(CObject* dwg, char* fname);

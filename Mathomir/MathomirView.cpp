@@ -2136,8 +2136,8 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 if ((ClipboardExpression->m_NumElements == 1) && (ClipboardExpression->m_pElementList->Type == 5))
                 {
-                    CExpression* expr = (CExpression*)(ClipboardExpression->m_pElementList->pElementObject->
-                                                                            Expression1);
+                    CExpression* expr = ClipboardExpression->m_pElementList->pElementObject->
+                                                             Expression1;
                     if (expr->m_StartAsText)
                     {
                         StartKeyboardEntryAt(AbsoluteX, AbsoluteY, 1);
@@ -5571,10 +5571,10 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                             int adjust_for_text = 0;
                             if ((ClipboardExpression->m_NumElements == 1) && (ClipboardExpression->m_pElementList->Type
                                     == 5) &&
-                                (((CExpression*)(ClipboardExpression->m_pElementList->pElementObject->Expression1))->
-                                    m_StartAsText) &&
-                                (((CExpression*)(ClipboardExpression->m_pElementList->pElementObject->Expression1))->
-                                 m_pElementList->Type == 0))
+                                (ClipboardExpression->m_pElementList->pElementObject->Expression1->
+                                                      m_StartAsText) &&
+                                (ClipboardExpression->m_pElementList->pElementObject->Expression1->
+                                                      m_pElementList->Type == 0))
                             {
                                 adjust_for_text = 1;
                             }
@@ -7256,9 +7256,9 @@ void CMathomirView::OnTimer(UINT nIDEvent)
                     char bff[128];
                     CopyTranslatedString(bff, "Time limited exam.\r\n\r\nMinutes left: ", 5051, 124);
                     char bff2[10];
-                    sprintf(bff2, "%d", warn);
-                    strcat(bff, bff2);
-                    //sprintf(bff,"Time limited exam.\r\n\r\n%d minutes left.", warn);
+                    sprintf_s(bff2, "%d", warn);
+                    strcat_s(bff, bff2);
+                    //sprintf_s(bff,"Time limited exam.\r\n\r\n%d minutes left.", warn);
                     AfxMessageBox(bff,MB_OK | MB_ICONINFORMATION);
                 }
             }
@@ -8278,7 +8278,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                                 {
                                     char str[512];
                                     str[0] = 0;
-                                    ((CExpression*)elm->Expression1)->ConvertToPlainText(500, str);
+                                    elm->Expression1->ConvertToPlainText(500, str);
                                     if (str[0])
                                     {
                                         ExecuteLink(str);
@@ -9348,10 +9348,10 @@ void CMathomirView::OnSaveoptionsSaveas()
     char filter[120];
     CopyTranslatedString(str, "Settings", 5015, 40);
     strcpy_s(filter, str);
-    strcat(filter, "|*.set|");
+    strcat_s(filter, "|*.set|");
     CopyTranslatedString(str, "All files", 5011, 40);
-    strcat(filter, str);
-    strcat(filter, "|*.*||\0");
+    strcat_s(filter, str);
+    strcat_s(filter, "|*.*||\0");
     //char *filter="Settings|*.set|All files|*.*||\0";
     CFileDialog fd(FALSE, "set",nullptr, 0, filter, theApp.m_pMainWnd, 0);
     if (fd.DoModal() == IDOK)
@@ -9366,10 +9366,10 @@ void CMathomirView::OnSaveoptionsLoad()
     char filter[120];
     CopyTranslatedString(str, "Settings", 5015, 40);
     strcpy_s(filter, str);
-    strcat(filter, "|*.set|");
+    strcat_s(filter, "|*.set|");
     CopyTranslatedString(str, "All files", 5011, 40);
-    strcat(filter, str);
-    strcat(filter, "|*.*||\0");
+    strcat_s(filter, str);
+    strcat_s(filter, "|*.*||\0");
     //char *filter="Settings|*.set|All files|*.*||\0";
     CFileDialog fd(TRUE, "set",nullptr,OFN_HIDEREADONLY, filter, theApp.m_pMainWnd, 0);
     if (fd.DoModal() == IDOK)

@@ -79,7 +79,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_WM_MENUCHAR()
     {
         WM_DISPLAYCHANGE, 0, 0, 0, AfxSig_vwp,
-        (AFX_PMSG)(AFX_PMSGW)(static_cast<void (AFX_MSG_CALL CWnd::*)(WPARAM, LPARAM)>(&ThisClass::OnDisplayChange))
+        (AFX_PMSG)(AFX_PMSGW)static_cast<void (AFX_MSG_CALL CWnd::*)(WPARAM, LPARAM)>(&ThisClass::OnDisplayChange)
     },
 END_MESSAGE_MAP()
 
@@ -270,7 +270,7 @@ void ClearFontPool()
 
 HFONT GetFontFromPool(char Face, char Italic, char Bold, unsigned short Size)
 {
-    return GetFontFromPool((Face << 5) | (Italic << 1) | (Bold), Size);
+    return GetFontFromPool(Face << 5 | Italic << 1 | Bold, Size);
 }
 
 HFONT GetFontFromPool(char combination, unsigned short Size)
@@ -282,7 +282,7 @@ HFONT GetFontFromPool(char combination, unsigned short Size)
     for (i = 0; i < NumFontsInPool; i++, tp++)
     {
         //check if the font is already in pool
-        if ((combination == tp->Combination) && (tp->Size == Size))
+        if (combination == tp->Combination && tp->Size == Size)
         {
             //we found exact mach - we will reward this font by adding some points
             if (tp->NumRequests < 20000) tp->NumRequests += 3;
@@ -322,8 +322,8 @@ HFONT GetFontFromPool(char combination, unsigned short Size)
         0, //width
         0, //escapement
         0, //Orientation
-        ((combination & 0x01) ? FontWeight[Face] + 300 : FontWeight[Face]), //Weight
-        (BYTE)((combination & 0x02) ? 1 : 0), //Italic
+        combination & 0x01 ? FontWeight[Face] + 300 : FontWeight[Face], //Weight
+        (BYTE)(combination & 0x02 ? 1 : 0), //Italic
         0, //Underline
         0, //Strikeout
         FontCharSet[Face], //CharSet
@@ -363,8 +363,8 @@ HPEN GetPenFromPool(short width, char IsBlue, int color)
     static short LastWidth;
     static int LastColor;
 
-    if ((width <= 0) && (IsBlue == 0) && (color == 0)) return HDottedLineBlack;
-    if ((width <= 0) && (IsBlue == 1)) return HDottedLineBlue;
+    if (width <= 0 && IsBlue == 0 && color == 0) return HDottedLineBlack;
+    if (width <= 0 && IsBlue == 1) return HDottedLineBlue;
     if (width <= 5)
     {
         if (IsBlue) return HSolidLineBlue[width - 1];
@@ -372,11 +372,11 @@ HPEN GetPenFromPool(short width, char IsBlue, int color)
     }
 
     {
-        int new_color = (IsBlue) ? BLUE_COLOR : color;
-        if ((LastWidth != width) || (LastColor != new_color) || (HOtherLine == nullptr))
+        int new_color = IsBlue ? BLUE_COLOR : color;
+        if (LastWidth != width || LastColor != new_color || HOtherLine == nullptr)
         {
             if (HOtherLine) DeleteObject(HOtherLine);
-            HOtherLine = CreatePen((width > 0) ? PS_SOLID : PS_DOT,max(width, 1), new_color);
+            HOtherLine = CreatePen(width > 0 ? PS_SOLID : PS_DOT,max(width, 1), new_color);
             LastWidth = width;
             LastColor = new_color;
         }
@@ -413,7 +413,7 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
     {
         //if ((Toolbox) && (AutoResizeToolbox))
         //	Toolbox->AutoResize();
-        if ((Toolbox) && (ToolboxSize))
+        if (Toolbox && ToolboxSize)
         {
             if (AutoResizeToolbox)
                 Toolbox->AutoResize();
@@ -428,7 +428,7 @@ unsigned int OWPC_cntr = 0;
 void CMainFrame::OnWindowPosChanged(WINDOWPOS* lpwndpos)
 {
     OWPC_cntr++;
-    if ((lpwndpos->cx == 200) && (lpwndpos->cy == 100) && (OWPC_cntr < 3)) return;
+    if (lpwndpos->cx == 200 && lpwndpos->cy == 100 && OWPC_cntr < 3) return;
 
     CFrameWnd::OnWindowPosChanged(lpwndpos);
 
@@ -528,11 +528,11 @@ int IsMenuAccessKey(UINT nChar)
     {
         for (int i = 30001; i < 30004; i++)
             //check first 3 shortcuts (main menu items starting with specific character - File, Edit, View)
-            if ((LanguagePointers[i] != 0xFFFF) && (LanguageStrings[LanguagePointers[i]] == (char)nChar)) return 1;
+            if (LanguagePointers[i] != 0xFFFF && LanguageStrings[LanguagePointers[i]] == (char)nChar) return 1;
     }
     else
     {
-        if ((nChar == 'F') || (nChar == 'E') || (nChar == 'V')) return 1;
+        if (nChar == 'F' || nChar == 'E' || nChar == 'V') return 1;
     }
 
     return 0;
@@ -581,7 +581,7 @@ void CMainFrame::OnPaint()
     dc.FillSolidRect(0, 0, ClientRect.right, 1, 0x808080);
     RECT ToolboxRect;
     ToolboxRect.top = ToolboxRect.bottom = 0;
-    if ((Toolbox) && (ToolboxSize))
+    if (Toolbox && ToolboxSize)
     {
         Toolbox->GetWindowRect(&ToolboxRect);
     }
@@ -598,8 +598,8 @@ int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked)
 
     if (IsChecked) //when IsCheked==2 then paint gray sign
     {
-        brsh = new CBrush((IsChecked == 1) ? RGB(224, 64, 128) : RGB(192, 192, 192));
-        pn = new CPen(PS_SOLID, 1, (IsChecked == 1) ? RGB(224, 64, 128) : RGB(192, 192, 192)); //190,0,85
+        brsh = new CBrush(IsChecked == 1 ? RGB(224, 64, 128) : RGB(192, 192, 192));
+        pn = new CPen(PS_SOLID, 1, IsChecked == 1 ? RGB(224, 64, 128) : RGB(192, 192, 192)); //190,0,85
 
         DC->SelectObject(brsh);
         DC->SelectObject(pn);
@@ -663,8 +663,8 @@ int MyBitmapIsNew = 0;
 int CMainFrame::StartMyPainting(CDC* DC, int width, int above, int below, int color)
 {
     MyColor = color;
-    if ((MyBitmap == nullptr) || (DC != MyOldDC) || (width > MyBitmapReservedWidth) || (above + below >
-        MyBitmapReservedHeight))
+    if (MyBitmap == nullptr || DC != MyOldDC || width > MyBitmapReservedWidth || above + below >
+        MyBitmapReservedHeight)
     {
         //creates new memory bitmap if the requested bitmap is larger than alredy existing one
         //(otherwise, the existing one is reused because is faster than creating new one)
@@ -732,8 +732,8 @@ int CMainFrame::ReleaseMyPainting(void)
 //the problem is speed in halftone mode - it is too slow.
 int CMainFrame::EndMyPainting(CDC* DC, int X, int Y, int force_black, int flip_image)
 {
-    int W = (MyBitmapWidth) >> 2;
-    int H = (MyBitmapAbove + MyBitmapBelow) >> 2;
+    int W = MyBitmapWidth >> 2;
+    int H = MyBitmapAbove + MyBitmapBelow >> 2;
 
     //the force_black is used if we don't want halftoning (useful for vertical and horizontal lines like fraction line)
     if (force_black) MyDC->SetStretchBltMode(BLACKONWHITE);
@@ -801,7 +801,7 @@ int CMainFrame::EndMyPainting(CDC* DC, int X, int Y, int force_black, int flip_i
                 for (j = 0; j < H; j++)
                     for (i = 0; i < W; i++)
                     {
-                        COLORREF clr = (MyDC->GetPixel(i, j)) & 0x00FFFFFF;
+                        COLORREF clr = MyDC->GetPixel(i, j) & 0x00FFFFFF;
                         if (clr != 0x00FFFFFF) //non-white
                         {
                             clr = clr & 0x00C0C0C0;
@@ -876,7 +876,7 @@ int CMainFrame::MyArc(CDC* DC, int X1, int Y1, int X2, int Y2, int Xstart, int Y
 
 int CMainFrame::MySetPixel(CDC* DC, int X, int Y, char IsBlue)
 {
-    MyDC->SetPixelV(X, Y + MyBitmapAbove, (IsBlue) ? BLUE_COLOR : MyColor);
+    MyDC->SetPixelV(X, Y + MyBitmapAbove, IsBlue ? BLUE_COLOR : MyColor);
     return 0;
 }
 
@@ -908,12 +908,12 @@ int CMainFrame::ClearDocument(void)
             if (TheDocument[i].Type == 1) //expression
             {
                 //((CExpression*)(TheDocument[i].Object))->Delete();
-                delete ((CExpression*)(TheDocument[i].Object));
+                delete (CExpression*)TheDocument[i].Object;
             }
             else if (TheDocument[i].Type == 2) //drawing
             {
                 //((CDrawing*)(TheDocument[i].Object))->Delete();
-                delete ((CDrawing*)(TheDocument[i].Object));
+                delete (CDrawing*)TheDocument[i].Object;
             }
         }
         free(TheDocument);
@@ -922,7 +922,7 @@ int CMainFrame::ClearDocument(void)
     NumDocumentElementsReserved = 10;
     TheDocument = (tDocumentStruct*)malloc(10 * sizeof(tDocumentStruct));
     ViewX = ViewY = 0;
-    if ((DefaultZoom != 150) && (DefaultZoom != 120) && (DefaultZoom != 100) && (DefaultZoom != 80)) DefaultZoom = 100;
+    if (DefaultZoom != 150 && DefaultZoom != 120 && DefaultZoom != 100 && DefaultZoom != 80) DefaultZoom = 100;
     ViewZoom = DefaultZoom;
 #ifdef TEACHER_VERSION
     if (PublicKey) free(PublicKey);
@@ -953,20 +953,20 @@ int AddDocumentObject(int type, int X, int Y)
             long long x4 = -1;
             long long x5 = -1;
             long long x6 = -1;
-            if ((prevTouchedObject >= TheDocument) && (prevTouchedObject < TheDocument + NumDocumentElements))
+            if (prevTouchedObject >= TheDocument && prevTouchedObject < TheDocument + NumDocumentElements)
                 x1 = prevTouchedObject - TheDocument;
-            if ((SelectedDocumentObject >= TheDocument) && (SelectedDocumentObject < TheDocument + NumDocumentElements))
+            if (SelectedDocumentObject >= TheDocument && SelectedDocumentObject < TheDocument + NumDocumentElements)
                 x2 = SelectedDocumentObject - TheDocument;
-            if ((SelectedDocumentObject2 >= TheDocument) && (SelectedDocumentObject2 < TheDocument +
-                NumDocumentElements))
+            if (SelectedDocumentObject2 >= TheDocument && SelectedDocumentObject2 < TheDocument +
+                NumDocumentElements)
                 x3 = SelectedDocumentObject2 - TheDocument;
-            if ((SpecialDrawingHover >= TheDocument) && (SpecialDrawingHover < TheDocument + NumDocumentElements))
+            if (SpecialDrawingHover >= TheDocument && SpecialDrawingHover < TheDocument + NumDocumentElements)
                 x4 = SpecialDrawingHover - TheDocument;
-            if ((prevSpecialDrawingHover >= TheDocument) && (prevSpecialDrawingHover < TheDocument +
-                NumDocumentElements))
+            if (prevSpecialDrawingHover >= TheDocument && prevSpecialDrawingHover < TheDocument +
+                NumDocumentElements)
                 x5 = prevSpecialDrawingHover - TheDocument;
-            if ((KeyboardEntryBaseObject >= TheDocument) && (KeyboardEntryBaseObject < TheDocument +
-                NumDocumentElements))
+            if (KeyboardEntryBaseObject >= TheDocument && KeyboardEntryBaseObject < TheDocument +
+                NumDocumentElements)
                 x6 = KeyboardEntryBaseObject - TheDocument;
             NumDocumentElementsReserved += 20;
             TheDocument = (tDocumentStruct*)realloc(TheDocument, NumDocumentElementsReserved * sizeof(tDocumentStruct));
@@ -1002,7 +1002,7 @@ int AddDocumentObject(int type, int X, int Y)
     TheDocument[NumDocumentElements].Below = 0;
     TheDocument[NumDocumentElements].Length = 0;
     NumDocumentElements++;
-    if ((UseToolbar) && (Toolbox) && (Toolbox->Toolbar)) Toolbox->Toolbar->ConfigureToolbar();
+    if (UseToolbar && Toolbox && Toolbox->Toolbar) Toolbox->Toolbar->ConfigureToolbar();
     return 1;
 }
 
@@ -1041,7 +1041,7 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
 
     if (theMenu == nullptr) return 0;
 
-    if ((LanguageStrings) && (!MenuTranslated))
+    if (LanguageStrings && !MenuTranslated)
     {
         MenuTranslated = 1;
         for (int i = 30000; i < 33000; i++)
@@ -1212,14 +1212,14 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     if (UndoNumLevels)
     {
         char str[64];
-        sprintf(str, "%s %s\tCtrl+Z", UndoText, UndoStruct[UndoNumLevels - 1].text);
+        sprintf_s(str, "%s %s\tCtrl+Z", UndoText, UndoStruct[UndoNumLevels - 1].text);
         theMenu->ModifyMenu(ID_EDIT_UNDO,MF_BYCOMMAND | MF_STRING,ID_EDIT_UNDO, str);
         //DrawMenuBar();
     }
     else
     {
         char str[64];
-        sprintf(str, "%s\tCtrl+Z", UndoText);
+        sprintf_s(str, "%s\tCtrl+Z", UndoText);
         theMenu->ModifyMenu(ID_EDIT_UNDO,MF_BYCOMMAND | MF_STRING,ID_EDIT_UNDO, str);
         //DrawMenuBar();
     }
@@ -1229,7 +1229,7 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     {
         char str[94];
         strcpy_s(str, F1Text);
-        strcat(str, "\tF1");
+        strcat_s(str, "\tF1");
         theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1, str);
         theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE, HandyHelpText);
     }
@@ -1238,11 +1238,11 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
         theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1, F1Text);
         char str[94];
         strcpy_s(str, HandyHelpText);
-        strcat(str, "\tF1");
+        strcat_s(str, "\tF1");
         theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE, str);
     }
 
-    theMenu->CheckMenuItem(ID_HQ_REND, (IsHighQualityRendering) ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_HQ_REND, IsHighQualityRendering ? MF_CHECKED : MF_UNCHECKED);
     /*theMenu->CheckMenuItem(ID_PARENTHESEHEIGHT_EVERINCREASING,(DefaultParentheseType==0)?MF_CHECKED:MF_UNCHECKED);
     theMenu->CheckMenuItem(ID_PARENTHESEHEIGHT_NORMAL,(DefaultParentheseType==1)?MF_CHECKED:MF_UNCHECKED);
     theMenu->CheckMenuItem(ID_PARENTHESEHEIGHT_SMALL,(DefaultParentheseType==2)?MF_CHECKED:MF_UNCHECKED);*/
@@ -1251,126 +1251,126 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     //theMenu->CheckMenuItem(ID_SELECTIONS_FRAME,(FrameSelections==0x01)?MF_CHECKED:MF_UNCHECKED);
     //theMenu->CheckMenuItem(ID_SELECTIONS_UNDERLINE,(FrameSelections==0x03)?MF_CHECKED:MF_UNCHECKED);
     //theMenu->CheckMenuItem(ID_SELECTIONS_NONE,(FrameSelections==0x00)?MF_CHECKED:MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_SELECTIONS_INTELLIGENTFRAMING, (FrameSelections) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_SELECTIONS_SHADOWSELECTIONS, (ShadowSelection) ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_SELECTIONS_INTELLIGENTFRAMING, FrameSelections ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_SELECTIONS_SHADOWSELECTIONS, ShadowSelection ? MF_CHECKED : MF_UNCHECKED);
     //theMenu->CheckMenuItem(ID_SELECTIONS_WIDEKEYBOARDCURSOR,(UseWideCursor)?MF_CHECKED:MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_KEYBOARD_FIXFONTFORNUMBERS, (FixFontForNumbers) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_KEYBOARD_ALTFOREXPONENTS, (UseALTForExponents) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_VIEW_HALFTONERENDERING, (IsHalftoneRendering) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_PAGE_A4PORTRAIT, ((PaperWidth == 1165) && (PaperHeight == 1650))
+    theMenu->CheckMenuItem(ID_KEYBOARD_FIXFONTFORNUMBERS, FixFontForNumbers ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_KEYBOARD_ALTFOREXPONENTS, UseALTForExponents ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_VIEW_HALFTONERENDERING, IsHalftoneRendering ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_PAGE_A4PORTRAIT, PaperWidth == 1165 && PaperHeight == 1650
                                                    ? MF_CHECKED
                                                    : MF_UNCHECKED);
     theMenu->CheckMenuItem(
-        ID_PAGE_A4LANDSCAPE, ((PaperWidth == 1650) && (PaperHeight == 1165)) ? MF_CHECKED : MF_UNCHECKED);
+        ID_PAGE_A4LANDSCAPE, PaperWidth == 1650 && PaperHeight == 1165 ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(
-        ID_PAGE_LETTERPORTRAIT, ((PaperWidth == 1200) && (PaperHeight == 1553)) ? MF_CHECKED : MF_UNCHECKED);
+        ID_PAGE_LETTERPORTRAIT, PaperWidth == 1200 && PaperHeight == 1553 ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(
-        ID_PAGE_LETTERLANDSCAPE, ((PaperWidth == 1553) && (PaperHeight == 1200)) ? MF_CHECKED : MF_UNCHECKED);
+        ID_PAGE_LETTERLANDSCAPE, PaperWidth == 1553 && PaperHeight == 1200 ? MF_CHECKED : MF_UNCHECKED);
 
     int page_numeration = PageNumeration & 0x0F;
     int is_bottom = PageNumeration & 0x10;
     int is_right = PageNumeration & 0x20;
     int is_excludefirst = PageNumeration & 0x40;
-    theMenu->CheckMenuItem(ID_PAGENUMERATION_NONE, (page_numeration == 0) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_PAGENUMERATION_, (page_numeration == 1) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_PAGENUMERATION_32899, (page_numeration == 2) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_PAGENUMERATION_PAGE1OF10, (page_numeration == 3) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_PAGENUMERATION_BOTTOM, (is_bottom) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_PAGENUMERATION_RIGHT, (is_right) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_PAGENUMERATION_EXCLUDEFIRSTPAGE, (is_excludefirst) ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_PAGENUMERATION_NONE, page_numeration == 0 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_PAGENUMERATION_, page_numeration == 1 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_PAGENUMERATION_32899, page_numeration == 2 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_PAGENUMERATION_PAGE1OF10, page_numeration == 3 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_PAGENUMERATION_BOTTOM, is_bottom ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_PAGENUMERATION_RIGHT, is_right ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_PAGENUMERATION_EXCLUDEFIRSTPAGE, is_excludefirst ? MF_CHECKED : MF_UNCHECKED);
 
-    theMenu->CheckMenuItem(ID_ZOOM_USECTRLFORWHEELZOOM, (UseCTRLForZoom) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_MOUSE_MOUSE, (!UseCTRLForZoom) ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_ZOOM_USECTRLFORWHEELZOOM, UseCTRLForZoom ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_MOUSE_MOUSE, !UseCTRLForZoom ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(
-        ID_MOUSE_RIGHTMOUSEBUTTONTOTOGGLEMOUSE, (RightButtonTogglesWheel) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_MOUSE_SLOW, (WheelScrollingSpeed < 50) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_GRIDANDGUIDELINES_SNAPTOGUIDELINES, (SnapToGuidlines) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_Menu32905, ((Toolbox) && (Toolbox->Keyboard) && (Toolbox->Keyboard->IsWindowVisible()))
+        ID_MOUSE_RIGHTMOUSEBUTTONTOTOGGLEMOUSE, RightButtonTogglesWheel ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_MOUSE_SLOW, WheelScrollingSpeed < 50 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_GRIDANDGUIDELINES_SNAPTOGUIDELINES, SnapToGuidlines ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_Menu32905, Toolbox && Toolbox->Keyboard && Toolbox->Keyboard->IsWindowVisible()
                                              ? MF_CHECKED
                                              : MF_UNCHECKED);
 
     theMenu->CheckMenuItem(
-        ID_TOOLBOXANDCONTEXTMENU_GIGANTIC, ((ToolboxSize > 115) && (!AutoResizeToolbox)) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_TOOLBOX_LARGE, ((ToolboxSize > 90) && (ToolboxSize <= 115) && (!AutoResizeToolbox))
+        ID_TOOLBOXANDCONTEXTMENU_GIGANTIC, ToolboxSize > 115 && !AutoResizeToolbox ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_TOOLBOX_LARGE, ToolboxSize > 90 && ToolboxSize <= 115 && !AutoResizeToolbox
                                                  ? MF_CHECKED
                                                  : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_TOOLBOX_MEDIUM, ((ToolboxSize >= 70) && (ToolboxSize <= 90) && (!AutoResizeToolbox))
+    theMenu->CheckMenuItem(ID_TOOLBOX_MEDIUM, ToolboxSize >= 70 && ToolboxSize <= 90 && !AutoResizeToolbox
                                                   ? MF_CHECKED
                                                   : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_TOOLBOX_SMALL, ((ToolboxSize < 70) && (!AutoResizeToolbox)) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_TOOLBOXANDCONTEXTMENU_AUTO, (AutoResizeToolbox) ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_TOOLBOX_SMALL, ToolboxSize < 70 && !AutoResizeToolbox ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_TOOLBOXANDCONTEXTMENU_AUTO, AutoResizeToolbox ? MF_CHECKED : MF_UNCHECKED);
 
-    theMenu->CheckMenuItem(ID_TOOLBOXANDCONTEXTMENU_SHOWTOOLBAR, (UseToolbar) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_SIZE200, (ImageSize == 200) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_SIZE150, (ImageSize == 150) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_SIZE100, (ImageSize == 100) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_SIZE80, (ImageSize == 80) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_FORCEHIGHQUALITY, (ForceHighQualityImage) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_FORCEHALFTONE, (ForceHalftoneImage) ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_TOOLBOXANDCONTEXTMENU_SHOWTOOLBAR, UseToolbar ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_SIZE200, ImageSize == 200 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_SIZE150, ImageSize == 150 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_SIZE100, ImageSize == 100 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_SIZE80, ImageSize == 80 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_FORCEHIGHQUALITY, ForceHighQualityImage ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_FORCEHALFTONE, ForceHalftoneImage ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(
-        ID_FONTSIZEANDDEFAULTZOOM_DEFAULTZOOMIS150, (DefaultZoom == 150) ? MF_CHECKED : MF_UNCHECKED);
+        ID_FONTSIZEANDDEFAULTZOOM_DEFAULTZOOMIS150, DefaultZoom == 150 ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(
-        ID_FONTSIZEANDDEFAULTZOOM_DEFAULTZOOMIS120, (DefaultZoom == 120) ? MF_CHECKED : MF_UNCHECKED);
+        ID_FONTSIZEANDDEFAULTZOOM_DEFAULTZOOMIS120, DefaultZoom == 120 ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(
-        ID_FONTSIZEANDDEFAULTZOOM_DEFAULTZOOMIS100, (DefaultZoom == 100) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_FONTSIZEANDDEFAULTZOOM_DEFAULTZOOMIS80, (DefaultZoom == 80) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_FONTSIZE_VERYLARGE, (DefaultFontSize >= 150) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_FONTSIZE_LARGE, (DefaultFontSize == 120) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_FONTSIZE_NORMAL, (DefaultFontSize == 100) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_FONTSIZE_SMALL, (DefaultFontSize == 85) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_MOVINGDOT_SMALL, (MovingDotSize < 6) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_MOVINGDOT_MEDIUM, (MovingDotSize == 6) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_MOVINGDOT_LARGE, (MovingDotSize > 6) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_MOVINGDOT_PERMANENT, (MovingDotPermanent) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_EDIT_ACCESSLOCKEDOBJECTS, (AccessLockedObjects) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_GRID_FINE, (GRID < 10) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_GRID_MEDIUM, ((GRID >= 10) && (GRID <= 20)) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_GRID_COARSE, (GRID > 20) ? MF_CHECKED : MF_UNCHECKED);
+        ID_FONTSIZEANDDEFAULTZOOM_DEFAULTZOOMIS100, DefaultZoom == 100 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_FONTSIZEANDDEFAULTZOOM_DEFAULTZOOMIS80, DefaultZoom == 80 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_FONTSIZE_VERYLARGE, DefaultFontSize >= 150 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_FONTSIZE_LARGE, DefaultFontSize == 120 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_FONTSIZE_NORMAL, DefaultFontSize == 100 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_FONTSIZE_SMALL, DefaultFontSize == 85 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_MOVINGDOT_SMALL, MovingDotSize < 6 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_MOVINGDOT_MEDIUM, MovingDotSize == 6 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_MOVINGDOT_LARGE, MovingDotSize > 6 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_MOVINGDOT_PERMANENT, MovingDotPermanent ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_EDIT_ACCESSLOCKEDOBJECTS, AccessLockedObjects ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_GRID_FINE, GRID < 10 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_GRID_MEDIUM, GRID >= 10 && GRID <= 20 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_GRID_COARSE, GRID > 20 ? MF_CHECKED : MF_UNCHECKED);
     //theMenu->CheckMenuItem(ID_GRID_SNAPTOGRID,(SnapToGrid)?MF_CHECKED:MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_VIEW_SHOWGRID, (IsShowGrid) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_SYMBOLICCALCULATOR_ENABLE, (IsMathDisabled) ? MF_UNCHECKED : MF_CHECKED);
-    theMenu->CheckMenuItem(ID_IMAGINARYUNIT_I, (ImaginaryUnit == 'i') ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_IMAGINARYUNIT_J, (ImaginaryUnit == 'j') ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_VIEW_SHOWGRID, IsShowGrid ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_SYMBOLICCALCULATOR_ENABLE, IsMathDisabled ? MF_UNCHECKED : MF_CHECKED);
+    theMenu->CheckMenuItem(ID_IMAGINARYUNIT_I, ImaginaryUnit == 'i' ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_IMAGINARYUNIT_J, ImaginaryUnit == 'j' ? MF_CHECKED : MF_UNCHECKED);
     if (GRID < 5) GRID = 5;
     if (GRID > 80) GRID = 80;
-    theMenu->CheckMenuItem(ID_KEYBOARD_GENERALVARIABLEMODE, (IsSimpleVariableMode == 0) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_KEYBOARD_VERYSIMPLEVARIABLEMODE, (IsSimpleVariableMode) ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_KEYBOARD_GENERALVARIABLEMODE, IsSimpleVariableMode == 0 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_KEYBOARD_VERYSIMPLEVARIABLEMODE, IsSimpleVariableMode ? MF_CHECKED : MF_UNCHECKED);
     //theMenu->CheckMenuItem(ID_KEYBOARD_SIMPLEVARIABLEMODE,(IsSimpleVariableMode==1)?MF_CHECKED:MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_KEYBOARD_ALLOWCOMMAASDECIMALSEPARATOR, (UseCommaAsDecimal) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_AUTOSAVE_NEVER, (AutosaveOption == 0) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_AUTOSAVE_LOW, (AutosaveOption == 1) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_AUTOSAVE_MEDIUM, (AutosaveOption == 2) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_AUTOSAVE_HIGH, (AutosaveOption == 3) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_ZOOM_WHEELZOOMADJUSTSPOINTER, (MoveCursorOnWheel) ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_KEYBOARD_ALLOWCOMMAASDECIMALSEPARATOR, UseCommaAsDecimal ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_AUTOSAVE_NEVER, AutosaveOption == 0 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_AUTOSAVE_LOW, AutosaveOption == 1 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_AUTOSAVE_MEDIUM, AutosaveOption == 2 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_AUTOSAVE_HIGH, AutosaveOption == 3 ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_ZOOM_WHEELZOOMADJUSTSPOINTER, MoveCursorOnWheel ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(
-        ID_MOUSE_REVERSEMOUSEWHEELSCROLLINGDIRECTION, (MouseWheelDirection) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_KEYBOARD_ALTMENUSHORTCUTS, (EnableMenuShortcuts) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_KEYBOARD_F1SETSZOOMLEVELTO100, (F1SetsZoom) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_PRINTFONTSASIMAGES, (PrintTextAsImage) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_PRINTFONTSASIMAGES, (PrintTextAsImage) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_KEYBOARD_USECAPSLOCKTOTOGGLETYPINGMODE, (UseCapsLock) ? MF_CHECKED : MF_UNCHECKED);
-    theMenu->CheckMenuItem(ID_KEYBOARD_USECOMPLEXINDEXES, (UseComplexIndexes) ? MF_CHECKED : MF_UNCHECKED);
+        ID_MOUSE_REVERSEMOUSEWHEELSCROLLINGDIRECTION, MouseWheelDirection ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_KEYBOARD_ALTMENUSHORTCUTS, EnableMenuShortcuts ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_KEYBOARD_F1SETSZOOMLEVELTO100, F1SetsZoom ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_PRINTFONTSASIMAGES, PrintTextAsImage ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_OUTPUTIMAGE_PRINTFONTSASIMAGES, PrintTextAsImage ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_KEYBOARD_USECAPSLOCKTOTOGGLETYPINGMODE, UseCapsLock ? MF_CHECKED : MF_UNCHECKED);
+    theMenu->CheckMenuItem(ID_KEYBOARD_USECOMPLEXINDEXES, UseComplexIndexes ? MF_CHECKED : MF_UNCHECKED);
     {
         char str[64];
         CopyTranslatedString(str, "Font &1", 32866, 63);
-        strcat(str, " - ");
-        strcat(str, FontFacenames[0]);
-        strcat(str, "...");
+        strcat_s(str, " - ");
+        strcat_s(str, FontFacenames[0]);
+        strcat_s(str, "...");
         theMenu->ModifyMenu(ID_FONTFACES_FONT1,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT1, str);
         CopyTranslatedString(str, "Font &2", 32867, 63);
-        strcat(str, " - ");
-        strcat(str, FontFacenames[1]);
-        strcat(str, "...");
+        strcat_s(str, " - ");
+        strcat_s(str, FontFacenames[1]);
+        strcat_s(str, "...");
         theMenu->ModifyMenu(ID_FONTFACES_FONT2,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT2, str);
         CopyTranslatedString(str, "Font &3", 32868, 63);
-        strcat(str, " - ");
-        strcat(str, FontFacenames[2]);
-        strcat(str, "...");
+        strcat_s(str, " - ");
+        strcat_s(str, FontFacenames[2]);
+        strcat_s(str, "...");
         theMenu->ModifyMenu(ID_FONTFACES_FONT3,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT3, str);
         CopyTranslatedString(str, "Font &4", 32869, 63);
-        strcat(str, " - ");
-        strcat(str, FontFacenames[3]);
-        strcat(str, "...");
+        strcat_s(str, " - ");
+        strcat_s(str, FontFacenames[3]);
+        strcat_s(str, "...");
         theMenu->ModifyMenu(ID_FONTFACES_FONT4,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT4, str);
     }
 
@@ -1402,12 +1402,12 @@ int CMainFrame::UndoInit(void)
             if (us->Type == 1)
             {
                 //((CExpression*)(us->pObject))->Delete();
-                delete ((CExpression*)(us->pObject));
+                delete (CExpression*)us->pObject;
             }
             else if (us->Type == 2)
             {
                 //((CDrawing*)(us->pObject))->Delete();
-                delete ((CDrawing*)(us->pObject));
+                delete (CDrawing*)us->pObject;
             }
         }
         free(pUndoObjectList);
@@ -1454,7 +1454,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
 
     //if ((UseToolbar) && (Toolbox->Toolbar)) Toolbox->Toolbar->ConfigureToolbar();
     std::string text = undo_text;
-    if ((LanguageStrings) && (unique_ID >= 20000) && (unique_ID < 30000))
+    if (LanguageStrings && unique_ID >= 20000 && unique_ID < 30000)
     {
         unsigned short pntr = LanguagePointers[unique_ID];
         if (pntr != 0xFFFF)
@@ -1491,14 +1491,14 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
         {
             //shift the 'used in level' bitmask - this bitmask tells at what undo level is
             //this object used
-            us->UsedInLevel = (us->UsedInLevel) >> 1;
+            us->UsedInLevel = us->UsedInLevel >> 1;
             if (us->UsedInLevel == 0)
             {
                 //neither bit is set anymore -> this object is not used anymore
                 if (us->pObject)
                 {
-                    if (us->Type == 1) delete ((CExpression*)(us->pObject));
-                    else if (us->Type == 2) delete ((CDrawing*)(us->pObject));
+                    if (us->Type == 1) delete (CExpression*)us->pObject;
+                    else if (us->Type == 2) delete (CDrawing*)us->pObject;
                 }
                 memmove(us, us + 1, (UndoNumObjects - i - 1) * sizeof(tUndoObjectStruct));
                 i--;
@@ -1510,16 +1510,16 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
 
     //store the undo text (this is shown in main menu -> for example 'Undo insert object')
     strcpy_s(UndoStruct[UndoNumLevels].text, text.c_str());
-    if ((KeyboardEntryBaseObject) && (KeyboardEntryObject))
-        strcat(UndoStruct[UndoNumLevels].text, "**");
+    if (KeyboardEntryBaseObject && KeyboardEntryObject)
+        strcat_s(UndoStruct[UndoNumLevels].text, "**");
 
     //calculate checksums
     tDocumentStruct* ds = TheDocument;
     for (i = 0; i < NumDocumentElements; i++, ds++)
         if (ds->Object)
         {
-            if (ds->Type == 1) ds->Checksum = ((CExpression*)(ds->Object))->CalcChecksum();
-            else if (ds->Type == 2) ds->Checksum = ((CDrawing*)(ds->Object))->CalcChecksum();
+            if (ds->Type == 1) ds->Checksum = ((CExpression*)ds->Object)->CalcChecksum();
+            else if (ds->Type == 2) ds->Checksum = ((CDrawing*)ds->Object)->CalcChecksum();
         }
 
     //store the main document structure
@@ -1540,7 +1540,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
         int j;
         tUndoObjectStruct* us = pUndoObjectList;
         for (j = 0; j < UndoNumObjects; j++, us++)
-            if ((ds->Object == us->pOriginal) && (us->Type == ds->Type) && (ds->Checksum == us->Checksum))
+            if (ds->Object == us->pOriginal && us->Type == ds->Type && ds->Checksum == us->Checksum)
                 break;
 
         if (j == UndoNumObjects)
@@ -1560,22 +1560,22 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
             }
             if (ds->Type == 1)
             {
-                us->Checksum = ((CExpression*)(ds->Object))->CalcChecksum();
-                us->pObject = (CObject*)new CExpression(nullptr, nullptr, ((CExpression*)(ds->Object))->m_FontSize);
-                ((CExpression*)(us->pObject))->CopyExpression((CExpression*)ds->Object, 2);
+                us->Checksum = ((CExpression*)ds->Object)->CalcChecksum();
+                us->pObject = (CObject*)new CExpression(nullptr, nullptr, ((CExpression*)ds->Object)->m_FontSize);
+                ((CExpression*)us->pObject)->CopyExpression((CExpression*)ds->Object, 2);
             }
             else if (ds->Type == 2)
             {
-                us->Checksum = ((CDrawing*)(ds->Object))->CalcChecksum();
+                us->Checksum = ((CDrawing*)ds->Object)->CalcChecksum();
                 us->pObject = (CObject*)new CDrawing();
-                ((CDrawing*)(us->pObject))->CopyDrawing((CDrawing*)ds->Object);
+                ((CDrawing*)us->pObject)->CopyDrawing((CDrawing*)ds->Object);
             }
             us->pOriginal = ds->Object;
             us->Type = ds->Type;
             us->UsedInLevel = 0;
             UndoNumObjects++;
         }
-        (us->UsedInLevel) |= (1 << UndoNumLevels);
+        us->UsedInLevel |= 1 << UndoNumLevels;
     }
 
     UndoNumLevels++;
@@ -1591,7 +1591,7 @@ int CMainFrame::UndoCheckText(const std::string& text_def, int unique_ID)
     if (UndoNumLevels == 0) return 0;
 
     std::string text = text_def;
-    if ((LanguageStrings) && (unique_ID >= 20000) && (unique_ID < 30000))
+    if (LanguageStrings && unique_ID >= 20000 && unique_ID < 30000)
     {
         unsigned short pntr = LanguagePointers[unique_ID];
         if (pntr != 0xFFFF)
@@ -1635,11 +1635,11 @@ int CMainFrame::UndoRestore()
             int j;
             int found = 0;
             for (j = 0; j < UndoNumObjects; j++)
-                if ((TheDocument[i].Object == pUndoObjectList[j].pOriginal) && (pUndoObjectList[j].Type == TheDocument[
-                        i].Type) &&
-                    (((CExpression*)(TheDocument[i].Object))->CalcChecksum() == pUndoObjectList[j].Checksum))
+                if (TheDocument[i].Object == pUndoObjectList[j].pOriginal && pUndoObjectList[j].Type == TheDocument[
+                        i].Type &&
+                    ((CExpression*)TheDocument[i].Object)->CalcChecksum() == pUndoObjectList[j].Checksum)
                 {
-                    int tmp = 1 << (UndoNumLevels - 1);
+                    int tmp = 1 << UndoNumLevels - 1;
                     if (pUndoObjectList[j].UsedInLevel & tmp)
                     {
                         found = 1;
@@ -1653,7 +1653,7 @@ int CMainFrame::UndoRestore()
                 //it was modified
                 //so we will delete and latter recreate.
                 //((CExpression*)(TheDocument[i].Object))->Delete(); //MOD - removed (redundant)
-                delete ((CExpression*)(TheDocument[i].Object));
+                delete (CExpression*)TheDocument[i].Object;
                 TheDocument[i].Object = nullptr;
             }
         }
@@ -1663,11 +1663,11 @@ int CMainFrame::UndoRestore()
             int j;
             int found = 0;
             for (j = 0; j < UndoNumObjects; j++)
-                if ((TheDocument[i].Object == pUndoObjectList[j].pOriginal) && (pUndoObjectList[j].Type == TheDocument[
-                        i].Type) &&
-                    (((CDrawing*)(TheDocument[i].Object))->CalcChecksum() == pUndoObjectList[j].Checksum))
+                if (TheDocument[i].Object == pUndoObjectList[j].pOriginal && pUndoObjectList[j].Type == TheDocument[
+                        i].Type &&
+                    ((CDrawing*)TheDocument[i].Object)->CalcChecksum() == pUndoObjectList[j].Checksum)
                 {
-                    int tmp = 1 << (UndoNumLevels - 1);
+                    int tmp = 1 << UndoNumLevels - 1;
                     if (pUndoObjectList[j].UsedInLevel & tmp)
                     {
                         found = 1;
@@ -1681,7 +1681,7 @@ int CMainFrame::UndoRestore()
                 //it was modified
                 //so we will delete and latter recreate.
                 //((CDrawing*)(TheDocument[i].Object))->Delete(); //MOD - removed (redundant)
-                delete ((CDrawing*)(TheDocument[i].Object));
+                delete (CDrawing*)TheDocument[i].Object;
                 TheDocument[i].Object = nullptr;
             }
         }
@@ -1708,14 +1708,14 @@ int CMainFrame::UndoRestore()
         //if (TheDocument[i].MovingDotState==4) TheDocument[i].MovingDotState=0;
         if (TheDocument[i].Object)
         {
-            int cc = 1 << (UndoNumLevels - 1); //MOD - added
+            int cc = 1 << UndoNumLevels - 1; //MOD - added
             int j;
             int found = 0;
             for (j = 0; j < UndoNumObjects; j++)
-                if ((TheDocument[i].Object == pUndoObjectList[j].pOriginal) && (pUndoObjectList[j].Type == TheDocument[
-                        i].Type) &&
-                    (TheDocument[i].Checksum == pUndoObjectList[j].Checksum) &&
-                    (pUndoObjectList[j].UsedInLevel & cc)) //MOD - strenghtened
+                if (TheDocument[i].Object == pUndoObjectList[j].pOriginal && pUndoObjectList[j].Type == TheDocument[
+                        i].Type &&
+                    TheDocument[i].Checksum == pUndoObjectList[j].Checksum &&
+                    pUndoObjectList[j].UsedInLevel & cc) //MOD - strenghtened
                 {
                     found = 1;
                     break;
@@ -1734,14 +1734,14 @@ int CMainFrame::UndoRestore()
                     if (pUndoObjectList[j].Type == 1)
                     {
                         TheDocument[i].Object = (CObject*)new CExpression(
-                            nullptr, nullptr, ((CExpression*)(pUndoObjectList[j].pObject))->m_FontSize);
-                        ((CExpression*)(TheDocument[i].Object))->CopyExpression(
-                            (CExpression*)(pUndoObjectList[j].pObject), 2);
+                            nullptr, nullptr, ((CExpression*)pUndoObjectList[j].pObject)->m_FontSize);
+                        ((CExpression*)TheDocument[i].Object)->CopyExpression(
+                            (CExpression*)pUndoObjectList[j].pObject, 2);
                     }
                     else if (pUndoObjectList[j].Type == 2)
                     {
                         TheDocument[i].Object = (CObject*)new CDrawing();
-                        ((CDrawing*)(TheDocument[i].Object))->CopyDrawing((CDrawing*)(pUndoObjectList[j].pObject));
+                        ((CDrawing*)TheDocument[i].Object)->CopyDrawing((CDrawing*)pUndoObjectList[j].pObject);
                     }
                 }
             }
@@ -1775,15 +1775,15 @@ int CMainFrame::UndoRestore()
         pUndoObjectList[i].UsedInLevel = pUndoObjectList[i].UsedInLevel & tmp;
         if (pUndoObjectList[i].UsedInLevel == 0) //this object is not used anymore
         {
-            if ((pUndoObjectList[i].Type == 1) && (pUndoObjectList[i].pObject))
+            if (pUndoObjectList[i].Type == 1 && pUndoObjectList[i].pObject)
             {
                 //((CExpression*)(pUndoObjectList[i].pObject))->Delete(); //MOD - removed (redundant)
-                delete ((CExpression*)(pUndoObjectList[i].pObject));
+                delete (CExpression*)pUndoObjectList[i].pObject;
             }
-            else if ((pUndoObjectList[i].Type == 2) && (pUndoObjectList[i].pObject))
+            else if (pUndoObjectList[i].Type == 2 && pUndoObjectList[i].pObject)
             {
                 //((CDrawing*)(pUndoObjectList[i].pObject))->Delete();  //MOD - removed (redundant)
-                delete ((CDrawing*)(pUndoObjectList[i].pObject));
+                delete (CDrawing*)pUndoObjectList[i].pObject;
             }
 
             //int j;								//MOD - following three lines modified (changed to single memmove)
@@ -1821,14 +1821,14 @@ char* CMainFrame::XML_search(char* text, char* file)
     char is_quotation = 0;
     char is_inside = 0;
     int text_len = (int)strlen(text);
-    while ((*file) != 0)
+    while (*file != 0)
     {
         char ch = *file;
-        if ((ch == '<') && (!is_inside)) is_inside = 1;
-        if ((ch == '>') && (is_inside) && (!is_quotation)) is_inside = 0;
-        if ((ch == '"') && (is_inside) && (is_quotation)) is_quotation = 0;
-        else if ((ch == '"') && (is_inside) && (!is_quotation)) is_quotation = 1;
-        if ((strncmp(file, text, text_len) == 0) && (is_inside) && (!is_quotation) && (ch > ' ') && (ch != '<'))
+        if (ch == '<' && !is_inside) is_inside = 1;
+        if (ch == '>' && is_inside && !is_quotation) is_inside = 0;
+        if (ch == '"' && is_inside && is_quotation) is_quotation = 0;
+        else if (ch == '"' && is_inside && !is_quotation) is_quotation = 1;
+        if (strncmp(file, text, text_len) == 0 && is_inside && !is_quotation && ch > ' ' && ch != '<')
         {
             return file + text_len;
         }
@@ -1846,20 +1846,20 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
     int k = 0;
     char started_attribute = 0;
     char started_value = 0;
-    while ((*file) != 0)
+    while (*file != 0)
     {
         char ch = *file;
 
-        if ((ch > ' ') || (started_value == 1))
+        if (ch > ' ' || started_value == 1)
         {
-            if ((started_value == 0) && (ch == '>')) //no atribute-value pair found
+            if (started_value == 0 && ch == '>') //no atribute-value pair found
             {
                 attribute[0] = 0;
                 value[0] = 0;
                 return file + 1;
             }
 
-            if ((ch == '\\') && (started_value == 1)) //special character \XX (hex-code)
+            if (ch == '\\' && started_value == 1) //special character \XX (hex-code)
             {
                 char tmp[3];
                 tmp[0] = *(file + 1);
@@ -1873,19 +1873,19 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
                 file += 2;
             }
 
-            if ((started_value == 1) && (*file == '"')) //value finished - return results
+            if (started_value == 1 && *file == '"') //value finished - return results
             {
                 attribute[j] = 0;
                 value[k] = 0;
                 return file + 1;
             }
 
-            if ((started_attribute == 2) && (started_value == 0) && (*file == '"')) started_value = 1;
-            if ((started_attribute == 1) && (ch == '=')) started_attribute = 2;
+            if (started_attribute == 2 && started_value == 0 && *file == '"') started_value = 1;
+            if (started_attribute == 1 && ch == '=') started_attribute = 2;
             if (!started_attribute) started_attribute = 1;
 
             if (started_attribute == 1) attribute[j++] = ch;
-            if ((started_value == 1) && (*file != '"')) value[k++] = ch;
+            if (started_value == 1 && *file != '"') value[k++] = ch;
             if (j > 47) j = 47;
             if (k >= value_buffer_size) k = value_buffer_size - 1;
         }
@@ -1915,13 +1915,13 @@ int CMainFrame::RearangeObjects(int delta)
             for (int j = 0; j < NumDocumentElements; j++)
             {
                 tDocumentStruct* ds2 = TheDocument + j;
-                if (((ds2->MovingDotState & 0xC0) == 0) && (ds2->MovingDotState != 5))
+                if ((ds2->MovingDotState & 0xC0) == 0 && ds2->MovingDotState != 5)
                 {
                     int minx2 = ds2->absolute_X;
                     int maxx2 = ds2->absolute_X + ds2->Length;
                     int miny2 = ds2->absolute_Y - ds2->Above;
-                    if ((maxx2 > minx) && (minx2 < maxx) &&
-                        (miny2 > miny) && (miny2 < maxy))
+                    if (maxx2 > minx && minx2 < maxx &&
+                        miny2 > miny && miny2 < maxy)
                     {
                         int d = maxy - miny2;
                         if (d > mx) mx = d;
@@ -1959,14 +1959,14 @@ int CMainFrame::RearangeObjects(int delta)
                 for (int j = 0; j < NumDocumentElements; j++)
                 {
                     tDocumentStruct* ds2 = TheDocument + j;
-                    if (((ds2->MovingDotState & 0xC0) == 0) && (ds2->MovingDotState != 5))
+                    if ((ds2->MovingDotState & 0xC0) == 0 && ds2->MovingDotState != 5)
                     {
                         int minx2 = ds2->absolute_X;
                         int maxx2 = ds2->absolute_X + ds2->Length;
                         int miny2 = ds2->absolute_Y - ds2->Above;
-                        int maxy2 = ds2->absolute_Y + ((ds2->Type == 1) ? 0 : ds2->Below);
-                        if ((maxx2 > minx) && (minx2 < maxx) &&
-                            (maxy2 > miny) && (miny2 < maxy))
+                        int maxy2 = ds2->absolute_Y + (ds2->Type == 1 ? 0 : ds2->Below);
+                        if (maxx2 > minx && minx2 < maxx &&
+                            maxy2 > miny && miny2 < maxy)
                         {
                             ds2->absolute_Y += delta;
                             ds2->MovingDotState |= 0x80;
@@ -1987,25 +1987,25 @@ rearange_end:
 
 void CMainFrame::OnUpdateEditImage(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable((NumSelectedObjects) ? 1 : 0);
+    pCmdUI->Enable(NumSelectedObjects ? 1 : 0);
     pCmdUI->SetCheck(0);
 }
 
 void CMainFrame::OnUpdateEditSaveequationimage(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable((NumSelectedObjects) ? 1 : 0);
+    pCmdUI->Enable(NumSelectedObjects ? 1 : 0);
     pCmdUI->SetCheck(0);
 }
 
 void CMainFrame::OnUpdateEditCopymathmlcode(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable((NumSelectedObjects) ? 1 : 0);
+    pCmdUI->Enable(NumSelectedObjects ? 1 : 0);
     pCmdUI->SetCheck(0);
 }
 
 void CMainFrame::OnUpdateEditCopylatexcode(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable((NumSelectedObjects) ? 1 : 0);
+    pCmdUI->Enable(NumSelectedObjects ? 1 : 0);
     pCmdUI->SetCheck(0);
 }
 
@@ -2019,12 +2019,12 @@ HFONT StaticMessageWindowFont;
 extern int PresentationModeActiveTimer;
 
 #pragma optimize("s",on)
-void DisplayShortText(std::string text, int x, int y, int langID, int flags)
+void DisplayShortText(const std::string& text, int x, int y, int langID, int flags)
 {
     //displays a message in child Edit box (CEdit) shown somewhere over main view
     //(note that CMathomirView uses OnCtlColor to define text/background colors)
 
-    std::string buff = GetTranslatedString(text, langID);
+    const std::string buff = GetTranslatedString(text, langID);
 
     if (flags != 1) PresentationModeActiveTimer = 0;
     if (!StaticMessageWindow)
@@ -2049,7 +2049,7 @@ void DisplayShortText(std::string text, int x, int y, int langID, int flags)
         StaticMessageWindowTextclr = RGB(160, 160, 160);
         StaticMessageWindowBkclr = RGB(240, 240, 240);
     }
-    if ((flags == 2) || (flags == 3))
+    if (flags == 2 || flags == 3)
     {
         //sigma and 'T' signs for math/text mode
         fsize = 18;
@@ -2075,7 +2075,7 @@ void DisplayShortText(std::string text, int x, int y, int langID, int flags)
         0, //width
         0, //escapement
         0, //Orientation
-        ((flags == 2) || (flags == 3)) ? FW_BOLD : 0, //Weight
+        flags == 2 || flags == 3 ? FW_BOLD : 0, //Weight
         0, //Italic
         0, //Underline
         0, //Strikeout
@@ -2103,7 +2103,7 @@ void DisplayShortText(std::string text, int x, int y, int langID, int flags)
     if (y > r.bottom - ysize)
     {
         y -= ysize;
-        if ((KeyboardEntryBaseObject) && ((flags == 2) || (flags == 3)))
+        if (KeyboardEntryBaseObject && (flags == 2 || flags == 3))
             y -= (KeyboardEntryBaseObject->Above + KeyboardEntryBaseObject->Below + 4) * ViewZoom / 100 + 2;
     }
 
@@ -2133,7 +2133,7 @@ void DisplayShortText(std::string text, int x, int y, int langID, int flags)
 int CopyTranslatedString(char* dest, const char* eng_defstr, int id, int destlen)
 {
     char* defstr = (char*)eng_defstr;
-    if ((LanguageStrings) && (id < 36000))
+    if (LanguageStrings && id < 36000)
     {
         //language database exists - check for the translation
         if (id < 0) id = 1000 - id;
@@ -2160,7 +2160,7 @@ int CopyTranslatedString(char* dest, const char* eng_defstr, int id, int destlen
 std::string GetTranslatedString(const std::string& eng_defstr, int id)
 {
     std::string defstr = eng_defstr;
-    if ((LanguageStrings) && (id < 36000))
+    if (LanguageStrings && id < 36000)
     {
         //language database exists - check for the translation
         if (id < 0) id = 1000 - id;
@@ -2189,7 +2189,7 @@ int ExecuteLink(char* command)
         {
             CExpression* e = (CExpression*)ds->Object;
             CExpression* label = e->GetLabel();
-            if ((e->m_IsHeadline) || (label))
+            if (e->m_IsHeadline || label)
             {
                 buff[0] = 0;
                 if (e->m_IsHeadline) e->ConvertToPlainText(500, buff);
@@ -2211,8 +2211,8 @@ int ExecuteLink(char* command)
                     else if (toupper(ch1) == toupper(ch2)) tmp += 2;
                     else
                     {
-                        if ((ch1 == '_') || (ch1 == '-')) ch1 = ' ';
-                        if ((ch2 == '_') || (ch2 == '-')) ch2 = ' ';
+                        if (ch1 == '_' || ch1 == '-') ch1 = ' ';
+                        if (ch2 == '_' || ch2 == '-') ch2 = ' ';
                         if (ch1 == ch2) tmp += 1;
                     }
                 }
@@ -2225,7 +2225,7 @@ int ExecuteLink(char* command)
             }
         }
     }
-    if ((found > -1) && (match > d1 / 2) && (strnicmp("http:", command, 5)))
+    if (found > -1 && match > d1 / 2 && _strnicmp("http:", command, 5))
     {
         //we found internal mark
         if (ViewX + TheClientRect.right * 100 / ViewZoom < TheDocument[found].absolute_X + TheDocument[found].Length)

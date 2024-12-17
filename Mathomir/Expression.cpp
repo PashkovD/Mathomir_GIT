@@ -2154,7 +2154,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
     }
 }
 
-short CExpression::GetActualFontSize(short zoom)
+short CExpression::GetActualFontSize(short zoom) const
 {
     return (short)(((int)zoom * (int)m_FontSize * 20 + 3000) / 10000);
 }
@@ -10623,7 +10623,7 @@ keyboardkeyhit_addtoexponent:
                         int len = (int)strlen(ts->pElementObject->Data1);
                         if (len < 22)
                         {
-                            strcat(ts->pElementObject->Data1, "_");
+                            strcat_s(ts->pElementObject->Data1, "_");
                             if (ts->pElementObject->Expression1)
                             {
                                 KeyboardEntryObject = (CObject*)exp;
@@ -12312,7 +12312,7 @@ int CExpression::Autocomplete(int is_internal)
     return 1;
 }
 
-tElementStruct* CExpression::GetElementStruct(CElement* element)
+tElementStruct* CExpression::GetElementStruct(CElement* element) const
 {
     tElementStruct* ts = m_pElementList;
     for (int i = 0; i < m_NumElements; i++, ts++)
@@ -12617,7 +12617,7 @@ autowraptext_start:
 }
 
 #pragma optimize("s",on)
-int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
+int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
 {
     int len = 0;
     static char tmpstr[136];
@@ -12630,18 +12630,18 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
     tabs[num_tabs] = 0; //generating the tablist string
 
     strcpy_s(tmpstr, tabs);
-    if (XMLFileVersion == 1) strcat(tmpstr, "<expr fnt_h=\"");
-    else strcat(tmpstr, "<ex fh=\"");
+    if (XMLFileVersion == 1) strcat_s(tmpstr, "<expr fnt_h=\"");
+    else strcat_s(tmpstr, "<ex fh=\"");
 
 
     char tmp[8];
-    itoa(m_FontSize, tmp, 10);
-    strcat(tmpstr, tmp);
+    _itoa_s(m_FontSize, tmp, 10);
+    strcat_s(tmpstr, tmp);
     //if (m_FontSize!=m_FontSizeHQ)
     //{
-    //	strcat(tmpstr,"\" fnthq_h=\"");
+    //	strcat_s(tmpstr,"\" fnthq_h=\"");
     //	itoa(m_FontSizeHQ,tmp,10);
-    //	strcat(tmpstr,tmp);
+    //	strcat_s(tmpstr,tmp);
     //}
     int old_version_text_decode = 0;
     char prevStartAsText = m_StartAsText;
@@ -12655,7 +12655,7 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
                 {
                     old_version_text_decode = 1;
                     m_StartAsText = 1;
-                    strcat(tmpstr, "\" txt=\"1");
+                    strcat_s(tmpstr, "\" txt=\"1");
                     break;
                 }
         }
@@ -12663,57 +12663,57 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
 
     if (m_StartAsText)
     {
-        strcat(tmpstr, "\" stxt=\"");
-        itoa(prevStartAsText, tmp, 10);
-        strcat(tmpstr, tmp);
+        strcat_s(tmpstr, "\" stxt=\"");
+        _itoa_s(prevStartAsText, tmp, 10);
+        strcat_s(tmpstr, tmp);
     }
     if (m_IsHeadline)
     {
-        strcat(tmpstr, "\" hed=\"");
-        itoa(m_IsHeadline, tmp, 10);
-        strcat(tmpstr, tmp);
+        strcat_s(tmpstr, "\" hed=\"");
+        _itoa_s(m_IsHeadline, tmp, 10);
+        strcat_s(tmpstr, tmp);
     }
     if (m_IsVertical)
     {
-        strcat(tmpstr, "\" vert=\"");
-        itoa(m_IsVertical, tmp, 10);
-        strcat(tmpstr, tmp);
+        strcat_s(tmpstr, "\" vert=\"");
+        _itoa_s(m_IsVertical, tmp, 10);
+        strcat_s(tmpstr, tmp);
     }
     if (m_Color != -1)
     {
-        if (XMLFileVersion == 1) strcat(tmpstr, "\" color=\"");
-        else strcat(tmpstr, "\" clr=\"");
-        itoa(m_Color, tmp, 10);
-        strcat(tmpstr, tmp);
+        if (XMLFileVersion == 1) strcat_s(tmpstr, "\" color=\"");
+        else strcat_s(tmpstr, "\" clr=\"");
+        _itoa_s(m_Color, tmp, 10);
+        strcat_s(tmpstr, tmp);
     }
 
     if (m_Alignment != 0)
     {
-        strcat(tmpstr, "\" alig=\"");
-        itoa(m_Alignment, tmp, 10);
-        strcat(tmpstr, tmp);
+        strcat_s(tmpstr, "\" alig=\"");
+        _itoa_s(m_Alignment, tmp, 10);
+        strcat_s(tmpstr, tmp);
     }
     if ((m_ParenthesesFlags & 0x1F) != 0)
     {
-        if (XMLFileVersion == 1) strcat(tmpstr, "\" brack=\"");
-        else strcat(tmpstr, "\" br=\"");
-        itoa(m_ParenthesesFlags & 0x1F, tmp, 10);
-        strcat(tmpstr, tmp);
+        if (XMLFileVersion == 1) strcat_s(tmpstr, "\" brack=\"");
+        else strcat_s(tmpstr, "\" br=\"");
+        _itoa_s(m_ParenthesesFlags & 0x1F, tmp, 10);
+        strcat_s(tmpstr, tmp);
     }
-    strcat(tmpstr, "\"");
+    strcat_s(tmpstr, "\"");
 
     if ((m_DrawParentheses) && (m_ParentheseShape != '('))
     {
-        if (XMLFileVersion == 1) strcat(tmpstr, " b_shape=\"");
-        else strcat(tmpstr, " shp=\"");
+        if (XMLFileVersion == 1) strcat_s(tmpstr, " b_shape=\"");
+        else strcat_s(tmpstr, " shp=\"");
         if (m_ParentheseShape == '\\')
-            sprintf(tmp, "\\5C");
+            sprintf_s(tmp, "\\5C");
         else
-            sprintf(tmp, "%c", m_ParentheseShape);
-        strcat(tmpstr, tmp);
-        strcat(tmpstr, "\"");
+            sprintf_s(tmp, "%c", m_ParentheseShape);
+        strcat_s(tmpstr, tmp);
+        strcat_s(tmpstr, "\"");
     }
-    strcat(tmpstr, ">\r\n");
+    strcat_s(tmpstr, ">\r\n");
     len += (int)strlen(tmpstr);
     if (!only_calculate)
     {
@@ -12762,9 +12762,9 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
         {
             ts->pElementObject->Data1[20] = 0;
             if (strcmp(ts->pElementObject->Data1, "                    "))
-                sprintf(tmpstr, "%s<col_sep data=\"%s\" />\r\n", tabs, ts->pElementObject->Data1);
+                sprintf_s(tmpstr, "%s<col_sep data=\"%s\" />\r\n", tabs, ts->pElementObject->Data1);
             else
-                sprintf(tmpstr, "%s<col_sep />\r\n", tabs);
+                sprintf_s(tmpstr, "%s<col_sep />\r\n", tabs);
             len += (int)strlen(tmpstr);
             if (!only_calculate)
             {
@@ -12779,9 +12779,9 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
             {
                 ts->pElementObject->Data1[20] = 0;
                 if (strcmp(ts->pElementObject->Data1, "                    "))
-                    sprintf(tmpstr, "%s<row_sep data=\"%s\" />\r\n", tabs, ts->pElementObject->Data1);
+                    sprintf_s(tmpstr, "%s<row_sep data=\"%s\" />\r\n", tabs, ts->pElementObject->Data1);
                 else
-                    sprintf(tmpstr, "%s<row_sep />\r\n", tabs);
+                    sprintf_s(tmpstr, "%s<row_sep />\r\n", tabs);
                 len += (int)strlen(tmpstr);
                 if (!only_calculate)
                 {
@@ -12794,8 +12794,8 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
         {
             //for backward compatibility - we are storing simple text boxes this way
             strcpy_s(tmpstr, tabs);
-            if (XMLFileVersion == 1) strcat(tmpstr, "<row_sep />\r\n");
-            else strcat(tmpstr, "<wrap />\r\n");
+            if (XMLFileVersion == 1) strcat_s(tmpstr, "<row_sep />\r\n");
+            else strcat_s(tmpstr, "<wrap />\r\n");
             len += (int)strlen(tmpstr);
             if (!only_calculate)
             {
@@ -12806,7 +12806,7 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
         else if ((ts->Type == 2) && (ts->pElementObject->Data1[0] == (char)0xFF) && (XMLFileVersion > 1))
         {
             strcpy_s(tmpstr, tabs);
-            strcat(tmpstr, "<wrap />\r\n");
+            strcat_s(tmpstr, "<wrap />\r\n");
             len += (int)strlen(tmpstr);
             if (!only_calculate)
             {
@@ -12825,8 +12825,8 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
     memset(tabs, 9, num_tabs);
     tabs[num_tabs] = 0; //generating the tablist string
     strcpy_s(tmpstr, tabs);
-    if (XMLFileVersion == 1) strcat(tmpstr, "</expr>\r\n");
-    else strcat(tmpstr, "</ex>\r\n");
+    if (XMLFileVersion == 1) strcat_s(tmpstr, "</expr>\r\n");
+    else strcat_s(tmpstr, "</ex>\r\n");
     len += (int)strlen(tmpstr);
     if (!only_calculate)
     {
@@ -13050,9 +13050,9 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 	{
 		//color of the expression - if m_Color==-1, then the color is inherited or default
 		strcpy_s(tmpstr,tabs);
-		strcat(tmpstr,"<mstyle mathcolor=\"");
-		strcat(tmpstr,(m_Color==1)?"red":(m_Color==2)?"green":(m_Color==3)?"blue":(m_Color==4)?"gray":"black");
-		strcat(tmpstr,"\">\r\n");
+		strcat_s(tmpstr,"<mstyle mathcolor=\"");
+		strcat_s(tmpstr,(m_Color==1)?"red":(m_Color==2)?"green":(m_Color==3)?"blue":(m_Color==4)?"gray":"black");
+		strcat_s(tmpstr,"\">\r\n");
 		{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 	}
 
@@ -13077,13 +13077,13 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 		if (m_ParentheseData&0x04) tmp1[25]=' '; //parenthese excluded
 		if (m_ParentheseShape=='b')  {strcpy_s(tmp1,"<menclose notation=\"box\">\r\n");}
 		if (m_ParentheseShape=='x')  {strcpy_s(tmp1,"<menclose notation=\"updiagonalstrike downdiagonalstrike\">\r\n");}
-		strcat(tmpstr,tmp1);
+		strcat_s(tmpstr,tmp1);
 		{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 	}
 
 	//the <mrow> is always present around an expression
 	strcpy_s(tmpstr,tabs);
-	strcat(tmpstr,"<mrow>\r\n");
+	strcat_s(tmpstr,"<mrow>\r\n");
 	{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 
 
@@ -13102,28 +13102,28 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			{
 				is_table=1;
 				strcpy_s(tmpstr,tabs);
-				if (m_Alignment==1) strcat(tmpstr,"<mtable columnalign=\"left\">\r\n");
-				else if (m_Alignment==2) strcat(tmpstr,"<mtable columnalign=\"right\">\r\n");
-				else strcat(tmpstr,"<mtable>\r\n");
-				strcat(tmpstr,tabs);
-				strcat(tmpstr,"<mtr>\r\n");
+				if (m_Alignment==1) strcat_s(tmpstr,"<mtable columnalign=\"left\">\r\n");
+				else if (m_Alignment==2) strcat_s(tmpstr,"<mtable columnalign=\"right\">\r\n");
+				else strcat_s(tmpstr,"<mtable>\r\n");
+				strcat_s(tmpstr,tabs);
+				strcat_s(tmpstr,"<mtr>\r\n");
 				{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 			}
 			if (et==(char)0xFE)
 			{
 				strcpy_s(tmpstr,tabs);
-				strcat(tmpstr,"</mtr><mtr>\r\n");
+				strcat_s(tmpstr,"</mtr><mtr>\r\n");
 				{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 			}
 			
 			strcpy_s(tmpstr,tabs);
-			strcat(tmpstr,"<mtd>\r\n");
+			strcat_s(tmpstr,"<mtd>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 
 			if (l-p>1)
 			{
 				strcpy_s(tmpstr,tabs);
-				strcat(tmpstr,"<mrow>\r\n");
+				strcat_s(tmpstr,"<mrow>\r\n");
 				{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 			}
 		}
@@ -13148,44 +13148,44 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 				if ((last_decor&0x3FF)/32)
 				{
 					strcpy_s(tmpstr,tabs);
-					strcat(tmpstr,"</mstyle>\r\n");
+					strcat_s(tmpstr,"</mstyle>\r\n");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 				if ((last_decor%32) && (last_decor2!=(curd&0x1F)))
 				{
 					strcpy_s(tmpstr,tabs);
-					strcat(tmpstr,"</menclose>\r\n");
+					strcat_s(tmpstr,"</menclose>\r\n");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 
 				if ((curd%32) && (last_decor2!=(curd&0x1F)))
 				{
 					strcpy_s(tmpstr,tabs);
-					strcat(tmpstr,"<menclose notation=\"");
+					strcat_s(tmpstr,"<menclose notation=\"");
 					int mc=(m_pElementList+k)->Decoration;
-					if (mc==1) strcat(tmpstr,"updiagonalstrike");
-					if (mc==2) strcat(tmpstr,"circle");
-					if (mc==3) strcat(tmpstr,"bottom");
-					if (mc==4) strcat(tmpstr,"top");
-					strcat(tmpstr,"\">\r\n");
+					if (mc==1) strcat_s(tmpstr,"updiagonalstrike");
+					if (mc==2) strcat_s(tmpstr,"circle");
+					if (mc==3) strcat_s(tmpstr,"bottom");
+					if (mc==4) strcat_s(tmpstr,"top");
+					strcat_s(tmpstr,"\">\r\n");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 				if ((curd&0x3FF)/32)
 				{
 					strcpy_s(tmpstr,tabs);
 					int mc=(m_pElementList+k)->pElementObject->m_Color;
-					if (mc==0) 	strcat(tmpstr,"<mstyle mathcolor=\"black\">\r\n");
-					else if (mc==1) strcat(tmpstr,"<mstyle mathcolor=\"red\">\r\n");
-					else if (mc==2) strcat(tmpstr,"<mstyle mathcolor=\"green\">\r\n");
-					else if (mc==3) strcat(tmpstr,"<mstyle mathcolor=\"blue\">\r\n");
-					else if (mc==4) strcat(tmpstr,"<mstyle mathcolor=\"gray\">\r\n");
+					if (mc==0) 	strcat_s(tmpstr,"<mstyle mathcolor=\"black\">\r\n");
+					else if (mc==1) strcat_s(tmpstr,"<mstyle mathcolor=\"red\">\r\n");
+					else if (mc==2) strcat_s(tmpstr,"<mstyle mathcolor=\"green\">\r\n");
+					else if (mc==3) strcat_s(tmpstr,"<mstyle mathcolor=\"blue\">\r\n");
+					else if (mc==4) strcat_s(tmpstr,"<mstyle mathcolor=\"gray\">\r\n");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 
 				if (curd/1024)
 				{
 					strcpy_s(tmpstr,tabs);
-					strcat(tmpstr,"<mtext>");
+					strcat_s(tmpstr,"<mtext>");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 				last_decor2=curd&0x1F;
@@ -13197,7 +13197,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 				if (((m_pElementList+k)->Type==1) && ((m_pElementList+k)->pElementObject->m_Text))
 				{
 					strcpy_s(tmpstr,(m_pElementList+k)->pElementObject->Data1);
-					strcat(tmpstr," ");
+					strcat_s(tmpstr," ");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 				else
@@ -13205,7 +13205,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 					if ((prev_type!=2) && ((m_pElementList+k)->Type!=2))
 					{
 						strcpy_s(tmpstr,tabs);
-						strcat(tmpstr,"<mo>&it;</mo>\r\n");  //&InvisibleTimes; - added between two elements if there is no other operator
+						strcat_s(tmpstr,"<mo>&it;</mo>\r\n");  //&InvisibleTimes; - added between two elements if there is no other operator
 						{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 					}
 					
@@ -13224,13 +13224,13 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 		if ((last_decor&0x3FF)/32)
 		{
 			strcpy_s(tmpstr,tabs);
-			strcat(tmpstr,"</mstyle>\r\n");
+			strcat_s(tmpstr,"</mstyle>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
 		if (last_decor%32)
 		{
 			strcpy_s(tmpstr,tabs);
-			strcat(tmpstr,"</menclose>\r\n");
+			strcat_s(tmpstr,"</menclose>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
 		if ((pos>0) || (l<m_NumElements))
@@ -13238,12 +13238,12 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			if (l-p>1)
 			{
 				strcpy_s(tmpstr,tabs);
-				strcat(tmpstr,"</mrow>\r\n");
+				strcat_s(tmpstr,"</mrow>\r\n");
 				{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 			}
 
 			strcpy_s(tmpstr,tabs);
-			strcat(tmpstr,"</mtd>\r\n");
+			strcat_s(tmpstr,"</mtd>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
 		pos+=l;
@@ -13252,9 +13252,9 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			if (is_table)
 			{
 				strcpy_s(tmpstr,tabs);
-				strcat(tmpstr,"</mtr>\r\n");
-				strcat(tmpstr,tabs);
-				strcat(tmpstr,"</mtable>\r\n");
+				strcat_s(tmpstr,"</mtr>\r\n");
+				strcat_s(tmpstr,tabs);
+				strcat_s(tmpstr,"</mtable>\r\n");
 				{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 			}
 			break;
@@ -13265,21 +13265,21 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 
 
 	strcpy_s(tmpstr,tabs);
-	strcat(tmpstr,"</mrow>\r\n");
+	strcat_s(tmpstr,"</mrow>\r\n");
 	{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 
 	if ((m_DrawParentheses) && ((m_ParentheseData&0x01)==0))
 	{
 		strcpy_s(tmpstr,tabs);
-		if ((m_ParentheseShape=='b') || (m_ParentheseShape=='x')) strcat(tmpstr,"</menclose>\r\n");
-		else strcat(tmpstr,"</mfenced>\r\n");
+		if ((m_ParentheseShape=='b') || (m_ParentheseShape=='x')) strcat_s(tmpstr,"</menclose>\r\n");
+		else strcat_s(tmpstr,"</mfenced>\r\n");
 		{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 	}
 
 	if ((m_Color>-1) && (m_Color<=4))
 	{
 		strcpy_s(tmpstr,tabs);
-		strcat(tmpstr,"</mstyle>\r\n");
+		strcat_s(tmpstr,"</mstyle>\r\n");
 		{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 	}
 	
@@ -13329,7 +13329,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             if (m_ParentheseShape == 'b') { strcpy_s(tmp1, "\\left[ "); } //boxing???
             if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\left[ "); } //strikeout???
         }
-        strcat(tmpstr, tmp1);
+        strcat_s(tmpstr, tmp1);
         {
             int tt = (int)strlen(tmpstr);
             len += tt;
@@ -13360,12 +13360,12 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
 
                 for (int ii = 0; ii < this->m_MaxNumColumns; ii++)
                 {
-                    if (m_Alignment == 1) strcat(tmpstr, "l");
-                    else if (m_Alignment == 2) strcat(tmpstr, "r");
-                    else strcat(tmpstr, "c");
+                    if (m_Alignment == 1) strcat_s(tmpstr, "l");
+                    else if (m_Alignment == 2) strcat_s(tmpstr, "r");
+                    else strcat_s(tmpstr, "c");
                 }
 
-                strcat(tmpstr, "}");
+                strcat_s(tmpstr, "}");
                 {
                     int tt = (int)strlen(tmpstr);
                     len += tt;
@@ -13479,11 +13479,11 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
                 {
                     strcpy_s(tmpstr,tabs);
                     int mc=(m_pElementList+k)->pElementObject->m_Color;
-                    if (mc==0) 	strcat(tmpstr,"<mstyle mathcolor=\"black\">\r\n");
-                    else if (mc==1) strcat(tmpstr,"<mstyle mathcolor=\"red\">\r\n");
-                    else if (mc==2) strcat(tmpstr,"<mstyle mathcolor=\"green\">\r\n");
-                    else if (mc==3) strcat(tmpstr,"<mstyle mathcolor=\"blue\">\r\n");
-                    else if (mc==4) strcat(tmpstr,"<mstyle mathcolor=\"gray\">\r\n");
+                    if (mc==0) 	strcat_s(tmpstr,"<mstyle mathcolor=\"black\">\r\n");
+                    else if (mc==1) strcat_s(tmpstr,"<mstyle mathcolor=\"red\">\r\n");
+                    else if (mc==2) strcat_s(tmpstr,"<mstyle mathcolor=\"green\">\r\n");
+                    else if (mc==3) strcat_s(tmpstr,"<mstyle mathcolor=\"blue\">\r\n");
+                    else if (mc==4) strcat_s(tmpstr,"<mstyle mathcolor=\"gray\">\r\n");
                     {int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
                 }*/
 
@@ -13508,7 +13508,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
                 if (((m_pElementList + k)->Type == 1) && ((m_pElementList + k)->pElementObject->m_Text))
                 {
                     strcpy_s(tmpstr, (m_pElementList + k)->pElementObject->Data1);
-                    strcat(tmpstr, " ");
+                    strcat_s(tmpstr, " ");
                     {
                         int tt = (int)strlen(tmpstr);
                         len += tt;
@@ -13613,7 +13613,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             if (m_ParentheseShape == 'b') { strcpy_s(tmp1, "\\right] "); } //boxing???
             if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\right] "); } //strikeout???
         }
-        strcat(tmpstr, tmp1);
+        strcat_s(tmpstr, tmp1);
         {
             int tt = (int)strlen(tmpstr);
             len += tt;
@@ -13628,7 +13628,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
     /*if ((m_Color>-1) && (m_Color<=4))
     {
         strcpy(tmpstr,tabs);
-        strcat(tmpstr,"</mstyle>\r\n");
+        strcat_s(tmpstr,"</mstyle>\r\n");
         {int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
     }*/
 
@@ -13708,7 +13708,7 @@ int IsCharacterLow(char ch, char font)
     return 0;
 }
 
-int CExpression::CalcChecksum()
+int CExpression::CalcChecksum() const
 {
     if ((m_NumElements == 1) && (m_pElementList->Type == 5)) //special () =()	
         return m_pElementList->pElementObject->Expression1->CalcChecksum();
@@ -15677,7 +15677,7 @@ int CExpression::ChangeFontSize(float factor)
     float fs = m_FontSize;
     fs *= factor;
     m_FontSize = (short)fs;
-    if ((fs - ((float)m_FontSize)) > 0.5) m_FontSize++;
+    if (fs - (float)m_FontSize > 0.5) m_FontSize++;
     if (m_FontSize < 10)
         m_FontSize = 10;
 
@@ -15687,7 +15687,7 @@ int CExpression::ChangeFontSize(float factor)
     {
         tElementStruct* theElement = m_pElementList + i;
 
-        if ((theElement->Type > 0) && (theElement->pElementObject))
+        if (theElement->Type > 0 && theElement->pElementObject)
         {
             if (theElement->pElementObject->Expression1)
                 theElement->pElementObject->Expression1->ChangeFontSize(factor);
@@ -18450,7 +18450,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
     {
         if (number_int < 0)
         {
-            sprintf(buffer, "%I64d", -number_int);
+            sprintf_s(buffer, "%I64d", -number_int);
             buffer[23] = 0;
             if ((position == 0) && (NumElems == 0))
             {
@@ -18468,7 +18468,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
             memset((tmp->m_pElementList + 1)->pElementObject->Data2, 0, 24);
             return 1;
         }
-        sprintf(buffer, "%I64d", number_int);
+        sprintf_s(buffer, "%I64d", number_int);
         buffer[23] = 0;
         InsertEmptyElement(position, 1, 0);
         memcpy((m_pElementList + position)->pElementObject->Data1, buffer, 24);
@@ -18483,8 +18483,8 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
         int ln;
         do
         {
-            sprintf(format, "%%.%df", precision);
-            ln = sprintf(buffer, format, fabs(number_dbl));
+            sprintf_s(format, "%%.%df", precision);
+            ln = sprintf_s(buffer, format, fabs(number_dbl));
             precision++;
         }
         while ((fabs(number_dbl) > 1e-100) && (fabs((atof(buffer) - fabs(number_dbl)) / fabs(number_dbl)) > 0.02));
@@ -18494,9 +18494,9 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
         {
             //if the number is not precise (rounded) then check if by adding single more decimal place it becomes exact
             precision++;
-            sprintf(format, "%%.%df", precision);
+            sprintf_s(format, "%%.%df", precision);
             char buffer2[32];
-            int ln2 = sprintf(buffer2, format, fabs(number_dbl));
+            int ln2 = sprintf_s(buffer2, format, fabs(number_dbl));
             if (fabs(atof(buffer2) - fabs(number_dbl)) <= 1e-12)
             {
                 ln = ln2;
@@ -18617,7 +18617,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
                 rr_int /= 10;
                 exxp += 1;
             }
-            sprintf(buffer, "%I64d", ((rr_int < 0) ? (-rr_int) : rr_int));
+            sprintf_s(buffer, "%I64d", ((rr_int < 0) ? (-rr_int) : rr_int));
             buffer[23] = 0;
         }
         else
@@ -18630,8 +18630,8 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
             }
 
             char format[10];
-            sprintf(format, "%%.%df", precision);
-            int ln = sprintf(buffer, format, ((rr < 0) ? (-rr) : rr));
+            sprintf_s(format, "%%.%df", precision);
+            int ln = sprintf_s(buffer, format, ((rr < 0) ? (-rr) : rr));
             if ((shortening) && (precision > 0))
             {
                 while ((ln > 1) && (buffer[ln - 1] == '0'))
@@ -27678,7 +27678,7 @@ int CExpression::PlotterReleaseVariablePositions(void* VarPos)
 }
 
 //int sshit=0;
-double CExpression::PlotterCalculateFunctionValue(double X, void* VP)
+double CExpression::PlotterCalculateFunctionValue(double X, void* VP) const
 {
     if (wwwwxxxx == 0)
     {
@@ -27702,8 +27702,8 @@ double CExpression::PlotterCalculateFunctionValue(double X, void* VP)
     try
     {
         char ASCIIx[50];
-        //sprintf(ASCIIx,"%.12lf",X);
-        sprintf(ASCIIx, "%.1lf", X); //we don't need very high precision because numbers are actually writen as floats
+        //sprintf_s(ASCIIx,"%.12lf",X);
+        sprintf_s(ASCIIx, "%.1lf", X); //we don't need very high precision because numbers are actually writen as floats
         ASCIIx[14] = 0;
 
 
@@ -27867,7 +27867,7 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
 
     if (!this->IsSuitableForComputation()) return 0;
     if (!Substitute->IsSuitableForComputation()) return 0;
-    if ((Variable) && (Variable->m_pElementList->Type))
+    if (Variable && Variable->m_pElementList->Type)
         if (!Variable->IsSuitableForComputation()) return 0;
     if (Substitute->FindLowestOperatorLevel((char)0xD7) < EqLevel) return 0;
 
@@ -27877,8 +27877,8 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
     int first_end = 0;
     while (first_end < Substitute->m_NumElements)
     {
-        if ((((Substitute->m_pElementList) + first_end)->Type == 2) &&
-            (GetOperatorLevel((Substitute->m_pElementList+first_end)->pElementObject->Data1[0]) == EqLevel))
+        if ((Substitute->m_pElementList + first_end)->Type == 2 &&
+            GetOperatorLevel((Substitute->m_pElementList+first_end)->pElementObject->Data1[0]) == EqLevel)
             break;
         first_end++;
     }
@@ -27886,8 +27886,8 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
     int last_start = Substitute->m_NumElements - 1;
     while (last_start >= 0)
     {
-        if ((((Substitute->m_pElementList) + last_start)->Type == 2) &&
-            (GetOperatorLevel((Substitute->m_pElementList+last_start)->pElementObject->Data1[0]) == EqLevel))
+        if ((Substitute->m_pElementList + last_start)->Type == 2 &&
+            GetOperatorLevel((Substitute->m_pElementList+last_start)->pElementObject->Data1[0]) == EqLevel)
             break;
         last_start--;
     }
@@ -27903,7 +27903,7 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
     CExpression* var = new CExpression(nullptr,nullptr, 100);
 
     //if the Variable is not defined, try to conclude what variable to be used for substitution
-    if ((Variable) && (Variable->m_pElementList->Type))
+    if (Variable && Variable->m_pElementList->Type)
     {
         //variable must be of appropriate level
         if (Variable->FindLowestOperatorLevel((char)0xD7) < PlusLevel)
@@ -28033,17 +28033,17 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
                 }
             }
 
-            if ((ret == 0) || (cnt == 0) || ((ret == 4) && (prev_ret != ret)))
+            if (ret == 0 || cnt == 0 || (ret == 4 && prev_ret != ret))
             {
                 char et, p;
                 int l = Substitute->GetElementLen(0, Substitute->m_NumElements - 1, EqLevel, &et, &p);
-                if ((l == 0) || (l == Substitute->m_NumElements))
+                if (l == 0 || l == Substitute->m_NumElements)
                 {
                     delete var;
                     return 0;
                 } //strange error
                 int l2 = Substitute->GetElementLen(l + 1, Substitute->m_NumElements - 1, EqLevel, &et, &p);
-                if ((l2 == 0) || (l2 + l + 1 != Substitute->m_NumElements))
+                if (l2 == 0 || l2 + l + 1 != Substitute->m_NumElements)
                 {
                     delete var;
                     return 0;
@@ -28131,7 +28131,7 @@ void* CExpression::GenerateVariableList(int StartPos, int EndPos, int* summand_n
         ExtractVariablesMode = 0;
 
         (*summand_no)++;
-        if ((*summand_no) >= MAX_SUMMANDS)
+        if (*summand_no >= MAX_SUMMANDS)
         {
             FreeVariableList(VarList);
             return nullptr;
@@ -28142,7 +28142,7 @@ void* CExpression::GenerateVariableList(int StartPos, int EndPos, int* summand_n
     }
 
     //if not even a single variable found - return error
-    if ((VarList->NumVariables == 0) && (prim_level))
+    if (VarList->NumVariables == 0 && prim_level)
     {
         HeapFree(ProcessHeap, 0, VarList);
         return nullptr;
@@ -28171,25 +28171,25 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
     {
         if (this->m_pPaternalElement)
         {
-            if (((this->m_pPaternalElement->m_Type == 1) && (this == this->m_pPaternalElement->
-                                                                           Expression1)) ||
-                ((this->m_pPaternalElement->m_Type == 6) && (this == this->m_pPaternalElement->
-                                                                           Expression2)) ||
-                ((this->m_pPaternalElement->m_Type == 5) && (this == this->m_pPaternalElement->
-                                                                           Expression2)))
+            if ((this->m_pPaternalElement->m_Type == 1 && this == this->m_pPaternalElement->
+                                                                        Expression1) ||
+                (this->m_pPaternalElement->m_Type == 6 && this == this->m_pPaternalElement->
+                                                                        Expression2) ||
+                (this->m_pPaternalElement->m_Type == 5 && this == this->m_pPaternalElement->
+                                                                        Expression2))
                 return 0; //we do not replace in indexes
         }
         //the find shuld not have leading minus or plus (for MulLevel)
-        if ((FindLvl >= MulLevel) && (Find->m_pElementList->Type == 2))
+        if (FindLvl >= MulLevel && Find->m_pElementList->Type == 2)
         {
             char ch = Find->m_pElementList->pElementObject->Data1[0];
-            if ((ch == '+') || (ch == '-') || (ch == (char)0xD7))
+            if (ch == '+' || ch == '-' || ch == (char)0xD7)
             {
                 Find->DeleteElement(0);
                 if (ch == '-')
                 {
-                    if ((Replace->FindLowestOperatorLevel((char)0xD7) < MulLevel) || (Replace->m_pElementList->Type ==
-                        2))
+                    if (Replace->FindLowestOperatorLevel((char)0xD7) < MulLevel || Replace->m_pElementList->Type ==
+                        2)
                     {
                         Replace->InsertEmptyElement(0, 5, '(');
                         CExpression* a = Replace->m_pElementList->pElementObject->Expression1;
@@ -28221,7 +28221,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
 
             int tt = tmp->FindReplace(0, tmp->m_NumElements - 1, Find, Replace);
             occr += tt;
-            if ((tt) && (Replace))
+            if (tt && Replace)
             {
                 int delta = m_NumElements;
                 for (int i = pos; i < pos + l; i++)
@@ -28245,7 +28245,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
     for (int i = StartPos; i <= EndPos; i++)
     {
         tElementStruct* ts = m_pElementList + i;
-        if ((ts->pElementObject) && (ts->Type))
+        if (ts->pElementObject && ts->Type)
         {
             if (ts->pElementObject->Expression1)
                 occr += ts->pElementObject->Expression1->FindReplace(
@@ -28280,8 +28280,8 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
 
                 if (BaseLvl > PlusLevel)
                 {
-                    if ((p == 0) && ((this->m_pElementList + pos)->Type == 2) &&
-                        (GetOperatorLevel((this->m_pElementList+pos)->pElementObject->Data1[0]) == PlusLevel))
+                    if (p == 0 && (this->m_pElementList + pos)->Type == 2 &&
+                        GetOperatorLevel((this->m_pElementList+pos)->pElementObject->Data1[0]) == PlusLevel)
                     {
                         pos++;
                         l--;
@@ -28303,16 +28303,16 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     {
                         if (BaseLvl == MulLevel)
                         {
-                            if ((et2 == (char)0xD7) && (et3 == '/')) inverted = 1;
-                            else if ((et2 == '/') && (et3 == (char)0xD7)) inverted = 1;
+                            if (et2 == (char)0xD7 && et3 == '/') inverted = 1;
+                            else if (et2 == '/' && et3 == (char)0xD7) inverted = 1;
                             else inverted = 0;
                         }
                         else if (BaseLvl == PlusLevel)
                         {
-                            if (((et2 == '+') && (et3 == '-')) ||
-                                ((et2 == '-') && (et3 == '+')) ||
-                                ((et2 == (char)0xB1) && (et3 == (char)0xB2)) ||
-                                ((et2 == (char)0xB2) && (et3 == (char)0xB3)))
+                            if ((et2 == '+' && et3 == '-') ||
+                                (et2 == '-' && et3 == '+') ||
+                                (et2 == (char)0xB1 && et3 == (char)0xB2) ||
+                                (et2 == (char)0xB2 && et3 == (char)0xB3))
                                 inverted = 1;
                             else inverted = 0;
                         }
@@ -28342,8 +28342,8 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                             for (int i = pos; i < pos3 + l3; i++)
                                 DeleteElement(pos);
                             char ett = et;
-                            if (BaseLvl == MulLevel) ett = (inverted) ? '/' : (char)0xD7;
-                            if (BaseLvl == PlusLevel) ett = (inverted) ? '-' : '+';
+                            if (BaseLvl == MulLevel) ett = inverted ? '/' : (char)0xD7;
+                            if (BaseLvl == PlusLevel) ett = inverted ? '-' : '+';
                             pos = InsertSequence(ett, pos, Replace, 0, Replace->m_NumElements - 1);
                             delta = m_NumElements - delta;
                             EndPos += delta;
@@ -28370,10 +28370,10 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                 base->InsertElement(m_pElementList + i, base->m_NumElements);
 
             int cnt = 0;
-            while ((base->Compute(0, base->m_NumElements - 1, 0)) && (cnt < 50)) cnt++;
+            while (base->Compute(0, base->m_NumElements - 1, 0) && cnt < 50) cnt++;
 
             cnt = 0;
-            while ((fnd->Compute(0, fnd->m_NumElements - 1, 0)) && (cnt < 50)) cnt++;
+            while (fnd->Compute(0, fnd->m_NumElements - 1, 0) && cnt < 50) cnt++;
 
             int is_factor_defined = 0;
             double factorN, factorD;
@@ -28402,32 +28402,32 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                                                            &PF);
                     base->StrikeoutRemove(pos2 + p2, pos2 + l2 - 1);
                     fnd->StrikeoutRemove(pos + p, pos + l - 1);
-                    if ((et2 == '+') && (et == '-'))
+                    if (et2 == '+' && et == '-')
                     {
                         PF.N3 = -PF.N3;
                         et2 = et;
                     }
-                    if ((et2 == '-') && (et == '+'))
+                    if (et2 == '-' && et == '+')
                     {
                         PF.N3 = -PF.N3;
                         et2 = et;
                     }
-                    if ((et2 == (char)0xB1) && (et == (char)0xB2))
+                    if (et2 == (char)0xB1 && et == (char)0xB2)
                     {
                         PF.N3 = -PF.N3;
                         et2 = et;
                     }
-                    if ((et2 == (char)0xB2) && (et == (char)0xB1))
+                    if (et2 == (char)0xB2 && et == (char)0xB1)
                     {
                         PF.N3 = -PF.N3;
                         et2 = et;
                     }
 
-                    if ((res) && (et2 == et))
+                    if (res && et2 == et)
                     {
                         if (PF.prec1 > factorPrec) factorPrec = PF.prec1;
                         if (PF.prec2 > factorPrec) factorPrec = PF.prec2;
-                        if ((PF.is_frac1) || (PF.is_frac2)) factorFrac = 1;
+                        if (PF.is_frac1 || PF.is_frac2) factorFrac = 1;
                         double fN = PF.N1 * PF.N4;
                         double fD = PF.N2 * PF.N3;
                         if (!is_factor_defined)
@@ -28470,7 +28470,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                             factorN = -factorN;
                         }
 
-                        base->InsertEmptyElement(base->m_NumElements, 2, (minus) ? '-' : '+');
+                        base->InsertEmptyElement(base->m_NumElements, 2, minus ? '-' : '+');
                         int t = base->GenerateASCIIFraction(base->m_NumElements, factorN, factorD, factorPrec,
                                                             factorFrac);
                         base->InsertSequence((char)0xD7, base->m_NumElements, Replace, 0, Replace->m_NumElements - 1);
@@ -28527,12 +28527,12 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     fnd->StrikeoutRemove(0, fnd->m_NumElements - 1, 1);
                     double N;
                     int prec;
-                    if ((fnd->m_pElementList->Type == 0) || (fnd->IsPureNumber(0, fnd->m_NumElements, &N, &prec)))
+                    if (fnd->m_pElementList->Type == 0 || fnd->IsPureNumber(0, fnd->m_NumElements, &N, &prec))
                     {
                         base->StrikeoutRemove(0, base->m_NumElements - 1, 1);
                         N1 *= PF.N1 * PF.N4;
                         N2 *= PF.N2 * PF.N3;
-                        if ((PF.is_frac1) || (PF.is_frac2)) isfrac = 1;
+                        if (PF.is_frac1 || PF.is_frac2) isfrac = 1;
                         if (PF.prec1 > maxprec) maxprec = PF.prec1;
                         if (PF.prec2 > maxprec) maxprec = PF.prec2;
                         occr++;
@@ -28558,12 +28558,12 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     fnd->StrikeoutRemove(0, fnd->m_NumElements - 1, 1);
                     double N;
                     int prec;
-                    if ((fnd->m_pElementList->Type == 0) || (fnd->IsPureNumber(0, fnd->m_NumElements, &N, &prec)))
+                    if (fnd->m_pElementList->Type == 0 || fnd->IsPureNumber(0, fnd->m_NumElements, &N, &prec))
                     {
                         base->StrikeoutRemove(0, base->m_NumElements - 1, 1);
                         N1 *= PF.N1 * PF.N4;
                         N2 *= PF.N2 * PF.N3;
-                        if ((PF.is_frac1) || (PF.is_frac2)) isfrac = 1;
+                        if (PF.is_frac1 || PF.is_frac2) isfrac = 1;
                         if (PF.prec1 > maxprec) maxprec = PF.prec1;
                         if (PF.prec2 > maxprec) maxprec = PF.prec2;
                         occr++;
@@ -28576,7 +28576,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                         break;
                     }
                 }
-                if ((done) && (Replace))
+                if (done && Replace)
                 {
                     for (int i = StartPos; i <= EndPos; i++)
                         DeleteElement(StartPos);
@@ -28613,7 +28613,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                 for (int i = StartPos; i <= EndPos; i++)
                     DeleteElement(StartPos);
                 for (int i = 0; i < Replace->m_NumElements; i++)
-                    InsertElement((Replace->m_pElementList + i), StartPos + i);
+                    InsertElement(Replace->m_pElementList + i, StartPos + i);
             }
         }
 
@@ -28722,7 +28722,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
             //for every variable in variable list, we will try substitution
             //if we manage to make successfull substitution, then we will accept it
             //the successfull substitution means that we completely eliminated at least one variable
-            if ((ReducedNEq > 1) && (prefer_singles == 0))
+            if (ReducedNEq > 1 && prefer_singles == 0)
                 for (int j = 0; j < num_variables; j++)
                 {
                     CExpression* variable = new CExpression(nullptr,nullptr, 100);
@@ -28775,7 +28775,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
                         for (int k = 0; k < NEq; k++)
                         {
                             int cnt = 0;
-                            while ((S[k]->Compute(0, S[k]->m_NumElements - 1, 0)) && (cnt < 50)) cnt++;
+                            while (S[k]->Compute(0, S[k]->m_NumElements - 1, 0) && cnt < 50) cnt++;
                             System[k] = S[k];
                         }
                         System[NEq] = S[NEq];
@@ -28801,7 +28801,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
 
             free(VS);
         }
-        if ((prefer_singles) && (i == ReducedNEq - 1))
+        if (prefer_singles && i == ReducedNEq - 1)
         {
             //try once more, but now don't prefer singles any more
             prefer_singles = 0;
@@ -28821,8 +28821,8 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
 
             tRawVariableStorage* VS2 = (tRawVariableStorage*)calloc(sizeof(tRawVariableStorage), 24);
             int tmp_cnt = CountVariablesInSystem(&System[i], 1, VS2);
-            if ((tmp_cnt == 1) && (System[i]->ContainsVariable(0, System[i]->m_NumElements - 1,nullptr, 0, 0, VS2->name,
-                                                               ((VS2->font[0] & 0xE0) == 0x60) ? 1 : 0)))
+            if (tmp_cnt == 1 && System[i]->ContainsVariable(0, System[i]->m_NumElements - 1,nullptr, 0, 0, VS2->name,
+                                                            (VS2->font[0] & 0xE0) == 0x60 ? 1 : 0))
             {
                 CExpression* var = new CExpression(nullptr,nullptr, 100);
                 var->InsertEmptyElement(0, 1, 'a');
@@ -28841,7 +28841,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
             free(VS2);
 
             cnt = 0;
-            while ((System[i]->Compute(0, System[i]->m_NumElements - 1, 0)) && (cnt < 50)) cnt++;
+            while (System[i]->Compute(0, System[i]->m_NumElements - 1, 0) && cnt < 50) cnt++;
             if (!((PopupMenu*)ThePopupMenu)->AddMathMenuOption(System[i]))
                 delete System[i];
         }
@@ -28874,7 +28874,7 @@ int CExpression::CountVariablesInSystem(CExpression* System[], int NumEquations,
         {
             tElementStruct* ts = tmp->m_pElementList + i;
 
-            if ((ts->Type == 0) || (ts->Type == 11) || (ts->Type == 12) || (ts->pElementObject == nullptr)) continue;
+            if (ts->Type == 0 || ts->Type == 11 || ts->Type == 12 || ts->pElementObject == nullptr) continue;
 
             if (ts->Type == 1)
             {
@@ -28887,8 +28887,8 @@ int CExpression::CountVariablesInSystem(CExpression* System[], int NumEquations,
                 int cnt = 0;
                 while (VS->name[0])
                 {
-                    if ((strcmp(VS->name, ts->pElementObject->Data1) == 0) &&
-                        (memcmp(VS->font, ts->pElementObject->Data2, strlen(VS->name)) == 0))
+                    if (strcmp(VS->name, ts->pElementObject->Data1) == 0 &&
+                        memcmp(VS->font, ts->pElementObject->Data2, strlen(VS->name)) == 0)
                     {
                         fnd = 0;
                         break;
@@ -28947,7 +28947,7 @@ int CExpression::CodeDecodeUnitsOfMeasurement(int StartPos, int EndPos)
     int retval = 0;
     if (EndPos == -1) EndPos = m_NumElements - 1;
     int lvl = FindLowestOperatorLevel(StartPos, EndPos);
-    if ((lvl == -1) || (lvl > MulLevel)) return retval;
+    if (lvl == -1 || lvl > MulLevel) return retval;
 
 
     if (lvl < MulLevel)
@@ -28968,8 +28968,8 @@ int CExpression::CodeDecodeUnitsOfMeasurement(int StartPos, int EndPos)
     }
 
     //jump over the unary operator (leading plus or minus)
-    if (((m_pElementList + StartPos)->Type == 2) && (GetOperatorLevel(
-        (m_pElementList+StartPos)->pElementObject->Data1[0]) == PlusLevel))
+    if ((m_pElementList + StartPos)->Type == 2 && GetOperatorLevel(
+        (m_pElementList+StartPos)->pElementObject->Data1[0]) == PlusLevel)
         StartPos++;
 
     char prev_op = (char)0xD7;
@@ -28986,7 +28986,7 @@ int CExpression::CodeDecodeUnitsOfMeasurement(int StartPos, int EndPos)
                 if (prev_op == '/')
                 {
                     if (p)
-                        (m_pElementList + pos)->pElementObject->Data1[0] = (et == '/') ? (char)0xD7 : '/';
+                        (m_pElementList + pos)->pElementObject->Data1[0] = et == '/' ? (char)0xD7 : '/';
                     else
                     {
                         InsertEmptyElement(pos, 2, '/');

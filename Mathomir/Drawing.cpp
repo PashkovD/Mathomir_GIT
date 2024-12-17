@@ -2213,7 +2213,7 @@ end_EndCreatingItem:
 #pragma optimize("",on)
 
 
-int CDrawing::CalculateSize(CDC* DC, short zoom, short* width, short* height)
+int CDrawing::CalculateSize(CDC* DC, short zoom, short* width, short* height) const
 {
     *width = *height = 0;
     if (Items == nullptr) return 0;
@@ -2445,7 +2445,7 @@ void CDrawing::SelectDrawing(char select)
         }
 }
 
-int CDrawing::CalcChecksum()
+int CDrawing::CalcChecksum() const
 {
     int ret = NumItems + m_Color * 2;
     tDrawingItem* di = Items;
@@ -2464,7 +2464,7 @@ int CDrawing::CalcChecksum()
 
 //copies expression data into windows clipboard
 //should be fast
-int CDrawing::CopyToWindowsClipboard(void)
+int CDrawing::CopyToWindowsClipboard() const
 {
     if (theApp.m_pMainWnd->OpenClipboard())
     {
@@ -2660,7 +2660,7 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
 }
 
 #pragma optimize("s",on)
-int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
+int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
 {
     int len = 0;
     static char tmpstr[256];
@@ -2680,12 +2680,12 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
         if (di->Type == 0) //subdrawing
         {
             if (XMLFileVersion == 1)
-                sprintf(tmpstr, "<group X1=\"%d\" Y1=\"%d\" X2=\"%d\" Y2=\"%d\">\r\n",
+                sprintf_s(tmpstr, "<group X1=\"%d\" Y1=\"%d\" X2=\"%d\" Y2=\"%d\">\r\n",
                         //instead of 'gr' it was 'group' in old version
                         di->X1 * 1000 / DRWZOOM, di->Y1 * 1000 / DRWZOOM, di->X2 * 1000 / DRWZOOM,
                         di->Y2 * 1000 / DRWZOOM);
             else
-                sprintf(tmpstr, "<gr d=\"%d,%d;%d,%d\">\r\n", //instead of 'gr' it was 'group' in old version
+                sprintf_s(tmpstr, "<gr d=\"%d,%d;%d,%d\">\r\n", //instead of 'gr' it was 'group' in old version
                         di->X1, di->Y1, di->X2, di->Y2);
             len += (int)strlen(tmpstr);
             if (!only_calculate)
@@ -2698,8 +2698,8 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
             if (!only_calculate) output += tt;
             memset(tmpstr, 9, num_tabs);
             tmpstr[num_tabs] = 0;
-            if (XMLFileVersion == 1) strcat(tmpstr, "</group>\r\n");
-            else strcat(tmpstr, "</gr>\r\n"); //instead of /gr it was /group in old version
+            if (XMLFileVersion == 1) strcat_s(tmpstr, "</group>\r\n");
+            else strcat_s(tmpstr, "</gr>\r\n"); //instead of /gr it was /group in old version
             len += (int)strlen(tmpstr);
             if (!only_calculate)
             {
@@ -2710,11 +2710,11 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
         else if (di->Type == 2) //subexpression
         {
             if (XMLFileVersion == 1)
-                sprintf(tmpstr, "<subexp X1=\"%d\" Y1=\"%d\" X2=\"%d\" Y2=\"%d\">\r\n",
+                sprintf_s(tmpstr, "<subexp X1=\"%d\" Y1=\"%d\" X2=\"%d\" Y2=\"%d\">\r\n",
                         di->X1 * 1000 / DRWZOOM, di->Y1 * 1000 / DRWZOOM, di->X2 * 1000 / DRWZOOM,
                         di->Y2 * 1000 / DRWZOOM);
             else
-                sprintf(tmpstr, "<subexp d=\"%d,%d;%d,%d\">\r\n",
+                sprintf_s(tmpstr, "<subexp d=\"%d,%d;%d,%d\">\r\n",
                         di->X1, di->Y1, di->X2, di->Y2);
             len += (int)strlen(tmpstr);
             if (!only_calculate)
@@ -2739,7 +2739,7 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
         {
             int typecode = di->Type + 10 * (m_Color + 1);
             if (XMLFileVersion == 1)
-                sprintf(tmpstr, "<draw type=\"%d\" ", typecode);
+                sprintf_s(tmpstr, "<draw type=\"%d\" ", typecode);
             else
             {
                 if ((typecode != 11) && (typecode != 1)) //black color (m_Color=-1 or m_Color=0) line segment
@@ -2756,7 +2756,7 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
 
             if ((IsSpecialDrawing) && (i == 0))
             {
-                sprintf(tmpstr, "spec=\"%d\" ", IsSpecialDrawing);
+                sprintf_s(tmpstr, "spec=\"%d\" ", IsSpecialDrawing);
                 len += (int)strlen(tmpstr);
                 if (!only_calculate)
                 {
@@ -2768,14 +2768,14 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
 
             if (XMLFileVersion == 1)
             {
-                sprintf(tmpstr, "width=\"%d\" X1=\"%ld\" Y1=\"%ld\" X2=\"%ld\" Y2=\"%ld\" ",
+                sprintf_s(tmpstr, "width=\"%d\" X1=\"%ld\" Y1=\"%ld\" X2=\"%ld\" Y2=\"%ld\" ",
                         //instead of 'w=' it was 'width=' in older version
                         di->LineWidth * 1000 / DRWZOOM, di->X1 * 1000 / DRWZOOM, di->Y1 * 1000 / DRWZOOM,
                         di->X2 * 1000 / DRWZOOM, di->Y2 * 1000 / DRWZOOM);
             }
             else
             {
-                sprintf(tmpstr, "d=\"%d|%ld,%ld;%ld,%ld", di->LineWidth, di->X1, di->Y1, di->X2, di->Y2);
+                sprintf_s(tmpstr, "d=\"%d|%ld,%ld;%ld,%ld", di->LineWidth, di->X1, di->Y1, di->X2, di->Y2);
             }
 
             int jj = 3;
@@ -2788,20 +2788,20 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
                 i++;
                 di++;
                 if (XMLFileVersion == 1)
-                    sprintf(fstr, "X%d=\"%d\" Y%d=\"%d\" ", jj, di->X2 * 1000 / DRWZOOM, jj, di->Y2 * 1000 / DRWZOOM);
+                    sprintf_s(fstr, "X%d=\"%d\" Y%d=\"%d\" ", jj, di->X2 * 1000 / DRWZOOM, jj, di->Y2 * 1000 / DRWZOOM);
                 else
                 {
-                    if (di->X2 == (di - 1)->X2) sprintf(fstr, ";:,%d", di->Y2);
-                    else if (di->Y2 == (di - 1)->Y2) sprintf(fstr, ";%d,:", di->X2);
-                    else sprintf(fstr, ";%d,%d", di->X2, di->Y2);
+                    if (di->X2 == (di - 1)->X2) sprintf_s(fstr, ";:,%d", di->Y2);
+                    else if (di->Y2 == (di - 1)->Y2) sprintf_s(fstr, ";%d,:", di->X2);
+                    else sprintf_s(fstr, ";%d,%d", di->X2, di->Y2);
                 }
-                strcat(tmpstr, fstr);
+                strcat_s(tmpstr, fstr);
                 jj++;
                 if (jj > 18) break;
                 if ((XMLFileVersion == 1) && (jj > 9)) break;
             }
-            if (XMLFileVersion == 1) strcat(tmpstr, "/>\r\n");
-            else strcat(tmpstr, "\" />\r\n");
+            if (XMLFileVersion == 1) strcat_s(tmpstr, "/>\r\n");
+            else strcat_s(tmpstr, "\" />\r\n");
 
 
             len += (int)strlen(tmpstr);
@@ -3872,7 +3872,7 @@ int CDrawing::CopyDrawingIntoSubgroup(CDrawing* Original, int X, int Y)
     return 0;
 }
 
-int CDrawing::SetLineWidth(int width)
+int CDrawing::SetLineWidth(int width) const
 {
     for (int i = 0; i < NumItems; i++)
     {
@@ -4189,7 +4189,7 @@ int CDrawing::AdjustCoordinates(int* x1, int* y1, int* w, int* h, int absX, int 
     return 0;
 }
 
-int CDrawing::AnyNodeSelected(void)
+int CDrawing::AnyNodeSelected() const
 {
     if (((AllowQuickEditNodes()) && (IsSelected)) ||
         ((GetKeyState(VK_CONTROL) & 0xFFFE) && (IsSelected)))
@@ -4208,7 +4208,7 @@ int CDrawing::AnyNodeSelected(void)
 }
 
 //returns 1 if it is ok to allow quick node editing (while menu/toolbar option for quick node editing is on)
-int CDrawing::AllowQuickEditNodes(void)
+int CDrawing::AllowQuickEditNodes() const
 {
     if (ToolbarEditNodes)
     {
@@ -4230,7 +4230,7 @@ int CDrawing::AllowQuickEditNodes(void)
 }
 
 // returns coordinates of the real upper left corner
-int CDrawing::FindRealCorner(int* X, int* Y, int* X2, int* Y2)
+int CDrawing::FindRealCorner(int* X, int* Y, int* X2, int* Y2) const
 {
     int x1, y1, x2, y2;
     x1 = y1 = 0x7FFFFFFF;
@@ -4337,7 +4337,7 @@ int CDrawing::SplitLineAtPos(int X, int Y)
 //should return 1 if mouse click is processed (there will be no further processing)
 //X=Y=0x7FFFFFFF when button is up
 #pragma optimize("s",on)
-int CDrawing::MouseClick(int X, int Y)
+int CDrawing::MouseClick(int X, int Y) const
 {
     if (ViewOnlyMode) return 0;
 
@@ -4356,7 +4356,7 @@ int CDrawing::MouseClick(int X, int Y)
 
 //X=Y=0x7FFFFFFF when mouse is moving outside 
 //function must return 1 if the object is to be redrawn
-int CDrawing::MouseMove(CDC* DC, int X, int Y, UINT flags)
+int CDrawing::MouseMove(CDC* DC, int X, int Y, UINT flags) const
 {
     if (ViewOnlyMode) return 0;
 
@@ -4373,7 +4373,7 @@ int CDrawing::MouseMove(CDC* DC, int X, int Y, UINT flags)
 }
 
 // returns lenght of the diagonal from given point to drawing lines
-int CDrawing::FindDiagonalLength(int X, int Y, int* l1, int* l2, int direction)
+int CDrawing::FindDiagonalLength(int X, int Y, int* l1, int* l2, int direction) const
 {
     *l1 = 0x7FFFFFFF;
     *l2 = 0x7FFFFFFF;
@@ -5103,7 +5103,7 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
     return 1;
 }
 
-void CDrawing::FindBottomRightDrawingPoint(int* X, int* Y)
+void CDrawing::FindBottomRightDrawingPoint(int* X, int* Y) const
 {
     //searches the drawingclipboard for the bottom right point
     *X = 0;
