@@ -62,7 +62,7 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	int PaintThePopupMenu(void);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-	int ShowPopupMenu(CExpression* expression,CWnd *owner, int OwnerType, int UserParam,int no_reposition=0);
+	int ShowPopupMenu(CExpression* expression, CWnd *owner, int OwnerType, int UserParam, int no_reposition=0);
 	int PrepareFontMenu(int y);
 	int PrepareSymbolMenu(int y);
 	int PrepareParenthesesMenu(int y);

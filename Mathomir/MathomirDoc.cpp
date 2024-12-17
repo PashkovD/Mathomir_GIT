@@ -466,7 +466,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                             CDC* DC = theApp.m_pMainWnd->GetDC();
                             short l = 0, a = 0, b = 0;
                             if (type == 1)
-                                ((CExpression*)ds->Object)->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                                ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
                             else
                                 ((CDrawing*)ds->Object)->CalculateSize(DC, ViewZoom, &l, &b);
                             ds->Length = l * 100 / ViewZoom;
@@ -622,15 +622,15 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         SYSTEMTIME st;
         GetLocalTime(&st);
         sprintf(tmpbuf, "%04d-%02d-%02d", st.wYear, st.wMonth, st.wDay);
-        strcpy((exp->m_pElementList + 0)->pElementObject->Data1, tmpbuf);
+        strcpy_s((exp->m_pElementList + 0)->pElementObject->Data1, tmpbuf);
         sprintf(tmpbuf, "%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
-        strcpy((exp->m_pElementList + 1)->pElementObject->Data1, tmpbuf);
+        strcpy_s((exp->m_pElementList + 1)->pElementObject->Data1, tmpbuf);
         DWORD lnn = 23;
         GetUserName(tmpbuf, &lnn);
-        strcpy((exp->m_pElementList + 3)->pElementObject->Data1, tmpbuf);
+        strcpy_s((exp->m_pElementList + 3)->pElementObject->Data1, tmpbuf);
         lnn = 23;
         GetComputerName(tmpbuf, &lnn);
-        strcpy((exp->m_pElementList + 5)->pElementObject->Data1, tmpbuf);
+        strcpy_s((exp->m_pElementList + 5)->pElementObject->Data1, tmpbuf);
     }
 #endif
 
@@ -912,7 +912,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
             PasswordDlgStruct = nullptr;
             return 0;
         }
-        strcpy(passw, PasswordDlgStruct->password);
+        strcpy_s(passw, PasswordDlgStruct->password);
     }
 
 
@@ -1157,7 +1157,7 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
             PasswordDlgStruct = nullptr;
             return 0;
         }
-        strcpy(passw, PasswordDlgStruct->password);
+        strcpy_s(passw, PasswordDlgStruct->password);
         delete PasswordDlgStruct;
         PasswordDlgStruct = nullptr;
     }

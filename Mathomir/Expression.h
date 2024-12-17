@@ -153,7 +153,7 @@ public:
 public:
     CExpression(CElement* PaternalElement, CExpression* PaternalExpression, short int FontSize);
     ~CExpression(void);
-    void CalculateSize(CDC* DC, short int zoom, short int* length, short int* above, short int* below, char HQR = -1,
+    void CalculateSize(CDC& DC, short int zoom, short int& length, short int* above, short int* below, char HQR = -1,
                        char optimize_for_readability = 0);
     void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg = nullptr, int color = 0);
     short GetActualFontSize(short zoom);

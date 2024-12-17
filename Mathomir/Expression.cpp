@@ -465,7 +465,7 @@ int CExpression::InsertEmptyElement(short position, short type, char Operator, i
 //for displaying
 //this function should be relatively fast.
 
-void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, short int* above, short int* below,
+void CExpression::CalculateSize(CDC& DC, short int zoom, short int& length, short int* above, short int* below,
                                 char HQR, char optimize_for_readability)
 {
     try
@@ -525,7 +525,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
 
 
         if (this == nullptr) return;
-        if (DC == nullptr) return;
+        if (&DC == nullptr) return;
         if (zoom < 5) zoom = 5;
         if (zoom > 5000) zoom = 5000;
 
@@ -698,15 +698,15 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
 
 
         //int xposerror=0;
-        *length = MarginX;
+        length = MarginX;
         //xposerror=PrecisionMarginX-66*MarginX;
 
         if ((m_FontSize > 250) && (m_pPaternalExpression == nullptr) && ((m_ParenthesesFlags & 0x81) == 0) && (!is_matrix))
-            *length = *length * 250 / m_FontSize; //for better left alignent
+            length = length * 250 / m_FontSize; //for better left alignent
         if ((HQR) && (m_pPaternalExpression) && (!is_matrix))
         {
-            *length = MarginX / 4;
-            if (m_ParenthesesFlags & 0x81) *length = (PrecisionMarginX + 26) / 256;
+            length = MarginX / 4;
+            if (m_ParenthesesFlags & 0x81) length = (PrecisionMarginX + 26) / 256;
         }
         if ((this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type == 3) && (this->m_pPaternalElement->
                 Expression1 == this) &&
@@ -714,9 +714,9 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
         {
             //special handling for exponents - no insertion point in front of an exponent (for better rendering and simpler editing) //BABA
             if (this->m_pElementList->Type)
-                *length = 0;
+                length = 0;
             else
-                *length = MarginX / 2;
+                length = MarginX / 2;
         }
 
 
@@ -737,7 +737,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
         if (m_MatrixColumns)
             memset(m_MatrixColumns, 0, sizeof(tMatrixColumns) * 50);
 
-        int textlinestartpos = *length;
+        int textlinestartpos = length;
         int LineXpos = textlinestartpos;
 
         int i;
@@ -773,8 +773,8 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
 
                 theElement->X_pos = LineXpos;
                 theElement->Y_pos = Ycenterline;
-                theElement->pElementObject->CalculateSize(DC, zoom, &(theElement->Length), &(theElement->Above),
-                                                          &(theElement->Below), i, tmpHQR);
+                theElement->pElementObject->CalculateSize(DC, zoom, theElement->Length, theElement->Above,
+                                                          theElement->Below, i, tmpHQR);
                 LineXpos = theElement->X_pos; //because the X_pos can change in previous call
             }
 
@@ -786,7 +786,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
 
             if (((theElement->Type != 2) || (theElement->pElementObject->Data1[0] != (char)0xFF)) &&
                 (theElement->Type != 12) && (theElement->Type != 11))
-                if (LineXpos > *length) *length = LineXpos;
+                if (LineXpos > length) length = LineXpos;
 
             if (((theElement->Type == 2) && (theElement->pElementObject->Data1[0] == (char)0xFF)) || (i == m_NumElements
                 - 1) || (theElement->Type == 11) || (theElement->Type == 12))
@@ -897,8 +897,8 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
                             if (*attrib.alignment == 'c') align = 0;
                             if (*attrib.alignment == 'r') align = 2;
                         }
-                        if (align == 0) delta = (*length - EndX - MarginX) / 2; //center alignmet
-                        if (align == 2) delta = *length - EndX - MarginX; //right alignment
+                        if (align == 0) delta = (length - EndX - MarginX) / 2; //center alignmet
+                        if (align == 2) delta = length - EndX - MarginX; //right alignment
                         for (int k = LineStart; k <= j; k++)
                             (m_pElementList + k)->X_pos += delta;
                         LineStart = j + 1;
@@ -915,20 +915,20 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
                     if ((HQR) && (m_pPaternalExpression) && (!is_matrix))
                     {
                         if (m_ParenthesesFlags & 0x81)
-                            *length -= MarginX - (PrecisionMarginX + 26) / 256;
+                            length -= MarginX - (PrecisionMarginX + 26) / 256;
                         else
-                            *length -= MarginX - MarginX / 4;
+                            length -= MarginX - MarginX / 4;
                     }
 
                     //if (HQR) *length-=MarginX;
                     if (m_MatrixRows[Row].above < *above) m_MatrixRows[Row].above = *above;
                     if (m_MatrixRows[Row].below < *below) m_MatrixRows[Row].below = *below;
-                    if (m_MatrixColumns[Column].length < *length) m_MatrixColumns[Column].length = *length;
-                    *length = MarginX;
+                    if (m_MatrixColumns[Column].length < length) m_MatrixColumns[Column].length = length;
+                    length = MarginX;
                     if ((HQR) && (m_pPaternalExpression) && (!is_matrix))
                     {
-                        *length = MarginX / 4;
-                        if (m_ParenthesesFlags & 0x81) *length = (PrecisionMarginX + 26) / 256;
+                        length = MarginX / 4;
+                        if (m_ParenthesesFlags & 0x81) length = (PrecisionMarginX + 26) / 256;
                     }
 
                     *above = 0;
@@ -936,7 +936,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
                     TextlineStart = i + 1;
                     TextBeginning = i + 1;
                     Ycenterline = 0;
-                    textlinestartpos = *length;
+                    textlinestartpos = length;
                     LineXpos = textlinestartpos;
                     //xposerror=0;
                     LastlineBelow = 0;
@@ -959,9 +959,9 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
         if ((HQR) && (m_pPaternalExpression) && (!is_matrix))
         {
             if (m_ParenthesesFlags & 0x81)
-                *length -= MarginX - (PrecisionMarginX + 26) / 256;
+                length -= MarginX - (PrecisionMarginX + 26) / 256;
             else
-                *length -= MarginX - MarginX / 4;
+                length -= MarginX - MarginX / 4;
         }
 
 
@@ -977,7 +977,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
         //if (HQR) *length-=MarginX;
         if (m_MatrixRows[Row].above < *above) m_MatrixRows[Row].above = *above;
         if (m_MatrixRows[Row].below < *below) m_MatrixRows[Row].below = *below;
-        if (m_MatrixColumns[Column].length < *length) m_MatrixColumns[Column].length = *length;
+        if (m_MatrixColumns[Column].length < length) m_MatrixColumns[Column].length = length;
         if (Column + 1 > MaxNumColumns) MaxNumColumns = Column + 1;
         if (Row + 1 > MaxNumRows) MaxNumRows = Row + 1;
 
@@ -1025,7 +1025,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
         for (int i = 0; i < m_MaxNumColumns; i++)
             m_MatrixColumns[i].length += m_MarginX;
 
-        *length = 0;
+        length = 0;
         *above = 0;
         *below = 0;
 
@@ -1083,7 +1083,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
                     if (theElement->Type == 11) ColumnStartX += (HQR) ? (1 * MarginX) : MarginX;
                 }
                 ColumnStartX += m_MatrixColumns[Column].length;
-                if (*length < ColumnStartX) *length = ColumnStartX;
+                if (length < ColumnStartX) length = ColumnStartX;
                 ColumnStart = i + 1;
                 l = MarginX;
                 Column++;
@@ -1170,7 +1170,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
                 *above += 2 * MarginY / 3;
                 *below += 2 * MarginY / 3;
             }
-            *length += MarginX / 2;
+            length += MarginX / 2;
             m_ParenthesesAbove = *above;
             m_ParenthesesBelow = *below;
         }
@@ -1220,7 +1220,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
             else
             {
                 //for horizontal parentheses
-                m_ParentheseWidth = ActualSize / 5 + (*length) / 80;
+                m_ParentheseWidth = ActualSize / 5 + length / 80;
                 //if (!m_DontAddParentheseWidth)
                 {
                     if (!(m_ParenthesesFlags & 0x08))
@@ -1249,10 +1249,10 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
                     if (m_MatrixColumns)
                         for (ii = 0; ii < m_MaxNumColumns; ii++)
                             m_MatrixColumns[ii].x += deltax;
-                    *length += deltax;
+                    length += deltax;
                 }
                 if ((!(m_ParenthesesFlags & 0x10)) || (m_DrawParentheses == 'b') || (m_DrawParentheses == 'x'))
-                    *length += deltax;
+                    length += deltax;
 
 
                 //if ((HQR==0) && (IsHighQualityRendering))
@@ -1288,15 +1288,15 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
             *below += ActualSize / 8;
         }
 
-        m_OverallLength = *length; //store for future use
+        m_OverallLength = length; //store for future use
         m_OverallAbove = *above;
         m_OverallBelow = *below;
 
 
         if ((m_IsVertical) && (m_pPaternalExpression == nullptr))
         {
-            int l = *length;
-            *length = *above + *below;
+            int l = length;
+            length = *above + *below;
             *above = (unsigned short)(l / 2);
             *below = (unsigned short)(l - l / 2);
         }
@@ -1304,7 +1304,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int* length, shor
 
         if (external)
         {
-            CalculateSizeReadjust(external, length, above, below);
+            CalculateSizeReadjust(external, &length, above, below);
         }
     }
     catch (...)
@@ -3367,7 +3367,7 @@ int CExpression::CopyExpression(const CExpression* Original, const char OnlySele
         //AdjustMatrix();
         CDC* DC = pMainView->GetDC();
         short l, a, b;
-        this->CalculateSize(DC, ViewZoom, &l, &a, &b);
+        this->CalculateSize(*DC, ViewZoom, l, &a, &b);
         pMainView->ReleaseDC(DC);
     }
 
@@ -4276,7 +4276,7 @@ int CExpression::KeyboardStart(CDC* DC, short zoom)
             if (elm->Data3[i] + t >= tt) break;
         m_KeyboardCursorPos = i;
         short l, a, b;
-        CalculateSize(DC, zoom, &l, &a, &b);
+        CalculateSize(*DC, zoom, l, &a, &b);
         previouslyEditedExpression = nullptr;
     }
     else
@@ -4291,7 +4291,7 @@ int CExpression::KeyboardStart(CDC* DC, short zoom)
         if (!InsertEmptyElement(start_pos - 1, 1, 0)) return 0;
         //recalculate
         short l, a, b;
-        CalculateSize(DC, zoom, &l, &a, &b);
+        CalculateSize(*DC, zoom, l, &a, &b);
         m_IsKeyboardEntry = start_pos;
         m_KeyboardCursorPos = 0;
         previouslyEditedExpression = nullptr;
@@ -4438,7 +4438,7 @@ int CExpression::KeyboardStop(void)
         {
             short l, a, b;
             CDC* DC = pMainView->GetDC();
-            ((CExpression*)KeyboardEntryBaseObject->Object)->CalculateSize(DC, ViewZoom, &l, &a, &b);
+            ((CExpression*)KeyboardEntryBaseObject->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
             pMainView->ReleaseDC(DC);
         }
     }
@@ -4470,7 +4470,7 @@ int CExpression::KeyboardPopupClosed(int user_param, int exit_code)
         m_IsKeyboardEntry = pos + 1;
         short l, a, b;
         CDC* DC = pMainView->GetDC();
-        this->CalculateSize(DC, ViewZoom, &l, &a, &b);
+        this->CalculateSize(*DC, ViewZoom, l, &a, &b);
         pMainView->ReleaseDC(DC);
         pMainView->ScrollCursorIntoView();
     }
@@ -4528,7 +4528,7 @@ int CExpression::RemoveEmptyVariable(CDC* DC, tElementStruct* theElement, char n
             if (parent)
             {
                 short l, a, b;
-                parent->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
             }
             return 0;
         }
@@ -4540,7 +4540,7 @@ int CExpression::RemoveEmptyVariable(CDC* DC, tElementStruct* theElement, char n
                 {
                     short l, a, b;
                     if (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
-                    parent->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                    parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
                 }
             return 1;
         }
@@ -5009,24 +5009,24 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
 
                         if (strcmp(tmpdata, "mn") == 0) //minute
                         {
-                            strcpy(tmpdata, "min");
+                            strcpy_s(tmpdata, "min");
                         }
 
                         if (strcmp(tmpdata, "Nm") == 0) // Nm
                         {
-                            strcpy(tsss->pElementObject->Data1, "N");
+                            strcpy_s(tsss->pElementObject->Data1, "N");
                             tsss->pElementObject->m_VMods = 0x10;
                             InsertEmptyElement(m_IsKeyboardEntry++, 1, 0, fcolor);
                             tsss = m_pElementList + m_IsKeyboardEntry - 1;
-                            strcpy(tmpdata, "m");
+                            strcpy_s(tmpdata, "m");
                         }
                         if (strcmp(tmpdata, "Ns") == 0) // Ns
                         {
-                            strcpy(tsss->pElementObject->Data1, "N");
+                            strcpy_s(tsss->pElementObject->Data1, "N");
                             tsss->pElementObject->m_VMods = 0x10;
                             InsertEmptyElement(m_IsKeyboardEntry++, 1, 0, fcolor);
                             tsss = m_pElementList + m_IsKeyboardEntry - 1;
-                            strcpy(tmpdata, "s");
+                            strcpy_s(tmpdata, "s");
                         }
                         {
                             for (int iii = 0; iii < (int)strlen(tmpdata) + 1; iii++)
@@ -6941,7 +6941,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 int X, Y;
                 int dir = 1;
                 short l, a, b;
-                this->CalculateSize(DC, zoom, &l, &a, &b);
+                this->CalculateSize(*DC, zoom, l, &a, &b);
                 GetKeyboardCursorPos(&X, &Y);
                 if (nChar == 2) Y++;
                 else
@@ -7102,7 +7102,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     TempPopupExpression->SelectElement(1, ii);
                 TempPopupExpression->DeleteElement(m_IsKeyboardEntry - 1);
                 short l, a, b;
-                TempPopupExpression->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                TempPopupExpression->CalculateSize(*DC, ViewZoom, l, &a, &b);
 
                 EasycastListStart = 0;
                 if ((mi < mx) ||
@@ -9361,7 +9361,7 @@ keyboardkeyhit_addtoexponent:
                 if (TempPopupExpression->m_pElementList->Type)
                 {
                     short l, a, b;
-                    TempPopupExpression->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                    TempPopupExpression->CalculateSize(*DC, ViewZoom, l, &a, &b);
                     Popup->ShowPopupMenu(TempPopupExpression, theApp.m_pMainWnd, 3, 0);
                 }
                 else
@@ -9799,7 +9799,7 @@ keyboardkeyhit_addtoexponent:
                                     CExpression* parent = (CExpression*)KeyboardEntryBaseObject->Object;
                                     int x, y;
                                     short l, a, b;
-                                    parent->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                                    parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
                                     parent->GetKeyboardCursorPos(&x, &y);
                                     int ycord = (KeyboardEntryBaseObject->absolute_Y + KeyboardEntryBaseObject->Below -
                                         ViewY + 2) * ViewZoom / 100 + 1;
@@ -9871,7 +9871,7 @@ keyboardkeyhit_addtoexponent:
 
                 start_ord = base_elm - base_exp->m_pElementList;
                 end_ord = start_ord;
-                strcpy(funcname, base_elm->pElementObject->Data1);
+                strcpy_s(funcname, base_elm->pElementObject->Data1);
                 for (int ii = 0; ii < (int)strlen(funcname); ii++)
                 {
                     unsigned char ff = base_elm->pElementObject->Data2[ii];
@@ -9963,7 +9963,7 @@ keyboardkeyhit_addtoexponent:
 
                 if (func_type == 0)
                 {
-                    strcpy(elm->Data1, funcname);
+                    strcpy_s(elm->Data1, funcname);
                     memcpy(elm->Data2, funcfont, strlen(funcname));
                     char add_parentheses = 0;
                     if (funcname[1] == 0) add_parentheses = 1;
@@ -10247,7 +10247,7 @@ keyboardkeyhit_addtoexponent:
                     {
                         //done - change keyboard focus and return
                         short l, a, b;
-                        parent->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                        parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
 
                         m_IsKeyboardEntry = 0;
                         KeyboardEntryBaseObject = TheDocument + candidate;
@@ -10376,7 +10376,7 @@ keyboardkeyhit_addtoexponent:
 
                             //done - change keyboard focus and return
                             short l, a, b;
-                            parent->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                            parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
 
                             m_IsKeyboardEntry = 0;
                             KeyboardEntryBaseObject = TheDocument + candidate;
@@ -11438,7 +11438,7 @@ int CExpression::KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt
     CExpression* parent = newFocus;
     while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
     short l, a, b;
-    parent->CalculateSize(DC, ViewZoom, &l, &a, &b);
+    parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
     *x = 0;
     *y = 0;
 
@@ -12461,7 +12461,7 @@ int CExpression::AutowrapText(CDC* DC, int width, int rewrap_all)
 
 autowraptext_start:
     short l, a, b;
-    this->CalculateSize(DC, ViewZoom, &l, &a, &b);
+    this->CalculateSize(*DC, ViewZoom, l, &a, &b);
     if ((l < width) && (rewrap_all == 0))
     {
         return 0;
@@ -12629,7 +12629,7 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
     memset(tabs, 9, num_tabs);
     tabs[num_tabs] = 0; //generating the tablist string
 
-    strcpy(tmpstr, tabs);
+    strcpy_s(tmpstr, tabs);
     if (XMLFileVersion == 1) strcat(tmpstr, "<expr fnt_h=\"");
     else strcat(tmpstr, "<ex fh=\"");
 
@@ -12793,7 +12793,7 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
         else if ((old_version_text_decode) && (ts->Type == 2) && (ts->pElementObject->Data1[0] == (char)0xFF))
         {
             //for backward compatibility - we are storing simple text boxes this way
-            strcpy(tmpstr, tabs);
+            strcpy_s(tmpstr, tabs);
             if (XMLFileVersion == 1) strcat(tmpstr, "<row_sep />\r\n");
             else strcat(tmpstr, "<wrap />\r\n");
             len += (int)strlen(tmpstr);
@@ -12805,7 +12805,7 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
         }
         else if ((ts->Type == 2) && (ts->pElementObject->Data1[0] == (char)0xFF) && (XMLFileVersion > 1))
         {
-            strcpy(tmpstr, tabs);
+            strcpy_s(tmpstr, tabs);
             strcat(tmpstr, "<wrap />\r\n");
             len += (int)strlen(tmpstr);
             if (!only_calculate)
@@ -12824,7 +12824,7 @@ int CExpression::XML_output(char* output, int num_tabs, char only_calculate)
 
     memset(tabs, 9, num_tabs);
     tabs[num_tabs] = 0; //generating the tablist string
-    strcpy(tmpstr, tabs);
+    strcpy_s(tmpstr, tabs);
     if (XMLFileVersion == 1) strcat(tmpstr, "</expr>\r\n");
     else strcat(tmpstr, "</ex>\r\n");
     len += (int)strlen(tmpstr);
@@ -13049,7 +13049,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 	if ((m_Color>-1) && (m_Color<=4))
 	{
 		//color of the expression - if m_Color==-1, then the color is inherited or default
-		strcpy(tmpstr,tabs);
+		strcpy_s(tmpstr,tabs);
 		strcat(tmpstr,"<mstyle mathcolor=\"");
 		strcat(tmpstr,(m_Color==1)?"red":(m_Color==2)?"green":(m_Color==3)?"blue":(m_Color==4)?"gray":"black");
 		strcat(tmpstr,"\">\r\n");
@@ -13062,27 +13062,27 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 		char tmp1[64];
 		tmp1[0]=0;
 
-		strcpy(tmpstr,tabs);
-		if (m_ParentheseShape=='(')  {strcpy(tmp1,"<mfenced open=\"(\" close=\")\">\r\n");}
-		if (m_ParentheseShape=='[')  {strcpy(tmp1,"<mfenced open=\"[\" close=\"]\">\r\n");}
-		if (m_ParentheseShape=='{')  {strcpy(tmp1,"<mfenced open=\"{\" close=\"}\">\r\n");}
-		if (m_ParentheseShape=='|')  {strcpy(tmp1,"<mfenced open=\"|\" close=\"|\">\r\n");}
-		if (m_ParentheseShape=='/')  {strcpy(tmp1,"<mfenced open=\"/\" close=\"/\">\r\n");}
-		if (m_ParentheseShape=='\\') {strcpy(tmp1,"<mfenced open=\"\\\" close=\"\\\">\r\n");}
-		if (m_ParentheseShape=='<')  {strcpy(tmp1,"<mfenced open=\"<\" close=\">\">\r\n");}
-		if (m_ParentheseShape=='r')  {strcpy(tmp1,"<mfenced open=\"[\" close=\")\">\r\n");}
-		if (m_ParentheseShape=='l')  {strcpy(tmp1,"<mfenced open=\"(\" close=\"]\">\r\n");}
+		strcpy_s(tmpstr,tabs);
+		if (m_ParentheseShape=='(')  {strcpy_s(tmp1,"<mfenced open=\"(\" close=\")\">\r\n");}
+		if (m_ParentheseShape=='[')  {strcpy_s(tmp1,"<mfenced open=\"[\" close=\"]\">\r\n");}
+		if (m_ParentheseShape=='{')  {strcpy_s(tmp1,"<mfenced open=\"{\" close=\"}\">\r\n");}
+		if (m_ParentheseShape=='|')  {strcpy_s(tmp1,"<mfenced open=\"|\" close=\"|\">\r\n");}
+		if (m_ParentheseShape=='/')  {strcpy_s(tmp1,"<mfenced open=\"/\" close=\"/\">\r\n");}
+		if (m_ParentheseShape=='\\') {strcpy_s(tmp1,"<mfenced open=\"\\\" close=\"\\\">\r\n");}
+		if (m_ParentheseShape=='<')  {strcpy_s(tmp1,"<mfenced open=\"<\" close=\">\">\r\n");}
+		if (m_ParentheseShape=='r')  {strcpy_s(tmp1,"<mfenced open=\"[\" close=\")\">\r\n");}
+		if (m_ParentheseShape=='l')  {strcpy_s(tmp1,"<mfenced open=\"(\" close=\"]\">\r\n");}
 
 		if (m_ParentheseData&0x02) tmp1[15]=' '; //parenthese excluded
 		if (m_ParentheseData&0x04) tmp1[25]=' '; //parenthese excluded
-		if (m_ParentheseShape=='b')  {strcpy(tmp1,"<menclose notation=\"box\">\r\n");}
-		if (m_ParentheseShape=='x')  {strcpy(tmp1,"<menclose notation=\"updiagonalstrike downdiagonalstrike\">\r\n");}
+		if (m_ParentheseShape=='b')  {strcpy_s(tmp1,"<menclose notation=\"box\">\r\n");}
+		if (m_ParentheseShape=='x')  {strcpy_s(tmp1,"<menclose notation=\"updiagonalstrike downdiagonalstrike\">\r\n");}
 		strcat(tmpstr,tmp1);
 		{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 	}
 
 	//the <mrow> is always present around an expression
-	strcpy(tmpstr,tabs);
+	strcpy_s(tmpstr,tabs);
 	strcat(tmpstr,"<mrow>\r\n");
 	{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 
@@ -13101,7 +13101,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			if (pos==0) 
 			{
 				is_table=1;
-				strcpy(tmpstr,tabs);
+				strcpy_s(tmpstr,tabs);
 				if (m_Alignment==1) strcat(tmpstr,"<mtable columnalign=\"left\">\r\n");
 				else if (m_Alignment==2) strcat(tmpstr,"<mtable columnalign=\"right\">\r\n");
 				else strcat(tmpstr,"<mtable>\r\n");
@@ -13111,18 +13111,18 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			}
 			if (et==(char)0xFE)
 			{
-				strcpy(tmpstr,tabs);
+				strcpy_s(tmpstr,tabs);
 				strcat(tmpstr,"</mtr><mtr>\r\n");
 				{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 			}
 			
-			strcpy(tmpstr,tabs);
+			strcpy_s(tmpstr,tabs);
 			strcat(tmpstr,"<mtd>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 
 			if (l-p>1)
 			{
-				strcpy(tmpstr,tabs);
+				strcpy_s(tmpstr,tabs);
 				strcat(tmpstr,"<mrow>\r\n");
 				{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 			}
@@ -13142,25 +13142,25 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			{
 				if (last_decor/1024)
 				{
-					strcpy(tmpstr,"</mtext>\r\n");
+					strcpy_s(tmpstr,"</mtext>\r\n");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 				if ((last_decor&0x3FF)/32)
 				{
-					strcpy(tmpstr,tabs);
+					strcpy_s(tmpstr,tabs);
 					strcat(tmpstr,"</mstyle>\r\n");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 				if ((last_decor%32) && (last_decor2!=(curd&0x1F)))
 				{
-					strcpy(tmpstr,tabs);
+					strcpy_s(tmpstr,tabs);
 					strcat(tmpstr,"</menclose>\r\n");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
 
 				if ((curd%32) && (last_decor2!=(curd&0x1F)))
 				{
-					strcpy(tmpstr,tabs);
+					strcpy_s(tmpstr,tabs);
 					strcat(tmpstr,"<menclose notation=\"");
 					int mc=(m_pElementList+k)->Decoration;
 					if (mc==1) strcat(tmpstr,"updiagonalstrike");
@@ -13172,7 +13172,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 				}
 				if ((curd&0x3FF)/32)
 				{
-					strcpy(tmpstr,tabs);
+					strcpy_s(tmpstr,tabs);
 					int mc=(m_pElementList+k)->pElementObject->m_Color;
 					if (mc==0) 	strcat(tmpstr,"<mstyle mathcolor=\"black\">\r\n");
 					else if (mc==1) strcat(tmpstr,"<mstyle mathcolor=\"red\">\r\n");
@@ -13184,7 +13184,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 
 				if (curd/1024)
 				{
-					strcpy(tmpstr,tabs);
+					strcpy_s(tmpstr,tabs);
 					strcat(tmpstr,"<mtext>");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
@@ -13196,7 +13196,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			{
 				if (((m_pElementList+k)->Type==1) && ((m_pElementList+k)->pElementObject->m_Text))
 				{
-					strcpy(tmpstr,(m_pElementList+k)->pElementObject->Data1);
+					strcpy_s(tmpstr,(m_pElementList+k)->pElementObject->Data1);
 					strcat(tmpstr," ");
 					{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 				}
@@ -13204,7 +13204,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 				{
 					if ((prev_type!=2) && ((m_pElementList+k)->Type!=2))
 					{
-						strcpy(tmpstr,tabs);
+						strcpy_s(tmpstr,tabs);
 						strcat(tmpstr,"<mo>&it;</mo>\r\n");  //&InvisibleTimes; - added between two elements if there is no other operator
 						{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 					}
@@ -13218,18 +13218,18 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 		}
 		if (last_decor/1024)
 		{
-			strcpy(tmpstr,"</mtext>\r\n");
+			strcpy_s(tmpstr,"</mtext>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
 		if ((last_decor&0x3FF)/32)
 		{
-			strcpy(tmpstr,tabs);
+			strcpy_s(tmpstr,tabs);
 			strcat(tmpstr,"</mstyle>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
 		if (last_decor%32)
 		{
-			strcpy(tmpstr,tabs);
+			strcpy_s(tmpstr,tabs);
 			strcat(tmpstr,"</menclose>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
@@ -13237,12 +13237,12 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 		{
 			if (l-p>1)
 			{
-				strcpy(tmpstr,tabs);
+				strcpy_s(tmpstr,tabs);
 				strcat(tmpstr,"</mrow>\r\n");
 				{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 			}
 
-			strcpy(tmpstr,tabs);
+			strcpy_s(tmpstr,tabs);
 			strcat(tmpstr,"</mtd>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
@@ -13251,7 +13251,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 		{
 			if (is_table)
 			{
-				strcpy(tmpstr,tabs);
+				strcpy_s(tmpstr,tabs);
 				strcat(tmpstr,"</mtr>\r\n");
 				strcat(tmpstr,tabs);
 				strcat(tmpstr,"</mtable>\r\n");
@@ -13264,13 +13264,13 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 	
 
 
-	strcpy(tmpstr,tabs);
+	strcpy_s(tmpstr,tabs);
 	strcat(tmpstr,"</mrow>\r\n");
 	{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 
 	if ((m_DrawParentheses) && ((m_ParentheseData&0x01)==0))
 	{
-		strcpy(tmpstr,tabs);
+		strcpy_s(tmpstr,tabs);
 		if ((m_ParentheseShape=='b') || (m_ParentheseShape=='x')) strcat(tmpstr,"</menclose>\r\n");
 		else strcat(tmpstr,"</mfenced>\r\n");
 		{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
@@ -13278,7 +13278,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 
 	if ((m_Color>-1) && (m_Color<=4))
 	{
-		strcpy(tmpstr,tabs);
+		strcpy_s(tmpstr,tabs);
 		strcat(tmpstr,"</mstyle>\r\n");
 		{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 	}
@@ -13311,23 +13311,23 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
         char tmp1[48];
         tmp1[0] = 0;
 
-        strcpy(tmpstr, tabs);
-        if (m_ParenthesesFlags & 0x08) strcpy(tmp1, "\\left. ");
+        strcpy_s(tmpstr, tabs);
+        if (m_ParenthesesFlags & 0x08) strcpy_s(tmp1, "\\left. ");
         else
         {
-            if (m_ParentheseShape == '(') { strcpy(tmp1, "\\left( "); }
-            if (m_ParentheseShape == '[') { strcpy(tmp1, "\\left[ "); }
-            if (m_ParentheseShape == '{') { strcpy(tmp1, "\\left\\{ "); }
-            if (m_ParentheseShape == '|') { strcpy(tmp1, "\\left| "); }
-            if (m_ParentheseShape == '/') { strcpy(tmp1, "\\left/ "); }
-            if (m_ParentheseShape == '\\') { strcpy(tmp1, "\\left| \\left| "); }
-            if (m_ParentheseShape == '<') { strcpy(tmp1, "\\left< "); }
-            if (m_ParentheseShape == 'r') { strcpy(tmp1, "\\left[ "); }
-            if (m_ParentheseShape == 'l') { strcpy(tmp1, "\\left( "); }
-            if (m_ParentheseShape == 'a') { strcpy(tmp1, "\\left< "); }
-            if (m_ParentheseShape == 'k') { strcpy(tmp1, "\\left| "); }
-            if (m_ParentheseShape == 'b') { strcpy(tmp1, "\\left[ "); } //boxing???
-            if (m_ParentheseShape == 'l') { strcpy(tmp1, "\\left[ "); } //strikeout???
+            if (m_ParentheseShape == '(') { strcpy_s(tmp1, "\\left( "); }
+            if (m_ParentheseShape == '[') { strcpy_s(tmp1, "\\left[ "); }
+            if (m_ParentheseShape == '{') { strcpy_s(tmp1, "\\left\\{ "); }
+            if (m_ParentheseShape == '|') { strcpy_s(tmp1, "\\left| "); }
+            if (m_ParentheseShape == '/') { strcpy_s(tmp1, "\\left/ "); }
+            if (m_ParentheseShape == '\\') { strcpy_s(tmp1, "\\left| \\left| "); }
+            if (m_ParentheseShape == '<') { strcpy_s(tmp1, "\\left< "); }
+            if (m_ParentheseShape == 'r') { strcpy_s(tmp1, "\\left[ "); }
+            if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\left( "); }
+            if (m_ParentheseShape == 'a') { strcpy_s(tmp1, "\\left< "); }
+            if (m_ParentheseShape == 'k') { strcpy_s(tmp1, "\\left| "); }
+            if (m_ParentheseShape == 'b') { strcpy_s(tmp1, "\\left[ "); } //boxing???
+            if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\left[ "); } //strikeout???
         }
         strcat(tmpstr, tmp1);
         {
@@ -13356,7 +13356,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             if (pos == 0)
             {
                 is_table = 1;
-                strcpy(tmpstr, "\\begin{array}{");
+                strcpy_s(tmpstr, "\\begin{array}{");
 
                 for (int ii = 0; ii < this->m_MaxNumColumns; ii++)
                 {
@@ -13378,7 +13378,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             }
             else if (et == (char)0xFE)
             {
-                strcpy(tmpstr, "\\\\\r\n");
+                strcpy_s(tmpstr, "\\\\\r\n");
                 {
                     int tt = (int)strlen(tmpstr);
                     len += tt;
@@ -13391,7 +13391,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             }
             else
             {
-                strcpy(tmpstr, " & ");
+                strcpy_s(tmpstr, " & ");
                 {
                     int tt = (int)strlen(tmpstr);
                     len += tt;
@@ -13418,7 +13418,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             {
                 if (last_decor / 1024)
                 {
-                    strcpy(tmpstr, "}");
+                    strcpy_s(tmpstr, "}");
                     {
                         int tt = (int)strlen(tmpstr);
                         len += tt;
@@ -13431,7 +13431,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
                 }
                 if ((last_decor & 0x3FF) / 32)
                 {
-                    strcpy(tmpstr, "}");
+                    strcpy_s(tmpstr, "}");
                     {
                         int tt = (int)strlen(tmpstr);
                         len += tt;
@@ -13444,7 +13444,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
                 }
                 if ((last_decor % 32) && (last_decor2 != (curd & 0x1F)))
                 {
-                    strcpy(tmpstr, "}");
+                    strcpy_s(tmpstr, "}");
                     {
                         int tt = (int)strlen(tmpstr);
                         len += tt;
@@ -13459,11 +13459,11 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
                 if ((curd % 32) && (last_decor2 != (curd & 0x1F)))
                 {
                     int mc = (m_pElementList + k)->Decoration;
-                    if (mc == 1) strcpy(tmpstr, "\\underline{"); //strikeout
-                    if (mc == 2) strcpy(tmpstr, "\\underline{"); //encircled
-                    if (mc == 3) strcpy(tmpstr, "\\underline{"); // underline
-                    if (mc == 4) strcpy(tmpstr, "\\overline{"); //overline
-                    if (mc == 5) strcpy(tmpstr, "\\underbrace{"); //overline
+                    if (mc == 1) strcpy_s(tmpstr, "\\underline{"); //strikeout
+                    if (mc == 2) strcpy_s(tmpstr, "\\underline{"); //encircled
+                    if (mc == 3) strcpy_s(tmpstr, "\\underline{"); // underline
+                    if (mc == 4) strcpy_s(tmpstr, "\\overline{"); //overline
+                    if (mc == 5) strcpy_s(tmpstr, "\\underbrace{"); //overline
 
                     {
                         int tt = (int)strlen(tmpstr);
@@ -13477,7 +13477,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
                 }
                 /*if ((curd&0x3FF)/32)
                 {
-                    strcpy(tmpstr,tabs);
+                    strcpy_s(tmpstr,tabs);
                     int mc=(m_pElementList+k)->pElementObject->m_Color;
                     if (mc==0) 	strcat(tmpstr,"<mstyle mathcolor=\"black\">\r\n");
                     else if (mc==1) strcat(tmpstr,"<mstyle mathcolor=\"red\">\r\n");
@@ -13489,7 +13489,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
 
                 if (curd / 1024)
                 {
-                    strcpy(tmpstr, "\\text{");
+                    strcpy_s(tmpstr, "\\text{");
                     {
                         int tt = (int)strlen(tmpstr);
                         len += tt;
@@ -13507,7 +13507,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             {
                 if (((m_pElementList + k)->Type == 1) && ((m_pElementList + k)->pElementObject->m_Text))
                 {
-                    strcpy(tmpstr, (m_pElementList + k)->pElementObject->Data1);
+                    strcpy_s(tmpstr, (m_pElementList + k)->pElementObject->Data1);
                     strcat(tmpstr, " ");
                     {
                         int tt = (int)strlen(tmpstr);
@@ -13530,7 +13530,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
         }
         if (last_decor / 1024)
         {
-            strcpy(tmpstr, "}");
+            strcpy_s(tmpstr, "}");
             {
                 int tt = (int)strlen(tmpstr);
                 len += tt;
@@ -13543,7 +13543,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
         }
         if ((last_decor & 0x3FF) / 32)
         {
-            strcpy(tmpstr, "}");
+            strcpy_s(tmpstr, "}");
             {
                 int tt = (int)strlen(tmpstr);
                 len += tt;
@@ -13556,7 +13556,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
         }
         if (last_decor % 32)
         {
-            strcpy(tmpstr, "}");
+            strcpy_s(tmpstr, "}");
             {
                 int tt = (int)strlen(tmpstr);
                 len += tt;
@@ -13573,7 +13573,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
         {
             if (is_table)
             {
-                strcpy(tmpstr, "\\end{array} ");
+                strcpy_s(tmpstr, "\\end{array} ");
                 {
                     int tt = (int)strlen(tmpstr);
                     len += tt;
@@ -13595,23 +13595,23 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
         char tmp1[48];
         tmp1[0] = 0;
 
-        strcpy(tmpstr, tabs);
-        if (m_ParenthesesFlags & 0x10) strcpy(tmp1, "\\right. ");
+        strcpy_s(tmpstr, tabs);
+        if (m_ParenthesesFlags & 0x10) strcpy_s(tmp1, "\\right. ");
         else
         {
-            if (m_ParentheseShape == '(') { strcpy(tmp1, "\\right) "); }
-            if (m_ParentheseShape == '[') { strcpy(tmp1, "\\right] "); }
-            if (m_ParentheseShape == '{') { strcpy(tmp1, "\\right\\} "); }
-            if (m_ParentheseShape == '|') { strcpy(tmp1, "\\right| "); }
-            if (m_ParentheseShape == '/') { strcpy(tmp1, "\\right/ "); }
-            if (m_ParentheseShape == '\\') { strcpy(tmp1, "\\right| \\right| "); }
-            if (m_ParentheseShape == '<') { strcpy(tmp1, "\\right> "); }
-            if (m_ParentheseShape == 'r') { strcpy(tmp1, "\\right) "); }
-            if (m_ParentheseShape == 'l') { strcpy(tmp1, "\\right] "); }
-            if (m_ParentheseShape == 'a') { strcpy(tmp1, "\\right| "); }
-            if (m_ParentheseShape == 'k') { strcpy(tmp1, "\\right> "); }
-            if (m_ParentheseShape == 'b') { strcpy(tmp1, "\\right] "); } //boxing???
-            if (m_ParentheseShape == 'l') { strcpy(tmp1, "\\right] "); } //strikeout???
+            if (m_ParentheseShape == '(') { strcpy_s(tmp1, "\\right) "); }
+            if (m_ParentheseShape == '[') { strcpy_s(tmp1, "\\right] "); }
+            if (m_ParentheseShape == '{') { strcpy_s(tmp1, "\\right\\} "); }
+            if (m_ParentheseShape == '|') { strcpy_s(tmp1, "\\right| "); }
+            if (m_ParentheseShape == '/') { strcpy_s(tmp1, "\\right/ "); }
+            if (m_ParentheseShape == '\\') { strcpy_s(tmp1, "\\right| \\right| "); }
+            if (m_ParentheseShape == '<') { strcpy_s(tmp1, "\\right> "); }
+            if (m_ParentheseShape == 'r') { strcpy_s(tmp1, "\\right) "); }
+            if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\right] "); }
+            if (m_ParentheseShape == 'a') { strcpy_s(tmp1, "\\right| "); }
+            if (m_ParentheseShape == 'k') { strcpy_s(tmp1, "\\right> "); }
+            if (m_ParentheseShape == 'b') { strcpy_s(tmp1, "\\right] "); } //boxing???
+            if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\right] "); } //strikeout???
         }
         strcat(tmpstr, tmp1);
         {
@@ -13872,7 +13872,7 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExp
     tDocumentStruct* org_ds = KeyboardEntryBaseObject;
 
     short l, a, b;
-    parent->CalculateSize(DC, 100, &l, &a, &b);
+    parent->CalculateSize(*DC, 100, l, &a, &b);
     int zed = parent->m_FontSize;
 
     /*if (!parent->m_IsText)
@@ -13922,7 +13922,7 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExp
         KeyboardEntryBaseObject = org_ds = TheDocument + i;
         ds = TheDocument + NumDocumentElements - 1;
         ds->Object = (CObject*)new CExpression(nullptr,nullptr, fs);
-        ((CExpression*)(org_ds->Object))->CalculateSize(DC, zoom, &l, &a, &b);
+        ((CExpression*)(org_ds->Object))->CalculateSize(*DC, zoom, l, &a, &b);
         org_ds->Above = (short)((int)a * 100 / (int)ViewZoom);
         org_ds->Below = (short)((int)b * 100 / (int)ViewZoom);
         org_ds->Length = (short)((int)l * 100 / (int)ViewZoom);
@@ -13943,7 +13943,7 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExp
     ((CExpression*)(ds->Object))->InsertEmptyElement(0, 1, 0, Toolbox->GetFormattingColor());
     ((CExpression*)(ds->Object))->m_pElementList->pElementObject->m_Text = (char)TypingMode;
     ((CExpression*)(ds->Object))->m_ModeDefinedAt = 1 + (TypingMode << 14);
-    ((CExpression*)(ds->Object))->CalculateSize(DC, ViewZoom, &l, &a, &b);
+    ((CExpression*)(ds->Object))->CalculateSize(*DC, ViewZoom, l, &a, &b);
     ds->Length = org_ds->Length * 6 / 5; //temporary - needed when calling RearangeObjects
     ds->Above = (short)((int)a * 100 / (int)ViewZoom);
     ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -13951,7 +13951,7 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExp
 
     ((CMainFrame*)(theApp.m_pMainWnd))->RearangeObjects(delta/*ds->Below+ds->Above+fs/10*/);
 
-    parent->CalculateSize(DC, ViewZoom, &l, &a, &b);
+    parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
 
     ds->Length = (short)((int)l * 100 / (int)ViewZoom);
     ds->Below = 0x7FFF; //this will force recalcuation and repainting
@@ -18500,7 +18500,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
             if (fabs(atof(buffer2) - fabs(number_dbl)) <= 1e-12)
             {
                 ln = ln2;
-                strcpy(buffer, buffer2);
+                strcpy_s(buffer, buffer2);
             }
         }
 
@@ -18649,7 +18649,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
             //just check, because it must never be greater than 10
             if (strcmp(buffer, "10") == 0)
             {
-                strcpy(buffer, "1");
+                strcpy_s(buffer, "1");
                 rr /= 10;
                 exxp += 1;
             }
@@ -18694,7 +18694,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, ch
                 CExpression* tmp2 = (tmp->m_pElementList + position - 1)->pElementObject->Expression2;
                 tmp2->InsertEmptyElement(0, 1, '0');
                 itoa(abs(exxp), buffer, 10);
-                strcpy((tmp2->m_pElementList + 0)->pElementObject->Data1, buffer);
+                strcpy_s((tmp2->m_pElementList + 0)->pElementObject->Data1, buffer);
                 memset((tmp2->m_pElementList + 0)->pElementObject->Data2, 0, 24);
                 if (exxp < 0) tmp2->InsertEmptyElement(0, 2, '-');
             }
@@ -27232,7 +27232,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                             else
                             {
                                 base->InsertEmptyElement(0, 1, 0);
-                                strcpy(base->m_pElementList->pElementObject->Data1, "10");
+                                strcpy_s(base->m_pElementList->pElementObject->Data1, "10");
                                 base->m_pElementList->pElementObject->Data2[1] = base->m_pElementList->pElementObject->
                                     Data2[0];
                             }
@@ -27715,17 +27715,17 @@ double CExpression::PlotterCalculateFunctionValue(double X, void* VP)
             ts->pElementObject->Data1[15] = 126;
             if (VarPos->positions[i].variable_type == 0)
             {
-                strcpy(ts->pElementObject->Data1, ASCIIx);
+                strcpy_s(ts->pElementObject->Data1, ASCIIx);
                 (*((double*)&(ts->pElementObject->Data1[16]))) = fabs(X);
             }
             else if (VarPos->positions[i].variable_type == 1)
             {
-                strcpy(ts->pElementObject->Data1, "2.71");
+                strcpy_s(ts->pElementObject->Data1, "2.71");
                 (*((double*)&(ts->pElementObject->Data1[16]))) = 2.71828182845904523;
             }
             else if (VarPos->positions[i].variable_type == 2)
             {
-                strcpy(ts->pElementObject->Data1, "3.14");
+                strcpy_s(ts->pElementObject->Data1, "3.14");
                 (*((double*)&(ts->pElementObject->Data1[16]))) = 3.141592653589793238;
             }
         }
@@ -28684,7 +28684,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
             {
                 CExpression* variable = new CExpression(nullptr,nullptr, 100);
                 variable->InsertEmptyElement(0, 1, 'a');
-                strcpy(variable->m_pElementList->pElementObject->Data1, VS->name);
+                strcpy_s(variable->m_pElementList->pElementObject->Data1, VS->name);
                 memcpy(variable->m_pElementList->pElementObject->Data2, VS->font, strlen(VS->name));
                 free(VS);
 
@@ -28727,7 +28727,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
                 {
                     CExpression* variable = new CExpression(nullptr,nullptr, 100);
                     variable->InsertEmptyElement(0, 1, 'a');
-                    strcpy(variable->m_pElementList->pElementObject->Data1, VS[j].name);
+                    strcpy_s(variable->m_pElementList->pElementObject->Data1, VS[j].name);
                     memcpy(variable->m_pElementList->pElementObject->Data2, VS[j].font, strlen(VS[j].name));
 
                     //for (int k=0;k<VarList->Variables[j].len;k++)
@@ -28826,7 +28826,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
             {
                 CExpression* var = new CExpression(nullptr,nullptr, 100);
                 var->InsertEmptyElement(0, 1, 'a');
-                strcpy(var->m_pElementList->pElementObject->Data1, VS2->name);
+                strcpy_s(var->m_pElementList->pElementObject->Data1, VS2->name);
                 memcpy(var->m_pElementList->pElementObject->Data2, VS2->font, strlen(VS2->name));
 
                 int ret = 1;
@@ -28899,7 +28899,7 @@ int CExpression::CountVariablesInSystem(CExpression* System[], int NumEquations,
                 }
                 if (fnd)
                 {
-                    strcpy(VS->name, ts->pElementObject->Data1);
+                    strcpy_s(VS->name, ts->pElementObject->Data1);
                     memcpy(VS->font, ts->pElementObject->Data2, strlen(VS->name));
                     ret++;
                 }

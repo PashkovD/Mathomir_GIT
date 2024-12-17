@@ -989,7 +989,7 @@ void CToolbox::PaintToolboxHeader(CDC* dc)
 
     //Paint the unifrom formatting icon
     ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->CalculateSize(
-        dc, 14 * ToolboxSize / 8, &l, &a, &b, 0, 1);
+        *dc, 14 * ToolboxSize / 8, l, &a, &b, 0, 1);
     Cy = ToolboxSize / 4 - ToolboxSize / 25;
     Cx = ToolboxSize / 4 - l / 2 - ToolboxSize / 24;
     if (ToolboxSize > 80) Cx += 1;
@@ -1016,7 +1016,7 @@ void CToolbox::PaintToolboxHeader(CDC* dc)
                          1);
 
     //Paint the mixed formatting
-    ToolboxFontFormating.MixedFormat->CalculateSize(&pdc, 14 * ToolboxSize / 8, &l, &a, &b, 0, 1);
+    ToolboxFontFormating.MixedFormat->CalculateSize(pdc, 14 * ToolboxSize / 8, l, &a, &b, 0, 1);
     Cx = 3 * ToolboxSize / 4 - l / 2 - ToolboxSize / 24;
     if (ToolboxSize > 80) Cx += 1;
     if ((m_FontModeElement == 1) && (!m_IsArrowSelected))
@@ -1745,7 +1745,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
 
                     short l, a, b;
                     while (exp->m_pPaternalExpression) exp = exp->m_pPaternalExpression;
-                    exp->CalculateSize(ddc, ViewZoom, &l, &a, &b);
+                    exp->CalculateSize(*ddc, ViewZoom, l, &a, &b);
 
                     pMainView->ReleaseDC(ddc);
                     pMainView->InvalidateRect(nullptr, 0);
@@ -1983,7 +1983,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                 ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                 ClipboardExpression->CopyExpression(ToolboxKeyboardElements.Key[m_KeyboardElement], 0);
                 short l, a, b;
-                ClipboardExpression->CalculateSize(this->GetDC(), 100, &l, &a, &b);
+                ClipboardExpression->CalculateSize(*this->GetDC(), 100, l, &a, &b);
                 //pMainView->SetActiveWindow();
             }
         }
@@ -2182,7 +2182,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             short l, a, b;
                             CDC* dc = pMainView->GetDC();
-                            parent->CalculateSize(dc, ViewZoom, &l, &a, &b);
+                            parent->CalculateSize(*dc, ViewZoom, l, &a, &b);
                             pMainView->ReleaseDC(dc);
                             parentstr->Above = a * 100 / ViewZoom;
                             parentstr->Below = b * 100 / ViewZoom;
@@ -2594,7 +2594,7 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
         exp->InsertEmptyElement(0, 1, 'a');
         short l, a, b;
         unsigned short zoom = 5 * ToolboxSize / 4;
-        exp->CalculateSize(&pdc, zoom, &l, &a, &b, 0, 1);
+        exp->CalculateSize(pdc, zoom, l, &a, &b, 0, 1);
         int ccc = 0;
 
         exp->m_pElementList->pElementObject->m_VMods = 0x08;
@@ -2739,7 +2739,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue)
 
         if (m_IsSubtoolbox == -1)
         {
-            ToolboxFontFormating.UniformFormats[member]->CalculateSize(&xdc, 100 * ToolboxSize / 60, &l, &a, &b, 0, 0);
+            ToolboxFontFormating.UniformFormats[member]->CalculateSize(xdc, 100 * ToolboxSize / 60, l, &a, &b, 0, 0);
             ToolboxFontFormating.UniformFormats[member]->PaintExpression(
                 &xdc, 100 * ToolboxSize / 60, ToolboxSize / 4 - l / 2 - ToolboxSize / 24, Ly);
 
@@ -2772,7 +2772,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue)
                 (exp->m_pElementList + i + 1)->pElementObject->m_VMods = vmods;
             }
 
-            exp->CalculateSize(&xdc, ToolboxSize + 30, &l, &a, &b);
+            exp->CalculateSize(xdc, ToolboxSize + 30, l, &a, &b);
             exp->PaintExpression(&xdc, ToolboxSize + 30, 3 * ToolboxSize / 4, Ly);
 
             delete exp;
@@ -2944,7 +2944,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue)
         exp->InsertEmptyElement(0, 1, symbol);
         exp->m_pElementList->pElementObject->Data2[0] = fdata;
         exp->m_pElementList->pElementObject->m_VMods = vmods;
-        exp->CalculateSize(&xdc, 100 * ToolboxSize / 80, &l, &a, &b);
+        exp->CalculateSize(xdc, 100 * ToolboxSize / 80, l, &a, &b);
         exp->PaintExpression(&xdc, 100 * ToolboxSize / 73, ToolboxSize / 8 - l / 2 - 1, ToolboxSize / 6);;
         delete exp;
 
@@ -3119,8 +3119,8 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue)
         }
         else
         {
-            ToolboxMembers[j].Submembers[i]->CalculateSize(&xdc, ToolboxMembers[j].zoom[i],
-                                                           &ToolboxMembers[j].Length[i], &ToolboxMembers[j].Above[i],
+            ToolboxMembers[j].Submembers[i]->CalculateSize(xdc, ToolboxMembers[j].zoom[i],
+                                                           ToolboxMembers[j].Length[i], &ToolboxMembers[j].Above[i],
                                                            &ToolboxMembers[j].Below[i], 1, 1);
             if (ToolboxMembers[j].Submembers[i]->m_pElementList->Type == 5) corr = ToolboxSize / 8;
             lly = 27 * m_ItemHeight / 32 - corr;
@@ -3143,8 +3143,8 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue)
                 ((CDrawing*)ToolboxMembers[j].Submembers[i])->CalculateSize(
                     &xdc, ToolboxMembers[j].zoom[i], &ToolboxMembers[j].Length[i], &ToolboxMembers[j].Below[i]);
             else
-                ToolboxMembers[j].Submembers[i]->CalculateSize(&xdc, ToolboxMembers[j].zoom[i],
-                                                               &ToolboxMembers[j].Length[i],
+                ToolboxMembers[j].Submembers[i]->CalculateSize(xdc, ToolboxMembers[j].zoom[i],
+                                                               ToolboxMembers[j].Length[i],
                                                                &ToolboxMembers[j].Above[i], &ToolboxMembers[j].Below[i],
                                                                1, 1);
         }
@@ -4387,7 +4387,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
             short key;
             char* command = "";
             char buff[32];
-            strcpy(buff, "");
+            strcpy_s(buff, "");
             if (!m_IsArrowSelected)
             {
                 if (help_element >= 0)
@@ -4492,7 +4492,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                     strcat(buff, ToolboxKeycodes[i].name);
                     if (key & 0x400)
                     {
-                        strcpy(buff, "\'");
+                        strcpy_s(buff, "\'");
                         strcat(buff, ToolboxKeycodes[i].name);
                         strcat(buff, "\'");
                     }
@@ -5021,7 +5021,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                             ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                             ClipboardExpression->CopyExpression(ToolboxMembers[ii].Submembers[jj], 0, 1, 0);
                             short l, a, b;
-                            ClipboardExpression->CalculateSize(this->GetDC(), 100, &l, &a, &b);
+                            ClipboardExpression->CalculateSize(*this->GetDC(), 100, l, &a, &b);
 
                             if ((KeyboardEntryObject) && (KeyboardEntryBaseObject))
                             {
@@ -5491,7 +5491,7 @@ void CToolbox::PaintKeyboardElement(CDC* dc, int element)
     Cy = ToolboxKeyboardElements.Y[i] * ToolboxSize / 30 + ToolboxSize / 6 + 3;
     int Lx = ToolboxSize / 6;
     int Ly = ToolboxSize / 6;
-    ToolboxKeyboardElements.Key[i]->CalculateSize(dc, 80 * ToolboxSize / 64 + 1, &l, &a, &b, 0, 1);
+    ToolboxKeyboardElements.Key[i]->CalculateSize(*dc, 80 * ToolboxSize / 64 + 1, l, &a, &b, 0, 1);
     CBrush brush((m_KeyboardElement == element) ? SHADOW_BLUE_COLOR2 : SHADOW_BLUE_COLOR);
     dc->SelectObject(brush);
     dc->SelectObject(GetStockObject(WHITE_PEN));
@@ -5668,7 +5668,7 @@ int CToolbox::SaveSettings(char* filename)
     if (filename == nullptr)
     {
         int j;
-        strcpy(DefaultFilename,GetCommandLine());
+        strcpy_s(DefaultFilename,GetCommandLine());
         DefaultFilename[511] = 0;
 
         int find_quot = 0;
@@ -5905,7 +5905,7 @@ int CToolbox::LoadSettings(char* filename)
     {
         is_first_load++;
         int j;
-        strcpy(DefaultFilename,GetCommandLine());
+        strcpy_s(DefaultFilename,GetCommandLine());
 
         DefaultFilename[511] = 0;
 
@@ -6269,7 +6269,7 @@ int CToolbox::LoadSettings(char* filename)
             {
                 fclose(fil);
                 char filename2[512];
-                strcpy(filename2, filename);
+                strcpy_s(filename2, filename);
                 filename2[strlen(filename2) - 5] = 0;
                 strcat(filename2, ".mom");
 
@@ -6486,7 +6486,7 @@ void CToolbox::ShowHelptext(char* text, char* command, char* accelerator, char* 
     if (easycast[0])
     {
         char bbf[48];
-        strcpy(bbf, "\"");
+        strcpy_s(bbf, "\"");
         strcat(bbf, easycast);
         strcat(bbf, "\"");
         DC->SetTextColor(RGB(240, 192, 192));
@@ -6500,7 +6500,7 @@ void CToolbox::ShowHelptext(char* text, char* command, char* accelerator, char* 
     if (command[0])
     {
         char bbf[48];
-        strcpy(bbf, "\\");
+        strcpy_s(bbf, "\\");
         strcat(bbf, command);
         DC->SetTextColor(RGB(192, 192, 192));
         DC->SelectObject(GetFontFromPool(4, 0, 0, (ToolboxSize > 70) ? ToolboxSize / 5 : ToolboxSize / 4));
@@ -6560,7 +6560,7 @@ void CToolbox::PickUpElementFromToolbox(int member, int submember)
         ClipboardExpression = new CExpression(nullptr,nullptr, 100);
         ClipboardExpression->CopyExpression(ToolboxMembers[member].Submembers[submember], 0);
         short l, a, b;
-        ClipboardExpression->CalculateSize(this->GetDC(), 100, &l, &a, &b);
+        ClipboardExpression->CalculateSize(*this->GetDC(), 100, l, &a, &b);
         ToolboxMembers[member].Submembers[submember]->DeselectExpression();
     }
 

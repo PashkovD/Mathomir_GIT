@@ -384,7 +384,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
             short l, a, b;
             CDC* dcc = GetDC();
-            image->CalculateSize(dcc, 70, &l, &a, &b);
+            image->CalculateSize(*dcc, 70, l, &a, &b);
             ReleaseDC(dcc);
 
             Options[m_NumOptions].Y = PopupOption_Y;
@@ -1059,19 +1059,19 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         short l, a, b;
         int ZoomLevel = 120 * TSize / 60;
         CDC* dcc = this->GetDC();
-        ClipboardExpression->CalculateSize(dcc, ZoomLevel, &l, &a, &b);
+        ClipboardExpression->CalculateSize(*dcc, ZoomLevel, l, &a, &b);
         if ((l > 2 * TSize) || (a + b > 3 * TSize_1p2))
         {
             ZoomLevel = 100 * TSize / 60;
-            ClipboardExpression->CalculateSize(dcc, ZoomLevel, &l, &a, &b);
+            ClipboardExpression->CalculateSize(*dcc, ZoomLevel, l, &a, &b);
             if ((l > 3 * TSize) || (a + b > 2 * TSize))
             {
                 ZoomLevel = 80 * TSize / 60;
-                ClipboardExpression->CalculateSize(dcc, ZoomLevel, &l, &a, &b);
+                ClipboardExpression->CalculateSize(*dcc, ZoomLevel, l, &a, &b);
                 if ((l > 3 * TSize) || (a + b > 2 * TSize))
                 {
                     ZoomLevel = 70 * TSize / 60;
-                    ClipboardExpression->CalculateSize(dcc, ZoomLevel, &l, &a, &b);
+                    ClipboardExpression->CalculateSize(*dcc, ZoomLevel, l, &a, &b);
                 }
             }
         }
@@ -1424,7 +1424,7 @@ void PopupMenu::OnPaint()
             int X, Y;
             short l, a, b;
             CDC* DC = pMainView->GetDC();
-            ((CExpression*)(KeyboardEntryBaseObject->Object))->CalculateSize(DC, ViewZoom, &l, &a, &b);
+            ((CExpression*)(KeyboardEntryBaseObject->Object))->CalculateSize(*DC, ViewZoom, l, &a, &b);
             pMainView->ReleaseDC(DC);
             ((CExpression*)(KeyboardEntryBaseObject->Object))->GetKeyboardCursorPos(&X, &Y);
             cursor.x = mainwnd.left + (KeyboardEntryBaseObject->absolute_X - ViewX) * ViewZoom / 100 - 30 + X;
@@ -1835,7 +1835,7 @@ int PopupMenu::PaintThePopupMenu(void)
             short l, a, b;
             char tmpvf = Options[i].Graphics->m_IsVertical;
             Options[i].Graphics->m_IsVertical = 0;
-            Options[i].Graphics->CalculateSize(dc, Options[i].DataArray[3], &l, &a, &b);
+            Options[i].Graphics->CalculateSize(*dc, Options[i].DataArray[3], l, &a, &b);
             Options[i].Graphics->PaintExpression(dc,
                                                  Options[i].DataArray[3], //ZOOM
                                                  Options[i].DataArray[4] + (
@@ -3301,7 +3301,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     if (di->Type == 2)
                                     {
                                         CDC* DC = this->GetDC();
-                                        ((CExpression*)(di->pSubdrawing))->CalculateSize(DC, ViewZoom, &l, &a, &b);
+                                        ((CExpression*)(di->pSubdrawing))->CalculateSize(*DC, ViewZoom, l, &a, &b);
                                         this->ReleaseDC(DC);
                                     }
                                     //CMainFrame *mf=(CMainFrame*)theApp.m_pMainWnd;
@@ -3749,7 +3749,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 tmpExpression->CopyExpression(m_Expression, 1);
                 short l, a, b;
                 CDC* dcc = this->GetDC();
-                tmpExpression->CalculateSize(dcc, ViewZoom, &l, &a, &b);
+                tmpExpression->CalculateSize(*dcc, ViewZoom, l, &a, &b);
 
                 //copy this into the clipboard expression, at exact mouse position
                 ClipboardExpression->CopyAtPoint(dcc,
@@ -3760,7 +3760,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                 ((CMainFrame*)(theApp.m_pMainWnd))->UndoSave("implanting", 20209);
 
-                ClipboardExpression->CalculateSize(dcc, ViewZoom, &l, &a, &b);
+                ClipboardExpression->CalculateSize(*dcc, ViewZoom, l, &a, &b);
                 m_Expression->CopyAtPoint(dcc, ViewZoom, -1, -1, ClipboardExpression);
                 this->ReleaseDC(dcc);
 
@@ -3806,7 +3806,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     short l, a, b;
                     CDC* DC;
                     DC = pMainView->GetDC();
-                    copy2->CalculateSize(DC, 100, &l, &a, &b);
+                    copy2->CalculateSize(*DC, 100, l, &a, &b);
                     pMainView->ReleaseDC(DC);
 
                     int delta2 = a + b + 5 + (a + b) / 6;
@@ -3926,8 +3926,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                             CDC* DC;
                             DC = pMainView->GetDC();
-                            parent->CalculateSize(DC, 100, &l, &a, &b);
-                            copy2->CalculateSize(DC, 100, &l, &a, &b);
+                            parent->CalculateSize(*DC, 100, l, &a, &b);
+                            copy2->CalculateSize(*DC, 100, l, &a, &b);
                             pMainView->ReleaseDC(DC);
                         }
                         else
@@ -3942,7 +3942,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             ((CExpression*)(KeyboardEntryObject))->KeyboardStop();
                             CDC* DC;
                             DC = pMainView->GetDC();
-                            copy2->CalculateSize(DC, 100, &l, &a, &b);
+                            copy2->CalculateSize(*DC, 100, l, &a, &b);
                             copy2->m_Selection = copy2->m_NumElements + 1;
                             copy2->KeyboardStart(DC, ViewZoom);
                             pMainView->ReleaseDC(DC);
@@ -5496,16 +5496,16 @@ int PopupMenu::AddMathMenuOption(CExpression* E1, CExpression* original)
 
     char tmpvf = E1->m_IsVertical;
     E1->m_IsVertical = 0;
-    E1->CalculateSize(dcc, ZoomLevel, &l, &a, &b);
+    E1->CalculateSize(*dcc, ZoomLevel, l, &a, &b);
     if ((l > 5 * TSize) || (a + b > 5 * TSize / 9))
     {
         ZoomLevel = 82 * TSize / 60;
-        E1->CalculateSize(dcc, ZoomLevel, &l, &a, &b);
+        E1->CalculateSize(*dcc, ZoomLevel, l, &a, &b);
         if ((l > 5 * TSize) || (a + b > 5 * TSize / 9))
         {
             ZoomLevel = 74 * TSize / 60;
             if (ZoomLevel < 66) ZoomLevel = 66;
-            E1->CalculateSize(dcc, ZoomLevel, &l, &a, &b);
+            E1->CalculateSize(*dcc, ZoomLevel, l, &a, &b);
         }
     }
     E1->m_IsVertical = tmpvf;

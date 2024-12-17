@@ -25,15 +25,15 @@ public:
 
     //the below codes must have fixed structure (see the 'operator new' and 'CopyElement')
     short E1_length, E1_above, E1_below, E1_posX, E1_posY;
-    char Data2[4];
+    char Data2[10];
     short E2_length, E2_above, E2_below, E2_posX, E2_posY;
     short E3_length, E3_above, E3_below, E3_posX, E3_posY;
-    char Data1[4];
+    char Data1[10];
 
 public:
-    CElement(void);
-    ~CElement(void);
-    void CalculateSize(CDC* DC, short int zoom, short int* length, short int* above, short int* below,
+    CElement();
+    ~CElement();
+    void CalculateSize(CDC& DC, short int zoom, short int& length, short int& above, short int& below,
                        short paternal_position, char HQR);
     void PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlue, int ActualSize, RECT* ClipReg = nullptr,
                          int color = 0);
@@ -46,7 +46,7 @@ public:
     int XML_output(char* output, int num_tabs, char only_calculate);
     int LaTeX_output(char* output, char only_calculate);
     char* XML_input(char* file, void* element_struct);
-    int CalcChecksum(void);
+    int CalcChecksum();
 
     int IsMeasurementUnit();
     int SetColor(int color);

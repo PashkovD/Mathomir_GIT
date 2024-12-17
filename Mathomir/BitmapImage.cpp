@@ -285,7 +285,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate)
     int i = 0;
     int j = 0;
     int xlen = imgsize;
-    sprintf(tmpstr, "<bmp len=\"%d\" b=\"", xlen);
+    sprintf_s(tmpstr, "<bmp len=\"%d\" b=\"", xlen);
     int len = (int)strlen(tmpstr);
     if (!only_calculate)
     {

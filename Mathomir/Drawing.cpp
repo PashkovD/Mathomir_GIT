@@ -2243,7 +2243,7 @@ int CDrawing::CalculateSize(CDC* DC, short zoom, short* width, short* height)
         else if ((di->Type == 2) && (di->pSubdrawing))
         {
             short l, a, b;
-            ((CExpression*)(di->pSubdrawing))->CalculateSize(DC, zoom, &l, &a, &b);
+            ((CExpression*)(di->pSubdrawing))->CalculateSize(*DC, zoom, l, &a, &b);
             di->LineWidth = a; //stored for later usage
             di->X2 = di->X1 + l * DRWZOOM * 100 / zoom;
             di->Y2 = di->Y1 + (a + b) * DRWZOOM * 100 / zoom;
@@ -2727,7 +2727,7 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
             if (!only_calculate) output += tt;
             memset(tmpstr, 9, num_tabs);
             tmpstr[num_tabs] = 0;
-            strcat(tmpstr, "</subexp>\r\n");
+            strcat_s(tmpstr, "</subexp>\r\n");
             len += (int)strlen(tmpstr);
             if (!only_calculate)
             {
@@ -2743,9 +2743,9 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate)
             else
             {
                 if ((typecode != 11) && (typecode != 1)) //black color (m_Color=-1 or m_Color=0) line segment
-                    sprintf(tmpstr, "<dw t=\"%d\" ", typecode);
+                    sprintf_s(tmpstr, "<dw t=\"%d\" ", typecode);
                 else
-                    strcpy(tmpstr, "<dw ");
+                    strcpy_s(tmpstr, "<dw ");
             }
             len += (int)strlen(tmpstr);
             if (!only_calculate)
@@ -3964,7 +3964,7 @@ int CDrawing::RotateForAngle(float angle, int centerX, int centerY, int* newX1, 
             int x1 = 0, y1 = 0;
             short l, a, b;
             CDC* DC = pMainView->GetDC();
-            ((CExpression*)(di->pSubdrawing))->CalculateSize(DC, ViewZoom, &l, &a, &b);
+            ((CExpression*)(di->pSubdrawing))->CalculateSize(*DC, ViewZoom, l, &a, &b);
             a = a * 100 / ViewZoom;
             pMainView->ReleaseDC(DC);
             int Y = di->Y1 + a;

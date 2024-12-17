@@ -199,11 +199,11 @@ unsigned int FontWeight[5];
 #pragma optimize("s",on)
 void CMainFrame::SetFontsToDefaults(void)
 {
-    strcpy(FontFacenames[0], "Arial");
-    strcpy(FontFacenames[1], "Times New Roman");
-    strcpy(FontFacenames[2], "Courier New");
-    strcpy(FontFacenames[3], "Symbol");
-    strcpy(FontFacenames[4], "Arial");
+    strcpy_s(FontFacenames[0], "Arial");
+    strcpy_s(FontFacenames[1], "Times New Roman");
+    strcpy_s(FontFacenames[2], "Courier New");
+    strcpy_s(FontFacenames[3], "Symbol");
+    strcpy_s(FontFacenames[4], "Arial");
     FontAdjustedSizes[0] = 95;
     FontAdjustedSizes[1] = 109;
     FontAdjustedSizes[2] = 109;
@@ -230,7 +230,7 @@ void CMainFrame::GetLogicalFont(int font_no, LOGFONT* lf, CDC* DC)
     lf->lfHeight = 20 + (FontAdjustedSizes[font_no] - 100) / 2;
     lf->lfHeight = -MulDiv(lf->lfHeight, DC->GetDeviceCaps(LOGPIXELSY), 72);
 
-    strcpy(lf->lfFaceName, FontFacenames[font_no]);
+    strcpy_s(lf->lfFaceName, FontFacenames[font_no]);
     lf->lfCharSet = FontCharSet[font_no];
 }
 
@@ -241,7 +241,7 @@ void CMainFrame::SetLogicalFont(int font_no, LOGFONT* lf, CDC* DC)
     int r = DC->GetDeviceCaps(LOGPIXELSY);
     lf->lfHeight = MulDiv(-lf->lfHeight, 72, DC->GetDeviceCaps(LOGPIXELSY));
     FontAdjustedSizes[font_no] = (char)((abs(lf->lfHeight) - 20) * 2 + 100);
-    strcpy(FontFacenames[font_no], lf->lfFaceName);
+    strcpy_s(FontFacenames[font_no], lf->lfFaceName);
     FontCharSet[font_no] = lf->lfCharSet;
 
     ClearFontPool();
@@ -1228,7 +1228,7 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     if (F1SetsZoom)
     {
         char str[94];
-        strcpy(str, F1Text);
+        strcpy_s(str, F1Text);
         strcat(str, "\tF1");
         theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1, str);
         theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE, HandyHelpText);
@@ -1237,7 +1237,7 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     {
         theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1, F1Text);
         char str[94];
-        strcpy(str, HandyHelpText);
+        strcpy_s(str, HandyHelpText);
         strcat(str, "\tF1");
         theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE, str);
     }
@@ -1509,7 +1509,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
     }
 
     //store the undo text (this is shown in main menu -> for example 'Undo insert object')
-    strcpy(UndoStruct[UndoNumLevels].text, text.c_str());
+    strcpy_s(UndoStruct[UndoNumLevels].text, text.c_str());
     if ((KeyboardEntryBaseObject) && (KeyboardEntryObject))
         strcat(UndoStruct[UndoNumLevels].text, "**");
 
