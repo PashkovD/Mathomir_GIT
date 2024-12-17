@@ -375,7 +375,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
     {
         int type = 0;
         int x = 0, y = 0;
-        while (1)
+        while (true)
         {
             file_pointer = ((CMainFrame*)(theApp.m_pMainWnd))->XML_search("", file_pointer);
             if (file_pointer == 0) goto openMOMfile_end; //no more objects, we finished

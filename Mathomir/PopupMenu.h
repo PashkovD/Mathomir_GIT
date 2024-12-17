@@ -72,10 +72,10 @@ public:
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 
-	int AddMenuOption(int X, int Cx, char * text, int Data, int new_line);
-	int AddMenuOptionButton(int X, char * text, int Data, int button_ndx, int new_line);
-	int AddCheckedMenuOption(int X, int Cx, char * text, int is_checked, int Data, int new_line);
-	int AddCheckedMenuOptionButton(int X, char * text, int is_checked, int Data, int button_ndx, int new_line);
+	int AddMenuOption(int X, int Cx, const std::string& text, int Data, int new_line);
+	int AddMenuOptionButton(int X, const std::string& text, int Data, int button_ndx, int new_line);
+	int AddCheckedMenuOption(int X, int Cx, const std::string& text, int is_checked, int Data, int new_line);
+	int AddCheckedMenuOptionButton(int X, const std::string& text, int is_checked, int Data, int button_ndx, int new_line);
 	int UncheckOptions(int from, int to);
 
 protected:

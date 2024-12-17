@@ -1033,8 +1033,9 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
             UndoText = LanguageStrings + LanguagePointers[31101];
             if (strlen(UndoText) > 31) UndoText[31] = 0;
         }
-        if (LanguagePointers[ID_HELP_QUICKGUIDE] != 0xFFFF) HandyHelpText = LanguageStrings + LanguagePointers[
-            ID_HELP_QUICKGUIDE];
+        if (LanguagePointers[ID_HELP_QUICKGUIDE] != 0xFFFF)
+            HandyHelpText = LanguageStrings + LanguagePointers[
+                ID_HELP_QUICKGUIDE];
         if (LanguagePointers[ID_VIEW_ZOOMTO1] != 0xFFFF) F1Text = LanguageStrings + LanguagePointers[ID_VIEW_ZOOMTO1];
     }
 
@@ -1447,19 +1448,18 @@ extern DWORD AutosavePoints;
 
 
 //saves undo information (saves the current sate of documment)
-int CMainFrame::UndoSave(char* text, int unique_ID)
+int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
 {
     if (UndoSavingDisabled) return 1;
 
     //if ((UseToolbar) && (Toolbox->Toolbar)) Toolbox->Toolbar->ConfigureToolbar();
-
+    std::string text = undo_text;
     if ((LanguageStrings) && (unique_ID >= 20000) && (unique_ID < 30000))
     {
         unsigned short pntr = LanguagePointers[unique_ID];
         if (pntr != 0xFFFF)
         {
             text = &LanguageStrings[pntr];
-            if (strlen(text) > 31) text[31] = 0;
         }
     }
 
@@ -1509,7 +1509,7 @@ int CMainFrame::UndoSave(char* text, int unique_ID)
     }
 
     //store the undo text (this is shown in main menu -> for example 'Undo insert object')
-    strcpy(UndoStruct[UndoNumLevels].text, text);
+    strcpy(UndoStruct[UndoNumLevels].text, text.c_str());
     if ((KeyboardEntryBaseObject) && (KeyboardEntryObject))
         strcat(UndoStruct[UndoNumLevels].text, "**");
 
@@ -1561,7 +1561,7 @@ int CMainFrame::UndoSave(char* text, int unique_ID)
             if (ds->Type == 1)
             {
                 us->Checksum = ((CExpression*)(ds->Object))->CalcChecksum();
-                us->pObject = (CObject*)new CExpression(nullptr,nullptr, ((CExpression*)(ds->Object))->m_FontSize);
+                us->pObject = (CObject*)new CExpression(nullptr, nullptr, ((CExpression*)(ds->Object))->m_FontSize);
                 ((CExpression*)(us->pObject))->CopyExpression((CExpression*)ds->Object, 2);
             }
             else if (ds->Type == 2)
@@ -1735,7 +1735,7 @@ int CMainFrame::UndoRestore()
                     if (pUndoObjectList[j].Type == 1)
                     {
                         TheDocument[i].Object = (CObject*)new CExpression(
-                            nullptr,nullptr, ((CExpression*)(pUndoObjectList[j].pObject))->m_FontSize);
+                            nullptr, nullptr, ((CExpression*)(pUndoObjectList[j].pObject))->m_FontSize);
                         ((CExpression*)(TheDocument[i].Object))->CopyExpression(
                             (CExpression*)(pUndoObjectList[j].pObject), 2);
                     }
@@ -2240,7 +2240,7 @@ int ExecuteLink(char* command)
     }
     else
     {
-        ShellExecute(nullptr,nullptr, command,nullptr,nullptr,SW_SHOWNORMAL);
+        ShellExecute(nullptr, nullptr, command, nullptr, nullptr,SW_SHOWNORMAL);
     }
 
     return 0;

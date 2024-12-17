@@ -5946,7 +5946,7 @@ int CToolbox::LoadSettings(char* filename)
             {
                 char line[255];
                 int UsedSize = 0;
-                while (1)
+                while (true)
                 {
                     char ch = 0;
                     int len = 0;
@@ -6169,7 +6169,7 @@ int CToolbox::LoadSettings(char* filename)
         if (m_FontModeSelection == 1) m_prevFontModeSelection |= 0x80; //high bit set if mixed formatting is activated
 
         //read user-defined toolbox items
-        while (1)
+        while (true)
         {
             int is_drawing = 0;
             int pos_data = -1;

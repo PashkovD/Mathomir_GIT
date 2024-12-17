@@ -60,7 +60,7 @@ public:
     int MyCircle(CDC* DC, int X1, int Y1, int X2, int Y2, int PenWidth, char IsBlue);
     int UndoInit();
     int UndoRestore();
-    int UndoSave(char* undo_text, int unique_ID = -1);
+    int UndoSave(const std::string& undo_text, int unique_ID = -1);
     int UndoCheckText(char* text, int unique_ID = -1);
     int UndoDisableSaving();
     int UndoEnableSaving();

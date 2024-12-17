@@ -96,20 +96,13 @@ PopupMenu::PopupMenu()
 int PopupOption_Y;
 
 #pragma optimize("s",on)
-int PopupMenu::AddMenuOption(int X, int Cx, char* text, int Data, int new_line)
+int PopupMenu::AddMenuOption(int X, int Cx, const std::string& text, int Data, int new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = Cx;
     Options[m_NumOptions].Cy = TSize / 4;
-    CopyTranslatedString(Options[m_NumOptions].Text, text, Data, 40);
-    /*if (strlen(text)<32) 
-        strcpy(Options[m_NumOptions].Text,text);
-    else
-    {
-        memcpy(Options[m_NumOptions].Text,text,31);
-        Options[m_NumOptions].Text[31]=0;
-    }*/
+    strcpy_s(Options[m_NumOptions].Text, GetTranslatedString(text, Data).c_str());
     Options[m_NumOptions].IsChecked = 0;
     Options[m_NumOptions].IsEnabled = (Data >= 0) ? 1 : 0;
     Options[m_NumOptions].Data = Data;
@@ -119,15 +112,13 @@ int PopupMenu::AddMenuOption(int X, int Cx, char* text, int Data, int new_line)
 }
 
 #pragma optimize("s",on)
-int PopupMenu::AddMenuOptionButton(int X, char* text, int Data, int button_ndx, int new_line)
+int PopupMenu::AddMenuOptionButton(int X,  const std::string& text, int Data, int button_ndx, int new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = (TSize < 70) ? 17 : ((TSize < 80) ? 19 : 25);
     Options[m_NumOptions].Cy = Options[m_NumOptions].Cx;
-    CopyTranslatedString(Options[m_NumOptions].Text, text, Data, 40);
-
-    //strcpy(Options[m_NumOptions].Text,text);
+    strcpy_s(Options[m_NumOptions].Text, GetTranslatedString(text, Data).c_str());
     Options[m_NumOptions].IsChecked = 0;
     Options[m_NumOptions].IsEnabled = (Data >= 0) ? 1 : 0;
     Options[m_NumOptions].Data = Data;
@@ -138,15 +129,13 @@ int PopupMenu::AddMenuOptionButton(int X, char* text, int Data, int button_ndx, 
 }
 
 #pragma optimize("s",on)
-int PopupMenu::AddCheckedMenuOptionButton(int X, char* text, int is_checked, int Data, int button_ndx, int new_line)
+int PopupMenu::AddCheckedMenuOptionButton(int X, const std::string& text, int is_checked, int Data, int button_ndx, int new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = (TSize < 70) ? 17 : ((TSize < 80) ? 19 : 25);
     Options[m_NumOptions].Cy = Options[m_NumOptions].Cx;
-    //strcpy(Options[m_NumOptions].Text,text);
-    CopyTranslatedString(Options[m_NumOptions].Text, text, Data, 32);
-
+    strcpy_s(Options[m_NumOptions].Text, GetTranslatedString(text, Data).c_str());
     Options[m_NumOptions].IsChecked = 2 + ((is_checked) ? 1 : 0);
     Options[m_NumOptions].IsEnabled = (Data >= 0) ? 1 : 0;
     Options[m_NumOptions].Data = Data;
@@ -157,14 +146,13 @@ int PopupMenu::AddCheckedMenuOptionButton(int X, char* text, int is_checked, int
 }
 
 #pragma optimize("s",on)
-int PopupMenu::AddCheckedMenuOption(int X, int Cx, char* text, int is_checked, int Data, int new_line)
+int PopupMenu::AddCheckedMenuOption(int X, int Cx, const std::string& const std::string&  text, int is_checked, int Data, int new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = Cx;
     Options[m_NumOptions].Cy = TSize / 4;
-    //strcpy(Options[m_NumOptions].Text,text);
-    CopyTranslatedString(Options[m_NumOptions].Text, text, Data, 32);
+    strcpy_s(Options[m_NumOptions].Text, GetTranslatedString(text, Data).c_str());
     Options[m_NumOptions].IsChecked = 2 + ((is_checked) ? 1 : 0);
     Options[m_NumOptions].IsEnabled = (Data >= 0) ? 1 : 0;
     Options[m_NumOptions].Data = Data;
@@ -384,7 +372,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
 
         int k = 0;
-        while (1)
+        while (true)
         {
             char* keycode;
             CExpression* graphics = Toolbox->ReturnKeycode(EasycastListStart, &keycode);
@@ -998,7 +986,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 CSize sz = DC->GetTextExtent(buff);
                 int tmp = 0;
                 if ((e->m_IsHeadline >= 3) || (e->m_IsHeadline == 0)) tmp = 10;
-                AddMenuOption(TSize / 2 + ((is_label) ? 5 : 0),max(sz.cx-tmp, 1), buff, 850 + i, 1);
+                AddMenuOption(TSize / 2 + ((is_label) ? 5 : 0), max(sz.cx-tmp, 1), buff, 850 + i, 1);
                 LocalLinks[i] = ((unsigned int)(ds - TheDocument)) + ((is_label) ? 0x80000000 : 0);
                 if (tmp) PopupOption_Y -= TSize / 22;
             }
@@ -2151,7 +2139,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     int k = 0;
                     int len2 = (int)strlen(string);
                     if (len2)
-                        while (1)
+                        while (true)
                         {
                             char* keycode;
                             CExpression* g = Toolbox->ReturnKeycode(k, &keycode);
@@ -4713,7 +4701,7 @@ int PopupMenu::ExtractSelection(int StartPos, int EndPos, int* StartSel, int* En
     int StartFound = 0;
     int EndFound = 0;
     int pos = StartPos;
-    while (1)
+    while (true)
     {
         char et, p;
         int l = m_Expression->GetElementLen(pos, EndPos, Level, &et, &p);
@@ -4813,7 +4801,7 @@ int PopupMenu::SymbolicComputation(void)
                     //for other expression, pare to equation level
                     //first parse the expression in that areform: 'Equation1;Equation2;Equation3'
                     int pos = 0;
-                    while (1)
+                    while (true)
                     {
                         char et, p;
                         int l = tmp->GetElementLen(pos, tmp->m_NumElements - 1,min(lvl, EqLevel-1), &et, &p);
@@ -4825,7 +4813,7 @@ int PopupMenu::SymbolicComputation(void)
                             //into simpler equations: 'expression1=expression2' and 'expression2=expression3'
                             int pos2 = pos + p;
                             int ppos = pos + p;
-                            while (1)
+                            while (true)
                             {
                                 char et2, p2;
                                 int l2 = tmp->GetElementLen(pos2, pos + l - 1, EqLevel, &et2, &p2);
@@ -5232,7 +5220,7 @@ int PopupMenu::SymbolicComputation(void)
             cnt = 0;
             try
             {
-                while (1)
+                while (true)
                 {
                     tmp2->CopyExpression(parent, 0);
                     if (tmp2->Polynomize(ExtractedSelection) > 1)
@@ -5360,7 +5348,7 @@ int PopupMenu::SymbolicComputation(void)
         if ((level >= 0) && (GetOperatorLevel('=') > level))
         {
             int pos = 0;
-            while (1)
+            while (true)
             {
                 char et, p;
                 int l = ExtractedSelection->GetElementLen(pos, ExtractedSelection->m_NumElements - 1, level, &et, &p);
