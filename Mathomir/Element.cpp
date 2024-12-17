@@ -104,9 +104,9 @@ CElement::~CElement(void)
         {
         }
     }
-    if (Expression3) { delete (CExpression*)Expression3; }
-    if (Expression2) { delete (CExpression*)Expression2; }
-    if (Expression1) { delete (CExpression*)Expression1; }
+    if (Expression3) { delete Expression3; }
+    if (Expression2) { delete Expression2; }
+    if (Expression1) { delete Expression1; }
 }
 
 const struct
@@ -246,7 +246,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
         if (Expression1)
         {
             //if this variable has some index expression (subscripted text)
-            ((CExpression*)Expression1)->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
+            Expression1->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
             if (HQR)
             {
                 E1_posX = *length + ActualSize / 16;
@@ -307,7 +307,7 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
             //special handling - arrow with expression above it
             if (Expression1)
             {
-                ((CExpression*)Expression1)->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
+                Expression1->CalculateSize(DC, zoom, &E1_length, &E1_above, &E1_below, HQR);
             }
             E1_posX = ActualSize / 4 + ActualSize / 16;
             E1_posY = -E1_below;
@@ -677,8 +677,8 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
         if (Expression2 != nullptr)
         {
             //handling power, first compute the size of exponent
-            CExpression* Base = (CExpression*)Expression1;
-            CExpression* Exp = (CExpression*)Expression2;
+            CExpression* Base = Expression1;
+            CExpression* Exp = Expression2;
             Exp->CalculateSize(DC, zoom, &E2_length, &E2_above, &E2_below, HQR);
 
             int ExponentPosXCorrection;
@@ -775,16 +775,16 @@ void CElement::CalculateSize(CDC* DC, short int zoom, short int* length, short i
                     *length += -ActualSize / 20;
                     //ParentheseType=((CExpression*)(Base->m_pElementList->pElementObject->Expression1))->m_ParentheseHeightFactor;
                     DrawsParentheses = 1;
-                    if ((((CExpression*)(Base->m_pElementList->pElementObject->Expression1))->m_ParentheseShape == '[')
+                    if ((Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '[')
                         ||
-                        (((CExpression*)(Base->m_pElementList->pElementObject->Expression1))->m_ParentheseShape == '/'))
+                        (Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '/'))
                     {
                         E2_posX += ActualSize / 15;
                         *length += ActualSize / 15;
                     }
-                    if ((((CExpression*)(Base->m_pElementList->pElementObject->Expression1))->m_ParentheseShape == '{')
+                    if ((Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '{')
                         ||
-                        (((CExpression*)(Base->m_pElementList->pElementObject->Expression1))->m_ParentheseShape ==
+                        (Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape ==
                             '\\'))
                     {
                         E2_posX -= ActualSize / 20;
@@ -2796,15 +2796,15 @@ void CElement::Empty(char oper)
         Data1[0] = oper;
         if (oper == (char)0xE3)
         {
-            Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+            Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
         }
         return;
     }
 
     if (m_Type == 3) //power
     {
-        Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
-        Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
+        Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+        Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
         //((CExpression*)Expression1)->m_FontSizeHQ=FontSizeForTypeHQ(1);
         //((CExpression*)Expression2)->m_FontSizeHQ=FontSizeForTypeHQ(2);
 
@@ -2836,8 +2836,8 @@ void CElement::Empty(char oper)
     if (m_Type == 4) //rational number
     {
         Data1[0] = oper;
-        Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
-        Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
+        Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+        Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
         if (oper == 0) return; //for speed
 
         /*if (oper==9)  // /square root
@@ -2916,7 +2916,7 @@ void CElement::Empty(char oper)
 
     if (m_Type == 5) //parenthese
     {
-        Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+        Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
         if ((oper & 0x80) == 0)
         {
             //standard parentheses
@@ -2953,51 +2953,51 @@ void CElement::Empty(char oper)
         Data1[1] = 0;
         Data2[0] = 0x20; //font face
 
-        Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
-        ((CExpression*)Expression1)->m_ParenthesesFlags = 2; //automatic
+        Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+        Expression1->m_ParenthesesFlags = 2; //automatic
         //((CExpression*)Expression1)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
 
-        if (oper == 1) strcpy(Data1, "sin");
-        if (oper == 2) strcpy(Data1, "cos");
-        if (oper == 3) strcpy(Data1, "tg");
-        if (oper == 26) strcpy(Data1, "tan");
-        if (oper == 4) strcpy(Data1, "cot");
-        if (oper == 27) strcpy(Data1, "sec");
-        //if (oper==28) strcpy(Data1,"cosec"); //not used
-        if (oper == 29) strcpy(Data1, "csc");
-        if (oper == 30) strcpy(Data1, "arcsec");
-        if (oper == 31) strcpy(Data1, "arccsc");
-        if (oper == 5) strcpy(Data1, "arcsin");
-        if (oper == 6) strcpy(Data1, "arccos");
-        if (oper == 7) strcpy(Data1, "arctg");
-        if (oper == 8) strcpy(Data1, "arccot");
-        if (oper == 9) strcpy(Data1, "sh");
-        if (oper == 10) strcpy(Data1, "ch");
-        if (oper == 11) strcpy(Data1, "th");
-        if (oper == 12) strcpy(Data1, "coth");
-        if (oper == 13) strcpy(Data1, "arsh");
-        if (oper == 14) strcpy(Data1, "arch");
-        if (oper == 15) strcpy(Data1, "arth");
-        if (oper == 16) strcpy(Data1, "arcoth");
-        if (oper == 32) strcpy(Data1, "sech");
-        if (oper == 33) strcpy(Data1, "csch");
-        if (oper == 34) strcpy(Data1, "arsech");
-        if (oper == 35) strcpy(Data1, "arcsch");
-        if (oper == 36) strcpy(Data1, "func");
-        if (oper == 40) strcpy(Data1, "arctan");
+        if (oper == 1) strcpy_s(Data1, "sin");
+        if (oper == 2) strcpy_s(Data1, "cos");
+        if (oper == 3) strcpy_s(Data1, "tg");
+        if (oper == 26) strcpy_s(Data1, "tan");
+        if (oper == 4) strcpy_s(Data1, "cot");
+        if (oper == 27) strcpy_s(Data1, "sec");
+        //if (oper==28) strcpy_s(Data1,"cosec"); //not used
+        if (oper == 29) strcpy_s(Data1, "csc");
+        if (oper == 30) strcpy_s(Data1, "arcsec");
+        if (oper == 31) strcpy_s(Data1, "arccsc");
+        if (oper == 5) strcpy_s(Data1, "arcsin");
+        if (oper == 6) strcpy_s(Data1, "arccos");
+        if (oper == 7) strcpy_s(Data1, "arctg");
+        if (oper == 8) strcpy_s(Data1, "arccot");
+        if (oper == 9) strcpy_s(Data1, "sh");
+        if (oper == 10) strcpy_s(Data1, "ch");
+        if (oper == 11) strcpy_s(Data1, "th");
+        if (oper == 12) strcpy_s(Data1, "coth");
+        if (oper == 13) strcpy_s(Data1, "arsh");
+        if (oper == 14) strcpy_s(Data1, "arch");
+        if (oper == 15) strcpy_s(Data1, "arth");
+        if (oper == 16) strcpy_s(Data1, "arcoth");
+        if (oper == 32) strcpy_s(Data1, "sech");
+        if (oper == 33) strcpy_s(Data1, "csch");
+        if (oper == 34) strcpy_s(Data1, "arsech");
+        if (oper == 35) strcpy_s(Data1, "arcsch");
+        if (oper == 36) strcpy_s(Data1, "func");
+        if (oper == 40) strcpy_s(Data1, "arctan");
 
-        if (oper == 17) strcpy(Data1, "ln");
+        if (oper == 17) strcpy_s(Data1, "ln");
         if (oper == 18) //log10
         {
-            strcpy(Data1, "log");
-            Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
-            ((CExpression*)Expression2)->InsertEmptyElement(0, 1, ' ');
-            strcpy(((CExpression*)Expression2)->m_pElementList->pElementObject->Data1, "10");
-            ((CExpression*)Expression2)->m_pElementList->pElementObject->Data2[0] = 0;
-            ((CExpression*)Expression2)->m_pElementList->pElementObject->Data2[1] = 0;
+            strcpy_s(Data1, "log");
+            Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
+            Expression2->InsertEmptyElement(0, 1, ' ');
+            strcpy_s(Expression2->m_pElementList->pElementObject->Data1, "10");
+            Expression2->m_pElementList->pElementObject->Data2[0] = 0;
+            Expression2->m_pElementList->pElementObject->Data2[1] = 0;
         }
-        if (oper == 19) strcpy(Data1, "log");
-        if (oper == 20) strcpy(Data1, "rot");
+        if (oper == 19) strcpy_s(Data1, "log");
+        if (oper == 20) strcpy_s(Data1, "rot");
         if (oper == 21)
         {
             Data1[0] = (char)0xD1;
@@ -3020,8 +3020,8 @@ void CElement::Empty(char oper)
         } //partial derivation sign
         if (oper == 25)
         {
-            strcpy(Data1, "lim");
-            Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
+            strcpy_s(Data1, "lim");
+            Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
         }
         if (oper == 37)
         {
@@ -3047,10 +3047,10 @@ void CElement::Empty(char oper)
         Data2[0] = 1; //symbol height
         Data2[1] = 0; //integration limits placement (0=above,below;  1=aside)
         Data2[2] = 0; //for double and triple integrals (2 and 3)
-        Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+        Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
         //((CExpression*)Expression1)->m_FontSizeHQ=FontSizeForTypeHQ(1);
 
-        ((CExpression*)Expression1)->m_ParenthesesFlags = 2; //automatic	
+        Expression1->m_ParenthesesFlags = 2; //automatic	
         //((CExpression*)Expression1)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
         if ((oper == 'I' - 1) || (oper == 'i' - 1) || (oper == 'O' - 1) || (oper == 'o' - 2))
         {
@@ -3079,11 +3079,11 @@ void CElement::Empty(char oper)
         }
         if ((oper == '|') || (oper == '/') || (oper < 'a')) //lowercase letters represent non-determined integrals
         {
-            Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
+            Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
             //((CExpression*)Expression2)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
             //((CExpression*)Expression2)->m_FontSizeHQ=FontSizeForTypeHQ(2);
 
-            Expression3 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(3));
+            Expression3 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(3));
             //((CExpression*)Expression3)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
             //((CExpression*)Expression3)->m_FontSizeHQ=FontSizeForTypeHQ(3);
         }
@@ -3092,18 +3092,18 @@ void CElement::Empty(char oper)
     if (m_Type == 8) //root
     {
         Data1[0] = oper;
-        Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
-        ((CExpression*)Expression1)->m_ParenthesesFlags = 0;
+        Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+        Expression1->m_ParenthesesFlags = 0;
 
         if (oper == 9) //square root of 2
         {
-            ((CExpression*)Expression1)->InsertEmptyElement(0, 1, '2');
+            Expression1->InsertEmptyElement(0, 1, '2');
         }
         else if (oper != 1) //root with index
         {
-            Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
+            Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
             if (oper)
-                ((CExpression*)Expression2)->InsertEmptyElement(0, 1, oper);
+                Expression2->InsertEmptyElement(0, 1, oper);
         }
     }
     if (m_Type == 9) //vertical line with condition list
@@ -3112,7 +3112,7 @@ void CElement::Empty(char oper)
         if ((oper == 'H') || (oper == 'L'))
         {
             //an HTML element
-            Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+            Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
             ((CExpression*)Expression1)->m_ParenthesesFlags = 0;
             //((CExpression*)Expression1)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
             ((CExpression*)Expression1)->m_StartAsText = 1;
@@ -3122,36 +3122,36 @@ void CElement::Empty(char oper)
         }
         else
         {
-            Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
-            ((CExpression*)Expression1)->m_ParenthesesFlags = 0;
+            Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+            Expression1->m_ParenthesesFlags = 0;
             //((CExpression*)Expression1)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
-            Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
+            Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
             //((CExpression*)Expression2)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
-            Expression3 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(3));
+            Expression3 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(3));
             //((CExpression*)Expression3)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
             //((CExpression*)Expression1)->m_FontSizeHQ=FontSizeForTypeHQ(1);
             //((CExpression*)Expression2)->m_FontSizeHQ=FontSizeForTypeHQ(2);
             //((CExpression*)Expression3)->m_FontSizeHQ=FontSizeForTypeHQ(3);
-            ((CExpression*)Expression2)->m_Alignment = 1;
-            ((CExpression*)Expression3)->m_Alignment = 1;
+            Expression2->m_Alignment = 1;
+            Expression3->m_Alignment = 1;
         }
     }
     if (m_Type == 10) //vertical line with condition list - as an element
     {
         Data1[0] = oper;
         Data2[0] = 0;
-        Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
+        Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
         //((CExpression*)Expression1)->m_FontSizeHQ=FontSizeForTypeHQ(1);
         //((CExpression*)Expression1)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
         ((CExpression*)Expression1)->m_Alignment = 1;
         if ((oper & 0x04) == 0)
         {
-            Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
+            Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
             //((CExpression*)Expression2)->m_FontSizeHQ=FontSizeForTypeHQ(2);
             //((CExpression*)Expression2)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
             ((CExpression*)Expression2)->m_Alignment = 1;
         }
-        Expression3 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(3));
+        Expression3 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(3));
         //((CExpression*)Expression3)->m_FontSizeHQ=FontSizeForTypeHQ(3);
         //((CExpression*)Expression3)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
         ((CExpression*)Expression3)->m_Alignment = 1;
@@ -3206,9 +3206,9 @@ void CElement::CopyElement(const CElement* Element)
             }
             exp = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSize);
             exp->CopyExpression(oexp, 0);
-            if (i == 0) Expression1 = (CObject*)exp;
-            else if (i == 1) Expression2 = (CObject*)exp;
-            else if (i == 2) Expression3 = (CObject*)exp;
+            if (i == 0) Expression1 = exp;
+            else if (i == 1) Expression2 = exp;
+            else if (i == 2) Expression3 = exp;
         }
     }
     if ((m_Type == 9) && (Expression2 == nullptr) && (Expression3 == nullptr) && (Data1[0] == 'H') && (*(char**)Element->
@@ -3661,31 +3661,31 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 
         if (((CExpression*)m_pPaternalExpression)->m_StartAsText)
         {
-            if (m_Text == 0) strcat(tmpstr, " mth=\"1\"");
+            if (m_Text == 0) strcat_s(tmpstr, " mth=\"1\"");
         }
         else
         {
-            if (m_Text != 0) strcat(tmpstr, " mth=\"0\"");
+            if (m_Text != 0) strcat_s(tmpstr, " mth=\"0\"");
         }
-        if (m_Text == 2) strcat(tmpstr, " ttxt=\"2\"");
-        if (m_Text == 3) strcat(tmpstr, " ttxt=\"3\"");
-        if (m_Text == 4) strcat(tmpstr, " ttxt=\"4\"");
+        if (m_Text == 2) strcat_s(tmpstr, " ttxt=\"2\"");
+        if (m_Text == 3) strcat_s(tmpstr, " ttxt=\"3\"");
+        if (m_Text == 4) strcat_s(tmpstr, " ttxt=\"4\"");
 
         if (m_Type == 1)
         {
             if ((Data1[14] == 0) && ((Data1[15] & 0x7F) == 126))
             {
                 //adding the floating point value data (for numbers)
-                strcat(tmpstr, " float=\"");
+                strcat_s(tmpstr, " float=\"");
                 for (int ij = 0; ij < 8; ij++)
                 {
                     char bfff[10];
-                    sprintf(bfff, "%08X", Data1[16 + ij]);
-                    strcat(tmpstr, bfff + 6);
+                    sprintf_s(bfff, "%08X", Data1[16 + ij]);
+                    strcat_s(tmpstr, bfff + 6);
                 }
-                if (Data1[15] & 0x80) strcat(tmpstr, "_");
-                else strcat(tmpstr, " ");
-                strcat(tmpstr, "\"");
+                if (Data1[15] & 0x80) strcat_s(tmpstr, "_");
+                else strcat_s(tmpstr, " ");
+                strcat_s(tmpstr, "\"");
             }
 
             if (Expression1) E1 = "i";
@@ -3702,19 +3702,19 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         if ((Data1[0] < ' ') || (Data1[0] > 0x7E) || (Data1[0] == '\\') || (Data1[0] == '\'') || (Data1[0] == '\"') || (
             Data1[0] == '<') || (Data1[0] == '>'))
         {
-            if (XMLFileVersion == 1) sprintf(tmpstr, "stp=\"\\%02X\"", (unsigned char)Data1[0]);
-            else sprintf(tmpstr, "s=\"\\%02X\"", (unsigned char)Data1[0]);
+            if (XMLFileVersion == 1) sprintf_s(tmpstr, "stp=\"\\%02X\"", (unsigned char)Data1[0]);
+            else sprintf_s(tmpstr, "s=\"\\%02X\"", (unsigned char)Data1[0]);
         }
         else
         {
-            if (XMLFileVersion == 1) sprintf(tmpstr, "stp=\"%c\"", Data1[0]);
-            else sprintf(tmpstr, "s=\"%c\"", Data1[0]);
+            if (XMLFileVersion == 1) sprintf_s(tmpstr, "stp=\"%c\"", Data1[0]);
+            else sprintf_s(tmpstr, "s=\"%c\"", Data1[0]);
         }
         if ((Data1[0] == 9) && (Data1[3] != 0))
         {
             char tmps[32];
-            sprintf(tmps, " tablen=\"%d\"", Data1[3]);
-            strcat(tmpstr, tmps);
+            sprintf_s(tmps, " tablen=\"%d\"", Data1[3]);
+            strcat_s(tmpstr, tmps);
         }
         if (Expression1) E1 = "upp";
     }
@@ -4133,7 +4133,7 @@ char* CElement::XML_input(char* file, void* element_struct)
 
     if (hasE1) //Expression1
     {
-        Expression1 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
+        Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
         file = ((CExpression*)(Expression1))->XML_input(file);
         if (file == nullptr)
         {
@@ -4143,8 +4143,8 @@ char* CElement::XML_input(char* file, void* element_struct)
     }
     if (hasE2) //Expression2
     {
-        Expression2 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
-        file = ((CExpression*)(Expression2))->XML_input(file);
+        Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
+        file = Expression2->XML_input(file);
         if (file == nullptr)
         {
             delete ((CExpression*)(Expression2));
@@ -4153,11 +4153,11 @@ char* CElement::XML_input(char* file, void* element_struct)
     }
     if (hasE3) //Expression3
     {
-        Expression3 = (CObject*)new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
-        file = ((CExpression*)(Expression3))->XML_input(file);
+        Expression3 = new CExpression(this, (CExpression*)m_pPaternalExpression, 100);
+        file = Expression3->XML_input(file);
         if (file == nullptr)
         {
-            delete ((CExpression*)(Expression3));
+            delete Expression3;
             return nullptr;
         }
     }
@@ -4247,13 +4247,13 @@ int MakeOutput(char** output, char* tabs, char only_calculate, char* text1)
 #define OUTPUT_EXPRESSION(x) len+=MakeExpressionOutput(&output,&tabs,num_tabs,only_calculate,output_type,x)
 #pragma optimize("s",on)
 int MakeExpressionOutput(char** output, char** tabs, int num_tabs, char only_calculate, char output_type,
-                         CObject* expression)
+                         CExpression* expression)
 {
     if (expression == nullptr) return 0;
-    if (((CExpression*)expression)->m_pElementList->Type == 0) return 0;
+    if (expression->m_pElementList->Type == 0) return 0;
     int tt;
     if (output_type == 3)
-        tt = ((CExpression*)(expression))->LaTeX_output(*output, only_calculate);
+        tt = expression->LaTeX_output(*output, only_calculate);
     else
     {
         //tt=((CExpression*)(expression))->MathML_output(*output,num_tabs+1,only_calculate,output_type);
@@ -4687,7 +4687,7 @@ int CElement::LaTeX_output(char* output, char only_calculate)
         {
             CExpression* p = (CExpression*)this->m_pPaternalExpression;
             if ((p->m_pPaternalElement) && (p->m_pPaternalElement->m_Type == 3) &&
-                ((CObject*)p == p->m_pPaternalElement->Expression1) && (p->m_NumElements == 1))
+                (p == p->m_pPaternalElement->Expression1) && (p->m_NumElements == 1))
                 is_squared_function = 1;
         }
         if (m_VMods) //decorations (hat, dash, arrow, dot...)

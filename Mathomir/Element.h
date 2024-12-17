@@ -1,6 +1,8 @@
 #pragma once
 
 
+class CExpression;
+
 class CElement
 {
 public:
@@ -10,9 +12,9 @@ public:
 public:
     CObject* m_pPaternalExpression;
     short* Data3;
-    CObject* Expression1;
-    CObject* Expression2;
-    CObject* Expression3;
+    CExpression* Expression1;
+    CExpression* Expression2;
+    CExpression* Expression3;
     short ParenthesesBelow;
     short ParenthesesAbove;
 

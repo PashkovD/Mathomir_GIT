@@ -40,11 +40,11 @@ char ValueEntryBoxString[300];
 
 	struct POPUPMENU_OPTION
 	{
-		char Text[40];
-		short X;
-		short Y;
-		short Cx;
-		short Cy;
+		std::string Text;
+		int X;
+		int Y;
+		int Cx;
+		int Cy;
 		char IsEnabled;
 		char IsChecked;  //can be checked / unchecked
 		short IsButton;  //Button option

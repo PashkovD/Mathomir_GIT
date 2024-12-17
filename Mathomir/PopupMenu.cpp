@@ -102,7 +102,7 @@ int PopupMenu::AddMenuOption(int X, int Cx, const std::string& text, int Data, i
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = Cx;
     Options[m_NumOptions].Cy = TSize / 4;
-    strcpy_s(Options[m_NumOptions].Text, GetTranslatedString(text, Data).c_str());
+    Options[m_NumOptions].Text = GetTranslatedString(text, Data);
     Options[m_NumOptions].IsChecked = 0;
     Options[m_NumOptions].IsEnabled = (Data >= 0) ? 1 : 0;
     Options[m_NumOptions].Data = Data;
@@ -118,7 +118,7 @@ int PopupMenu::AddMenuOptionButton(int X,  const std::string& text, int Data, in
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = (TSize < 70) ? 17 : ((TSize < 80) ? 19 : 25);
     Options[m_NumOptions].Cy = Options[m_NumOptions].Cx;
-    strcpy_s(Options[m_NumOptions].Text, GetTranslatedString(text, Data).c_str());
+    Options[m_NumOptions].Text = GetTranslatedString(text, Data);
     Options[m_NumOptions].IsChecked = 0;
     Options[m_NumOptions].IsEnabled = (Data >= 0) ? 1 : 0;
     Options[m_NumOptions].Data = Data;
@@ -135,7 +135,7 @@ int PopupMenu::AddCheckedMenuOptionButton(int X, const std::string& text, int is
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = (TSize < 70) ? 17 : ((TSize < 80) ? 19 : 25);
     Options[m_NumOptions].Cy = Options[m_NumOptions].Cx;
-    strcpy_s(Options[m_NumOptions].Text, GetTranslatedString(text, Data).c_str());
+    Options[m_NumOptions].Text = GetTranslatedString(text, Data);
     Options[m_NumOptions].IsChecked = 2 + ((is_checked) ? 1 : 0);
     Options[m_NumOptions].IsEnabled = (Data >= 0) ? 1 : 0;
     Options[m_NumOptions].Data = Data;
@@ -152,7 +152,7 @@ int PopupMenu::AddCheckedMenuOption(int X, int Cx, const std::string& const std:
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = Cx;
     Options[m_NumOptions].Cy = TSize / 4;
-    strcpy_s(Options[m_NumOptions].Text, GetTranslatedString(text, Data).c_str());
+    Options[m_NumOptions].Text = GetTranslatedString(text, Data);
     Options[m_NumOptions].IsChecked = 2 + ((is_checked) ? 1 : 0);
     Options[m_NumOptions].IsEnabled = (Data >= 0) ? 1 : 0;
     Options[m_NumOptions].Data = Data;
@@ -391,7 +391,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             Options[m_NumOptions].X = TSize + ToolboxSize;
             Options[m_NumOptions].Cx = l + 2;
             Options[m_NumOptions].Cy = a + b + TSize / 8;
-            strcpy(Options[m_NumOptions].Text, "");
+            Options[m_NumOptions].Text = "";
             Options[m_NumOptions].IsButton = 0;
             Options[m_NumOptions].Graphics = image;
             Options[m_NumOptions].IsChecked = 0;
@@ -1080,7 +1080,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         Options[m_NumOptions].X = 0;
         Options[m_NumOptions].Cx = l + TSize_1p2;
         Options[m_NumOptions].Cy = a + b + TSize / 8;
-        strcpy(Options[m_NumOptions].Text, "");
+        Options[m_NumOptions].Text = "";
         Options[m_NumOptions].IsButton = 0;
         Options[m_NumOptions].Graphics = ClipboardExpression;
         Options[m_NumOptions].IsChecked = 0;
@@ -1707,7 +1707,7 @@ int PopupMenu::PaintThePopupMenu(void)
 
         dc->SetTextAlign(TA_TOP);
 
-        if (Options[i].Text[0])
+        if (Options[i].Text.size()>0)
         {
             dc->SetBkColor(SHADOW_BLUE_COLOR);
 
@@ -1750,9 +1750,9 @@ int PopupMenu::PaintThePopupMenu(void)
                             dc->SelectObject(GetFontFromPool(4, 0, 0, TSize / 5 + 2));
                             dc->SetTextColor(SHADOW_BLUE_COLOR3);
                             char tmp[128];
-                            strcpy(tmp, Options[jj].Text);
-                            strcat(tmp, " ");
-                            strcat(tmp, Options[i].Text);
+                            strcpy_s(tmp, Options[jj].Text.c_str());
+                            strcat_s(tmp, " ");
+                            strcat_s(tmp, Options[i].Text.c_str());
                             dc->SetBkColor(SHADOW_BLUE_COLOR);
                             dc->TextOut(Options[jj].X + 2, Options[jj].Y + 1, tmp);
                             break;
@@ -1796,15 +1796,15 @@ int PopupMenu::PaintThePopupMenu(void)
                 }
                 else
                 {
-                    CSize len = dc->GetTextExtent(Options[i].Text, (int)strlen(Options[i].Text));
+                    CSize len = dc->GetTextExtent(Options[i].Text.c_str(), (int)strlen(Options[i].Text.c_str()));
                     if (len.cx > Options[i].Cx + TSize / 12 - TSize / 5) dc->SelectObject(
                         GetFontFromPool(4, 0, 0, (TSize) / 5 + 2));
 
-                    dc->TextOut(Options[i].X + TSize / 5 + 1, Options[i].Y + 1, Options[i].Text); //place for Check
+                    dc->TextOut(Options[i].X + TSize / 5 + 1, Options[i].Y + 1, Options[i].Text.c_str()); //place for Check
                     if (is_bold)
                     {
                         dc->SetBkMode(TRANSPARENT);
-                        dc->TextOut(Options[i].X + TSize / 5 + 2, Options[i].Y + 1, Options[i].Text); //place for Check
+                        dc->TextOut(Options[i].X + TSize / 5 + 2, Options[i].Y + 1, Options[i].Text.c_str()); //place for Check
                         dc->SetBkMode(OPAQUE);
                     }
 
@@ -1819,13 +1819,13 @@ int PopupMenu::PaintThePopupMenu(void)
             }
             else
             {
-                CSize len = dc->GetTextExtent(Options[i].Text, (int)strlen(Options[i].Text));
+                CSize len = dc->GetTextExtent(Options[i].Text.c_str(), (int)strlen(Options[i].Text.c_str()));
                 if (len.cx > Options[i].Cx + TSize / 12) dc->SelectObject(GetFontFromPool(4, 0, 0, TSize / 5 + 1));
-                dc->TextOut(Options[i].X + 2, Options[i].Y + 1, Options[i].Text);
+                dc->TextOut(Options[i].X + 2, Options[i].Y + 1, Options[i].Text.c_str());
                 if (is_bold)
                 {
                     dc->SetBkMode(TRANSPARENT);
-                    dc->TextOut(Options[i].X + 3, Options[i].Y + 1, Options[i].Text);
+                    dc->TextOut(Options[i].X + 3, Options[i].Y + 1, Options[i].Text.c_str());
                     dc->SetBkMode(OPAQUE);
                 }
             }
@@ -5518,7 +5518,7 @@ int PopupMenu::AddMathMenuOption(CExpression* E1, CExpression* original)
     Options[m_NumOptions].X = TSize_1p20;
     Options[m_NumOptions].Cx = l + TSize / 4 + TSize_1p2;
     Options[m_NumOptions].Cy = a + b + 2;
-    strcpy(Options[m_NumOptions].Text, "");
+    Options[m_NumOptions].Text = "";
     Options[m_NumOptions].IsButton = 0;
     Options[m_NumOptions].Graphics = E1;
     Options[m_NumOptions].IsChecked = 0;

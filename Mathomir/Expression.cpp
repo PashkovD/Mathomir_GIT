@@ -10580,7 +10580,7 @@ keyboardkeyhit_addtoexponent:
                     }
                     if ((elm->Expression3 == nullptr) && (this->m_pPaternalElement->m_Type == 7))
                     {
-                        elm->Expression3 = (CObject*)new CExpression(elm, (CExpression*)elm->m_pPaternalExpression,
+                        elm->Expression3 = new CExpression(elm, (CExpression*)elm->m_pPaternalExpression,
                                                                      elm->FontSizeForType(3));
                         //((CExpression*)(elm->Expression3))->m_FontSizeHQ=elm->FontSizeForTypeHQ(3);
                     }
