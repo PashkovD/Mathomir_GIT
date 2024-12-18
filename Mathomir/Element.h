@@ -18,9 +18,9 @@ public:
     short ParenthesesBelow;
     short ParenthesesAbove;
 
-    char m_Type; //type of Element
-    char m_Color;
-    char m_Text;
+    byte m_Type; //type of Element
+    byte m_Color;
+    byte m_Text;
     unsigned char m_VMods; //variable modificators (overhead dash, hat, arrow, dot, double dot, measurement unit)
 
     //the below codes must have fixed structure (see the 'operator new' and 'CopyElement')

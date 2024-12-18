@@ -30,7 +30,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 IMPLEMENT_DYNAMIC(CPasswordDlg, CDialog)
 
 CPasswordDlg::CPasswordDlg(CWnd* pParent /*=nullptr*/)
-    : CDialog(CPasswordDlg::IDD, pParent)
+    : CDialog(IDD, pParent)
 {
 }
 

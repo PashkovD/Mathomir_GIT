@@ -377,9 +377,9 @@ int CDrawingBox::MouseClick(int X, int Y)
         for (int i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* ds = TheDocument + i;
-            if (ds->Type == 2)
+            if (ds->Type == DRAWING)
             {
-                CDrawing* d = (CDrawing*)ds->Object;
+                CDrawing* d = ds->Object.draw;
                 if (d->IsSpecialDrawing == 50 && d != Base && ((CDrawingBox*)d->SpecialData)->TheState == 100)
                     ((CDrawingBox*)d->SpecialData)->TheState = 0;
             }
@@ -393,8 +393,8 @@ int CDrawingBox::MouseClick(int X, int Y)
         {
             ((CExpression*)KeyboardEntryObject)->KeyboardStop();
             if (KeyboardEntryBaseObject &&
-                ((CExpression*)KeyboardEntryBaseObject->Object)->m_NumElements == 1 &&
-                ((CExpression*)KeyboardEntryBaseObject->Object)->m_pElementList->Type == 0)
+                KeyboardEntryBaseObject->Object.exp->m_NumElements == 1 &&
+                KeyboardEntryBaseObject->Object.exp->m_pElementList->Type == 0)
                 pMainView->DeleteDocumentObject(KeyboardEntryBaseObject);
         }
         KeyboardEntryObject = (CObject*)CommandLine;
@@ -402,7 +402,7 @@ int CDrawingBox::MouseClick(int X, int Y)
         ((CExpression*)KeyboardEntryObject)->m_Selection = 1;
 
         for (int i = 0; i < NumDocumentElements; i++)
-            if ((TheDocument + i)->Object == (CObject*)Base)
+            if ((TheDocument + i)->Object.draw == Base)
             {
                 KeyboardEntryBaseObject = TheDocument + i;
                 break;
@@ -432,22 +432,22 @@ int CDrawingBox::MouseClick(int X, int Y)
                 {
                     tDocumentStruct* ds = TheDocument + ii;
 
-                    if (ds->Object && ds->MovingDotState == 3)
+                    if (ds->Object.v && ds->MovingDotState == 3)
                     {
                         if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("group", 20118);
                         int X = ds->absolute_X;
                         int Y = ds->absolute_Y;
-                        if (ds->Type == 1) Y -= ds->Above;
+                        if (ds->Type == EXPRESSION) Y -= ds->Above;
                         if (tmpdrw == nullptr)
                         {
                             StartX = X;
                             StartY = Y;
                             tmpdrw = new CDrawing();
                         }
-                        if (ds->Type == 2)
-                            tmpdrw->CopyDrawingIntoSubgroup((CDrawing*)ds->Object, X - StartX, Y - StartY);
-                        else if (ds->Type == 1)
-                            tmpdrw->CopyExpressionIntoSubgroup((CExpression*)ds->Object, X - StartX, Y - StartY,
+                        if (ds->Type == DRAWING)
+                            tmpdrw->CopyDrawingIntoSubgroup(ds->Object.draw, X - StartX, Y - StartY);
+                        else if (ds->Type == EXPRESSION)
+                            tmpdrw->CopyExpressionIntoSubgroup(ds->Object.exp, X - StartX, Y - StartY,
                                                                ds->Length, ds->Below + ds->Above);
                         int xx, yy, w, h;
                         tmpdrw->AdjustCoordinates(&xx, &yy, &w, &h);
@@ -468,7 +468,7 @@ int CDrawingBox::MouseClick(int X, int Y)
                 if (prevelement)
                     pMainView->DeleteDocumentObject(prevelement);
                 //CMainFrame *mf=(CMainFrame*)theApp.m_pMainWnd;
-                AddDocumentObject(2, StartX, StartY);
+                AddDocumentObject(DRAWING, StartX, StartY);
                 tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
                 short w = 0, h = 0;
                 CDC* DC = pMainView->GetDC();
@@ -478,7 +478,7 @@ int CDrawingBox::MouseClick(int X, int Y)
                 ds->Below = h;
                 ds->Length = w;
                 ds->MovingDotState = 3;
-                ds->Object = (CObject*)tmpdrw;
+                ds->Object.draw = tmpdrw;
                 pMainView->RepaintTheView();
                 return 1;
             }
@@ -491,7 +491,7 @@ int CDrawingBox::MouseClick(int X, int Y)
                 for (int kkk = 0; kkk < NumDocumentElements; kkk++)
                 {
                     tDocumentStruct* ds2 = TheDocument + kkk;
-                    if (ds2->Object && ds2->MovingDotState == 3)
+                    if (ds2->Object.v && ds2->MovingDotState == 3)
                     {
                         if (ds2->absolute_X < StartX) StartX = ds2->absolute_X;
                         if (ds2->absolute_Y - ds2->Above < StartY) StartY = ds2->absolute_Y - ds2->Above;
@@ -527,7 +527,7 @@ int CDrawingBox::MouseClick(int X, int Y)
                 for (int kkk = 0; kkk < NumDocumentElements; kkk++)
                 {
                     tDocumentStruct* ds = TheDocument + kkk;
-                    if (ds->Object && ds->MovingDotState == 3)
+                    if (ds->Object.v && ds->MovingDotState == 3)
                     {
                         if (ToolboxSelectedItem == 1) ds->absolute_X = StartX;
                         else if (ToolboxSelectedItem == 2) ds->absolute_X = StartX - ds->Length / 2;
@@ -535,20 +535,20 @@ int CDrawingBox::MouseClick(int X, int Y)
                         else if (ToolboxSelectedItem == 4) ds->absolute_Y = StartY + ds->Above;
                         else if (ToolboxSelectedItem == 5)
                         {
-                            if (ds->Type == 1) ds->absolute_Y = StartY;
-                            if (ds->Type == 2) ds->absolute_Y = StartY - ds->Below / 2;
+                            if (ds->Type == EXPRESSION) ds->absolute_Y = StartY;
+                            if (ds->Type == DRAWING) ds->absolute_Y = StartY - ds->Below / 2;
                         }
                         else if (ToolboxSelectedItem == 6) ds->absolute_Y = StartY - ds->Below;
                         else if (ToolboxSelectedItem == 8) //horizontal mirror
                         {
-                            if (ds->Type == 2)
-                                ((CDrawing*)ds->Object)->ScaleForFactor(-1, 1);
+                            if (ds->Type == DRAWING)
+                                ds->Object.draw->ScaleForFactor(-1, 1);
                             ds->absolute_X = StartX + (MaxX - ds->absolute_X - ds->Length);
                         }
                         else if (ToolboxSelectedItem == 9) //vertical mirror
                         {
-                            if (ds->Type == 2)
-                                ((CDrawing*)ds->Object)->ScaleForFactor(1, -1);
+                            if (ds->Type == DRAWING)
+                                ds->Object.draw->ScaleForFactor(1, -1);
                             ds->absolute_Y = StartY + (MaxY - ds->absolute_Y - ds->Below);
                         }
                     }
@@ -668,7 +668,7 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
     char txt[64];
     char txt2[32];
 
-    if (1)
+    if (true)
     {
         static int LastIntersectionPointX = -1;
         static int LastIntersectionPointY = -1;
@@ -904,25 +904,25 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
         {
             int cmd = 0;
             float p1[10];
-            if (strnicmp(ts->pElementObject->Data1, "line", 4) == 0) cmd = 1;
-            if (strnicmp(ts->pElementObject->Data1, "vline", 5) == 0) cmd = 2;
-            if (strnicmp(ts->pElementObject->Data1, "rect", 4) == 0) cmd = 3;
-            if (strnicmp(ts->pElementObject->Data1, "square", 6) == 0) cmd = 3;
-            if (strnicmp(ts->pElementObject->Data1, "ellip", 5) == 0) cmd = 4;
-            if (strnicmp(ts->pElementObject->Data1, "circ", 4) == 0) cmd = 7;
-            if (strnicmp(ts->pElementObject->Data1, "rot", 3) == 0) cmd = 5;
-            if (strnicmp(ts->pElementObject->Data1, "move", 4) == 0) cmd = 6;
-            if (strnicmp(ts->pElementObject->Data1, "dashdot", 7) == 0) cmd = 9;
-            else if (strnicmp(ts->pElementObject->Data1, "dash", 4) == 0) cmd = 8;
-            if (strnicmp(ts->pElementObject->Data1, "hair", 4) == 0) cmd = 10;
-            if (strnicmp(ts->pElementObject->Data1, "thin", 4) == 0) cmd = 11;
-            if (strnicmp(ts->pElementObject->Data1, "thick", 5) == 0) cmd = 13;
-            if (strnicmp(ts->pElementObject->Data1, "medium", 6) == 0) cmd = 12;
-            if (strnicmp(ts->pElementObject->Data1, "black", 4) == 0) cmd = 14;
-            if (strnicmp(ts->pElementObject->Data1, "gray", 4) == 0) cmd = 15;
-            if (strnicmp(ts->pElementObject->Data1, "red", 4) == 0) cmd = 16;
-            if (strnicmp(ts->pElementObject->Data1, "blue", 5) == 0) cmd = 17;
-            if (strnicmp(ts->pElementObject->Data1, "green", 6) == 0) cmd = 18;
+            if (_strnicmp(ts->pElementObject->Data1, "line", 4) == 0) cmd = 1;
+            if (_strnicmp(ts->pElementObject->Data1, "vline", 5) == 0) cmd = 2;
+            if (_strnicmp(ts->pElementObject->Data1, "rect", 4) == 0) cmd = 3;
+            if (_strnicmp(ts->pElementObject->Data1, "square", 6) == 0) cmd = 3;
+            if (_strnicmp(ts->pElementObject->Data1, "ellip", 5) == 0) cmd = 4;
+            if (_strnicmp(ts->pElementObject->Data1, "circ", 4) == 0) cmd = 7;
+            if (_strnicmp(ts->pElementObject->Data1, "rot", 3) == 0) cmd = 5;
+            if (_strnicmp(ts->pElementObject->Data1, "move", 4) == 0) cmd = 6;
+            if (_strnicmp(ts->pElementObject->Data1, "dashdot", 7) == 0) cmd = 9;
+            else if (_strnicmp(ts->pElementObject->Data1, "dash", 4) == 0) cmd = 8;
+            if (_strnicmp(ts->pElementObject->Data1, "hair", 4) == 0) cmd = 10;
+            if (_strnicmp(ts->pElementObject->Data1, "thin", 4) == 0) cmd = 11;
+            if (_strnicmp(ts->pElementObject->Data1, "thick", 5) == 0) cmd = 13;
+            if (_strnicmp(ts->pElementObject->Data1, "medium", 6) == 0) cmd = 12;
+            if (_strnicmp(ts->pElementObject->Data1, "black", 4) == 0) cmd = 14;
+            if (_strnicmp(ts->pElementObject->Data1, "gray", 4) == 0) cmd = 15;
+            if (_strnicmp(ts->pElementObject->Data1, "red", 4) == 0) cmd = 16;
+            if (_strnicmp(ts->pElementObject->Data1, "blue", 5) == 0) cmd = 17;
+            if (_strnicmp(ts->pElementObject->Data1, "green", 6) == 0) cmd = 18;
 
             kk++;
             int opos = kk;
@@ -982,13 +982,13 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     if (params < 2) p1[1] = 0;
                     if (cmd == 2) p1[1] += 90;
                     //p1[0]=p1[0]*100/ViewZoom;
-                    AddDocumentObject(2, InsertPositionX, InsertPositionY);
+                    AddDocumentObject(DRAWING, InsertPositionX, InsertPositionY);
                     CDrawing* drw = new CDrawing();
                     drw->StartCreatingItem(2);
                     drw->UpdateCreatingItem((int)(p1[0] * ux * cos(p1[1] / 180 * 3.14159265) * 10),
                                             (int)(p1[0] * uy * sin(p1[1] / 180 * 3.14159265) * 10), X, Y);
                     drw->EndCreatingItem(&x1, &y1);
-                    TheDocument[NumDocumentElements - 1].Object = (CObject*)drw;
+                    TheDocument[NumDocumentElements - 1].Object.draw = drw;
                     LastDrawingCreated = NumDocumentElements - 1;
                 }
                 else
@@ -997,7 +997,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     //GetDrawingBoxGrid(&ux,&uy,&sx,&sy);
                     int x1, y1;
                     if (params < 4) p1[3] = p1[1];
-                    AddDocumentObject(2, X * 100 / ViewZoom + ViewX + (int)(p1[0] * ux) + sx,
+                    AddDocumentObject(DRAWING, X * 100 / ViewZoom + ViewX + (int)(p1[0] * ux) + sx,
                                       Y * 100 / ViewZoom + ViewY + (int)(p1[1] * uy) + sy);
                     CDrawing* drw = new CDrawing();
                     drw->StartCreatingItem(2);
@@ -1007,7 +1007,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     drw->EndCreatingItem(&x1, &y1);
                     TheDocument[NumDocumentElements - 1].absolute_X += x1;
                     TheDocument[NumDocumentElements - 1].absolute_Y += y1;
-                    TheDocument[NumDocumentElements - 1].Object = (CObject*)drw;
+                    TheDocument[NumDocumentElements - 1].Object.draw = drw;
                     LastDrawingCreated = NumDocumentElements - 1;
                     int w, h;
                     drw->AdjustCoordinates(&x1, &y1, &w, &h);
@@ -1026,12 +1026,12 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     //p1[0]=p1[0]*100/ViewZoom;
                     //p1[1]=p1[1]*100/ViewZoom;
                     if (params < 2) p1[1] = p1[0];
-                    AddDocumentObject(2, InsertPositionX, InsertPositionY);
+                    AddDocumentObject(DRAWING, InsertPositionX, InsertPositionY);
                     CDrawing* drw = new CDrawing();
                     drw->StartCreatingItem(cmd == 3 ? 1 : 4);
                     drw->UpdateCreatingItem((int)(p1[0] * ux * 10), (int)(p1[1] * uy * 10), X, Y);
                     drw->EndCreatingItem(&x1, &y1);
-                    TheDocument[NumDocumentElements - 1].Object = (CObject*)drw;
+                    TheDocument[NumDocumentElements - 1].Object.draw = drw;
                     LastDrawingCreated = NumDocumentElements - 1;
                 }
                 else
@@ -1042,7 +1042,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     //circ x1,y1,radius
                     //GetDrawingBoxGrid(&ux,&uy,&sx,&sy);
                     int x1, y1;
-                    AddDocumentObject(2, X * 100 / ViewZoom + ViewX + (int)(p1[0] * ux) + sx,
+                    AddDocumentObject(DRAWING, X * 100 / ViewZoom + ViewX + (int)(p1[0] * ux) + sx,
                                       Y * 100 / ViewZoom + ViewY + (int)(p1[1] * uy) + sy);
                     CDrawing* drw = new CDrawing();
                     if (params == 4)
@@ -1059,7 +1059,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     drw->EndCreatingItem(&x1, &y1);
                     TheDocument[NumDocumentElements - 1].absolute_X += x1;
                     TheDocument[NumDocumentElements - 1].absolute_Y += y1;
-                    TheDocument[NumDocumentElements - 1].Object = (CObject*)drw;
+                    TheDocument[NumDocumentElements - 1].Object.draw = drw;
                     LastDrawingCreated = NumDocumentElements - 1;
                     int w, h;
                     drw->AdjustCoordinates(&x1, &y1, &w, &h);
@@ -1068,7 +1068,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                 }
             }
             if (LastDrawingCreated > 0 && LastDrawingCreated < NumDocumentElements &&
-                TheDocument[LastDrawingCreated].Type == 2 && TheDocument[LastDrawingCreated].Object)
+                TheDocument[LastDrawingCreated].Type == DRAWING && TheDocument[LastDrawingCreated].Object.draw)
             {
                 if (cmd == 5)
                 {
@@ -1076,7 +1076,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     int cx = TheDocument[LastDrawingCreated].absolute_X + TheDocument[LastDrawingCreated].Length / 2;
                     int cy = TheDocument[LastDrawingCreated].absolute_Y + TheDocument[LastDrawingCreated].Below / 2;
                     int x1, y1, w, h;
-                    ((CDrawing*)TheDocument[LastDrawingCreated].Object)->RotateForAngle(
+                    TheDocument[LastDrawingCreated].Object.draw->RotateForAngle(
                         (float)(p1[0] / 180 * 3.14159265), cx, cy, &x1, &y1, &w, &h);
                 }
                 if (cmd == 6)
@@ -1088,18 +1088,18 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                 if (cmd == 8 || cmd == 9)
                 {
                     //dashed
-                    CDrawing* drw = (CDrawing*)TheDocument[LastDrawingCreated].Object;
+                    CDrawing* drw = TheDocument[LastDrawingCreated].Object.draw;
                     drw->MakeDashed(cmd == 9 ? 1 : 0);
                 }
-                if (cmd == 10) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetLineWidth(DRWZOOM * 65 / 100);
-                if (cmd == 11) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetLineWidth(DRWZOOM);
-                if (cmd == 12) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetLineWidth(2 * DRWZOOM);
-                if (cmd == 13) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetLineWidth(3 * DRWZOOM);
-                if (cmd == 14) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetColor(0);
-                if (cmd == 15) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetColor(4);
-                if (cmd == 16) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetColor(1);
-                if (cmd == 17) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetColor(3);
-                if (cmd == 18) ((CDrawing*)TheDocument[LastDrawingCreated].Object)->SetColor(2);
+                if (cmd == 10) TheDocument[LastDrawingCreated].Object.draw->SetLineWidth(DRWZOOM * 65 / 100);
+                if (cmd == 11) TheDocument[LastDrawingCreated].Object.draw->SetLineWidth(DRWZOOM);
+                if (cmd == 12) TheDocument[LastDrawingCreated].Object.draw->SetLineWidth(2 * DRWZOOM);
+                if (cmd == 13) TheDocument[LastDrawingCreated].Object.draw->SetLineWidth(3 * DRWZOOM);
+                if (cmd == 14) TheDocument[LastDrawingCreated].Object.draw->SetColor(0);
+                if (cmd == 15) TheDocument[LastDrawingCreated].Object.draw->SetColor(4);
+                if (cmd == 16) TheDocument[LastDrawingCreated].Object.draw->SetColor(1);
+                if (cmd == 17) TheDocument[LastDrawingCreated].Object.draw->SetColor(3);
+                if (cmd == 18) TheDocument[LastDrawingCreated].Object.draw->SetColor(2);
             }
         }
         else kk++;

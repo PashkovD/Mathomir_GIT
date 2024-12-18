@@ -258,7 +258,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             }
 
             //adjusting positions on character level
-            int last = (int)strlen(Data1) - 1;
+            unsigned int last = strlen(Data1) - 1;
             char ch = Data1[last];
             int Xrepos = 0;
             if ((Data2[last] & 0xE0) != 0x60)
@@ -1177,7 +1177,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
         //for very small fonts, fix the font facename to Arial (math-o-mir system font) 
         //for better readability (important for toolbox items)
-        if (ActualSize <= 11) font = (font & 0xE0) != 0x60 ? (char)0x80 : (char)0x60;
+        if (ActualSize <= 11) font = (font & 0xE0) != 0x60 ? 0x80 : 0x60;
 
         if (m_VMods || Data1[strlen(Data1) - 1] == '\'')
         {
@@ -3492,7 +3492,6 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 {
     int len = 0;
     int tmp;
-    short i;
     std::string* E1 = nullptr;
     std::string* E2 = nullptr;
     std::string* E3 = nullptr;
@@ -3565,7 +3564,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
     //addidng decoration description (encircled, strikeout, underlined, overlined...)
     if (m_pPaternalExpression)
     {
-        for (i = 0; i < ((CExpression*)m_pPaternalExpression)->m_NumElements; i++)
+        for (int i = 0; i < ((CExpression*)m_pPaternalExpression)->m_NumElements; i++)
         {
             d_cnt = i;
             tElementStruct* ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + i;
@@ -3603,7 +3602,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             j = 3;
         }
         tmp = (short)strlen(Data1);
-        for (i = 0; i < tmp; i++)
+        for (int i = 0; i < tmp; i++)
         {
             if (Data1[i] < ' ' || Data1[i] > 0x7E || Data1[i] == '\\' || Data1[i] == '"')
             {
@@ -3637,14 +3636,14 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         {
             memcpy(tmpstr + j, "\" f=\"", 5);
             j += 5;
-            for (i = 1; i < tmp; i++)
+            for (int i = 1; i < tmp; i++)
                 if (Data2[i] != Data2[0])
                 {
                     all_chars_same_font = 0;
                     break;
                 } //we check if all characters are of the same font type
         }
-        for (i = 0; i < tmp; i++)
+        for (int i = 0; i < tmp; i++)
         {
             char ppp[4];
             unsigned char dd = (unsigned char)Data2[i];

@@ -271,12 +271,12 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                 TheDocument[i].MovingDotState &= 0x80; //clear everything except msb
 
             if (!dont_empty_clipboard)
-                if (TheDocument[i].Object)
+                if (TheDocument[i].Object.v)
                 {
-                    if (TheDocument[i].Type == 1)
-                        ((CExpression*)TheDocument[i].Object)->DeselectExpressionExceptKeyboardSelection();
-                    if (TheDocument[i].Type == 2)
-                        ((CDrawing*)TheDocument[i].Object)->SelectDrawing(0);
+                    if (TheDocument[i].Type == EXPRESSION)
+                        TheDocument[i].Object.exp->DeselectExpressionExceptKeyboardSelection();
+                    else if (TheDocument[i].Type == DRAWING)
+                        ((CDrawing*)TheDocument[i].Object.exp)->SelectDrawing(0);
                 }
         }
 
@@ -371,7 +371,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
 
     //parsing file  -  object by object  -  the MOM file has XML structure
     {
-        int type = 0;
+        doc_type type = (doc_type)0;
         int x = 0, y = 0;
         while (true)
         {
@@ -395,7 +395,8 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                             attribute, value, file_pointer, 128);
                         if (file_pointer == 0) goto openMOMfile_end; //unexpected end of file
 
-                        if (strcmp(attribute, "type") == 0 || strcmp(attribute, "t") == 0) type = atoi(value);
+                        if (strcmp(attribute, "type") == 0 || strcmp(attribute, "t") == 0)
+                            type = (doc_type)atoi(value);
                         if (strcmp(attribute, "ver") == 0)
                         {
                             XMLFileVersion = atoi(value);
@@ -424,7 +425,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                                 NumDocumentElements--;
                                 goto openMOMfile_end;
                             } //irregular end!
-                            ds->Object = (CObject*)exp;
+                            ds->Object.exp = exp;
 
                             //calling the CExpression for parsing the object
                             file_pointer = exp->XML_input(file_pointer);
@@ -444,7 +445,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                                 NumDocumentElements--;
                                 goto openMOMfile_end;
                             } //irregular end!
-                            ds->Object = (CObject*)drw;
+                            ds->Object.draw = drw;
 
                             //calling the CExpression for parsing the object
                             file_pointer = drw->XML_input(file_pointer);
@@ -464,9 +465,9 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                             CDC* DC = theApp.m_pMainWnd->GetDC();
                             short l = 0, a = 0, b = 0;
                             if (type == 1)
-                                ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                                ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                             else
-                                ((CDrawing*)ds->Object)->CalculateSize(DC, ViewZoom, &l, &b);
+                                ds->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
                             ds->Length = l * 100 / ViewZoom;
                             ds->Above = a * 100 / ViewZoom;
                             ds->Below = b * 100 / ViewZoom;
@@ -492,12 +493,12 @@ openMOMfile_end:
             TheKeyboardClipboard = nullptr;
         }
         if (NumDocumentElements - OrigNumElements == 1 &&
-            TheDocument[OrigNumElements].Type == 1 &&
+            TheDocument[OrigNumElements].Type == EXPRESSION &&
             KeyboardEntryObject)
         {
             //we are pasting into the keyboard clipboard			
             TheKeyboardClipboard = new CExpression(nullptr,nullptr, 100);
-            CExpression* exp = (CExpression*)TheDocument[OrigNumElements].Object;
+            CExpression* exp = TheDocument[OrigNumElements].Object.exp;
             TheKeyboardClipboard->CopyExpression(exp, 0);
             delete exp;
             NumDocumentElements--;
@@ -606,8 +607,8 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         for (int jj = 0; jj < NumDocumentElements; jj++)
             if (TheDocument[jj].absolute_Y + TheDocument[jj].Below > maxy)
                 maxy = TheDocument[jj].absolute_Y + TheDocument[jj].Below;
-        AddDocumentObject(1, 20, maxy + 30);
-        TheDocument[NumDocumentElements - 1].Object = (CObject*)exp;
+        AddDocumentObject(EXPRESSION, 20, maxy + 30);
+        TheDocument[NumDocumentElements - 1].Object.exp = exp;
         exp->InsertEmptyElement(0, 1, '-');
         exp->InsertEmptyElement(1, 1, '-');
         exp->InsertEmptyElement(2, 11, 0);
@@ -646,8 +647,10 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
             {
                 if (filename || ds->MovingDotState == 3)
                 {
-                    if (ds->Type == 1) len += ((CExpression*)ds->Object)->XML_output(dummy, 0, 1);
-                    else if (ds->Type == 2) len += ((CDrawing*)ds->Object)->XML_output(dummy, 0, 1);
+                    if (ds->Type == EXPRESSION)
+                        len += ds->Object.exp->XML_output(dummy, 0, 1);
+                    else if (ds->Type == DRAWING)
+                        len += ds->Object.draw->XML_output(dummy, 0, 1);
                 }
             }
             catch (...)
@@ -771,10 +774,10 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
                     len += 3;
 
                     int tmp = 0;
-                    if (ds->Type == 1)
-                        tmp = ((CExpression*)ds->Object)->XML_output(file_pointer, 0, 0);
+                    if (ds->Type == EXPRESSION)
+                        tmp = ds->Object.exp->XML_output(file_pointer, 0, 0);
                     else
-                        tmp = ((CDrawing*)ds->Object)->XML_output(file_pointer, 0, 0);
+                        tmp = ds->Object.draw->XML_output(file_pointer, 0, 0);
                     len += tmp;
                     file_pointer += tmp;
 
@@ -806,7 +809,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     if (TheFileType == 'r' && filename)
     {
         NumDocumentElements--;
-        delete (CExpression*)TheDocument[NumDocumentElements].Object;
+        delete TheDocument[NumDocumentElements].Object.exp;
     }
 #endif
     if (filename)

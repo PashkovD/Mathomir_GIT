@@ -324,7 +324,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
     if (GetKeyState(VK_MENU) & 0xFFFE)
     {
         if (SpecialDrawingHover &&
-            ((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing == 50 &&
+            SpecialDrawingHover->Object.draw->IsSpecialDrawing == 50 &&
             IsDrawingMode != 6 && IsDrawingMode != 7 && IsDrawingMode != 25 && IsDrawingMode != 26)
         {
             if (this->FindNerbyPoint(&absX, &absY, nullptr, 0, 0, 0, 0))
@@ -1003,13 +1003,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                 for (int i = 0; i < NumDocumentElements; i++)
                 {
                     tDocumentStruct* ds = TheDocument + i;
-                    if (ds->Type == 2 && ds->absolute_X <= sabsX + sz && ds->absolute_X + ds->Length >= sabsX - sz
+                    if (ds->Type == DRAWING && ds->absolute_X <= sabsX + sz && ds->absolute_X + ds->Length >= sabsX - sz
                         && ds->absolute_Y <= sabsY + sz && ds->absolute_Y + ds->Below >= sabsY - sz
-                        && ds->MovingDotState != 5 && ds->Object && ((CDrawing*)ds->Object)->IsSpecialDrawing ==
+                        && ds->MovingDotState != 5 && ds->Object.draw && ds->Object.draw->IsSpecialDrawing ==
                         0)
                     {
                         int l1, l2;
-                        ((CDrawing*)ds->Object)->FindDiagonalLength((sabsX - ds->absolute_X) * DRWZOOM,
+                        ds->Object.draw->FindDiagonalLength((sabsX - ds->absolute_X) * DRWZOOM,
                                                                     (sabsY - ds->absolute_Y) * DRWZOOM, &l1, &l2,
                                                                     Drawing_temp_form == 25 ? 1 : -1);
                         if (l2 < l22) l22 = l2;
@@ -1112,13 +1112,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             for (int i = 0; i < NumDocumentElements; i++)
             {
                 tDocumentStruct* ds = TheDocument + i;
-                if (ds->Type == 2 && ds->absolute_X <= absX && ds->absolute_X + ds->Length >= absX - sz
+                if (ds->Type == DRAWING && ds->absolute_X <= absX && ds->absolute_X + ds->Length >= absX - sz
                     && ds->absolute_Y <= absY && ds->absolute_Y + ds->Below >= absY - sz
                     && ds->MovingDotState != 5)
                 {
-                    if (ds->Object)
+                    if (ds->Object.draw)
                     {
-                        int ret = ((CDrawing*)ds->Object)->EraseSquare(
+                        int ret = ds->Object.draw->EraseSquare(
                             absX - ds->absolute_X - sz, absY - ds->absolute_Y - sz, absX - ds->absolute_X,
                             absY - ds->absolute_Y, nullptr);
                         if (ret == 2)
@@ -1790,10 +1790,10 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
         {
             tDocumentStruct* ds = TheDocument + i;
 
-            if (ds->Type == 2 && ds->Object)
+            if (ds->Type == DRAWING && ds->Object.draw)
             {
                 int x1, y1, w, h;
-                ((CDrawing*)ds->Object)->AdjustCoordinates(&x1, &y1, &w, &h);
+                ds->Object.draw->AdjustCoordinates(&x1, &y1, &w, &h);
                 ds->absolute_X += x1;
                 ds->absolute_Y += y1;
                 ds->Above = 0;
@@ -3710,9 +3710,9 @@ break_apart_again:
             tDocumentStruct* ds = TheDocument;
             for (int i = 0; i < NumDocumentElements; i++, ds++)
             {
-                if (ds->Object == (CObject*)this)
+                if (ds->Object.draw == this)
                 {
-                    AddDocumentObject(2, ds->absolute_X, ds->absolute_Y);
+                    AddDocumentObject(DRAWING, ds->absolute_X, ds->absolute_Y);
                     ds = TheDocument + i;
                     tDocumentStruct* ds2 = TheDocument + NumDocumentElements - 1;
                     int x1, y1, w, h;
@@ -3722,7 +3722,7 @@ break_apart_again:
                     ds2->Length = w;
                     ds2->Below = h;
                     ds2->Above = 0;
-                    ds2->Object = (CObject*)temp;
+                    ds2->Object.draw = temp;
 
                     AdjustCoordinates(&x1, &y1, &w, &h);
                     ds->absolute_X += x1;
@@ -4472,7 +4472,7 @@ int CDrawing::Combine(void)
     int absX, absY;
     int ii;
     for (ii = 0; ii < NumDocumentElements; ii++)
-        if (TheDocument[ii].Object == (CObject*)this)
+        if (TheDocument[ii].Object.draw == this)
         {
             absX = TheDocument[ii].absolute_X;
             absY = TheDocument[ii].absolute_Y;
@@ -4483,10 +4483,10 @@ int CDrawing::Combine(void)
     for (int i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = TheDocument + i;
-        if (ds->Type == 2 && ds->Object && ds->Object != (CObject*)this &&
-            (ds->MovingDotState == 3 || ((CDrawing*)ds->Object)->IsSelected))
+        if (ds->Type == DRAWING && ds->Object.draw && ds->Object.draw != this &&
+            (ds->MovingDotState == 3 || ds->Object.draw->IsSelected))
         {
-            CDrawing* drw = (CDrawing*)ds->Object;
+            CDrawing* drw = ds->Object.draw;
             for (int j = 0; j < drw->NumItems; j++)
             {
                 tDrawingItem* di = drw->Items + j;
@@ -4885,21 +4885,21 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
         tDocumentStruct* ds = TheDocument;
         for (int i = 0; i < NumDocumentElements; i++, ds++)
         {
-            if (ds->Type == 2 && ds->Object)
+            if (ds->Type == DRAWING && ds->Object.draw)
                 if (ds->absolute_Y - 15 < *Y && ds->absolute_Y + ds->Below + 15 > *Y &&
                     ds->absolute_X - 15 < *X && ds->absolute_X + ds->Length + 15 > *X)
                 {
-                    CDrawing* drw1 = (CDrawing*)ds->Object;
+                    CDrawing* drw1 = ds->Object.draw;
                     if (drw1->IsSpecialDrawing == 0)
                     {
                         tDocumentStruct* ds2 = TheDocument;
                         for (int j = 0; j < NumDocumentElements; j++, ds2++)
                         {
-                            if (ds2->Type == 2 && ds2->Object)
+                            if (ds2->Type == DRAWING && ds2->Object.draw)
                                 if (ds2->absolute_Y - 15 < *Y && ds2->absolute_Y + ds2->Below + 15 > *Y &&
                                     ds2->absolute_X - 15 < *X && ds2->absolute_X + ds2->Length + 15 > *X)
                                 {
-                                    CDrawing* drw2 = (CDrawing*)ds2->Object;
+                                    CDrawing* drw2 = ds2->Object.draw;
                                     if (drw2->IsSpecialDrawing == 0)
                                         drw1->FindNerbyPoint(X, Y, drw2, ds->absolute_X, ds->absolute_Y,
                                                              ds2->absolute_X, ds2->absolute_Y);

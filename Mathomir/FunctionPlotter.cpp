@@ -334,7 +334,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
 
 
     //painting control buttons (ony when mouse pointer howers above the graph window)
-    if (SpecialDrawingHover && SpecialDrawingHover->Object == (CObject*)Base && !PrintRendering &&
+    if (SpecialDrawingHover && SpecialDrawingHover->Object.draw == Base && !PrintRendering &&
         show_no_scale == 0)
     {
         const int tt = (ToolboxSize + 28) / 16;
@@ -1282,7 +1282,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         //mouse click at formula editing box (changes the keyboard cursor position)
         tDocumentStruct* ds = TheDocument;
         for (i = 0; i < NumDocumentElements; i++, ds++)
-            if (ds->Object == (CObject*)Base) break;
+            if (ds->Object.draw == Base) break;
 
         if (i < NumDocumentElements)
         {
@@ -1484,7 +1484,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                                                                : 1;
 
         for (int i = 0; i < NumDocumentElements; i++)
-            if ((TheDocument + i)->Object == (CObject*)Base)
+            if ((TheDocument + i)->Object.draw == Base)
             {
                 KeyboardEntryBaseObject = TheDocument + i;
                 break;
@@ -1928,7 +1928,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
     tDocumentStruct* ds = TheDocument;
     int i_cnt;
     for (i_cnt = 0; i_cnt < NumDocumentElements; i_cnt++, ds++)
-        if (ds->Object == (CObject*)Base)
+        if (ds->Object.draw == Base)
         {
             absX = ds->absolute_X;
             absY = ds->absolute_Y;

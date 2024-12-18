@@ -127,12 +127,12 @@ int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int abs
         DC->SetBkColor(RGB(240, 240, 240));
         DC->SetBkMode(TRANSPARENT);
         DC->SelectObject(GetFontFromPool(4, 0, 0, 13));
-        std::string str1 = GetTranslatedString("Update", 5072);
-        std::string str2 = GetTranslatedString("Edit", 5070);
-        std::string str3 = GetTranslatedString("Load", 5071);
-        std::string str4 = GetTranslatedString("Cancel", 0);
+        const std::string str1 = GetTranslatedString("Update", 5072);
+        const std::string str2 = GetTranslatedString("Edit", 5070);
+        const std::string str3 = GetTranslatedString("Load", 5071);
+        const std::string str4 = GetTranslatedString("Cancel", 0);
 
-        int sel = SelectedItem;
+        const unsigned char sel = SelectedItem;
         DC->FillSolidRect(X, Y, 45, 26,RGB(240, 240, 240));
         DC->SetTextColor(sel == 1 ? BLUE_COLOR : 0);
         DC->TextOut(X, Y, (editing ? str1 : str2).data());
@@ -185,10 +185,11 @@ int CBitmapImage::MouseClick(int X, int Y)
                     if (SaveImageToFileForEditing((CObject*)Base))
                     {
                         for (int i = 0; i < NumDocumentElements; i++)
-                            if (TheDocument[i].Type == 2 && TheDocument[i].Object)
+                            if (TheDocument[i].Type == DRAWING && TheDocument[i].Object.draw)
                             {
-                                CDrawing* d = (CDrawing*)TheDocument[i].Object;
-                                if (d->IsSpecialDrawing == 52) ((CBitmapImage*)d->SpecialData)->editing = 0;
+                                CDrawing* d = TheDocument[i].Object.draw;
+                                if (d->IsSpecialDrawing == 52)
+                                    ((CBitmapImage*)d->SpecialData)->editing = 0;
                             }
                         editing = 1;
                     }
@@ -202,10 +203,8 @@ int CBitmapImage::MouseClick(int X, int Y)
                 }
                 else //cancel
                 {
-                    int i = 0;
-                    char* filter;
-                    filter = "BMP files|*.BMP|JPG files|*.jpg|PNG files|*.PNG|All files|*.*||\0";
-                    CFileDialog fd(TRUE, "bmp",nullptr,OFN_HIDEREADONLY, filter, theApp.m_pMainWnd, 0);
+                    const std::string filter = "BMP files|*.BMP|JPG files|*.jpg|PNG files|*.PNG|All files|*.*||\0";
+                    CFileDialog fd(TRUE, "bmp",nullptr,OFN_HIDEREADONLY, filter.c_str(), theApp.m_pMainWnd, 0);
                     if (fd.DoModal() == IDOK)
                     {
                         LoadImageFromFile((CObject*)Base, fd.m_pOFN->lpstrFile);
@@ -286,7 +285,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
     int j = 0;
     int xlen = imgsize;
     sprintf_s(tmpstr, "<bmp len=\"%d\" b=\"", xlen);
-    int len = (int)strlen(tmpstr);
+    size_t len = strlen(tmpstr);
     if (!only_calculate)
     {
         strcpy(output, tmpstr);
@@ -297,9 +296,9 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
     while (i < xlen)
     {
         unsigned char d1 = 0, d2 = 0, d3 = 0;
-        if (i < xlen) d1 = (unsigned char)*(Image + i);
-        if (i + 1 < xlen) d2 = (unsigned char)*(Image + i + 1);
-        if (i + 2 < xlen) d3 = (unsigned char)*(Image + i + 2);
+        if (i < xlen) d1 = Image[i];
+        if (i + 1 < xlen) d2 = Image[i + 1];
+        if (i + 2 < xlen) d3 = Image[i + 2];
         if (pd1 == d1 && pd2 == d2 && pd3 == d3)
         {
             repeater++;
@@ -386,7 +385,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
         {
             repeater = 0;
             sprintf_s(tmpstr, "\" />\r\n<bmp b=\"");
-            len += (int)strlen(tmpstr);
+            len += strlen(tmpstr);
             if (!only_calculate)
             {
                 strcpy(output, tmpstr);
@@ -397,14 +396,14 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
         i += 3;
     }
     sprintf_s(tmpstr, "\" />\r\n");
-    len += (int)strlen(tmpstr);
+    len += strlen(tmpstr);
     if (!only_calculate)
     {
         strcpy(output, tmpstr);
         output += strlen(tmpstr);
     }
 
-    return len;
+    return (int)len;
 }
 
 int bitmap_position_counter = 0;
@@ -424,13 +423,13 @@ char* CBitmapImage::XML_input(char* file)
             if (file == nullptr) return nullptr;
             if (strcmp(attribute, "len") == 0 || strcmp(attribute, "bmplen") == 0)
             {
-                Image = (char*)malloc(atoi(value) + 16);
+                Image = new char[atoi(value) + 16];
                 imgsize = atoi(value);
                 bitmap_position_counter = 0;
             }
-            if (strcmp(attribute, "b") == 0 || strcmp(attribute, "bits") == 0)
+            else if (strcmp(attribute, "b") == 0 || strcmp(attribute, "bits") == 0)
             {
-                for (int i = 0; i < (int)strlen(value); i++)
+                for (unsigned int i = 0; i < strlen(value); i++)
                 {
                     unsigned char c = value[i];
                     if (c == 125) c = 92;
@@ -454,7 +453,7 @@ char* CBitmapImage::XML_input(char* file)
                     {
                         for (int ii = 0; ii < 3; ii++)
                         {
-                            Image[bitmap_position_counter] = (char)0x00;
+                            Image[bitmap_position_counter] = 0x00;
                             bitmap_position_counter++;
                         }
                     }
@@ -481,12 +480,9 @@ char* CBitmapImage::XML_input(char* file)
                         c4 -= 35;
 
 
-                        unsigned char d1 = c | c4 << 6;
-                        unsigned char d2 = c2 | c4 << 4 & 0xC0;
-                        unsigned char d3 = c3 | c4 << 2 & 0xC0;
-                        Image[bitmap_position_counter++] = d1;
-                        Image[bitmap_position_counter++] = d2;
-                        Image[bitmap_position_counter++] = d3;
+                        Image[bitmap_position_counter++] = c | c4 << 6;
+                        Image[bitmap_position_counter++] = c2 | c4 << 4 & 0xC0;
+                        Image[bitmap_position_counter++] = c3 | c4 << 2 & 0xC0;
                     }
                 }
             }

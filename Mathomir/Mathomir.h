@@ -7,6 +7,7 @@
 
 #include <string>
 
+#include "drawing.h"
 #include "resource.h"
 
 //HQZM (and HQZMp=HQZM/2) define zoom level when doing presentation-mode rendering
@@ -15,6 +16,8 @@
 
 #pragma warning(disable:4996)
 
+
+class CExpression;
 
 class CMathomirApp : public CWinApp
 {
@@ -33,19 +36,30 @@ public:
 
 extern HANDLE ProcessHeap;
 
+enum doc_type:byte
+{
+    EXPRESSION=1,
+    DRAWING=1
+};
 
 //The main document strcture (the main document is stored as an array of these structures)
 typedef struct THE_DOCUMENT
 {
-    CObject* Object;
+    union
+    {
+        CExpression* exp;
+        CDrawing* draw;
+        void* v;
+    }Object;
+    
     int absolute_X;
     int absolute_Y;
     int Checksum; //calculated for Undo operation
     short Length;
     short Above;
     short Below;
-    char MovingDotState;
-    char Type; //1-expression, 2-drawing
+    byte MovingDotState;
+    doc_type Type; //1-expression, 2-drawing
 } tDocumentStruct;
 
 
@@ -187,8 +201,8 @@ void ClearFontPool();
 HPEN GetPenFromPool(short width, char IsBlue, int color = 0);
 int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked);
 void DisplayShortText(const std::string& text, int x, int y, int LanguageID, int flags = 0);
-int AddDocumentObject(int type, int X, int Y);
-int CopyTranslatedString(char* dest, const std::string& defstr, int id, int destlen);
+int AddDocumentObject(doc_type type, int X, int Y);
+int CopyTranslatedString(char* dest, const std::string& defstr, int id, size_t destlen);
 extern "C++" {
     template <size_t Size>
     int CopyTranslatedString(char (&dest)[Size], const std::string& defstr, int id)

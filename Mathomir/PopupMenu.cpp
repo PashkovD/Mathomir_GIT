@@ -305,7 +305,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             tDocumentStruct* dsx = TheDocument + i;
             if (dsx->absolute_Y < -1000)
             {
-                if (dsx->Type == 1 && ((CExpression*)dsx->Object)->m_NumElements == 1)
+                if (dsx->Type == EXPRESSION && dsx->Object.exp->m_NumElements == 1)
                 {
                     NumRullerGuidelines++;
                     //this is a valid guideline object
@@ -456,16 +456,16 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         for (int ii = 0; ii < NumDocumentElements; ii++)
         {
             tDocumentStruct* ds = TheDocument + ii;
-            if (ds->Object)
+            if (ds->Object.v)
             {
-                if (ds->Type == 2)
-                    if (((CDrawing*)ds->Object)->IsSelected || ds->MovingDotState == 3)
+                if (ds->Type == DRAWING)
+                    if (ds->Object.draw->IsSelected || ds->MovingDotState == 3)
                     {
                         NumDrawings++;
                         if (ds->MovingDotState != 3) Any_nonselected = 1;
                         if (ds->MovingDotState == 5) Any_locked++;
                         else Any_unlocked++;
-                        drw = (CDrawing*)ds->Object;
+                        drw = ds->Object.draw;
                         if (drw)
                         {
                             if (common_color == 100) common_color = drw->m_Color;
@@ -475,18 +475,18 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                         }
                         dss = ds;
                     }
-                if (ds->Type == 1)
-                    if (((CExpression*)ds->Object)->m_Selection == 0x7FFF || ds->MovingDotState == 3)
+                if (ds->Type == EXPRESSION)
+                    if (ds->Object.exp->m_Selection == 0x7FFF || ds->MovingDotState == 3)
                     {
                         if (ds->MovingDotState == 3) force_calculator = 1;
                         NumExpressions++;
                         if (ds->MovingDotState != 3) Any_nonselected = 1;
                         if (ds->MovingDotState == 5) Any_locked++;
                         else Any_unlocked++;
-                        if (ds->Object)
+                        if (ds->Object.v)
                         {
-                            if (common_color == 100) common_color = ((CExpression*)ds->Object)->m_Color;
-                            if (((CExpression*)ds->Object)->m_Color != common_color) common_color = -100;
+                            if (common_color == 100) common_color = ds->Object.exp->m_Color;
+                            if (ds->Object.exp->m_Color != common_color) common_color = -100;
                         }
                         dss = ds;
                     }
@@ -531,13 +531,13 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 if (NumExpressions == 0)
                 {
                     char is_closed;
-                    ((CDrawing*)dss->Object)->IsOpenPath(0, &is_closed);
+                    dss->Object.draw->IsOpenPath(0, &is_closed);
                     if (is_closed) fill_option = 1;
                 }
                 AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 2 * TSize_1p2, "Lock ", Any_locked, 567,
                                      fill_option == 1 ? 0 : 1);
                 if (fill_option) AddCheckedMenuOption(5 * TSize / 3 + TSize / 6, 1 * TSize_1p2, "Fill ",
-                                                      (((CDrawing*)dss->Object)->m_Color & 0xF8) == 8 ? 1 : 0, 589,
+                                                      (dss->Object.draw->m_Color & 0xF8) == 8 ? 1 : 0, 589,
                                                       1);
             }
             else
@@ -557,12 +557,12 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             AddMenuOptionButton(4 * TSize / 3, "Medium ", 503, 68, 0);
             AddMenuOptionButton(5 * TSize / 3, "Thick ", 504, 69, 0);
             AddMenuOptionButton(2 * TSize, "Fat ", 566, 70, 1);
-            if (NumDrawings == 1 && NumExpressions == 0 && dss && ((CDrawing*)dss->Object)->IsSpecialDrawing ==
+            if (NumDrawings == 1 && NumExpressions == 0 && dss && dss->Object.draw->IsSpecialDrawing ==
                 0)
             {
                 char is_closed = 0;
-                int is_open = ((CDrawing*)dss->Object)->IsOpenPath(0, &is_closed,nullptr);
-                if (is_open || is_closed || ((CDrawing*)dss->Object)->NumItems == 1)
+                int is_open = dss->Object.draw->IsOpenPath(0, &is_closed,nullptr);
+                if (is_open || is_closed || dss->Object.draw->NumItems == 1)
                 {
                     AddMenuOption(TSize / 3, TSize_2p3 + TSize / 3, "dash-dash ", 591, 0);
                     AddMenuOption(TSize + TSize / 2 - 2, TSize_2p3 + 6, "dash-dot ", 592, 1);
@@ -593,16 +593,16 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             if (NumExpressions == 0 && NumDrawings > 1 && Any_uncombineable == 0)
                 AddMenuOption(TSize / 3, TSize, "Combine ", 514, 1);
         }
-        else if (dss->Type == 2 && dss->Object && ((CDrawing*)dss->Object)->Items &&
-            ((CDrawing*)dss->Object)->Items->Type != 1)
+        else if (dss->Type == DRAWING && dss->Object.draw && dss->Object.draw->Items &&
+            dss->Object.draw->Items->Type != 1)
         {
             PopupOption_Y += TSize / 10;
             AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, 1);
             AddMenuOption(TSize / 3, TSize, "Ungroup ", 506, 1);
         }
-        else if (NumDrawings == 1 && NumExpressions == 0 && Any_uncombineable == 0 && dss->Type == 2 && dss->
-            Object &&
-            ((CDrawing*)dss->Object)->NumItems > 1)
+        else if (NumDrawings == 1 && NumExpressions == 0 && Any_uncombineable == 0 && dss->Type == DRAWING &&
+            dss->Object.draw &&
+            dss->Object.draw->NumItems > 1)
         {
             PopupOption_Y += TSize / 10;
             AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, 1);
@@ -640,7 +640,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "V. stretch +15% ", 531, 52, 0);
             AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "V. stretch +50% ", 532, 53, 1);
 
-            if (NumDrawings > 1 || dss == nullptr || ((CDrawing*)dss->Object)->IsSpecialDrawing == 0)
+            if (NumDrawings > 1 || dss == nullptr || dss->Object.draw->IsSpecialDrawing == 0)
             {
                 PopupOption_Y += TSize_1p20;
                 AddMenuOptionButton(1 * TSize / 3, "Horizontal mirror ", 535, 54, 0);
@@ -673,21 +673,21 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             PopupOption_Y += TSize / 10;
             if (dss)
             {
-                int is_open = ((CDrawing*)dss->Object)->IsOpenPath(0);
+                int is_open = dss->Object.draw->IsOpenPath(0);
                 if (is_open)
                 {
                     AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Close path ", 593, 1);
                 }
-                if (((CDrawing*)dss->Object)->OriginalForm == 4 || //circle
-                    ((CDrawing*)dss->Object)->OriginalForm == 16 || //6-polygon
-                    ((CDrawing*)dss->Object)->OriginalForm == 17) //center drawn circle
+                if (dss->Object.draw->OriginalForm == 4 || //circle
+                    dss->Object.draw->OriginalForm == 16 || //6-polygon
+                    dss->Object.draw->OriginalForm == 17) //center drawn circle
                 {
                     AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Add center point ", 590, 1);
                     //AddMenuOption(TSize/3,TSize*2,"Add radius line ",591,1);
                     //AddMenuOption(TSize/3,TSize*2,"Add diameter line ",592,1);
                 }
-                if (((CDrawing*)dss->Object)->OriginalForm == 9 || //xy graph
-                    ((CDrawing*)dss->Object)->OriginalForm == 8) //xy graph
+                if (dss->Object.draw->OriginalForm == 9 || //xy graph
+                    dss->Object.draw->OriginalForm == 8) //xy graph
                 {
                     AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Add grid lines ", 594, 1);
                 }
@@ -695,7 +695,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
                 //if ((((CDrawing*)(dss->Object))->OriginalForm==2) ||  //line
                 //	(((CDrawing*)(dss->Object))->OriginalForm==18))   //section divider
-                if (is_open || (((CDrawing*)dss->Object)->NumItems == 1 && ((CDrawing*)dss->Object)->Items->Type ==
+                if (is_open || (dss->Object.draw->NumItems == 1 && dss->Object.draw->Items->Type ==
                     1))
                 {
                     //AddMenuOption(TSize/3,TSize*2+TSize_1p2,"Add arrows ",595,1);
@@ -707,7 +707,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 }
             }
 
-            if (dss == nullptr || ((CDrawing*)dss->Object)->IsSpecialDrawing == 0)
+            if (dss == nullptr || dss->Object.draw->IsSpecialDrawing == 0)
             {
                 //AddCheckedMenuOption(TSize/3-TSize/5,2*TSize+TSize_1p2,"Edit nodes  ",drw->IsNodeEdit,550,1);
                 //if (drw->IsNodeEdit)
@@ -855,8 +855,8 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             {
                 int is_sel = 0;
                 for (int ii = 0; ii < NumDocumentElements; ii++)
-                    if (TheDocument[ii].Type == 1 &&
-                        TheDocument[ii].Object == (CObject*)m_Expression &&
+                    if (TheDocument[ii].Type == EXPRESSION &&
+                        TheDocument[ii].Object.exp == m_Expression &&
                         TheDocument[ii].MovingDotState == 5)
                         is_sel = 1;
                 AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 3 * TSize_1p2, "Lock ", is_sel, 8, 1);
@@ -938,15 +938,14 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         for (int i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* ds = TheDocument + i;
-            if (ds->Type == 1)
+            if (ds->Type == EXPRESSION)
             {
-                if (((CExpression*)ds->Object)->m_IsHeadline)
+                if (ds->Object.exp->m_IsHeadline)
                 {
                     *(list + kkk) = ds;
                     kkk++;
                 }
-                CExpression* e = ((CExpression*)ds->Object)->GetLabel();
-                if (e)
+                if (ds->Object.exp->GetLabel())
                 {
                     *(list + kkk) = ds;
                     kkk++;
@@ -971,7 +970,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
                 char buff[128];
                 buff[0] = 0;
-                CExpression* e = (CExpression*)ds->Object;
+                CExpression* e = ds->Object.exp;
                 int is_label = 0;
                 if (e->m_IsHeadline == 0)
                 {
@@ -1423,9 +1422,9 @@ void PopupMenu::OnPaint()
             int X, Y;
             short l, a, b;
             CDC* DC = pMainView->GetDC();
-            ((CExpression*)KeyboardEntryBaseObject->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            KeyboardEntryBaseObject->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
             pMainView->ReleaseDC(DC);
-            ((CExpression*)KeyboardEntryBaseObject->Object)->GetKeyboardCursorPos(&X, &Y);
+            KeyboardEntryBaseObject->Object.exp->GetKeyboardCursorPos(&X, &Y);
             cursor.x = mainwnd.left + (KeyboardEntryBaseObject->absolute_X - ViewX) * ViewZoom / 100 - 30 + X;
             cursor.y = mainwnd.top + (KeyboardEntryBaseObject->absolute_Y - ViewY) * ViewZoom / 100 + Y + 5;
             if (cursor.x + m_SizeX > desktop.right) cursor.x = desktop.right - m_SizeX;
@@ -2029,7 +2028,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 int is_label = LocalLinks[dataval - 850] & 0x80000000;
                 int orderno = LocalLinks[dataval - 850] & 0x7FFFFFFF;
 
-                if (TheDocument[orderno].Type == 1)
+                if (TheDocument[orderno].Type == EXPRESSION)
                     for (int i = 0; i < m_Expression->m_NumElements; i++)
                     {
                         tElementStruct* ts = m_Expression->m_pElementList + i;
@@ -2049,12 +2048,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 buff[0] = 0;
                                 if (is_label)
                                 {
-                                    CExpression* e = ((CExpression*)TheDocument[orderno].Object)->GetLabel();
+                                    CExpression* e = TheDocument[orderno].Object.exp->GetLabel();
                                     if (e) e->ConvertToPlainText(330, buff);
                                 }
                                 else
                                 {
-                                    ((CExpression*)TheDocument[orderno].Object)->ConvertToPlainText(330, buff);
+                                    TheDocument[orderno].Object.exp->ConvertToPlainText(330, buff);
                                 }
                                 buff[339] = 0;
                                 char buff2[350];
@@ -2072,12 +2071,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     //empty, fill it inside
                                     if (is_label)
                                     {
-                                        CExpression* e = ((CExpression*)TheDocument[orderno].Object)->GetLabel();
+                                        CExpression* e = TheDocument[orderno].Object.exp->GetLabel();
                                         exp->CopyExpression(e, 0);
                                     }
                                     else
                                     {
-                                        exp->CopyExpression((CExpression*)TheDocument[orderno].Object, 0);
+                                        exp->CopyExpression(TheDocument[orderno].Object.exp, 0);
                                         exp->m_IsHeadline = 0;
                                     }
                                 }
@@ -2096,12 +2095,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (dataval >= 820 && dataval <= 822) //adding a guideline at this position
             {
                 CExpression* e = new CExpression(nullptr,nullptr, 100);
-                if (dataval == 820) AddDocumentObject(1, RullerPositionPreselected, -1101); //nomal guideline
-                else if (dataval == 821) AddDocumentObject(1, RullerPositionPreselected, -1051); //text guideline
-                else AddDocumentObject(1, RullerPositionPreselected, -1001); //text autowrap guideline
+                if (dataval == 820) AddDocumentObject(EXPRESSION, RullerPositionPreselected, -1101); //nomal guideline
+                else if (dataval == 821) AddDocumentObject(EXPRESSION, RullerPositionPreselected, -1051); //text guideline
+                else AddDocumentObject(EXPRESSION, RullerPositionPreselected, -1001); //text autowrap guideline
 
                 TheDocument[NumDocumentElements - 1].MovingDotState = 0;
-                TheDocument[NumDocumentElements - 1].Object = (CObject*)e;
+                TheDocument[NumDocumentElements - 1].Object.exp = e;
                 pMainView->RepaintTheView();
             }
 
@@ -2207,7 +2206,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         for (int i = 0; i < NumDocumentElements; i++, dss++)
                         {
                             *(list + i) = dss;
-                            if (dss->Type == 1) ((CExpression*)dss->Object)->DeselectExpression();
+                            if (dss->Type == EXPRESSION)
+                                dss->Object.exp->DeselectExpression();
                         }
                         qsort(list, NumDocumentElements, sizeof(tDocumentStruct*), YorderQSort);
 
@@ -2225,9 +2225,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             tDocumentStruct* ds = *(list + i);
 
-                            if (ds->Type == 1)
+                            if (ds->Type == EXPRESSION)
                             {
-                                CExpression* e = (CExpression*)ds->Object;
+                                CExpression* e = ds->Object.exp;
                                 if (e->SearchForString(string))
                                 {
                                     e->SelectExpression(1);
@@ -2500,9 +2500,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 for (int ii = 0; ii < NumDocumentElements; ii++)
                 {
                     tDocumentStruct* ds = TheDocument + ii;
-                    if (ds->Object && (ds->MovingDotState == 3 ||
-                        (ds->Type == 2 && ((CDrawing*)ds->Object)->IsSelected) ||
-                        (ds->Type == 1 && ((CExpression*)ds->Object)->m_Selection == 0x7FFF)))
+                    if (ds->Object.v && (ds->MovingDotState == 3 ||
+                        (ds->Type == DRAWING && ds->Object.draw->IsSelected) ||
+                        (ds->Type == EXPRESSION && ds->Object.exp->m_Selection == 0x7FFF)))
                     {
                         //we found an element that is either selected or touched
                         //find upper left, and lower right corrner of selection
@@ -2514,9 +2514,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             for (int kkk = ii; kkk < NumDocumentElements; kkk++)
                             {
                                 tDocumentStruct* ds2 = TheDocument + kkk;
-                                if (ds2->Object && (ds2->MovingDotState == 3 ||
-                                    (ds2->Type == 2 && ((CDrawing*)ds2->Object)->IsSelected) ||
-                                    (ds2->Type == 1 && ((CExpression*)ds2->Object)->m_Selection == 0x7FFF)))
+                                if (ds2->Object.v && (ds2->MovingDotState == 3 ||
+                                    (ds2->Type == DRAWING && ds2->Object.draw->IsSelected) ||
+                                    (ds2->Type == EXPRESSION && ds2->Object.exp->m_Selection == 0x7FFF)))
                                 {
                                     if (ds2->absolute_X < StartX) StartX = ds2->absolute_X;
                                     if (ds2->absolute_Y - ds2->Above < StartY) StartY = ds2->absolute_Y - ds2->Above;
@@ -2529,7 +2529,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (data == 590) //add center point (to cyrcle)
                         {
                             if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("add centerpoint", 20100);
-                            CDrawing* drw = (CDrawing*)ds->Object;
+                            CDrawing* drw = ds->Object.draw;
                             int minx, miny, maxx, maxy;
                             drw->FindRealCorner(&minx, &miny, &maxx, &maxy);
                             drw->InsertItemAt(drw->NumItems);
@@ -2545,17 +2545,17 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (data == 591)
                         {
                             ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("make dashed", 20101);
-                            ((CDrawing*)ds->Object)->MakeDashed(0);
+                            ds->Object.draw->MakeDashed(0);
                         }
                         if (data == 592)
                         {
                             ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("dash-dot", 20102);
-                            ((CDrawing*)ds->Object)->MakeDashed(1);
+                            ds->Object.draw->MakeDashed(1);
                         }
                         if (data == 595 || data == 596 || data == 597) //line endings (arrow, narrow arrow, dot)
                         {
                             //malo poboljati i poveæati strelice - napraviti dvije vrste strelice - napraviti pojedinaène strelice
-                            CDrawing* drw = (CDrawing*)ds->Object;
+                            CDrawing* drw = ds->Object.draw;
 
                             POINT pp[64];
                             char is_closed;
@@ -2746,7 +2746,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (data == 594) //add grid lines to coordinate system
                         {
                             ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("add grid lines", 20104);
-                            CDrawing* drw = (CDrawing*)ds->Object;
+                            CDrawing* drw = ds->Object.draw;
                             int minx, miny, maxx, maxy;
                             drw->FindRealCorner(&minx, &miny, &maxx, &maxy);
                             int cx = (minx + maxx) / 2;
@@ -2833,7 +2833,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (data == 593) //close path
                         {
                             if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("close path", 20105);
-                            CDrawing* drw = (CDrawing*)ds->Object;
+                            CDrawing* drw = ds->Object.draw;
                             drw->IsOpenPath(1);
                         }
 
@@ -2850,13 +2850,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (data >= 580 && data < 590) //color changing
                         {
                             if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("color", 20107);
-                            if (data == 589) ((CDrawing*)ds->Object)->SetColor(0x08);
-                            else if (ds->Type == 1) ((CExpression*)ds->Object)->SetColor(data - 581);
-                            else if (ds->Type == 2) ((CDrawing*)ds->Object)->SetColor(data - 581);
+                            if (data == 589) ds->Object.draw->SetColor(0x08);
+                            else if (ds->Type == EXPRESSION) ds->Object.exp->SetColor(data - 581);
+                            else if (ds->Type == DRAWING) ds->Object.draw->SetColor(data - 581);
                         }
-                        if (ds->Type == 2) //aplicable only to drawings
+                        if (ds->Type == DRAWING) //aplicable only to drawings
                         {
-                            CDrawing* drw = (CDrawing*)ds->Object;
+                            CDrawing* drw = ds->Object.draw;
                             int lw = 0;
                             if (data == 576) lw = 65 * DRWZOOM / 100; //hair thin line;
                             if (data == 502) lw = DRWZOOM; //thin line;
@@ -2899,10 +2899,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 ds->MovingDotState = 0;
                             else
                             {
-                                if (ds->Object)
+                                if (ds->Object.v)
                                 {
-                                    if (ds->Type == 1) ((CExpression*)ds->Object)->DeselectExpression();
-                                    if (ds->Type == 2) ((CDrawing*)ds->Object)->SelectDrawing(0);
+                                    if (ds->Type == EXPRESSION)
+                                        ds->Object.exp->DeselectExpression();
+                                    if (ds->Type == DRAWING)
+                                        ds->Object.draw->SelectDrawing(0);
                                 }
                                 ds->MovingDotState = 5;
                             }
@@ -2921,11 +2923,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 for (int indx = 0; indx < NumDocumentElements; indx++)
                                 {
                                     tDocumentStruct* dsx = TheDocument + indx;
-                                    if (dsx->Type == 1)
-                                        if (dsx->Object && (dsx->MovingDotState == 3 ||
-                                            ((CExpression*)dsx->Object)->m_Selection == 0x7FFF))
+                                    if (dsx->Type == EXPRESSION)
+                                        if (dsx->Object.v && (dsx->MovingDotState == 3 ||
+                                            dsx->Object.exp->m_Selection == 0x7FFF))
                                         {
-                                            CExpression* exp = (CExpression*)dsx->Object;
+                                            CExpression* exp = dsx->Object.exp;
                                             int iij = 0;
                                             tElementStruct* ts = exp->m_pElementList;
                                             for (; iij < exp->m_NumElements; iij++)
@@ -2971,9 +2973,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 for (int indx = 0; indx < NumDocumentElements; indx++)
                                 {
                                     tDocumentStruct* dsx = TheDocument + indx;
-                                    if (dsx->Object && (dsx->MovingDotState == 3 ||
-                                        (dsx->Type == 2 && ((CDrawing*)dsx->Object)->IsSelected) ||
-                                        (dsx->Type == 1 && ((CExpression*)dsx->Object)->m_Selection == 0x7FFF)))
+                                    if (dsx->Object.v && (dsx->MovingDotState == 3 ||
+                                        (dsx->Type == DRAWING && dsx->Object.draw->IsSelected) ||
+                                        (dsx->Type == EXPRESSION && dsx->Object.exp->m_Selection == 0x7FFF)))
                                         numelm++;
                                 }
                                 int* list = (int*)malloc(sizeof(int) * numelm * 2);
@@ -2981,9 +2983,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 for (int indx = 0; indx < NumDocumentElements; indx++)
                                 {
                                     tDocumentStruct* dsx = TheDocument + indx;
-                                    if (dsx->Object && (dsx->MovingDotState == 3 ||
-                                        (dsx->Type == 2 && ((CDrawing*)dsx->Object)->IsSelected) ||
-                                        (dsx->Type == 1 && ((CExpression*)dsx->Object)->m_Selection == 0x7FFF)))
+                                    if (dsx->Object.v && (dsx->MovingDotState == 3 ||
+                                        (dsx->Type == DRAWING && dsx->Object.draw->IsSelected) ||
+                                        (dsx->Type == EXPRESSION && dsx->Object.exp->m_Selection == 0x7FFF)))
                                     {
                                         list[numelm++] = indx;
                                         list[numelm++] = dsx->absolute_Y;
@@ -3003,7 +3005,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                             dsx->Length >= dsx2->absolute_X)
                                         {
                                             int xxy = 0;
-                                            if (dsx->Type == 1 || dsx2->Type == 1) xxy = 8;
+                                            if (dsx->Type == EXPRESSION || dsx2->Type == DRAWING) xxy = 8;
                                             if (dsx2->absolute_Y + dsx2->Below + xxy > theY) theY = dsx2->absolute_Y +
                                                 dsx2->Below + xxy;
                                         }
@@ -3047,8 +3049,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (data == 564) ds->absolute_X = StartX - ds->Length;
                             if (data == 561) ds->absolute_Y = StartY + ds->Above;
                             if (data == 565) ds->absolute_Y = StartY - ds->Below;
-                            if (ds->Type == 1) if (data == 563) ds->absolute_Y = StartY;
-                            if (ds->Type == 2) if (data == 563) ds->absolute_Y = StartY - ds->Below / 2;
+                            if (ds->Type == EXPRESSION) if (data == 563) ds->absolute_Y = StartY;
+                            if (ds->Type == DRAWING) if (data == 563) ds->absolute_Y = StartY - ds->Below / 2;
                         }
                         if ((data >= 540 && data <= 549) || (data >= 571 && data <= 575)) //rotate
                         {
@@ -3097,16 +3099,16 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 }
                             }
                             angle = angle * 3.14159265 / 180.0;
-                            if (ds->Type == 2)
+                            if (ds->Type == DRAWING)
                             {
-                                ((CDrawing*)ds->Object)->RotateForAngle(
+                                ds->Object.draw->RotateForAngle(
                                     (float)angle, -ds->absolute_X + StartX, -ds->absolute_Y + StartY, &x1, &y1, &w, &h);
                                 ds->absolute_X = StartX + x1;
                                 ds->absolute_Y = StartY + y1;
                                 ds->Length = w;
                                 ds->Below = h;
                             }
-                            if (ds->Type == 1)
+                            if (ds->Type == EXPRESSION)
                             {
                                 double curangle;
                                 int Y = ds->absolute_Y;
@@ -3266,12 +3268,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     return;
                                 }
                             }
-                            if (ds->Type == 2)
-                                ((CDrawing*)ds->Object)->ScaleForFactor(factorx, factory);
-                            if (ds->Type == 1)
+                            if (ds->Type == DRAWING)
+                                ds->Object.draw->ScaleForFactor(factorx, factory);
+                            else if (ds->Type == EXPRESSION)
                             {
                                 if (factorx != 1.0 && factory != 1.0)
-                                    ((CExpression*)ds->Object)->ChangeFontSize(factorx);
+                                    ds->Object.exp->ChangeFontSize(factorx);
                             }
 
                             ds->Length = abs((int)(ds->Length * factorx));
@@ -3286,10 +3288,10 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (factory < 0) ds->absolute_Y -= ds->Below;
                         }
 
-                        if (data == 506 && ds->Type == 2) //ungroup option
+                        if (data == 506 && ds->Type == DRAWING) //ungroup option
                         {
                             if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("ungroup", 20117);
-                            CDrawing* drw = (CDrawing*)ds->Object;
+                            CDrawing* drw = ds->Object.draw;
                             for (int kk = 0; kk < drw->NumItems; kk++)
                             {
                                 tDrawingItem* di = drw->Items + kk;
@@ -3303,7 +3305,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                         this->ReleaseDC(DC);
                                     }
                                     //CMainFrame *mf=(CMainFrame*)theApp.m_pMainWnd;
-                                    AddDocumentObject(di->Type == 0 ? 2 : 1, ds->absolute_X + di->X1 / DRWZOOM,
+                                    AddDocumentObject(di->Type == 0 ? DRAWING : EXPRESSION, ds->absolute_X + di->X1 / DRWZOOM,
                                                       ds->absolute_Y + di->Y1 / DRWZOOM + a * 100 / ViewZoom);
                                     ds = TheDocument + ii;
                                     tDocumentStruct* ds2 = TheDocument + NumDocumentElements - 1;
@@ -3311,7 +3313,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     ds2->Below = (di->Y2 - di->Y1) / DRWZOOM;
                                     ds2->Length = (di->X2 - di->X1) / DRWZOOM;
                                     ds2->MovingDotState = 0;
-                                    ds2->Object = (CObject*)di->pSubdrawing;
+                                    ds2->Object.v = di->pSubdrawing;
                                     if (di->Type == 0)
                                         ((CDrawing*)di->pSubdrawing)->SelectDrawing(0);
                                     else if (di->Type == 2)
@@ -3336,17 +3338,17 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("group", 20118);
                             int X = ds->absolute_X;
                             int Y = ds->absolute_Y;
-                            if (ds->Type == 1) Y -= ds->Above;
+                            if (ds->Type == EXPRESSION) Y -= ds->Above;
                             if (tmpdrw == nullptr)
                             {
                                 StartX = X;
                                 StartY = Y;
                                 tmpdrw = new CDrawing();
                             }
-                            if (ds->Type == 2)
-                                tmpdrw->CopyDrawingIntoSubgroup((CDrawing*)ds->Object, X - StartX, Y - StartY);
-                            else if (ds->Type == 1)
-                                tmpdrw->CopyExpressionIntoSubgroup((CExpression*)ds->Object, X - StartX, Y - StartY,
+                            if (ds->Type == DRAWING)
+                                tmpdrw->CopyDrawingIntoSubgroup(ds->Object.draw, X - StartX, Y - StartY);
+                            else if (ds->Type == EXPRESSION)
+                                tmpdrw->CopyExpressionIntoSubgroup(ds->Object.exp, X - StartX, Y - StartY,
                                                                    ds->Length, ds->Below + ds->Above);
                             int xx, yy, w, h;
                             tmpdrw->AdjustCoordinates(&xx, &yy, &w, &h);
@@ -3371,7 +3373,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if (prevelement)
                         pMainView->DeleteDocumentObject(prevelement);
                     //CMainFrame *mf=(CMainFrame*)theApp.m_pMainWnd;
-                    AddDocumentObject(2, StartX, StartY);
+                    AddDocumentObject(DRAWING, StartX, StartY);
                     tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
                     short w = 0, h = 0;
                     CDC* DC = pMainView->GetDC();
@@ -3381,12 +3383,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     ds->Below = h;
                     ds->Length = w;
                     ds->MovingDotState = 0;
-                    ds->Object = (CObject*)tmpdrw;
+                    ds->Object.draw = tmpdrw;
                 }
-                else if (tmpdrw)
-                {
+                else
                     delete tmpdrw;
-                }
+
                 pMainView->RepaintTheView();
 
 
@@ -3425,7 +3426,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 for (int ii = 0; ii < NumDocumentElements; ii++)
                 {
                     tDocumentStruct* ds = TheDocument + ii;
-                    if (ds->Type == 1 && ds->Object && ds->Object == (CObject*)m_Expression)
+                    if (ds->Type == EXPRESSION && ds->Object.exp && ds->Object.exp == m_Expression)
                     {
                         if (ds->MovingDotState == 5)
                             ds->MovingDotState = 0;
@@ -3813,12 +3814,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         delta2 = (delta2 / GRID + 1) * GRID;
                     }
 
-                    AddDocumentObject(1, minX, maxY + a + 5 + a / 6);
+                    AddDocumentObject(EXPRESSION, minX, maxY + a + 5 + a / 6);
                     ds = TheDocument + NumDocumentElements - 1;
                     //ds->absolute_X=minX; 
                     //ds->absolute_Y=maxY+a+5+a/6;
                     //ds->Type=1; //expression
-                    ds->Object = (CObject*)copy2;
+                    ds->Object.exp = copy2;
                     ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                     ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                     ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -3849,13 +3850,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         org_ds = TheDocument + i;
                         org_ds_pos = i;
-                        if (org_ds->Object == (CObject*)parent) break;
+                        if (org_ds->Object.exp == parent) break;
                     }
 
 
                     if (m_OwnerType == 3 && KeyboardEntryBaseObject)
                     {
-                        parent = (CExpression*)KeyboardEntryBaseObject->Object;
+                        parent = KeyboardEntryBaseObject->Object.exp;
                         i = 0;
                     }
                     if (i < NumDocumentElements)
@@ -3863,7 +3864,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         //the edited object is found - proceed
                         short l, a, b;
                         CExpression* copy2;
-                        int fs = ((CExpression*)org_ds->Object)->m_FontSize;
+                        int fs = org_ds->Object.exp->m_FontSize;
                         //int fsh=((CExpression*)(org_ds->Object))->m_FontSizeHQ;
                         if (m_OwnerType != 3 || KeyboardEntryBaseObject == nullptr)
                         {
@@ -3964,12 +3965,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
 
 
-                        AddDocumentObject(1, org_ds->absolute_X, org_ds->absolute_Y + delta);
+                        AddDocumentObject(EXPRESSION, org_ds->absolute_X, org_ds->absolute_Y + delta);
                         ds = TheDocument + NumDocumentElements - 1;
                         //ds->absolute_X=org_ds->absolute_X; 
                         //ds->absolute_Y=org_ds->absolute_Y+delta;
                         //ds->Type=1; //expression
-                        ds->Object = (CObject*)copy2;
+                        ds->Object.exp = copy2;
                         ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                         ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                         ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -3984,7 +3985,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (m_OwnerType == 3)
                         {
-                            KeyboardEntryObject = ds->Object;
+                            KeyboardEntryObject = (CObject*)ds->Object.v;
                             KeyboardEntryBaseObject = ds;
                         }
 
@@ -4771,10 +4772,10 @@ int PopupMenu::SymbolicComputation(void)
 
         for (int i = 0; i < NumDocumentElements; i++)
         {
-            if (TheDocument[i].MovingDotState == 3 && TheDocument[i].Type == 1 && TheDocument[i].Object)
+            if (TheDocument[i].MovingDotState == 3 && TheDocument[i].Type == EXPRESSION && TheDocument[i].Object.exp)
             {
                 //check if this expression is valid for inclusion into system
-                CExpression* tmp = (CExpression*)TheDocument[i].Object;
+                CExpression* tmp = TheDocument[i].Object.exp;
                 if (tmp->IsTextContained(-1)) continue;
                 if (tmp->m_NumElements == 1 &&
                     (tmp->m_pElementList->Type == 0 || tmp->m_pElementList->Type == 1 || tmp->m_pElementList->Type
@@ -4787,7 +4788,7 @@ int PopupMenu::SymbolicComputation(void)
                 {
                     //for expression of higher-than equation level, include directly
                     System[NumEquations] = new CExpression(nullptr,nullptr, 100);
-                    System[NumEquations]->CopyExpression((CExpression*)TheDocument[i].Object, 0);
+                    System[NumEquations]->CopyExpression(TheDocument[i].Object.exp, 0);
                     NumEquations++;
                     if (NumEquations > 16) break; //current limit is 16
                     continue;
@@ -5416,11 +5417,9 @@ int PopupMenu::AddMathMenuOption(CExpression* E1, CExpression* original)
     {
         //in chase of systems of equations (check if any selected is equal)
         for (int i = 0; i < NumDocumentElements; i++)
-            if (TheDocument[i].MovingDotState == 3 && TheDocument[i].Type == 1)
+            if (TheDocument[i].MovingDotState == 3 && TheDocument[i].Type == EXPRESSION)
             {
-                CExpression* org = (CExpression*)TheDocument[i].Object;
-                int S0 = org->CalcChecksum();
-                if (S1 == S0)
+                if (S1 == TheDocument[i].Object.exp->CalcChecksum())
                 {
                     CalcStructuralChecksumOnly = 0;
                     return 0;

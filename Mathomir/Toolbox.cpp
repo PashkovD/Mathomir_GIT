@@ -1823,22 +1823,21 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         tDocumentStruct* ds = TheDocument + i;
 
-                        if (ds->Object && ds->MovingDotState == 3)
+                        if (ds->Object.v && ds->MovingDotState == 3)
                         {
                             any = 1;
-                            if (ds->Type == 2)
+                            if (ds->Type == DRAWING)
                             {
-                                if (m_SelectedColor < 10) ((CDrawing*)ds->Object)->SetColor(CL);
-                                if (m_SelectedColor >= 10)((CDrawing*)ds->Object)->SetLineWidth(LW);
+                                if (m_SelectedColor < 10) ds->Object.draw->SetColor(CL);
+                                if (m_SelectedColor >= 10)ds->Object.draw->SetLineWidth(LW);
                                 int x, y, w, h;
-                                ((CDrawing*)ds->Object)->AdjustCoordinates(&x, &y, &w, &h);
+                                ds->Object.draw->AdjustCoordinates(&x, &y, &w, &h);
                                 ds->absolute_X += x;
                                 ds->absolute_Y += y;
                                 repaint = 1;
-                            }
-                            if (ds->Type == 1)
+                            }else if (ds->Type == EXPRESSION)
                             {
-                                ((CExpression*)ds->Object)->SetColor(CL);
+                                ds->Object.exp->SetColor(CL);
                             }
                         }
                     }
@@ -2059,7 +2058,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     tDocumentStruct* parentstr = KeyboardEntryBaseObject;
                     CExpression* exp = (CExpression*)KeyboardEntryObject;
                     CExpression* parent = KeyboardEntryBaseObject
-                                              ? (CExpression*)KeyboardEntryBaseObject->Object
+                                              ? KeyboardEntryBaseObject->Object.exp
                                               : nullptr;
                     if (parent == 0 || exp == 0)
                     {
@@ -2068,13 +2067,13 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (ds->MovingDotState == 3)
                             {
-                                parent = exp = (CExpression*)ds->Object;
+                                parent = exp = ds->Object.exp;
                                 parentstr = ds;
                                 break;
                             }
                         }
                     }
-                    if (parent && exp && parentstr && parentstr->Type == 1)
+                    if (parent && exp && parentstr && parentstr->Type == EXPRESSION)
                     {
                         if (icon == 9 && exp->m_FontSize < 1400)
                         {
@@ -3549,7 +3548,7 @@ int CToolbox::ConfigureToolbar()
                 break;
             }
     }
-    if (IsDrawingMode && NumDocumentElements > 0 && TheDocument[NumDocumentElements - 1].Type == 2 && !
+    if (IsDrawingMode && NumDocumentElements > 0 && TheDocument[NumDocumentElements - 1].Type == DRAWING && !
         KeyboardEntryObject)
         last_drawing_delete = 1;
 
@@ -3601,9 +3600,9 @@ int CToolbox::ConfigureToolbar()
         CExpression* exp = nullptr;
 
 
-        if (KeyboardEntryObject && KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == 1)
+        if (KeyboardEntryObject && KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
         {
-            parent = (CExpression*)KeyboardEntryBaseObject->Object;
+            parent = KeyboardEntryBaseObject->Object.exp;
             exp = (CExpression*)KeyboardEntryObject;
         }
         if (NumSelectedObjects == 1 && KeyboardEntryObject == nullptr)
@@ -3613,7 +3612,7 @@ int CToolbox::ConfigureToolbar()
             {
                 if (ds->MovingDotState == 3)
                 {
-                    if (ds->Type == 1) exp = parent = (CExpression*)ds->Object;
+                    if (ds->Type == EXPRESSION) exp = parent = ds->Object.exp;
                     break;
                 }
             }
@@ -3726,9 +3725,9 @@ int CToolbox::ConfigureToolbar()
             {
                 if (ds->MovingDotState == 3)
                 {
-                    if (ds->Type == 2)
+                    if (ds->Type == DRAWING)
                     {
-                        CDrawing* d = (CDrawing*)ds->Object;
+                        CDrawing* d = ds->Object.draw;
                         if (d->NumItems && d->Items->pSubdrawing && (d->Items->Type == 2 || d->Items->Type ==
                             0))
                             AddToolbarOption(23, 1, pixel_len - tmp, ShortSeparator);
@@ -4593,21 +4592,21 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                     else if (NumDocumentElements > 0)
                     {
                         tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
-                        if (ds->Object)
+                        if (ds->Object.v)
                         {
-                            if (ds->Type == 2)
+                            if (ds->Type == DRAWING)
                             {
-                                if (CL != -100) if (m_SelectedColor < 10) ((CDrawing*)ds->Object)->SetColor(CL);
-                                if (LW != -100) if (m_SelectedColor >= 10)((CDrawing*)ds->Object)->SetLineWidth(LW);
+                                if (CL != -100) if (m_SelectedColor < 10) ds->Object.draw->SetColor(CL);
+                                if (LW != -100) if (m_SelectedColor >= 10)ds->Object.draw->SetLineWidth(LW);
                                 int x, y, w, h;
-                                ((CDrawing*)ds->Object)->AdjustCoordinates(&x, &y, &w, &h);
+                                ds->Object.draw->AdjustCoordinates(&x, &y, &w, &h);
                                 ds->absolute_X += x;
                                 ds->absolute_Y += y;
                                 repaint = 1;
                             }
-                            if (ds->Type == 1)
+                            if (ds->Type == EXPRESSION)
                             {
-                                if (CL != -100) ((CExpression*)ds->Object)->SetColor(CL);
+                                if (CL != -100) ds->Object.exp->SetColor(CL);
                             }
                         }
                     }

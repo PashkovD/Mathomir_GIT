@@ -568,16 +568,16 @@ void CMathomirView::OnDraw(CDC* pDC)
                 tmpDC.CreateCompatibleDC(pDC);
 
                 short l, a, b;
-                if (ds->Type == 1)
+                if (ds->Type == EXPRESSION)
                 {
-                    ((CExpression*)ds->Object)->CalculateSize(tmpDC, ViewZoom, l, &a, &b);
-                    ((CExpression*)ds->Object)->DeselectExpression();
+                    ds->Object.exp->CalculateSize(tmpDC, ViewZoom, l, &a, &b);
+                    ds->Object.exp->DeselectExpression();
                 }
-                else if (ds->Type == 2)
+                else if (ds->Type == DRAWING)
                 {
                     a = 0;
-                    ((CDrawing*)ds->Object)->CalculateSize(&tmpDC, ViewZoom, &l, &b);
-                    ((CDrawing*)ds->Object)->SelectDrawing(0);
+                    ds->Object.draw->CalculateSize(&tmpDC, ViewZoom, &l, &b);
+                    ds->Object.draw->SelectDrawing(0);
                 }
                 tmpbmp.CreateCompatibleBitmap(pDC, l, a + b);
                 tmpDC.SelectObject(tmpbmp);
@@ -585,10 +585,10 @@ void CMathomirView::OnDraw(CDC* pDC)
                 PrintRendering = 1;
                 if (PrintTextAsImage)
                 {
-                    if (ds->Type == 1)
-                        ((CExpression*)ds->Object)->PaintExpression(&tmpDC, ViewZoom, 0, a);
-                    else if (ds->Type == 2)
-                        ((CDrawing*)ds->Object)->PaintDrawing(&tmpDC, ViewZoom, 0, a, -1, -1);
+                    if (ds->Type == EXPRESSION)
+                        ds->Object.exp->PaintExpression(&tmpDC, ViewZoom, 0, a);
+                    else if (ds->Type == DRAWING)
+                        ds->Object.draw->PaintDrawing(&tmpDC, ViewZoom, 0, a, -1, -1);
                     pDC->TransparentBlt(RelativeX, RelativeY - a, l, a + b, &tmpDC, 0, 0, l, a + b,
                                         RGB(255, 255, 255)/*SRCCOPY*/);
                 }
@@ -596,18 +596,18 @@ void CMathomirView::OnDraw(CDC* pDC)
                 {
                     HDC hh = pDC->m_hAttribDC;
                     pDC->m_hAttribDC = pDC->m_hDC;
-                    if (ds->Type == 1)
-                        ((CExpression*)ds->Object)->PaintExpression(pDC, ViewZoom, RelativeX, RelativeY);
-                    else if (ds->Type == 2)
-                        ((CDrawing*)ds->Object)->PaintDrawing(pDC, ViewZoom, RelativeX, RelativeY, -1, -1);
+                    if (ds->Type == EXPRESSION)
+                        ds->Object.exp->PaintExpression(pDC, ViewZoom, RelativeX, RelativeY);
+                    else if (ds->Type == DRAWING)
+                        ds->Object.draw->PaintDrawing(pDC, ViewZoom, RelativeX, RelativeY, -1, -1);
                     pDC->m_hAttribDC = hh;
                 }
                 PrintRendering = 0;
                 tmpbmp.DeleteObject();
-                if (ds->Type == 1)
-                    ((CExpression*)ds->Object)->CalculateSize(tmpDC, prevViewZoom, l, &a, &b);
-                else if (ds->Type == 2)
-                    ((CDrawing*)ds->Object)->CalculateSize(&tmpDC, prevViewZoom, &l, &b);
+                if (ds->Type == EXPRESSION)
+                    ds->Object.exp->CalculateSize(tmpDC, prevViewZoom, l, &a, &b);
+                else if (ds->Type == DRAWING)
+                    ds->Object.draw->CalculateSize(&tmpDC, prevViewZoom, &l, &b);
             }
         }
 
@@ -746,7 +746,7 @@ void CMathomirView::OnDraw(CDC* pDC)
             if (ds->MovingDotState == 3)
             {
                 NumSelectedObjects++;
-                if (ds->Type == 2) NumSelectedDrawings++;
+                if (ds->Type == DRAWING) NumSelectedDrawings++;
                 SelectedElement = NumDocumentElements - i - 1;
                 if (MouseMode != 9 && MouseMode != 11)
                 {
@@ -771,15 +771,15 @@ void CMathomirView::OnDraw(CDC* pDC)
                 }
                 else if (ds->MovingDotState != 6) //prepared for moving
                 {
-                    if (ds->Type == 1)
-                        ((CExpression*)ds->Object)->PaintExpression(&bitmapDC, ViewZoom, RelativeX, RelativeY,
-                                                                    &TheClientRect);
-                    else if (ds->Type == 2 && ds != SpecialDrawingHover)
-                        ((CDrawing*)ds->Object)->PaintDrawing(&bitmapDC, ViewZoom, RelativeX, RelativeY,
+                    if (ds->Type == EXPRESSION)
+                        ds->Object.exp->PaintExpression(&bitmapDC, ViewZoom, RelativeX, RelativeY,
+                                                        &TheClientRect);
+                    else if (ds->Type == DRAWING && ds != SpecialDrawingHover)
+                        ds->Object.draw->PaintDrawing(&bitmapDC, ViewZoom, RelativeX, RelativeY,
                                                               ds->absolute_X, ds->absolute_Y, &TheClientRect);
                 }
 
-                if (ds->Type == 1 && (ds->MovingDotState == 1 || ds->MovingDotState == 2 || MovingDotPermanent))
+                if (ds->Type == EXPRESSION && (ds->MovingDotState == 1 || ds->MovingDotState == 2 || MovingDotPermanent))
                 {
                     int mds = max(MovingDotSize, MovingDotSize*(ViewZoom+420)/512);
                     int border = 1 + ViewZoom / 100;
@@ -816,9 +816,9 @@ void CMathomirView::OnDraw(CDC* pDC)
         {
             int RelativeX = (SpecialDrawingHover->absolute_X - ViewX) * ViewZoom / 100;
             int RelativeY = (SpecialDrawingHover->absolute_Y - ViewY) * ViewZoom / 100;
-            ((CDrawing*)SpecialDrawingHover->Object)->PaintDrawing(&bitmapDC, ViewZoom, RelativeX, RelativeY,
-                                                                   SpecialDrawingHover->absolute_X,
-                                                                   SpecialDrawingHover->absolute_Y);
+            SpecialDrawingHover->Object.draw->PaintDrawing(&bitmapDC, ViewZoom, RelativeX, RelativeY,
+                                                           SpecialDrawingHover->absolute_X,
+                                                           SpecialDrawingHover->absolute_Y);
         }
 
         //painting multiple selection box
@@ -928,10 +928,10 @@ void CMathomirView::OnDraw(CDC* pDC)
 
             if (NumSelectedObjects == 1)
             {
-                if (TheDocument[SelectedElement].Type == 1 && ((CExpression*)TheDocument[SelectedElement].Object)->
+                if (TheDocument[SelectedElement].Type == EXPRESSION && TheDocument[SelectedElement].Object.exp->
                     IsTextContained(-1))
                 {
-                    if (((CExpression*)TheDocument[SelectedElement].Object)->m_IsVertical == 0)
+                    if (TheDocument[SelectedElement].Object.exp->m_IsVertical == 0)
                         SingleSelectedTextObject = SelectedElement;
                 }
             }
@@ -1180,18 +1180,18 @@ void CMathomirView::OnDraw(CDC* pDC)
 
                     short l, a, b;
                     int is_title = 0;
-                    if (ds->Type == 1)
-                        if (((CExpression*)ds->Object)->m_FontSize > 190 ||
-                            ((CExpression*)ds->Object)->m_IsHeadline)
+                    if (ds->Type == EXPRESSION)
+                        if (ds->Object.exp->m_FontSize > 190 ||
+                            ds->Object.exp->m_IsHeadline)
                             is_title = 1;
 
                     if (kk == 1)
                     {
-                        if (ds->Type == 1 && is_title)
+                        if (ds->Type == EXPRESSION && is_title)
                         {
-                            int zoom = 7000 / ((CExpression*)ds->Object)->m_FontSize;
-                            if (((CExpression*)ds->Object)->m_FontSize < 150) zoom = zoom * 110 / 128;
-                            ((CExpression*)ds->Object)->CalculateSize(bitmapDC, zoom, l, &a, &b, 0, 0);
+                            int zoom = 7000 / ds->Object.exp->m_FontSize;
+                            if (ds->Object.exp->m_FontSize < 150) zoom = zoom * 110 / 128;
+                            ds->Object.exp->CalculateSize(bitmapDC, zoom, l, &a, &b, 0, 0);
                             if (is_title && RelativeX < TillenRelativeX + Tillens.Width / 5)
                                 RelativeX = TillenRelativeX - 1;
                             if (RelativeX + l > TillenRelativeX + Tillens.Width)
@@ -1204,22 +1204,21 @@ void CMathomirView::OnDraw(CDC* pDC)
                                 if (RelativeX < TillenRelativeX - 1) RelativeX = TillenRelativeX - 1;
                             }
                             //bitmapDC.FillSolidRect(RelativeX,RelativeY-a,l,a+b,RGB(255,255,255));
-                            ((CExpression*)ds->Object)->PaintExpression(
-                                &bitmapDC, zoom, RelativeX, RelativeY,nullptr,
-                                ((CExpression*)ds->Object)->m_IsHeadline ? RGB(0, 0, 255) : 0);
-                            ((CExpression*)ds->Object)->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->PaintExpression(&bitmapDC, zoom, RelativeX, RelativeY,nullptr,
+                                                            ds->Object.exp->m_IsHeadline ? RGB(0, 0, 255) : 0);
+                            ds->Object.exp->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
                         }
                         continue;
                     }
-                    if (ds->Type == 1)
+                    if (ds->Type == EXPRESSION)
                     {
-                        int fs = ((CExpression*)ds->Object)->m_FontSize * Tillens.Zoom;
+                        int fs = ds->Object.exp->m_FontSize * Tillens.Zoom;
 
                         if (is_title)
                         {
                             //do nothing ,we paint titles in the second pass
                         }
-                        else if (fs < 1200 && ds->Above + ds->Below <= ((CExpression*)ds->Object)->m_FontSize / 4)
+                        else if (fs < 1200 && ds->Above + ds->Below <= ds->Object.exp->m_FontSize / 4)
                         {
                             //we do not print very small text
                             bitmapDC.FillSolidRect(
@@ -1230,19 +1229,19 @@ void CMathomirView::OnDraw(CDC* pDC)
                         }
                         else
                         {
-                            ((CExpression*)ds->Object)->CalculateSize(bitmapDC, Tillens.Zoom, l, &a, &b, 0, 0);
-                            ((CExpression*)ds->Object)->
+                            ds->Object.exp->CalculateSize(bitmapDC, Tillens.Zoom, l, &a, &b, 0, 0);
+                            ds->Object.exp->
                                 PaintExpression(&bitmapDC, Tillens.Zoom, RelativeX, RelativeY);
-                            ((CExpression*)ds->Object)->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
                         }
                     }
-                    else if (ds->Type == 2 && ds != SpecialDrawingHover)
+                    else if (ds->Type == DRAWING && ds != SpecialDrawingHover)
                     {
                         short w, h;
-                        ((CDrawing*)ds->Object)->CalculateSize(&bitmapDC, Tillens.Zoom, &w, &h);
-                        ((CDrawing*)ds->Object)->PaintDrawing(&bitmapDC, Tillens.Zoom, RelativeX, RelativeY,
+                        ds->Object.draw->CalculateSize(&bitmapDC, Tillens.Zoom, &w, &h);
+                        ds->Object.draw->PaintDrawing(&bitmapDC, Tillens.Zoom, RelativeX, RelativeY,
                                                               ds->absolute_X, ds->absolute_Y);
-                        ((CDrawing*)ds->Object)->CalculateSize(&bitmapDC, ViewZoom, &w, &h);
+                        ds->Object.draw->CalculateSize(&bitmapDC, ViewZoom, &w, &h);
                     }
                 }
 
@@ -1293,24 +1292,24 @@ void CMathomirView::OnDraw(CDC* pDC)
                         int RelativeY = (ds->absolute_Y - TillenStartY) * Zoom / 100;
                         RelativeX += RegionX;
                         RelativeY += RegionY;
-                        if (ds->Type == 1)
+                        if (ds->Type == EXPRESSION)
                         {
                             short l, a, b;
                             int tmpzoom = Zoom;
-                            if (((CExpression*)ds->Object)->m_FontSize > 110 &&
-                                ((CExpression*)ds->Object)->m_FontSize < 300)
-                                tmpzoom = 45 - (((CExpression*)ds->Object)->m_FontSize - 110) / 8;
-                            ((CExpression*)ds->Object)->CalculateSize(bitmapDC, tmpzoom, l, &a, &b, 0, 0);
-                            ((CExpression*)ds->Object)->PaintExpression(&bitmapDC, tmpzoom, RelativeX, RelativeY);
-                            ((CExpression*)ds->Object)->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
+                            if (ds->Object.exp->m_FontSize > 110 &&
+                                ds->Object.exp->m_FontSize < 300)
+                                tmpzoom = 45 - (ds->Object.exp->m_FontSize - 110) / 8;
+                            ds->Object.exp->CalculateSize(bitmapDC, tmpzoom, l, &a, &b, 0, 0);
+                            ds->Object.exp->PaintExpression(&bitmapDC, tmpzoom, RelativeX, RelativeY);
+                            ds->Object.exp->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
                         }
-                        else if (ds->Type == 2 && ds != SpecialDrawingHover)
+                        else if (ds->Type == DRAWING && ds != SpecialDrawingHover)
                         {
                             short w, h;
-                            ((CDrawing*)ds->Object)->CalculateSize(&bitmapDC, Zoom, &w, &h);
-                            ((CDrawing*)ds->Object)->PaintDrawing(&bitmapDC, Zoom, RelativeX, RelativeY,
+                            ds->Object.draw->CalculateSize(&bitmapDC, Zoom, &w, &h);
+                            ds->Object.draw->PaintDrawing(&bitmapDC, Zoom, RelativeX, RelativeY,
                                                                   ds->absolute_X, ds->absolute_Y);
-                            ((CDrawing*)ds->Object)->CalculateSize(&bitmapDC, ViewZoom, &w, &h);
+                            ds->Object.draw->CalculateSize(&bitmapDC, ViewZoom, &w, &h);
                         }
                     }
                 }
@@ -1489,7 +1488,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
             {
                 int X = SpecialDrawingHover->absolute_X - AbsoluteX;
                 int Y = SpecialDrawingHover->absolute_Y - AbsoluteY;
-                if (((CDrawing*)SpecialDrawingHover->Object)->MouseClick(X, Y))
+                if (SpecialDrawingHover->Object.draw->MouseClick(X, Y))
                     goto on_lbuttondown_end;
             }
 
@@ -1521,7 +1520,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     //if (GetKeyState(VK_MENU)&0xFFFE)
                     {
                         if (SpecialDrawingHover &&
-                            ((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing == 50 &&
+                            SpecialDrawingHover->Object.draw->IsSpecialDrawing == 50 &&
                             IsDrawingMode != 6 && IsDrawingMode != 7 && IsDrawingMode != 25 && IsDrawingMode !=
                             26)
                         {
@@ -1560,8 +1559,10 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
             for (int i = 0; i < NumDocumentElements; i++, ds++)
             {
                 if (ds->MovingDotState == 3) ds->MovingDotState = 0;
-                if (ds->Type == 1) ((CExpression*)ds->Object)->DeselectExpression();
-                if (ds->Type == 2) ((CDrawing*)ds->Object)->SelectDrawing(0);
+                if (ds->Type == EXPRESSION)
+                    ds->Object.exp->DeselectExpression();
+                else if (ds->Type == DRAWING)
+                    ds->Object.draw->SelectDrawing(0);
             }
             RepaintTheView();
 
@@ -1613,7 +1614,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 tDocumentStruct* dsx = TheDocument + i;
                 if (dsx->absolute_Y < -1000)
                 {
-                    if (dsx->Type == 1 && ((CExpression*)dsx->Object)->m_NumElements == 1)
+                    if (dsx->Type == EXPRESSION && dsx->Object.exp->m_NumElements == 1)
                     {
                         NumRullerGuidelines++;
                         //this is a valid guideline object
@@ -1632,9 +1633,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 if (NumRullerGuidelines < 12)
                 {
                     CExpression* e = new CExpression(nullptr,nullptr, 100);
-                    AddDocumentObject(1, RullerPositionPreselected, -1101);
+                    AddDocumentObject(EXPRESSION, RullerPositionPreselected, -1101);
                     TheDocument[NumDocumentElements - 1].MovingDotState = 0;
-                    TheDocument[NumDocumentElements - 1].Object = (CObject*)e;
+                    TheDocument[NumDocumentElements - 1].Object.exp = e;
                 }
             }
             InvalidateRect(nullptr, 0);
@@ -1665,11 +1666,11 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 AbsoluteY >= ds->absolute_Y - ds->Above - five_pixels && AbsoluteY <= ds->absolute_Y + ds->Below +
                 five_pixels)
             {
-                if (ds->Type == 1 && ds->Object)
+                if (ds->Type == EXPRESSION && ds->Object.exp)
                 {
                     //check if we clicked very near an object
 
-                    CExpression* ob = (CExpression*)ds->Object;
+                    CExpression* ob = ds->Object.exp;
                     if (ob->m_MaxNumColumns > 1 || ob->m_MaxNumRows > 1)
                         is_near_object = 1;
                     else
@@ -1677,8 +1678,8 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                         int X = point.x - (ds->absolute_X - ViewX) * ViewZoom / 100;
                         int Y = point.y - (ds->absolute_Y - ViewY) * ViewZoom / 100;
 
-                        CExpression* e = new CExpression(nullptr,nullptr, ((CExpression*)ds->Object)->m_FontSize);
-                        e->CopyExpression((CExpression*)ds->Object, 0, 1, 0);
+                        CExpression* e = new CExpression(nullptr,nullptr, ds->Object.exp->m_FontSize);
+                        e->CopyExpression(ds->Object.exp, 0, 1, 0);
                         short l, a, b;
                         e->CalculateSize(*DC, ViewZoom, l, &a, &b);
                         short IsExpression;
@@ -1715,8 +1716,8 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                         if (ds2->MovingDotState == 3)
                         {
                             int actX = 0, actY = 0;
-                            if (ds2->Type == 2 && ds2->Object)
-                                ((CDrawing*)ds2->Object)->FindRealCorner(&actX, &actY);
+                            if (ds2->Type == DRAWING && ds2->Object.draw)
+                                ds2->Object.draw->FindRealCorner(&actX, &actY);
                             if (ds2->absolute_X + actX < minX)
                             {
                                 minX = ds2->absolute_X + actX;
@@ -1739,11 +1740,11 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     break;
                 }
             }
-            if (ds->Type == 1 && ds->Object)
+            if (ds->Type == EXPRESSION && ds->Object.exp)
             {
                 //for matrices, if row/column insertion is touched then we also set the 'IsInsertionPointTouched'
                 //to force the mouse click action
-                CExpression* exp = (CExpression*)ds->Object;
+                CExpression* exp = ds->Object.exp;
                 if ((exp->m_IsColumnInsertion || exp->m_IsRowInsertion) && (exp->m_MaxNumColumns > 1 || exp->
                     m_MaxNumRows > 1))
                 {
@@ -1756,7 +1757,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 AbsoluteY >= ds->absolute_Y - ds->Above && AbsoluteY <= ds->absolute_Y + ds->Below + 2 || IsInsertionPointTouched == ds)
             {
                 //clicked on an object 
-                if (ds->MovingDotState == 2 && ds->Type == 1 && ClipboardDrawing == nullptr && !ViewOnlyMode)
+                if (ds->MovingDotState == 2 && ds->Type == EXPRESSION && ClipboardDrawing == nullptr && !ViewOnlyMode)
                 //moving an object, holding it on moving dot
                 {
                     if (nFlags & MK_SHIFT)
@@ -1772,7 +1773,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                         anything_clicked = 1;
                         //LongClickStartTime=GetTickCount();  //we cannot use long-click because users often long-click at the moving dot for minute position adjustments
                         //LongClickPosition=point;
-                        //LongClickObject=(CExpression*)ds->Object;
+                        //LongClickObject=ds->Object.exp;
                     }
                 }
                 /*else if ((ClipboardExpression) && (ds->Type==1) && (ds->MovingDotState!=5) && (!ViewOnlyMode)) 
@@ -1829,12 +1830,12 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     is_expression_found=1;
                     anything_clicked=1;
                 }*/
-                else if (ds->Type == 2 && ClipboardExpression == nullptr && pcd == nullptr && ds->MovingDotState != 5)
+                else if (ds->Type == DRAWING && ClipboardExpression == nullptr && pcd == nullptr && ds->MovingDotState != 5)
                 {
                     //clicked on drawing, we will copy the drawing into the clipbord
-                    if (ds->Object && ((CDrawing*)ds->Object)->IsSelected)
+                    if (ds->Object.draw && ds->Object.draw->IsSelected)
                     {
-                        CDrawing* drw = (CDrawing*)ds->Object;
+                        CDrawing* drw = ds->Object.draw;
                         if (drw->AnyNodeSelected() && !ViewOnlyMode)
                         {
                             //handling if we are editing nodes
@@ -1866,7 +1867,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                                     MovingStartY2 = ViewY + point.y * 100 / ViewZoom;
                                     if (GetKeyState(VK_MENU) & 0xFFFE)
                                         if (SpecialDrawingHover &&
-                                            ((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing == 50)
+                                            SpecialDrawingHover->Object.draw->IsSpecialDrawing == 50)
                                         {
                                             //we are just making "Snap to point" when the ALT key is held
                                             int ppx = MovingStartX2;
@@ -1888,14 +1889,14 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                             }
                     }
                 }
-                else if (ds->Type == 1 && ClipboardDrawing == nullptr)
+                else if (ds->Type == EXPRESSION && ClipboardDrawing == nullptr)
                 {
                     //nothing in the clipboard, then copy into the clipboard
                     root_object_flag = 0;
                     RootObjectCopy = 0;
                     CExpression* selection;
-                    selection = ((CExpression*)ds->Object)->AdjustSelection();
-                    if (selection == (CExpression*)ds->Object)
+                    selection = ds->Object.exp->AdjustSelection();
+                    if (selection == ds->Object.exp)
                     {
                         //the whole expression is selected, test if there is more than one
                         //object selected - if yes then we are working with groups
@@ -1953,7 +1954,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                             int X = point.x - (ds->absolute_X - ViewX) * ViewZoom / 100;
                             int Y = point.y - (ds->absolute_Y - ViewY) * ViewZoom / 100;
 
-                            CExpression* e = (CExpression*)ds->Object;
+                            CExpression* e = ds->Object.exp;
                             short IsExpression = 0;
                             char IsParenthese = 0;
                             CObject* ret = e->SelectObjectAtPoint(DC, ViewZoom, X, Y, &IsExpression, &IsParenthese, 1);
@@ -2023,12 +2024,12 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
         int tmp_dis = 0;
         try
         {
-            if (SpecialDrawingHover && SpecialDrawingHover->Object)
+            if (SpecialDrawingHover && SpecialDrawingHover->Object.v)
             {
-                if (((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing == 50)
+                if (SpecialDrawingHover->Object.draw->IsSpecialDrawing == 50)
                 {
                     //special handling for drawing box - we normally allow multiple selection
-                    CDrawing* drw = (CDrawing*)SpecialDrawingHover->Object;
+                    CDrawing* drw = SpecialDrawingHover->Object.draw;
                     if (((CDrawingBox*)drw->SpecialData)->TheState)
                         tmp_dis = 1;
                 }
@@ -2075,14 +2076,15 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 //clicked on empty screen, we are adding or from clipboard
 
 
-                if (NewlineAddObject >= 0 && (NewlineAddObject & 0x3FFFFFFF) < NumDocumentElements && TheDocument[
-                    NewlineAddObject & 0x3FFFFFFF].Type == 1)
+                if (NewlineAddObject >= 0 &&
+                    (NewlineAddObject & 0x3FFFFFFF) < NumDocumentElements &&
+                    TheDocument[NewlineAddObject & 0x3FFFFFFF].Type == EXPRESSION)
                 {
                     //clicked just below a multiline or text object - we will append a new line to that object
                     UndoSave("insert new", 20401);
                     ClipboardExpression->AddToStackClipboard(0);
 
-                    CExpression* e = (CExpression*)TheDocument[NewlineAddObject & 0x3FFFFFFF].Object;
+                    CExpression* e = TheDocument[NewlineAddObject & 0x3FFFFFFF].Object.exp;
                     int last_obj = e->m_NumElements - 1;
                     if ((e->m_pElementList + last_obj)->Type != 2 || (e->m_pElementList + last_obj)->pElementObject->
                         Data1[0] != (char)0xFF)
@@ -2147,29 +2149,29 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
 
                 //NumDocumentElements++;
                 //CheckDocumentMemoryReservations();
-                AddDocumentObject(1, AbsoluteX, AbsoluteY);
+                AddDocumentObject(EXPRESSION, AbsoluteX, AbsoluteY);
 
                 ds = TheDocument + NumDocumentElements - 1;
 
                 //ds->absolute_X=AbsoluteX; 
                 //ds->absolute_Y=AbsoluteY;
                 //ds->Type=1; //expression
-                ds->Object = (CObject*)new CExpression(nullptr,nullptr, DefaultFontSize);
+                ds->Object.exp = new CExpression(nullptr,nullptr, DefaultFontSize);
                 if (RootObjectCopy == ClipboardExpression->CalcChecksum())
                 {
-                    ((CExpression*)ds->Object)->m_FontSize = RootObjectFontSize;
+                    ds->Object.exp->m_FontSize = RootObjectFontSize;
                     //((CExpression*)(ds->Object))->m_FontSizeHQ=RootObjectFontSizeHQ;
                     RootObjectCopy = 0;
                 }
                 if (ClipboardExpression)
                 {
-                    ((CExpression*)ds->Object)->CopyExpression(ClipboardExpression, 0);
+                    ds->Object.exp->CopyExpression(ClipboardExpression, 0);
                     delete ClipboardExpression;
                     ClipboardExpression = nullptr;
                     SetCursor(::LoadCursor(nullptr,IDC_ARROW));
                 }
                 short l, a, b;
-                ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                 ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                 ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                 ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -2222,12 +2224,12 @@ void PaintNewlineAddMark(CDC* DC)
     if (prevNewlineAddObject >= 0 && prevNewlineAddObject < NumDocumentElements && nlo != prevNewlineAddObject)
     {
         tDocumentStruct* ds = TheDocument + prevNewlineAddObject;
-        if (ds->Type == 1 && ds->Object)
+        if (ds->Type == EXPRESSION && ds->Object.exp)
         {
             int X = (ds->absolute_X - ViewX + 3) * ViewZoom / 100 - 1;
             int Y = (ds->absolute_Y + ds->Below - ViewY + 2) * ViewZoom / 100;
             if (ViewZoom < 150) Y -= 1;
-            int Ly = ((CExpression*)ds->Object)->GetActualFontSize(ViewZoom);
+            int Ly = ds->Object.exp->GetActualFontSize(ViewZoom);
             Ly = Ly * 3 / 4;
             int Lx = Ly / 10;
             if (Ly < 3) Ly = 3;
@@ -2244,12 +2246,12 @@ void PaintNewlineAddMark(CDC* DC)
     if (nlo >= 0 && nlo < NumDocumentElements && nlo != prevNewlineAddObject)
     {
         tDocumentStruct* ds = TheDocument + nlo;
-        if (ds->Type == 1 && ds->Object)
+        if (ds->Type == EXPRESSION && ds->Object.exp)
         {
             int X = (ds->absolute_X - ViewX + 3) * ViewZoom / 100 - 1;
             int Y = (ds->absolute_Y + ds->Below - ViewY + 2) * ViewZoom / 100;
             if (ViewZoom < 150) Y -= 1;
-            int Ly = ((CExpression*)ds->Object)->GetActualFontSize(ViewZoom);
+            int Ly = ds->Object.exp->GetActualFontSize(ViewZoom);
             Ly = Ly * 3 / 4;
             int Lx = Ly / 10;
             if (Ly < 3) Ly = 3;
@@ -2616,9 +2618,9 @@ void PaintGuidlines(CDC* DC, int AbsoluteY)
         if (ds->absolute_Y < -1000)
         {
             ydelta = TheClientRect.bottom;
-            if (ds->Object && ds->Type == 1)
+            if (ds->Type == EXPRESSION, ds->Object.exp)
             {
-                CExpression* e = (CExpression*)ds->Object;
+                CExpression* e = ds->Object.exp;
                 if (ds->absolute_Y > -1100) SelectedGuidelineType = 1;
             }
         }
@@ -2697,7 +2699,7 @@ bool CheckForGuidlines(int i, int AbsoluteX, int AbsoluteY, int show_range)
         GuidlinesFirstPass = 0;
     }
 
-    if (ds->Type == 1 && ds->MovingDotState == 0)
+    if (ds->Type == EXPRESSION && ds->MovingDotState == 0)
     {
         if (show_range == 0) show_range = 1;
 
@@ -3147,12 +3149,12 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                     CExpression* parent = (CExpression*)SelectedTab->m_pPaternalExpression;
                     while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
                     if (SelectedTabObjectIndex < 0 || SelectedTabObjectIndex >= NumDocumentElements || TheDocument[
-                        SelectedTabObjectIndex].Object != (CObject*)parent)
+                        SelectedTabObjectIndex].Object.exp != parent)
                     {
                         SelectedTabObjectIndex = -1;
                         tDocumentStruct* ds = TheDocument;
                         for (int i = 0; i < NumDocumentElements; i++, ds++)
-                            if (ds->Object == (CObject*)parent && ds->Type == 1)
+                            if (ds->Type == EXPRESSION && ds->Object.exp == parent)
                             {
                                 SelectedTabObjectIndex = i;
                                 break;
@@ -3219,10 +3221,12 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 }
                 tDocumentStruct* ds = TheDocument;
                 for (int ii = NumDocumentElements - 1; ii >= 0; ii--, ds++)
-                    if (ds->Object)
+                    if (ds->Object.v)
                     {
-                        if (ds->Type == 2) ((CDrawing*)ds->Object)->SelectDrawing(0);
-                        if (ds->Type == 1) ((CExpression*)ds->Object)->DeselectExpression();
+                        if (ds->Type == EXPRESSION)
+                            ds->Object.exp->DeselectExpression();
+                        else if (ds->Type == DRAWING)
+                            ds->Object.draw->SelectDrawing(0);
                     }
 
                 RepaintTheView();
@@ -3258,7 +3262,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                     UndoSave("move", 20402);
                     tDocumentStruct* ds = TheDocument;
                     for (int i = NumDocumentElements - 1; i >= 0; i--, ds++)
-                        if (ds->Object && ds->MovingDotState == 4)
+                        if (ds->Object.v && ds->MovingDotState == 4)
                             ds->MovingDotState = 6; //prepared for moving
                     InvalidateRect(nullptr);
                     moving_start_timer = 0;
@@ -3316,7 +3320,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 MouseMode = 0;
                 int x, y, w, h;
                 if (tmpDrawing2) tmpDrawing2->AdjustCoordinates(&x, &y, &w, &h);
-                if (SelectedDocumentObject && SelectedDocumentObject->Object == (CObject*)tmpDrawing2)
+                if (SelectedDocumentObject && SelectedDocumentObject->Object.draw == tmpDrawing2)
                 {
                     SelectedDocumentObject->absolute_X += x;
                     SelectedDocumentObject->absolute_Y += y;
@@ -3352,7 +3356,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 int AbsoluteX = ViewX * 10 + point.x * 1000 / ViewZoom;
                 int AbsoluteY = ViewY * 10 + point.y * 1000 / ViewZoom;
 
-                if (!SpecialDrawingHover || ((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing != 50)
+                if (!SpecialDrawingHover || SpecialDrawingHover->Object.draw->IsSpecialDrawing != 50)
                     //we never do snap to grid inside drawing box
                     if (IsDrawingMode != 7 && IsDrawingMode != 6 &&
                         IsDrawingMode != 26 && IsDrawingMode != 25 &&
@@ -3471,7 +3475,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                     if (SingleSelectedTextObject >= 0 && SingleSelectedTextObject < NumDocumentElements)
                     {
                         tDocumentStruct* ds = TheDocument + SingleSelectedTextObject;
-                        CExpression* e = (CExpression*)ds->Object;
+                        CExpression* e = ds->Object.exp;
                         e->AutowrapText(DC, (AbsoluteX - ds->absolute_X) * ViewZoom / 100, 1);
                         short l, a, b;
                         e->CalculateSize(*DC, ViewZoom, l, &a, &b);
@@ -3618,8 +3622,9 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                     tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
                     for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
                     {
-                        if (ds->Type == 1)
-                            if (CheckForGuidlines(i, AbsoluteX - 3, AbsoluteY, GuidlineRange)) GuidlineElement = i;
+                        if (ds->Type == EXPRESSION)
+                            if (CheckForGuidlines(i, AbsoluteX - 3, AbsoluteY, GuidlineRange))
+                                GuidlineElement = i;
                     }
                 }
 
@@ -3652,8 +3657,8 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
 
             for (i = NumDocumentElements - 1; i >= 0; i--, ds--)
             {
-                if (ds->Type == 2 && ds->MovingDotState != 3 && IsDrawingMode &&
-                    !isCTRL && ((CDrawing*)ds->Object)->IsSpecialDrawing != 50)
+                if (ds->Type == DRAWING && ds->MovingDotState != 3 && IsDrawingMode &&
+                    !isCTRL && ds->Object.draw->IsSpecialDrawing != 50)
                     continue;
 
                 if (ds->MovingDotState != 3 && ds->MovingDotState != 5) //not selected nor locked
@@ -3663,23 +3668,25 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 int counted_already = 0;
                 if ((nFlags & MK_SHIFT) == 0 && TouchMouseMode == 0)
                 {
-                    if (ds->Type == 1) KeyboardEntryObject
-                                           ? ((CExpression*)ds->Object)->DeselectExpressionExceptKeyboardSelection()
-                                           : ((CExpression*)ds->Object)->DeselectExpression();
-                    else if (ds->Type == 2) ((CDrawing*)ds->Object)->SelectDrawing(0);
+                    if (ds->Type == EXPRESSION)
+                        KeyboardEntryObject
+                                           ? ds->Object.exp->DeselectExpressionExceptKeyboardSelection()
+                                           : ds->Object.exp->DeselectExpression();
+                    else if (ds->Type == DRAWING)
+                        ds->Object.draw->SelectDrawing(0);
                 }
                 else if (ds->MovingDotState != 3)
                 {
-                    if (ds->Type == 1)
+                    if (ds->Type == EXPRESSION)
                     {
-                        if (((CExpression*)ds->Object)->AdjustSelection())
+                        if (ds->Object.exp->AdjustSelection())
                         {
                             counted_already = 1;
                             any_drawing_touched++;
                             TouchedExpression = ds;
                         }
                     }
-                    else if (ds->Type == 2 && ((CDrawing*)ds->Object)->IsSelected)
+                    else if (ds->Type == DRAWING && ds->Object.draw->IsSelected)
                     {
                         counted_already = 1;
                         any_drawing_touched++;
@@ -3689,14 +3696,14 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 if (!MouseHighVelocity || prevGuidlineElement >= 0)
                     if (GuidlinesTemporaryDisabled == 0)
                         if (GuidlinesAreEnabled)
-                            if (ds->Type == 1)
+                            if (ds->Type == EXPRESSION)
                                 if (CheckForGuidlines(i, AbsoluteX - 3, AbsoluteY, GuidlineRange)) GuidlineElement = i;
 
 
                 int extends = 0;
-                if (ds->Type == 1)
+                if (ds->Type == EXPRESSION)
                 {
-                    CExpression* e = (CExpression*)ds->Object;
+                    CExpression* e = ds->Object.exp;
                     if (e)
                     {
                         extends = 3 * e->m_MarginX / 4;
@@ -3706,16 +3713,16 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 }
 
                 //handling 'add new line' feature - pointing mouse pointer just below a mutli-line object
-                if (ds->Type == 1 && !IsDrawingMode)
+                if (ds->Type == EXPRESSION && !IsDrawingMode)
                 {
-                    int fntsz = ((CExpression*)ds->Object)->m_FontSize / 8;
+                    int fntsz = ds->Object.exp->m_FontSize / 8;
                     if (AbsoluteY > ds->absolute_Y + ds->Below && AbsoluteY < ds->absolute_Y + ds->Below + fntsz &&
                         AbsoluteX >= ds->absolute_X + 3 - fntsz / 6 && AbsoluteX <= ds->absolute_X + 3 + fntsz / 3
                         && ds->MovingDotState == 0)
                     {
                         int is_multiline = 0;
                         int is_text = 0;
-                        CExpression* e = (CExpression*)ds->Object;
+                        CExpression* e = ds->Object.exp;
                         for (int ii = 0; ii < e->m_NumElements; ii++)
                             if ((e->m_pElementList + ii)->Type == 2 && (e->m_pElementList + ii)->pElementObject->
                                 Data1[0] == (char)0xFF)
@@ -3758,13 +3765,13 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                         SetMousePointer();
                         continue;
                     }
-                    if (ds->Type == 1) MouseIsTouchingExpression = 1;
+                    if (ds->Type == EXPRESSION) MouseIsTouchingExpression = 1;
                     int X = point.x - (ds->absolute_X - ViewX) * ViewZoom / 100;
                     int Y = point.y - (ds->absolute_Y - ViewY) * ViewZoom / 100;
-                    if (ds->Type == 2 && ds->Object && ((CDrawing*)ds->Object)->IsSpecialDrawing)
+                    if (ds->Type == DRAWING && ds->Object.v && ds->Object.draw->IsSpecialDrawing)
                     {
                         int NodeEdit;
-                        TouchedSubelement = ((CDrawing*)ds->Object)->SelectObjectAtPoint(
+                        TouchedSubelement = ds->Object.draw->SelectObjectAtPoint(
                             DC, ViewZoom, X, Y, &NodeEdit);
                         if (NodeEdit < 0)
                         {
@@ -3772,20 +3779,20 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                             GuidlineElement = -2;
                         }
                         else
-                            ((CDrawing*)ds->Object)->SelectDrawing(0);
+                            ds->Object.draw->SelectDrawing(0);
                     }
                     if (!any_expression_touched)
                     {
                         //mouse pointing to an object
                         if (IsDrawingMode == 0 || isCTRL)
-                            if (ds->MovingDotState != 3 && ds->MovingDotState != 5 && ds->MovingDotState != 4 && ds->Type != 2)
+                            if (ds->MovingDotState != 3 && ds->MovingDotState != 5 && ds->MovingDotState != 4 && ds->Type != DRAWING)
                             {
                                 int mds = max(MovingDotSize, MovingDotSize*(ViewZoom+420)/512);
                                 int border = 100 + ViewZoom;
                                 int PreciseAbsX = ViewX * ViewZoom + point.x * 100L;
                                 int PreciseAbsY = ViewY * ViewZoom + point.y * 100L;
                                 int FontSz = 0;
-                                if (ds->Type == 1 && ds->Object) FontSz = ((CExpression*)ds->Object)->
+                                if (ds->Type == EXPRESSION && ds->Object.exp) FontSz = ds->Object.exp->
                                     GetActualFontSize(ViewZoom) * 100;
                                 if ((PreciseAbsY >= (ds->absolute_Y + ds->Below) * ViewZoom - mds * 150 + border && PreciseAbsY <= (ds->absolute_Y + ds->Below) * ViewZoom + border) ||
                                     (PreciseAbsX < ds->absolute_X * ViewZoom + mds * ViewZoom / 2 + mds * 60 && PreciseAbsY > ds->absolute_Y * ViewZoom + FontSz / 3))
@@ -3801,7 +3808,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                                 border)
                                             {
                                                 //if (!isCTRL)
-                                                if (!NoNewSelections) ((CExpression*)ds->Object)->SelectExpression(1);
+                                                if (!NoNewSelections) ds->Object.exp->SelectExpression(1);
                                                 ds->MovingDotState = 2;
                                                 GuidlineElement = -2;
                                                 PaintGuidlines(DC, -1);
@@ -3816,37 +3823,36 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                             TouchedSubelement = 0;
                         else
                         {
-                            if (ds->Type == 1 && ClipboardDrawing == nullptr && (is_fully_inside || (!
+                            if (ds->Type == EXPRESSION && ClipboardDrawing == nullptr && (is_fully_inside || (!
                                 IsTouchedExpressionFullyInside && any_drawing_touched == 0)))
                             {
                                 IsExpression = -1;
 
-                                TouchedSubelement = ((CExpression*)ds->Object)->SelectObjectAtPoint(
+                                TouchedSubelement = ds->Object.exp->SelectObjectAtPoint(
                                     DC, ViewZoom, X, Y, &IsExpression, &IsParenthese);
 
                                 if (TouchedSubelement == nullptr && IsExpression == -1 && ds->MovingDotState == 0)
                                     continue;
                                 if (ds->MovingDotState == 2 && TouchedSubelement)
                                 {
-                                    ((CExpression*)ds->Object)->SelectExpression(1);
+                                    ds->Object.exp->SelectExpression(1);
                                 }
-                                if (ds->MovingDotState >= 2) ((CExpression*)ds->Object)->m_IsColumnInsertion = ((
-                                    CExpression*)ds->Object)->m_IsRowInsertion = 0;
+                                if (ds->MovingDotState >= 2) ds->Object.exp->m_IsColumnInsertion = ds->Object.exp->m_IsRowInsertion = 0;
 
                                 if (IsDrawingMode && !isCTRL)
                                 {
-                                    if (((CExpression*)ds->Object)->m_InternalInsertionPoint == 0)
-                                        if (((CExpression*)ds->Object)->m_Selection <= 0 || ((CExpression*)ds->
-                                            Object)->m_Selection > 16383)
+                                    if (ds->Object.exp->m_InternalInsertionPoint == 0)
+                                        if (ds->Object.exp->m_Selection <= 0 || ds->
+                                            Object.exp->m_Selection > 16383)
                                         {
-                                            ((CExpression*)ds->Object)->DeselectExpression();
+                                            ds->Object.exp->DeselectExpression();
                                             continue;
                                         }
                                 }
 
                                 if (nFlags & MK_SHIFT || TouchMouseMode)
                                 {
-                                    ((CExpression*)ds->Object)->AdjustSelection();
+                                    ds->Object.exp->AdjustSelection();
                                 }
                                 else
                                 {
@@ -3859,8 +3865,10 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                         for (int iii = NumDocumentElements - 1; iii >= 0; iii--, ds3--)
                                             if (iii != i)
                                             {
-                                                if (ds3->Type == 1) ((CExpression*)ds3->Object)->DeselectExpression();
-                                                else if (ds3->Type == 2) ((CDrawing*)ds3->Object)->SelectDrawing(0);
+                                                if (ds3->Type == EXPRESSION)
+                                                    ds3->Object.exp->DeselectExpression();
+                                                else if (ds3->Type == DRAWING)
+                                                    ds3->Object.draw->SelectDrawing(0);
                                             }
                                         counted_already = 0;
                                         any_drawing_touched = 0;
@@ -3868,22 +3876,22 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                 }
                                 TouchedObject = ds;
                                 TouchedExpression = ds;
-                                if (((CExpression*)ds->Object)->m_Selection > 0 && ((CExpression*)ds->Object)->
+                                if (ds->Object.exp->m_Selection > 0 && ds->Object.exp->
                                     m_Selection < 16383)
                                     IsInsertionPointTouched = ds;
 
                                 if (is_fully_inside) IsTouchedExpressionFullyInside = 1;
                                 if (!counted_already) any_drawing_touched++;
-                                SelectionChecksum += ((CExpression*)ds->Object)->CalcChecksum();
+                                SelectionChecksum += ds->Object.exp->CalcChecksum();
                                 SelectionChecksum += IsExpression * 16 + IsParenthese * 128 + *(int*)&TouchedSubelement;
                                 SelectionChecksum += ds->absolute_X + 11 * ds->absolute_Y;
-                                SelectionChecksum += ((CExpression*)ds->Object)->m_IsColumnInsertion;
+                                SelectionChecksum += ds->Object.exp->m_IsColumnInsertion;
                             }
-                            else if (ds->Type == 2 && ((ClipboardExpression == nullptr && ClipboardDrawing == nullptr)
-                                || ((CDrawing*)ds->Object)->IsSpecialDrawing))
+                            else if (ds->Type == DRAWING && ((ClipboardExpression == nullptr && ClipboardDrawing == nullptr)
+                                || ds->Object.draw->IsSpecialDrawing))
                             {
                                 int NodeEdit;
-                                TouchedSubelement = ((CDrawing*)ds->Object)->SelectObjectAtPoint(
+                                TouchedSubelement = ds->Object.draw->SelectObjectAtPoint(
                                     DC, ViewZoom, X, Y, &NodeEdit);
                                 if (NodeEdit < 0)
                                     SpecialDrawingHover = ds;
@@ -3895,7 +3903,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                     GuidlineElement = -2;
                                     TouchedObject = ds;
                                     if (!counted_already) any_drawing_touched++;
-                                    SelectionChecksum += ((CDrawing*)ds->Object)->CalcChecksum();
+                                    SelectionChecksum += ds->Object.draw->CalcChecksum();
                                     SelectionChecksum += *(int*)&TouchedSubelement;
                                     SelectionChecksum += NodeEdit;
                                     SelectionChecksum += ds->absolute_X + 11 * ds->absolute_Y;
@@ -3916,8 +3924,8 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
             {
                 tDocumentStruct* ds2 = TheDocument;
                 for (int iii = 0; iii < NumDocumentElements; iii++, ds2++)
-                    if (ds2->Type == 1 && ((CExpression*)ds2->Object)->AdjustSelection())
-                        ((CExpression*)ds2->Object)->SelectExpression(1);
+                    if (ds2->Type == EXPRESSION && ds2->Object.exp->AdjustSelection())
+                        ds2->Object.exp->SelectExpression(1);
                 ScheduleFullRepaint = 1;
             }
 
@@ -4050,16 +4058,20 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                             if (ds->absolute_Y - ds->Above >= msY && ds->absolute_Y + ds->Below <= MultipleY &&
                                 ds->absolute_X >= msX && ds->absolute_X + ds->Length <= MultipleX)
                             {
-                                if (ds->Type == 1) ((CExpression*)ds->Object)->SelectExpression(1);
-                                else if (ds->Type == 2) ((CDrawing*)ds->Object)->SelectDrawing(1);
+                                if (ds->Type == EXPRESSION)
+                                    ds->Object.exp->SelectExpression(1);
+                                else if (ds->Type == DRAWING)
+                                    ds->Object.draw->SelectDrawing(1);
 
                                 ds->MovingDotState = 3;
                                 IsSelectionFresh = 1;
                             }
                             else if ((nFlags & MK_SHIFT) == 0 && TouchMouseMode == 0)
                             {
-                                if (ds->Type == 1) ((CExpression*)ds->Object)->DeselectExpression();
-                                else if (ds->Type == 2) ((CDrawing*)ds->Object)->SelectDrawing(0);
+                                if (ds->Type == EXPRESSION)
+                                    ds->Object.exp->DeselectExpression();
+                                else if (ds->Type == DRAWING)
+                                    ds->Object.draw->SelectDrawing(0);
                                 ds->MovingDotState = 0;
                                 IsSelectionFresh = 1;
                             }
@@ -4125,10 +4137,10 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                             ds->absolute_X <= StartAbsoluteX && ds->absolute_X + ds->Length >= StartAbsoluteX)
                         {
                             clearscreen = 1;
-                            if (ds->Type == 1)
-                                ((CExpression*)ds->Object)->DeselectExpression();
-                            else if (ds->Type == 2)
-                                ((CDrawing*)ds->Object)->SelectDrawing(0);
+                            if (ds->Type == EXPRESSION)
+                                ds->Object.exp->DeselectExpression();
+                            else if (ds->Type == DRAWING)
+                                ds->Object.draw->SelectDrawing(0);
                         }
                     }
                     if (clearscreen)
@@ -4267,17 +4279,17 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
         {
             tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
             for (int ii = NumDocumentElements - 1; ii >= 0; ii--, ds--)
-                if (ds->Type == 2 &&
+                if (ds->Type == DRAWING &&
                     ds->absolute_Y + ds->Below > ViewY &&
                     ds->absolute_Y - ds->Above < ViewY + TheClientRect.bottom * 100 / ViewZoom)
                 {
-                    if (ds->Object && ((CDrawing*)ds->Object)->IsSpecialDrawing)
+                    if (ds->Object.draw && ds->Object.draw->IsSpecialDrawing)
                     {
                         int redraw;
                         if (ds != SpecialDrawingHover)
-                            redraw = ((CDrawing*)ds->Object)->MouseMove(DC, 0x7FFFFFFF, 0x7FFFFFFF, 0);
+                            redraw = ds->Object.draw->MouseMove(DC, 0x7FFFFFFF, 0x7FFFFFFF, 0);
                         else
-                            redraw = ((CDrawing*)ds->Object)->MouseMove(DC,
+                            redraw = ds->Object.draw->MouseMove(DC,
                                                                         ViewX + point.x * 100 / ViewZoom - ds->
                                                                         absolute_X,
                                                                         ViewY + point.y * 100 / ViewZoom - ds->
@@ -4627,16 +4639,16 @@ int CMathomirView::RepaintTheView(int force_recalculate)
         for (i = 0; i < NumDocumentElements; i++, ds++)
         {
             short l, a, b;
-            if (ds->Type == 1)
+            if (ds->Type == EXPRESSION)
             {
-                ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                 ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                 ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                 ds->Below = (short)((int)b * 100 / (int)ViewZoom);
             }
-            else if (ds->Type == 2)
+            else if (ds->Type == DRAWING)
             {
-                ((CDrawing*)ds->Object)->CalculateSize(DC, ViewZoom, &l, &b);
+                ds->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
                 ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                 ds->Above = 0;
                 ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -4650,25 +4662,25 @@ int CMathomirView::RepaintTheView(int force_recalculate)
         for (i = 0; i < NumDocumentElements; i++, ds++)
         {
             short l, a, b;
-            if (ds->Type == 1)
+            if (ds->Type == EXPRESSION)
             {
-                int chksm = ((CExpression*)ds->Object)->CalcChecksum();
+                int chksm = ds->Object.exp->CalcChecksum();
                 if (ds->Checksum != chksm || i > NumDocumentElements - 50)
                 {
                     ds->Checksum = chksm;
-                    ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                    ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                     ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                     ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                     ds->Below = (short)((int)b * 100 / (int)ViewZoom);
                 }
             }
-            else if (ds->Type == 2)
+            else if (ds->Type == DRAWING)
             {
-                int chksm = ((CDrawing*)ds->Object)->CalcChecksum();
+                int chksm = ds->Object.draw->CalcChecksum();
                 if (ds->Checksum != chksm || i > NumDocumentElements - 50)
                 {
                     ds->Checksum = chksm;
-                    ((CDrawing*)ds->Object)->CalculateSize(DC, ViewZoom, &l, &b);
+                    ds->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
                     ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                     ds->Above = 0;
                     ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -5070,14 +5082,14 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                         ds->absolute_Y - ds->Above <= Y && ds->absolute_Y + ds->Below >= Y &&
                         ds->MovingDotState != 5)
                     {
-                        if (ds->Type == 1)
+                        if (ds->Type == EXPRESSION)
                         {
                             NumTouchedDrawings = 10;
                             break;
                         }
-                        if (ds->Type == 2)
+                        if (ds->Type == DRAWING)
                         {
-                            CDrawing* d = (CDrawing*)ds->Object;
+                            CDrawing* d = ds->Object.draw;
                             int nodeedit;
                             CDC* DC = GetDC();
                             int rx = p.x - (ds->absolute_X - ViewX) * ViewZoom / 100;
@@ -5094,14 +5106,13 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 if (NumTouchedDrawings == 1)
                 {
                     if (/*(((CDrawing*)TouchedDrawing->Object)->IsNodeEdit) ||*/ GetKeyState(VK_CONTROL) & 0xFFFE || ToolbarEditNodes)
-                        if (((CDrawing*)TouchedDrawing->Object)->NodeX == -1)
+                        if (TouchedDrawing->Object.draw->NodeX == -1)
                         {
                             //we are adding new node to the hand drawing (space bar is pressed when mouse pointer is above the
                             //drawing with nodes visible)
-                            ((CDrawing*)TouchedDrawing->Object)->SplitLineAtPos(
-                                X - TouchedDrawing->absolute_X, Y - TouchedDrawing->absolute_Y);
-                            ((CDrawing*)TouchedDrawing->Object)->NodeX = (X - TouchedDrawing->absolute_X) * DRWZOOM;
-                            ((CDrawing*)TouchedDrawing->Object)->NodeY = (Y - TouchedDrawing->absolute_Y) * DRWZOOM;
+                            TouchedDrawing->Object.draw->SplitLineAtPos(X - TouchedDrawing->absolute_X, Y - TouchedDrawing->absolute_Y);
+                            TouchedDrawing->Object.draw->NodeX = (X - TouchedDrawing->absolute_X) * DRWZOOM;
+                            TouchedDrawing->Object.draw->NodeY = (Y - TouchedDrawing->absolute_Y) * DRWZOOM;
                             InvalidateRect(nullptr, 0);
                             UpdateWindow();
 
@@ -5191,8 +5202,10 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                         tDocumentStruct* ds = TheDocument + i;
                         if (ds->MovingDotState == 3)
                         {
-                            if (ds->Type == 1) ((CExpression*)ds->Object)->DeselectExpression();
-                            else if (ds->Type == 2) ((CDrawing*)ds->Object)->SelectDrawing(0);
+                            if (ds->Type == EXPRESSION)
+                                ds->Object.exp->DeselectExpression();
+                            else if (ds->Type == DRAWING)
+                                ds->Object.draw->SelectDrawing(0);
                             is_deselected = 1;
                         }
                         if (ds->MovingDotState != 5) ds->MovingDotState = 0;
@@ -5280,14 +5293,14 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                         RootObjectCopy = 0;
                         CExpression* expr = nullptr;
                         CDrawing* drw = nullptr;
-                        if (TheDocument[i].Type == 1)
+                        if (TheDocument[i].Type == EXPRESSION)
                         {
                             //if ((nChar>='1') && (nChar<='6')) continue;
                             //if ((nChar=='K') || (nChar=='R') || (nChar=='G') || (nChar=='B') || (nChar=='Y')) continue;
-                            expr = ((CExpression*)TheDocument[i].Object)->AdjustSelection();
+                            expr = TheDocument[i].Object.exp->AdjustSelection();
                             if (nChar == VK_DELETE && expr && expr->DecodeInternalInsertionPoint()) continue;
                             if (nChar != ' ')
-                                if (expr == (CExpression*)TheDocument[i].Object)
+                                if (expr == TheDocument[i].Object.exp)
                                 {
                                     //check if there is more than one selected object, if yes
                                     //then we are working with groups
@@ -5307,19 +5320,19 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                                     }
                                 }
                         }
-                        if (TheDocument[i].Type == 2)
+                        else if (TheDocument[i].Type == DRAWING)
                         {
                             if (nChar == ' ' && TheDocument[i].MovingDotState == 3)
-                                drw = (CDrawing*)TheDocument[i].Object;
+                                drw = TheDocument[i].Object.draw;
                             else
                             {
                                 int NodeEdit;
                                 int X = cursor.x - (TheDocument[i].absolute_X - ViewX) * ViewZoom / 100;
                                 int Y = cursor.y - (TheDocument[i].absolute_Y - ViewY) * ViewZoom / 100;
                                 CDC* DC = this->GetDC();
-                                drw = (CDrawing*)((CDrawing*)TheDocument[i].Object)->SelectObjectAtPoint(
+                                drw = (CDrawing*)TheDocument[i].Object.draw->SelectObjectAtPoint(
                                     DC, ViewZoom, X, Y, &NodeEdit);
-                                if (drw) drw = (CDrawing*)TheDocument[i].Object;
+                                if (drw) drw = TheDocument[i].Object.draw;
                                 this->ReleaseDC(DC);
                                 if (drw == nullptr) continue;
                             }
@@ -5365,14 +5378,12 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 for (int kk = 0; kk < NumDocumentElements; kk++)
                                 {
                                     tDocumentStruct* ds2 = TheDocument + kk;
-                                    if (ds2->Type == 2 && ds2->Object && ((CDrawing*)ds2->Object)->IsSelected)
+                                    if (ds2->Type == DRAWING && ds2->Object.draw && ds2->Object.draw->IsSelected)
                                     {
-                                        ((CDrawing*)ds2->Object)->Delete();
+                                        ds2->Object.draw->Delete();
                                         DeleteDocumentObject(ds2);
                                         kk--;
-                                    }
-                                    if (ds2->Type == 1 && ds2->Object && (ds2->MovingDotState == 4 || ((
-                                        CExpression*)ds2->Object)->m_Selection == 0x7FFF)) //kubura
+                                    } else if (ds2->Type == EXPRESSION && ds2->Object.exp && (ds2->MovingDotState == 4 || ds2->Object.exp->m_Selection == 0x7FFF)) //kubura
                                     {
                                         DeleteDocumentObject(ds2);
                                         kk--;
@@ -5479,7 +5490,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                             if (nChar != 'C' && expr)
                             {
                                 //check if the expression is left copletely empty, if yes, delete it
-                                expr = (CExpression*)TheDocument[i].Object;
+                                expr = TheDocument[i].Object.exp;
                                 if (expr->m_pPaternalExpression == nullptr)
                                     if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->
                                         m_NumElements == 0)
@@ -5528,7 +5539,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                     int absY = ViewY + cursor.y * 100 / ViewZoom;
                     int i;
                     for (i = NumDocumentElements - 1; i >= 0; i--)
-                        if (TheDocument[i].Type == 1 &&
+                        if (TheDocument[i].Type == EXPRESSION &&
                             absX > TheDocument[i].absolute_X &&
                             absX < TheDocument[i].absolute_X + TheDocument[i].Length &&
                             absY > TheDocument[i].absolute_Y - TheDocument[i].Above &&
@@ -5540,7 +5551,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                             int X = (absX - TheDocument[i].absolute_X) * ViewZoom / 100;
                             int Y = (absY - TheDocument[i].absolute_Y) * ViewZoom / 100;
                             UndoSave("insert into", 20303);
-                            ((CExpression*)TheDocument[i].Object)->CopyAtPoint(
+                            TheDocument[i].Object.exp->CopyAtPoint(
                                 DC, ViewZoom, X, Y, ClipboardExpression);
 
                             break;
@@ -5572,29 +5583,29 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                                     absX = (absX + GRID / 2) / GRID * GRID - 3;
                                     absY = (absY + GRID / 2) / GRID * GRID;
                                 }
-                                AddDocumentObject(1, absX, absY);
+                                AddDocumentObject(EXPRESSION, absX, absY);
                                 //TheDocument[NumDocumentElements-1].absolute_X=absX;
                                 //TheDocument[NumDocumentElements-1].absolute_Y=absY;
                                 short l, a = 0, b;
                                 //TheDocument[NumDocumentElements-1].Type=1;
-                                TheDocument[NumDocumentElements - 1].Object = (CObject*)new CExpression(
+                                TheDocument[NumDocumentElements - 1].Object.exp = new CExpression(
                                     nullptr,nullptr, DefaultFontSize);
                                 if (RootObjectCopy == ClipboardExpression->CalcChecksum())
                                 {
-                                    ((CExpression*)TheDocument[NumDocumentElements - 1].Object)->m_FontSize =
+                                    TheDocument[NumDocumentElements - 1].Object.exp->m_FontSize =
                                         RootObjectFontSize;
                                     //((CExpression*)(TheDocument[NumDocumentElements-1].Object))->m_FontSizeHQ=RootObjectFontSizeHQ;
                                 }
                                 if (adjust_for_text)
                                 {
-                                    ((CExpression*)TheDocument[NumDocumentElements - 1].Object)->m_StartAsText = 1;
-                                    ((CExpression*)TheDocument[NumDocumentElements - 1].Object)->m_Alignment = 1;
+                                    TheDocument[NumDocumentElements - 1].Object.exp->m_StartAsText = 1;
+                                    TheDocument[NumDocumentElements - 1].Object.exp->m_Alignment = 1;
                                 }
                                 else
-                                    ((CExpression*)TheDocument[NumDocumentElements - 1].Object)->CopyExpression(
+                                    TheDocument[NumDocumentElements - 1].Object.exp->CopyExpression(
                                         ClipboardExpression, 0);
 
-                                ((CExpression*)TheDocument[NumDocumentElements - 1].Object)->CalculateSize(
+                                TheDocument[NumDocumentElements - 1].Object.exp->CalculateSize(
                                     *DC, ViewZoom, l, &a, &b);
                                 TheDocument[NumDocumentElements - 1].Length = l * 100 / ViewZoom;
                                 TheDocument[NumDocumentElements - 1].Above = a * 100 / ViewZoom;
@@ -5667,17 +5678,16 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             if (KeyboardEntryBaseObject)
             {
                 //if (((nFlags&0x100)==0) && (nChar==VK_F7) && (!CTRLstate)) CopyMathMLCode(KeyboardEntryBaseObject->Object);
-                if ((nFlags & 0x100) == 0 && nChar == VK_F6 && !CTRLstate) CopyLaTeXCode(
-                    KeyboardEntryBaseObject->Object);
+                if ((nFlags & 0x100) == 0 && nChar == VK_F6 && !CTRLstate) CopyLaTeXCode((CObject*)KeyboardEntryBaseObject->Object.v);
                 if ((nFlags & 0x100) == 0 && nChar == VK_F8 && !CTRLstate)
                 {
                     save_equation_image_to_file = 1;
-                    MakeImageOfExpression(KeyboardEntryBaseObject->Object);
+                    MakeImageOfExpression((CObject*)KeyboardEntryBaseObject->Object.v);
                     save_equation_image_to_file = 0;
                 }
                 if ((nFlags & 0x100) == 0 && nChar == VK_F9 && !CTRLstate)
                 {
-                    MakeImageOfExpression(KeyboardEntryBaseObject->Object);
+                    MakeImageOfExpression((CObject*)KeyboardEntryBaseObject->Object.v);
                 }
             }
 
@@ -5779,10 +5789,10 @@ int CMathomirView::ScrollCursorIntoView()
 
     if (KeyboardEntryObject && KeyboardEntryBaseObject &&
         KeyboardEntryBaseObject - TheDocument >= 0 && KeyboardEntryBaseObject - TheDocument < NumDocumentElements &&
-        KeyboardEntryBaseObject->Type == 1)
+        KeyboardEntryBaseObject->Type == EXPRESSION)
     {
         int X, Y;
-        if (((CExpression*)KeyboardEntryBaseObject->Object)->GetKeyboardCursorPos(&X, &Y))
+        if (KeyboardEntryBaseObject->Object.exp->GetKeyboardCursorPos(&X, &Y))
         {
             //automaticly scroll the window if cursor is outside visible area
             X = X * 100 / ViewZoom;
@@ -5868,8 +5878,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
         //check validity of important pointers
         try
         {
-            if (KeyboardEntryBaseObject->Object == 0) return;
-            if (KeyboardEntryBaseObject->Type < 0) return;
+            if (KeyboardEntryBaseObject->Object.v == nullptr) return;
             if (KeyboardEntryBaseObject->Type > 10) return;
             if (((CExpression*)KeyboardEntryObject)->m_NumElements < 0) return;
             if (((CExpression*)KeyboardEntryObject)->m_pElementList == nullptr) return;
@@ -5894,10 +5903,10 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     if (TheDocument[i].MovingDotState == 3)
                     {
                         TheDocument[i].MovingDotState = 0;
-                        if (TheDocument[i].Type == 1)
-                            ((CExpression*)TheDocument[i].Object)->DeselectExpression();
-                        else if (TheDocument[i].Type == 2)
-                            ((CDrawing*)TheDocument[i].Object)->SelectDrawing(0);
+                        if (TheDocument[i].Type == EXPRESSION)
+                            TheDocument[i].Object.exp->DeselectExpression();
+                        else if (TheDocument[i].Type == DRAWING)
+                            TheDocument[i].Object.draw->SelectDrawing(0);
                     }
                 InvalidateRect(nullptr, 0);
                 NumSelectedObjects = 0;
@@ -5914,9 +5923,9 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             //keyboard entry finised - if expression left empty, delete it
             ((CExpression*)KeyboardEntryObject)->KeyboardStop();
-            if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == 1)
+            if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
             {
-                CExpression* expr = (CExpression*)KeyboardEntryBaseObject->Object;
+                CExpression* expr = KeyboardEntryBaseObject->Object.exp;
                 if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->m_NumElements == 0)
                 {
                     DeleteDocumentObject(KeyboardEntryBaseObject);
@@ -5936,9 +5945,9 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
             //delete the first if empty
             try
             {
-                if (prevBaseObject && prevBaseObject->Type == 1)
+                if (prevBaseObject && prevBaseObject->Type == EXPRESSION)
                 {
-                    CExpression* expr = (CExpression*)prevBaseObject->Object;
+                    CExpression* expr = prevBaseObject->Object.exp;
                     if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) ||
                         expr->m_NumElements == 0)
                     {
@@ -6037,7 +6046,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
 
         if (KeyboardEntryBaseObject)
         {
-            if (KeyboardEntryBaseObject->Type == 1)
+            if (KeyboardEntryBaseObject->Type == EXPRESSION)
             {
                 if (nChar != 6 || ret == 2)
                 {
@@ -6058,7 +6067,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                 }
 
 
-                ((CExpression*)KeyboardEntryBaseObject->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                KeyboardEntryBaseObject->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                 if (KeyboardEntryBaseObject->Above > a * 100 / ViewZoom) RepaintAll = 1;
                 KeyboardEntryBaseObject->Above = a * 100 / ViewZoom;
                 if (KeyboardEntryBaseObject->Below > b * 100 / ViewZoom) RepaintAll = 1;
@@ -6077,7 +6086,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     //check if the text object crosses wraping guideline, then wrap the text box
                     if (RepaintAll >= 0)
                     {
-                        CExpression* e = (CExpression*)KeyboardEntryBaseObject->Object;
+                        CExpression* e = KeyboardEntryBaseObject->Object.exp;
                         if (e == (CExpression*)KeyboardEntryObject && e->IsTextContained(-1))
                         {
                             for (int l = 0; l < NumRullerGuidelines; l++)
@@ -6116,9 +6125,8 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     tDocumentStruct* ds = TheDocument;
                     for (int ii = 0; ii < NumDocumentElements; ii++, ds++)
                     {
-                        if (ds->Type == 1)
-                            if (((CExpression*)KeyboardEntryBaseObject->Object)->m_NumElements > 1 || ((CExpression*)
-                                KeyboardEntryBaseObject->Object)->m_pElementList->Type != 1)
+                        if (ds->Type == EXPRESSION)
+                            if (KeyboardEntryBaseObject->Object.exp->m_NumElements > 1 || KeyboardEntryBaseObject->Object.exp->m_pElementList->Type != 1)
                             {
                                 if (ds->absolute_Y + ds->Below < KeyboardEntryBaseObject->absolute_Y +
                                     KeyboardEntryBaseObject->Below &&
@@ -6166,10 +6174,10 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     }
                 }
             }
-            else if (KeyboardEntryBaseObject->Type == 2)
+            else if (KeyboardEntryBaseObject->Type == DRAWING)
             {
                 short w, h;
-                ((CDrawing*)KeyboardEntryBaseObject->Object)->CalculateSize(DC, ViewZoom, &w, &h);
+                KeyboardEntryBaseObject->Object.draw->CalculateSize(DC, ViewZoom, &w, &h);
                 //GentlyPaintObject(KeyboardEntryBaseObject,DC);
                 InvalidateRect(nullptr, 0);
                 UpdateWindow();
@@ -6201,14 +6209,14 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 absX >= ds->absolute_X && absX <= ds->absolute_X + ds->Length) || ds ==
                                 IsInsertionPointTouched || (NewlineAddObject & 0x3FFFFFFF) == i) &&
                             ds->MovingDotState != 5 && ds->MovingDotState != 3)
-                            if (ds->Type == 1)
+                            if (ds->Type == EXPRESSION)
                             {
                                 CExpression* tmp = nullptr;
 
                                 if (i == (NewlineAddObject & 0x3FFFFFFF))
                                 {
                                     //clicked just below a multiline or text object - we will append a new line to that object
-                                    CExpression* e = (CExpression*)ds->Object;
+                                    CExpression* e = ds->Object.exp;
                                     int last_obj = e->m_NumElements - 1;
                                     if ((e->m_pElementList + last_obj)->Type != 2 || (e->m_pElementList + last_obj)->
                                         pElementObject->Data1[0] != (char)0xFF)
@@ -6227,12 +6235,12 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                     {
                                         short is_exp;
                                         char is_parenth;
-                                        ((CExpression*)ds->Object)->SelectObjectAtPoint(
+                                        ds->Object.exp->SelectObjectAtPoint(
                                             DC, ViewZoom, ((absX - ds->absolute_X) * ViewZoom + 50) / 100,
                                             (absY - ds->absolute_Y) * ViewZoom / 100, &is_exp, &is_parenth, 2);
                                     }
 
-                                    tmp = ((CExpression*)ds->Object)->AdjustSelection();
+                                    tmp = ds->Object.exp->AdjustSelection();
                                     if (tmp && (/*(nChar==13) ||*/ nChar == 27 || /*(nChar==32) ||*/ nChar == 9))
                                         break;
 
@@ -6259,14 +6267,14 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         short is_expression = 0;
                                         char is_parenth;
                                         QuickTypeUsed = 1;
-                                        tmp = (CExpression*)((CExpression*)ds->Object)->SelectObjectAtPoint(
+                                        tmp = (CExpression*)ds->Object.exp->SelectObjectAtPoint(
                                             DC, ViewZoom,
                                             (short)(cursor.x - (TheDocument[i].absolute_X - ViewX) * ViewZoom / 100),
                                             (short)(cursor.y - (TheDocument[i].absolute_Y - ViewY) * ViewZoom / 100),
                                             &is_expression, &is_parenth, 1);
                                         QuickTypeUsed = 0;
-                                        if (tmp == nullptr && is_expression == 0 && ((CExpression*)ds->Object)->
-                                            m_MaxNumColumns == 1 && ((CExpression*)ds->Object)->m_MaxNumRows == 1)
+                                        if (tmp == nullptr && is_expression == 0 && ds->Object.exp->
+                                            m_MaxNumColumns == 1 && ds->Object.exp->m_MaxNumRows == 1)
                                             continue;
                                         if (is_expression <= 0 || is_expression == 0x7FFF) tmp = nullptr;
                                         if (tmp && tmp->m_Selection == 0) tmp = nullptr;
@@ -6274,7 +6282,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         if (tmp)
                                             ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("insert into", 20303);
                                         else
-                                            ((CExpression*)ds->Object)->DeselectExpression();
+                                            ds->Object.exp->DeselectExpression();
                                     }
                                 }
 
@@ -6297,7 +6305,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         LastQuickTypeObject = ds;
 
                                         short l, a, b;
-                                        ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                                        ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                                         ds->Above = a * 100 / ViewZoom;
                                         ds->Below = b * 100 / ViewZoom;
 
@@ -6392,17 +6400,17 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         */
                                         //***************************************
                                     }
-                                    if (((CExpression*)ds->Object)->m_NumElements == 1 &&
-                                        ((CExpression*)ds->Object)->m_pElementList->Type == 0)
+                                    if (ds->Object.exp->m_NumElements == 1 &&
+                                        ds->Object.exp->m_pElementList->Type == 0)
                                         DeleteDocumentObject(ds);
                                 }
                                 else
-                                    ((CExpression*)ds->Object)->DeselectExpression();
+                                    ds->Object.exp->DeselectExpression();
                                 break;
                             }
-                            else if (ds->Type == 2 && nChar == ' ')
+                            else if (ds->Type == DRAWING && nChar == ' ')
                             {
-                                CDrawing* d = (CDrawing*)ds->Object;
+                                CDrawing* d = ds->Object.draw;
                                 int nodeedit;
                                 if (d->SelectObjectAtPoint(DC, ViewZoom, (absX - ds->absolute_X) * ViewZoom / 100,
                                                            (absY - ds->absolute_Y) * ViewZoom / 100, &nodeedit))
@@ -6495,15 +6503,15 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 absY = (absY + GRID / 2) / GRID * GRID;
                             }
 
-                            AddDocumentObject(1, absX, absY);
+                            AddDocumentObject(EXPRESSION, absX, absY);
                             tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
 
-                            ds->Object = (CObject*)new CExpression(nullptr,nullptr, fontsize);
+                            ds->Object.exp = new CExpression(nullptr,nullptr, fontsize);
 
                             if (SpacebarPressedRecently) make_text = 1;
 
-                            ((CExpression*)ds->Object)->m_Selection = 1;
-                            ((CExpression*)ds->Object)->m_ModeDefinedAt = 1 + (make_text << 14);
+                            ds->Object.exp->m_Selection = 1;
+                            ds->Object.exp->m_ModeDefinedAt = 1 + (make_text << 14);
                             if (make_text)
                             {
                                 nFlags = Toolbox->GetUniformFormatting();
@@ -6512,14 +6520,14 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
 
                             int x, y;
                             POINT pp;
-                            if (((CExpression*)ds->Object)->KeyboardQuickType(
+                            if (ds->Object.exp->KeyboardQuickType(
                                 DC, ViewZoom, nChar, nRepCnt, nFlags, fcolor, &x, &y))
                             {
                                 QuickTypeUsed = 2;
                                 IsSpacebarOnlyHit = 0;
 
-                                if (((CExpression*)ds->Object)->m_pElementList->pElementObject)
-                                    ((CExpression*)ds->Object)->m_pElementList->pElementObject->m_Text = make_text;
+                                if (ds->Object.exp->m_pElementList->pElementObject)
+                                    ds->Object.exp->m_pElementList->pElementObject->m_Text = make_text;
                                 /*else if (nChar==' ')
                                 {
                                     ((CExpression*)(ds->Object))->m_StartAsText=1;
@@ -6533,7 +6541,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                             }
 
                             short l, a, b;
-                            ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                             ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                             ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                             ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -6911,7 +6919,7 @@ void CMathomirView::OnTimer(UINT nIDEvent)
                 while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
                 int i;
                 for (i = 0; i < NumDocumentElements; i++)
-                    if (TheDocument[i].Object == (CObject*)parent) break;
+                    if (TheDocument[i].Object.exp == parent) break;
                 if (i < NumDocumentElements)
                 {
                     //LongClickObject->DeleteSelection();
@@ -7346,7 +7354,7 @@ void CMathomirView::SelectLastOrTouchedObject()
                     found_something = 1;
                     break;
                 }
-                else if (TheDocument[i].Type == 1)
+                else if (TheDocument[i].Type == EXPRESSION)
                 {
                     //if we are editing this expression by quick-type then we should allow Enter
                     //CExpression *ex=(CExpression*)TheDocument[i].Object;
@@ -7362,9 +7370,9 @@ void CMathomirView::SelectLastOrTouchedObject()
                     found_something = 1;
                     break;
                 }
-                else if (TheDocument[i].Type == 2)
+                else if (TheDocument[i].Type == DRAWING)
                 {
-                    CDrawing* drw = (CDrawing*)TheDocument[i].Object;
+                    CDrawing* drw = TheDocument[i].Object.draw;
                     if (drw->IsSelected)
                     {
                         TheDocument[i].MovingDotState = 3;
@@ -7606,9 +7614,9 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
     int borderY = 3 + ViewZoom / 256;
     int borderX = 3 + ViewZoom / 256;
     int borderXsupplement = 0;
-    if (ds->Type == 1 && ds->Object)
+    if (ds->Type == EXPRESSION && ds->Object.exp)
     {
-        borderXsupplement = ((CExpression*)ds->Object)->m_MarginX / 2;
+        borderXsupplement = ds->Object.exp->m_MarginX / 2;
         borderX += borderXsupplement;
     }
     RECT rct;
@@ -7645,7 +7653,7 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
 
     //drawing page borders (if at the border)
     if (!ViewOnlyMode)
-        if (ds->Type != 2)
+        if (ds->Type != DRAWING)
         {
             int RelativeLeft = (15 - ViewX) * ViewZoom / 100 + (ViewX - ds->absolute_X) * ViewZoom / 100;
             int RelativeRight = (15 - ViewX + PaperWidth) * ViewZoom / 100 + (ViewX - ds->absolute_X) * ViewZoom / 100;
@@ -7671,10 +7679,10 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
     if (MouseMode != 9 && MouseMode != 11) //not stretching nor rotating
         if (ds->MovingDotState == 3)
         {
-            if (ds->Type == 1)
-                ((CExpression*)ds->Object)->SelectExpression(TemporaryShowColoredSelection ? 0 : 1);
-            else if (ds->Type == 2)
-                ((CDrawing*)ds->Object)->SelectDrawing(TemporaryShowColoredSelection ? 0 : 2);
+            if (ds->Type == EXPRESSION)
+                ds->Object.exp->SelectExpression(TemporaryShowColoredSelection ? 0 : 1);
+            else if (ds->Type == DRAWING)
+                ds->Object.draw->SelectDrawing(TemporaryShowColoredSelection ? 0 : 2);
         }
 
     //paint the object
@@ -7690,10 +7698,10 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
         tmpr.top = max(0, -y);
         tmpr.bottom = min(TheClientRect.bottom-y, rct.bottom);
 
-        if (ds->Type == 1)
-            ((CExpression*)ds->Object)->PaintExpression(bitmapDC, ViewZoom, borderX, inY + borderY, &tmpr);
-        else if (ds->Type == 2)
-            ((CDrawing*)ds->Object)->PaintDrawing(bitmapDC, -ViewZoom, borderX, inY + borderY, ds->absolute_X,
+        if (ds->Type == EXPRESSION)
+            ds->Object.exp->PaintExpression(bitmapDC, ViewZoom, borderX, inY + borderY, &tmpr);
+        else if (ds->Type == DRAWING)
+            ds->Object.draw->PaintDrawing(bitmapDC, -ViewZoom, borderX, inY + borderY, ds->absolute_X,
                                                   ds->absolute_Y, &tmpr);
 
         //also paint the special drawing objects
@@ -7703,11 +7711,11 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
             SpecialDrawingHover->absolute_Y + SpecialDrawingHover->Below >= ds->absolute_Y - ds->Above &&
             SpecialDrawingHover->absolute_Y <= ds->absolute_Y + ds->Below)
         {
-            if (((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing == 50) //drawing box
+            if (SpecialDrawingHover->Object.draw->IsSpecialDrawing == 50) //drawing box
             {
                 short deltaX = (SpecialDrawingHover->absolute_X - ds->absolute_X) * ViewZoom / 100;
                 short deltaY = (SpecialDrawingHover->absolute_Y - ds->absolute_Y - ds->Above) * ViewZoom / 100;
-                ((CDrawing*)SpecialDrawingHover->Object)->PaintDrawing(
+                SpecialDrawingHover->Object.draw->PaintDrawing(
                     bitmapDC, -ViewZoom, borderX + deltaX, 2 * inY + borderY + deltaY, SpecialDrawingHover->absolute_X,
                     SpecialDrawingHover->absolute_Y);
             }
@@ -7718,7 +7726,7 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
     PaintDrawingHotspot(1);
 
     //painting the moving dot
-    if (ds->Type == 1)
+    if (ds->Type == EXPRESSION)
     {
         int mds = max(MovingDotSize, MovingDotSize*(ViewZoom+420)/512);
         if (ds->MovingDotState == 2 /*|| (ds->MovingDotState==3)*/)
@@ -7740,7 +7748,7 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
 
 
     //bit-blt or transparent blt of the object to the window
-    if (ds->Type == 2 && ds->Object && ((CDrawing*)ds->Object)->IsSpecialDrawing != 51)
+    if (ds->Type == DRAWING && ds->Object.draw && ds->Object.draw->IsSpecialDrawing != 51)
     {
         DC->TransparentBlt(x, y, rct.right, rct.bottom, bitmapDC, 0, 0, rct.right, rct.bottom,RGB(255, 255, 255));
     }
@@ -7755,7 +7763,7 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
             int prop = DC->SetROP2(R2_MASKPEN);
 
             HBRUSH br = CreateSolidBrush(RGB(224, 224, 255));
-            HPEN pn = GetPenFromPool(1, 0, ds->Type == 1 ? PALE_RGB(BLUE_COLOR) : RGB(240, 240, 255));
+            HPEN pn = GetPenFromPool(1, 0, ds->Type == EXPRESSION ? PALE_RGB(BLUE_COLOR) : RGB(240, 240, 255));
             HBRUSH obr = (HBRUSH)DC->SelectObject(br);
             DC->SelectObject(pn);
 
@@ -7837,18 +7845,18 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                     Popup->ShowPopupMenu(nullptr, this, 2, 0);
                                     break;
                                 }
-                                else if (ds->Object)
+                                else if (ds->Object.v)
                                 {
-                                    if (ds->Type == 1)
+                                    if (ds->Type == EXPRESSION)
                                     {
                                         CExpression* selection;
-                                        selection = ((CExpression*)ds->Object)->AdjustSelection();
+                                        selection = ds->Object.exp->AdjustSelection();
 
 
                                         if (selection == nullptr)
                                         {
                                             //handling for 'quick selection' (right click at insertion point)
-                                            CExpression* obj = (CExpression*)ds->Object;
+                                            CExpression* obj = ds->Object.exp;
                                             CDC* DC = this->GetDC();
                                             short is_expression;
                                             char is_parenthese;
@@ -7954,7 +7962,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                                         GentlyPaintObject(ds, DC);
                                                         this->ReleaseDC(DC);
                                                         QuickSelectActive = 1;
-                                                        selection = ((CExpression*)ds->Object)->AdjustSelection();
+                                                        selection = ds->Object.exp->AdjustSelection();
                                                     }
                                                     else
                                                         obj->DeselectExpression();
@@ -7963,14 +7971,14 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                         }
 
                                         int NumSelected = 0;
-                                        if (ds->Object == (CObject*)selection)
+                                        if (ds->Object.exp == selection)
                                         {
                                             tDocumentStruct* ds2 = TheDocument;
                                             for (int jj = 0; jj < NumDocumentElements; jj++, ds2++)
                                             {
-                                                if (ds2->Type == 1 && ((CExpression*)ds2->Object)->m_Selection ==
+                                                if (ds2->Type == EXPRESSION && ds2->Object.exp->m_Selection ==
                                                     0x7FFF) NumSelected++;
-                                                if (ds2->Type == 2 && ((CDrawing*)ds2->Object)->IsSelected)
+                                                else if (ds2->Type == DRAWING && ds2->Object.draw->IsSelected)
                                                     NumSelected++;
                                             }
                                         }
@@ -7992,13 +8000,13 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                         }
                                         QuickSelectActive = 0;
                                     }
-                                    if (ds->Type == 2 && ds->Object)
+                                    if (ds->Type == DRAWING && ds->Object.draw)
                                     {
                                         int NodeEdit;
                                         CDC* DC = this->GetDC();
                                         int X = point.x - (ds->absolute_X - ViewX) * ViewZoom / 100;
                                         int Y = point.y - (ds->absolute_Y - ViewY) * ViewZoom / 100;
-                                        CObject* obj = ((CDrawing*)ds->Object)->SelectObjectAtPoint(
+                                        CObject* obj = ds->Object.draw->SelectObjectAtPoint(
                                             DC, ViewZoom, X, Y, &NodeEdit);
                                         this->ReleaseDC(DC);
 
@@ -8047,8 +8055,10 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                         {
                             if (ds->MovingDotState == 3 || ds->MovingDotState == 4)
                             {
-                                if (ds->Type == 1) ((CExpression*)ds->Object)->DeselectExpression();
-                                else if (ds->Type == 2) ((CDrawing*)ds->Object)->SelectDrawing(0);
+                                if (ds->Type == EXPRESSION)
+                                    ds->Object.exp->DeselectExpression();
+                                else if (ds->Type == DRAWING)
+                                    ds->Object.draw->SelectDrawing(0);
                                 anything = 1;
                                 is_deselected = 1;
                             }
@@ -8066,7 +8076,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                 if (expr->m_pPaternalExpression == nullptr)
                                     if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->
                                         m_NumElements == 0)
-                                        if (KeyboardEntryBaseObject->Type == 1)
+                                        if (KeyboardEntryBaseObject->Type == EXPRESSION)
                                             DeleteDocumentObject(KeyboardEntryBaseObject);
                                 KeyboardEntryObject = nullptr;
                                 KeyboardEntryBaseObject = nullptr;
@@ -8177,16 +8187,16 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
                     if (IsInsertionPointTouched != ds)
                     {
-                        if (ds->Type != 1) continue;
+                        if (ds->Type != EXPRESSION) continue;
                         if (AbsoluteX < ds->absolute_X || AbsoluteX > ds->absolute_X + ds->Length ||
                             AbsoluteY < ds->absolute_Y - ds->Above || AbsoluteY > ds->absolute_Y + ds->Below + ccc)
                             continue;
                     }
 
-                    CExpression* selection = ((CExpression*)ds->Object)->AdjustSelection();
+                    CExpression* selection = ds->Object.exp->AdjustSelection();
 
 
-                    if (ClipboardExpression && ds->Type == 1 && ds->MovingDotState != 5 && !ViewOnlyMode && LeftClickTimer < 4)
+                    if (ClipboardExpression && ds->Type == EXPRESSION && ds->MovingDotState != 5 && !ViewOnlyMode && LeftClickTimer < 4)
                     {
                         CDC* DC = this->GetDC();
                         //if clipboard is non-empty, place down
@@ -8195,10 +8205,10 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             UndoSave("insert into", 20303);
                             int X = point.x - (ds->absolute_X - ViewX) * ViewZoom / 100;
                             int Y = point.y - (ds->absolute_Y - ViewY) * ViewZoom / 100;
-                            CExpression* dst = ((CExpression*)ds->Object)->CopyAtPoint(
+                            CExpression* dst = ds->Object.exp->CopyAtPoint(
                                 DC, ViewZoom, X, Y, ClipboardExpression);
                             short l, a, b;
-                            ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                             char RepaintAll = 0;
                             l = (short)((int)l * 100 / (int)ViewZoom);
                             a = (short)((int)a * 100 / (int)ViewZoom);
@@ -8286,7 +8296,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                     int Y = point.y - (ds->absolute_Y - ViewY) * ViewZoom / 100;
                     CObject* obj;
                     CDC* DC = GetDC();
-                    obj = ((CExpression*)ds->Object)->SelectObjectAtPoint(
+                    obj = ds->Object.exp->SelectObjectAtPoint(
                         DC, ViewZoom, X, Y, &IsExpression, &IsParenthese);
                     if (obj && !IsExpression && LeftClickTimer < 4)
                     {
@@ -8303,9 +8313,9 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                                 if (expr->m_pPaternalExpression == nullptr)
                                     if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->
                                         m_NumElements == 0)
-                                        if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == 1)
+                                        if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
                                         {
-                                            if (obj != KeyboardEntryBaseObject->Object)
+                                            if (obj != (CObject*)KeyboardEntryBaseObject->Object.v)
                                                 DeleteDocumentObject(KeyboardEntryBaseObject);
                                         }
                             }
@@ -8316,9 +8326,9 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             selection->KeyboardStart(DC, ViewZoom);
 
                             short l, a, b;
-                            ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                             int XX, YY;
-                            ((CExpression*)ds->Object)->GetKeyboardCursorPos(&XX, &YY);
+                            ds->Object.exp->GetKeyboardCursorPos(&XX, &YY);
                             XX += (ds->absolute_X - ViewX) * ViewZoom / 100;
                             YY += (ds->absolute_Y - ViewY) * ViewZoom / 100;
                             if (abs(XX - point.x) > 20)
@@ -8347,9 +8357,9 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             if (expr->m_pPaternalExpression == nullptr)
                                 if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->
                                     m_NumElements == 0)
-                                    if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == 1)
+                                    if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
                                     {
-                                        if (obj != KeyboardEntryBaseObject->Object)
+                                        if (obj != (CObject*)KeyboardEntryBaseObject->Object.v)
                                             DeleteDocumentObject(KeyboardEntryBaseObject);
                                         RepaintTheView();
                                     }
@@ -8367,9 +8377,9 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         ((CExpression*)obj)->KeyboardStart(DC, ViewZoom);
 
                         short l, a, b;
-                        ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                        ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                         int XX, YY;
-                        ((CExpression*)ds->Object)->GetKeyboardCursorPos(&XX, &YY);
+                        ds->Object.exp->GetKeyboardCursorPos(&XX, &YY);
                         XX += (ds->absolute_X - ViewX) * ViewZoom / 100;
                         YY += (ds->absolute_Y - ViewY) * ViewZoom / 100;
                         if (abs(XX - point.x) > 20)
@@ -8390,16 +8400,16 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         //it may be that it is clicked on the keyboard cursor itself - check it
 
                         if (!WasWindowOutOfFocus)
-                            if (ds->Object == KeyboardEntryObject && ((CExpression*)ds->Object)->m_IsKeyboardEntry)
+                            if ((CObject*)ds->Object.v == KeyboardEntryObject && ds->Object.exp->m_IsKeyboardEntry)
                             {
                                 int cX, cY;
-                                if (((CExpression*)ds->Object)->GetKeyboardCursorPos(&cX, &cY))
+                                if (ds->Object.exp->GetKeyboardCursorPos(&cX, &cY))
                                 {
-                                    int ActualSize = ((CExpression*)ds->Object)->GetActualFontSize(ViewZoom);
+                                    int ActualSize = ds->Object.exp->GetActualFontSize(ViewZoom);
                                     if (X >= cX - ActualSize / 5 && X < cX + ActualSize / 6 && Y > cY - ActualSize
                                         / 3 && Y < cY + ActualSize / 3)
                                     {
-                                        CExpression* exp = (CExpression*)ds->Object;
+                                        CExpression* exp = ds->Object.exp;
                                         tElementStruct* ts = exp->m_pElementList + exp->m_IsKeyboardEntry - 1;
                                         if (ts->Type == 1 && exp->m_KeyboardCursorPos == 0 && ts->pElementObject->
                                             Data1[0] == 0)
@@ -8433,7 +8443,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
             int cy = AbsoluteY - MovingStartY;
 
             if (SpecialDrawingHover &&
-                ((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing == 50)
+                SpecialDrawingHover->Object.draw->IsSpecialDrawing == 50)
             {
                 if (GetKeyState(VK_MENU) & 0xFFFE)
                 {
@@ -8502,16 +8512,16 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
             if (MovingFirstMove)
             {
                 if (SelectedDocumentObject && SelectedDocumentObject->MovingDotState == 2)
-                    if (SelectedDocumentObject->Type == 1 &&
-                        (((CExpression*)SelectedDocumentObject->Object)->m_NumElements > 1 ||
-                            ((CExpression*)SelectedDocumentObject->Object)->m_pElementList->Type))
+                    if (SelectedDocumentObject->Type == EXPRESSION &&
+                        (SelectedDocumentObject->Object.exp->m_NumElements > 1 ||
+                            SelectedDocumentObject->Object.exp->m_pElementList->Type))
                     {
                         if (ClipboardExpression) delete ClipboardExpression;
                         ClipboardExpression = new CExpression(nullptr,nullptr, 100);
-                        ClipboardExpression->CopyExpression((CExpression*)SelectedDocumentObject->Object, 1);
+                        ClipboardExpression->CopyExpression(SelectedDocumentObject->Object.exp, 1);
                         ClipboardExpression->m_InternalInsertionPoint = 0;
                         RootObjectCopy = ClipboardExpression->CalcChecksum();
-                        RootObjectFontSize = ((CExpression*)SelectedDocumentObject->Object)->m_FontSize;
+                        RootObjectFontSize = SelectedDocumentObject->Object.exp->m_FontSize;
                     }
             }
 
@@ -8614,7 +8624,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
                     UndoSave("drawing", 20409);
 
-                    AddDocumentObject(2, MovingStartX / 10 + x, MovingStartY / 10 + y);
+                    AddDocumentObject(DRAWING, MovingStartX / 10 + x, MovingStartY / 10 + y);
 
                     tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
                     LastDrawingCreated = NumDocumentElements - 1;
@@ -8622,7 +8632,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                     ds->Below = h;
                     ds->Length = w;
                     ds->MovingDotState = 0;
-                    ds->Object = (CObject*)tmpDrawing;
+                    ds->Object.draw = tmpDrawing;
                     if (tmpDrawing && tmpDrawing->IsSpecialDrawing) IsDrawingMode = 0;
                     tmpDrawing = nullptr;
                 }
@@ -8667,9 +8677,9 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
         if (MouseMode == 0)
         {
-            if (SpecialDrawingHover && SpecialDrawingHover->Object && SpecialDrawingHover->Type == 2)
+            if (SpecialDrawingHover && SpecialDrawingHover->Type == DRAWING && SpecialDrawingHover->Object.draw)
             {
-                ((CDrawing*)SpecialDrawingHover->Object)->MouseClick(0x7FFFFFFF, 0x7FFFFFFF);
+                SpecialDrawingHover->Object.draw->MouseClick(0x7FFFFFFF, 0x7FFFFFFF);
             }
         }
 
@@ -8683,10 +8693,10 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                     if (TheDocument[i].MovingDotState == 3)
                     {
                         TheDocument[i].MovingDotState = 0;
-                        if (TheDocument[i].Type == 1 && TheDocument[i].Object)
-                            ((CExpression*)TheDocument[i].Object)->DeselectExpression();
-                        if (TheDocument[i].Type == 2 && TheDocument[i].Object)
-                            ((CDrawing*)TheDocument[i].Object)->SelectDrawing(0);
+                        if (TheDocument[i].Type == EXPRESSION && TheDocument[i].Object.exp)
+                            TheDocument[i].Object.exp->DeselectExpression();
+                        else if (TheDocument[i].Type == DRAWING && TheDocument[i].Object.draw)
+                            TheDocument[i].Object.draw->SelectDrawing(0);
                         MultipleModeWasAccepted = 0;
                     }
             }
@@ -8706,14 +8716,14 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                 }
                 if (!IsDrawingMode)
                 {
-                    if (NewlineAddObject >= 0 && (NewlineAddObject & 0x3FFFFFFF) < NumDocumentElements && TheDocument[NewlineAddObject & 0x3FFFFFFF].Type == 1)
+                    if (NewlineAddObject >= 0 && (NewlineAddObject & 0x3FFFFFFF) < NumDocumentElements && TheDocument[NewlineAddObject & 0x3FFFFFFF].Type == EXPRESSION)
                     {
                         int mark_for_redraw = 0;
                         if (KeyboardEntryObject && KeyboardEntryBaseObject)
                         {
                             mark_for_redraw = 1;
                             CExpression* ee = (CExpression*)KeyboardEntryObject;
-                            if (KeyboardEntryBaseObject->Object == KeyboardEntryObject &&
+                            if (KeyboardEntryBaseObject->Object.v == KeyboardEntryObject &&
                                 ee->m_NumElements == 1 &&
                                 (ee->m_pElementList->Type == 0 || (ee->m_pElementList->Type == 1 && ee->
                                     m_pElementList->pElementObject->Data1[0] == 0)))
@@ -8729,7 +8739,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         }
 
                         //clicked just below a multiline or text object - we will append a new line to that object
-                        CExpression* e = (CExpression*)TheDocument[NewlineAddObject & 0x3FFFFFFF].Object;
+                        CExpression* e = TheDocument[NewlineAddObject & 0x3FFFFFFF].Object.exp;
                         int last_obj = e->m_NumElements - 1;
                         if ((e->m_pElementList + last_obj)->Type != 2 || (e->m_pElementList + last_obj)->
                                                                          pElementObject->Data1[0] != (char)0xFF)
@@ -8799,8 +8809,8 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         else
                             drw->UpdateCreatingItem((x2 - x1) * 10, width * 10, MultipleX, MultipleY);
                         drw->EndCreatingItem(&x1, &y1);
-                        AddDocumentObject(2, MultipleStartX + x1, MultipleStartY + y1);
-                        TheDocument[NumDocumentElements - 1].Object = (CObject*)drw;
+                        AddDocumentObject(DRAWING, MultipleStartX + x1, MultipleStartY + y1);
+                        TheDocument[NumDocumentElements - 1].Object.draw = drw;
                         drw->SetLineWidth(w * DRWZOOM / 4);
                         drw->SetColor(0);
                     }
@@ -8833,9 +8843,9 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 int CMathomirView::PopupCloses(int UserParam, int ExitCode)
 {
     for (int ii = 0; ii < NumDocumentElements; ii++)
-        if (TheDocument[ii].Type == 2 && TheDocument[ii].Object &&
-            ((CDrawing*)TheDocument[ii].Object)->IsSelected)
-            ((CDrawing*)TheDocument[ii].Object)->SelectDrawing(0);
+        if (TheDocument[ii].Type == DRAWING && TheDocument[ii].Object.draw &&
+            TheDocument[ii].Object.draw->IsSelected)
+            TheDocument[ii].Object.draw->SelectDrawing(0);
 
     //popup menu has been closed, so repaint the entire screen, and recalculate sizes
     if (m_PopupMenuObject && m_PopupMenuObject >= TheDocument && m_PopupMenuObject - TheDocument <
@@ -8843,10 +8853,10 @@ int CMathomirView::PopupCloses(int UserParam, int ExitCode)
     {
         if (ExitCode == 1 || ExitCode == 2) //DEL or CUT
         {
-            if (m_PopupMenuObject->Type == 1)
+            if (m_PopupMenuObject->Type == EXPRESSION)
             {
                 //check if the object is entriely empty. If yes, delete the object
-                CExpression* expr = (CExpression*)m_PopupMenuObject->Object;
+                CExpression* expr = m_PopupMenuObject->Object.exp;
                 if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->m_NumElements == 0)
                 {
                     DeleteDocumentObject(m_PopupMenuObject);
@@ -8861,10 +8871,10 @@ int CMathomirView::PopupCloses(int UserParam, int ExitCode)
             CDC* DC;
             DC = GetDC();
             short l, a = 0, b = 32767;
-            if (m_PopupMenuObject->Type == 1)
-                ((CExpression*)m_PopupMenuObject->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
-            else if (m_PopupMenuObject->Type == 2)
-                ((CDrawing*)m_PopupMenuObject->Object)->CalculateSize(DC, ViewZoom, &l, &b);
+            if (m_PopupMenuObject->Type == EXPRESSION)
+                m_PopupMenuObject->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            else if (m_PopupMenuObject->Type == DRAWING)
+                m_PopupMenuObject->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
             if (b != 32767)
             {
                 m_PopupMenuObject->Above = a * 100 / ViewZoom;
@@ -9052,7 +9062,7 @@ int CMathomirView::PaintClipboard(int X, int Y)
         newx = X - MovingStartX * ViewZoom / 100;
         newy = Y - MovingStartY * ViewZoom / 100;
 
-        if (SpecialDrawingHover == nullptr || ((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing != 50)
+        if (SpecialDrawingHover == nullptr || SpecialDrawingHover->Object.draw->IsSpecialDrawing != 50)
             //note: we dont use snap to grid inside drawing box
             if (IsShowGrid && !(GetKeyState(VK_MENU) & 0xFFFE))
             {
@@ -9175,15 +9185,15 @@ int CMathomirView::DeleteDocumentObject(tDocumentStruct* object)
             if (m_PopupMenuObject > object) m_PopupMenuObject--;
             LongClickObject = nullptr;
 
-            if (object->Type == 1)
+            if (object->Type == EXPRESSION)
             {
                 //((CExpression*)(object->Object))->Delete();
-                delete (CExpression*)object->Object;
+                delete object->Object.exp;
             }
-            else if (object->Type == 2)
+            else if (object->Type == DRAWING)
             {
                 //((CDrawing*)(object->Object))->Delete();
-                delete (CDrawing*)object->Object;
+                delete (CDrawing*)object->Object.exp;
             }
 
             //int j;
@@ -9396,7 +9406,7 @@ void CMathomirView::OnEditCut()
             }
         }
 
-        if (!ok && IsDrawingMode && TheDocument[NumDocumentElements - 1].Type == 2)
+        if (!ok && IsDrawingMode && TheDocument[NumDocumentElements - 1].Type == DRAWING)
         {
             //we didn't find anything selected - then delete the last drawing that was created
             UndoSave("cut selection", 20412);
@@ -9445,8 +9455,8 @@ void CMathomirView::OnEditPaste()
             if (ds2->MovingDotState == 3)
             {
                 int actX = 0, actY = 0;
-                if (ds2->Type == 2 && ds2->Object)
-                    ((CDrawing*)ds2->Object)->FindRealCorner(&actX, &actY);
+                if (ds2->Type == DRAWING && ds2->Object.draw)
+                    ds2->Object.draw->FindRealCorner(&actX, &actY);
                 if (ds2->absolute_X + actX < minX)
                 {
                     minX = ds2->absolute_X + actX;
@@ -9533,8 +9543,8 @@ void CMathomirView::OnEditPaste()
                     ((CBitmapImage*)elem->SpecialData)->editing = 0;
                     ((CBitmapImage*)elem->SpecialData)->ShowMenu = 0;
 
-                    AddDocumentObject(2, ViewX + 1000 / ViewZoom, ViewY + 1000 / ViewZoom);
-                    TheDocument[NumDocumentElements - 1].Object = (CObject*)elem;
+                    AddDocumentObject(DRAWING, ViewX + 1000 / ViewZoom, ViewY + 1000 / ViewZoom);
+                    TheDocument[NumDocumentElements - 1].Object.draw = elem;
                 }
             }
             CloseClipboard();
@@ -9737,7 +9747,7 @@ void CMathomirView::OnEditCopyImage()
     for (i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = TheDocument + i;
-        if (ds->MovingDotState == 3 && ds->Type == 2) //selected
+        if (ds->MovingDotState == 3 && ds->Type == DRAWING) //selected
             numsel++;
     }
     for (i = 0; i < NumDocumentElements; i++)
@@ -9745,15 +9755,15 @@ void CMathomirView::OnEditCopyImage()
         tDocumentStruct* ds = TheDocument + i;
         if (ds->MovingDotState == 3) //selected
         {
-            if (ds->Type == 1)
+            if (ds->Type == EXPRESSION)
             {
-                ((CExpression*)ds->Object)->DeselectExpression();
-                ((CExpression*)ds->Object)->CalculateSize(*DC, ImageSize, l, &a, &b, -1, numsel ? 0 : 1);
+                ds->Object.exp->DeselectExpression();
+                ds->Object.exp->CalculateSize(*DC, ImageSize, l, &a, &b, -1, numsel ? 0 : 1);
             }
-            else if (ds->Type == 2)
+            else if (ds->Type == DRAWING)
             {
-                ((CDrawing*)ds->Object)->SelectDrawing(0);
-                ((CDrawing*)ds->Object)->CalculateSize(DC, ImageSize, &l, &b);
+                ds->Object.draw->SelectDrawing(0);
+                ds->Object.draw->CalculateSize(DC, ImageSize, &l, &b);
                 a = 0;
             }
             ds->Above = a;
@@ -9785,15 +9795,15 @@ void CMathomirView::OnEditCopyImage()
             int FactY = ds->absolute_Y * ImageSize / 100;
             PrintRendering = 1;
             bmpDC.SetBkMode(OPAQUE);
-            if (ds->Type == 1)
+            if (ds->Type == EXPRESSION)
             {
-                ((CExpression*)ds->Object)->PaintExpression(&bmpDC, ImageSize, FactX - X1 + 3, FactY - Y1 + 3);
-                ((CExpression*)ds->Object)->SelectExpression(1);
+                ds->Object.exp->PaintExpression(&bmpDC, ImageSize, FactX - X1 + 3, FactY - Y1 + 3);
+                ds->Object.exp->SelectExpression(1);
             }
-            else if (ds->Type == 2)
+            else if (ds->Type == DRAWING)
             {
-                ((CDrawing*)ds->Object)->PaintDrawing(&bmpDC, ImageSize, FactX - X1 + 3, FactY - Y1 + 3, -1, -1);
-                ((CDrawing*)ds->Object)->SelectDrawing(1);
+                ds->Object.draw->PaintDrawing(&bmpDC, ImageSize, FactX - X1 + 3, FactY - Y1 + 3, -1, -1);
+                ds->Object.draw->SelectDrawing(1);
             }
             PrintRendering = 0;
         }
@@ -9818,10 +9828,10 @@ void CMathomirView::OnEditCopyImage()
     {
         tDocumentStruct* ds = TheDocument + i;
         a = 0;
-        if (ds->Type == 1)
-            ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
-        else if (ds->Type == 2)
-            ((CDrawing*)ds->Object)->CalculateSize(DC, ViewZoom, &l, &b);
+        if (ds->Type == EXPRESSION)
+            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+        else if (ds->Type == DRAWING)
+            ds->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
 
         ds->Above = a * 100 / ViewZoom;
         ds->Below = b * 100 / ViewZoom;
@@ -10083,9 +10093,9 @@ void CMathomirView::OnEditUndo()
     int found_keyboard_entry = 0;
     for (i = 0; i < NumDocumentElements; i++)
     {
-        if (TheDocument[i].Type == 1 && TheDocument[i].Object)
+        if (TheDocument[i].Type == EXPRESSION && TheDocument[i].Object.exp)
         {
-            CExpression* expr = (CExpression*)TheDocument[i].Object;
+            CExpression* expr = TheDocument[i].Object.exp;
 
             //check if any object was in keyboard entry mode - if yes start the keyboard entry
             CObject* ret = expr->KeyboardFindEntryPos();
@@ -10258,7 +10268,7 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
     if (MouseMode != 9 && MouseMode != 11)
     {
         if (SpecialDrawingHover &&
-            ((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing == 50)
+            SpecialDrawingHover->Object.draw->IsSpecialDrawing == 50)
         {
             if (GetKeyState(VK_MENU) & 0xFFFE)
             {
@@ -10292,15 +10302,15 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
         {
             //NumDocumentElements++;
             //CheckDocumentMemoryReservations();
-            AddDocumentObject(2, 0, 0);
+            AddDocumentObject(DRAWING, 0, 0);
 
             tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
-            ds->Type = 2; //drawing
+            ds->Type = DRAWING; //drawing
             CDrawing* tmp = new CDrawing();
             tmp->CopyDrawing((CDrawing*)di->pSubdrawing);
-            ds->Object = (CObject*)tmp;
+            ds->Object.draw = tmp;
             short l = 0, a = 0, b = 0;
-            ((CDrawing*)ds->Object)->CalculateSize(DC, ViewZoom, &l, &b);
+            ds->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
             ds->Length = (short)((int)l * 100 / (int)ViewZoom);
             ds->Above = 0;
             ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -10319,16 +10329,16 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
         {
             //NumDocumentElements++;
             //CheckDocumentMemoryReservations();
-            AddDocumentObject(1, 0, 0);
+            AddDocumentObject(EXPRESSION, 0, 0);
 
             tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
             //ds->Type=1; //expression
             CExpression* tmp = new CExpression(nullptr,nullptr, ((CExpression*)di->pSubdrawing)->m_FontSize);
             //tmp->m_FontSizeHQ=((CExpression*)(di->pSubdrawing))->m_FontSizeHQ;
             tmp->CopyExpression((CExpression*)di->pSubdrawing, 0);
-            ds->Object = (CObject*)tmp;
+            ds->Object.exp = tmp;
             short l = 0, a = 0, b = 0;
-            ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
             ds->Length = (short)((int)l * 100 / (int)ViewZoom);
             ds->Above = (short)((int)a * 100 / (int)ViewZoom);
             ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -10402,11 +10412,11 @@ CObject* CMathomirView::ComposeDrawing(int* X, int* Y, int compose_from_selectio
     for (int iii = 0; iii < NumDocumentElements; iii++)
     {
         tDocumentStruct* ds2 = TheDocument + iii;
-        if (ds2->Object == nullptr) continue;
+        if (ds2->Object.v == nullptr) continue;
         if (ds2->MovingDotState == 5) continue; //locked object
 
-        if (ds2->Type == 2 &&
-            ((!compose_from_selection && ((CDrawing*)ds2->Object)->IsSelected && ds2->MovingDotState != 3) ||
+        if (ds2->Type == DRAWING &&
+            ((!compose_from_selection && ds2->Object.draw->IsSelected && ds2->MovingDotState != 3) ||
                 (compose_from_selection && ds2->MovingDotState == 3)))
         {
             if (ret == nullptr)
@@ -10415,15 +10425,14 @@ CObject* CMathomirView::ComposeDrawing(int* X, int* Y, int compose_from_selectio
                 *X = ds2->absolute_X;
                 *Y = ds2->absolute_Y;
             }
-            ret->CopyDrawingIntoSubgroup((CDrawing*)ds2->Object, ds2->absolute_X - *X, ds2->absolute_Y - *Y);
+            ret->CopyDrawingIntoSubgroup(ds2->Object.draw, ds2->absolute_X - *X, ds2->absolute_Y - *Y);
             int dx, dy, w, h;
             ret->AdjustCoordinates(&dx, &dy, &w, &h);
             *X += dx;
             *Y += dy;
             if (select_for_moving) ds2->MovingDotState = 4; //flag for deletion
-        }
-        if (ds2->Type == 1 &&
-            ((!compose_from_selection && ((CExpression*)ds2->Object)->m_Selection == 0x7FFF && ds2->
+        }else if (ds2->Type == EXPRESSION &&
+            ((!compose_from_selection && ds2->Object.exp->m_Selection == 0x7FFF && ds2->
                     MovingDotState != 3) ||
                 (compose_from_selection && ds2->MovingDotState == 3)))
         {
@@ -10433,7 +10442,7 @@ CObject* CMathomirView::ComposeDrawing(int* X, int* Y, int compose_from_selectio
                 *X = ds2->absolute_X;
                 *Y = ds2->absolute_Y - ds2->Above;
             }
-            ret->CopyExpressionIntoSubgroup((CExpression*)ds2->Object, ds2->absolute_X - *X,
+            ret->CopyExpressionIntoSubgroup(ds2->Object.exp, ds2->absolute_X - *X,
                                             ds2->absolute_Y - ds2->Above - *Y, ds2->Length, ds2->Above + ds2->Below);
             int dx, dy, w, h;
             ret->AdjustCoordinates(&dx, &dy, &w, &h);
@@ -10479,7 +10488,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
         KeyboardEntryObject = nullptr;
         if (expr->m_pPaternalExpression == nullptr)
             if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->m_NumElements == 0)
-                if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == 1)
+                if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
                 {
                     DeleteDocumentObject(KeyboardEntryBaseObject);
                     //RepaintTheView();
@@ -10494,7 +10503,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
         AbsoluteX=((AbsoluteX+GRID/2)/GRID)*GRID;
         AbsoluteY=((AbsoluteY+GRID/2)/GRID)*GRID;
     }*/
-    AddDocumentObject(1, AbsoluteX, AbsoluteY);
+    AddDocumentObject(EXPRESSION, AbsoluteX, AbsoluteY);
     tDocumentStruct* ds;
     ds = TheDocument + NumDocumentElements - 1;
 
@@ -10503,11 +10512,11 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
     //ds->absolute_Y=AbsoluteY;
     //int RelativeY=(AbsoluteY-ViewY)*(int)ViewZoom/100;
     //ds->Type=1; //expression
-    ds->Object = (CObject*)new CExpression(nullptr,nullptr, DefaultFontSize);
+    ds->Object.exp = new CExpression(nullptr,nullptr, DefaultFontSize);
     //if (start_textmode) {((CExpression*)(ds->Object))->m_IsText=1;((CExpression*)(ds->Object))->m_Alignment=1;} //if we need to start the text box
     short l, a, b;
     CDC* DC = this->GetDC();
-    ((CExpression*)ds->Object)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+    ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
     ds->Length = (short)((int)l * 100 / (int)ViewZoom);
     ds->Above = (short)((int)a * 100 / (int)ViewZoom);
     ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -10516,12 +10525,12 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
     if (ds->absolute_X + ds->Length + 20 > ViewMaxX) ViewMaxX = ds->absolute_X + ds->Length + 20;
     if (ds->absolute_Y + ds->Below + PaperHeight > ViewMaxY) ViewMaxY = ds->absolute_Y + ds->Below + PaperHeight;
 
-    ((CExpression*)ds->Object)->m_Selection = 0;
-    ((CExpression*)ds->Object)->KeyboardStart(DC, ViewZoom);
-    if (((CExpression*)ds->Object)->m_pElementList->pElementObject)
-        ((CExpression*)ds->Object)->m_pElementList->pElementObject->m_Text = (char)start_textmode;
-    ((CExpression*)ds->Object)->m_ModeDefinedAt = 1 + (start_textmode << 14);
-    KeyboardEntryObject = ds->Object;
+    ds->Object.exp->m_Selection = 0;
+    ds->Object.exp->KeyboardStart(DC, ViewZoom);
+    if (ds->Object.exp->m_pElementList->pElementObject)
+        ds->Object.exp->m_pElementList->pElementObject->m_Text = (char)start_textmode;
+    ds->Object.exp->m_ModeDefinedAt = 1 + (start_textmode << 14);
+    KeyboardEntryObject = (CObject*)ds->Object.v;
     KeyboardEntryBaseObject = ds;
     MultipleStartX = MultipleStartY = -1;
     GentlyPaintObject(ds, DC);
@@ -10868,7 +10877,7 @@ void CMathomirView::OnViewZoomin()
     if (KeyboardEntryObject && KeyboardEntryBaseObject)
     {
         int X, Y;
-        ((CExpression*)KeyboardEntryBaseObject->Object)->GetKeyboardCursorPos(&X, &Y);
+        KeyboardEntryBaseObject->Object.exp->GetKeyboardCursorPos(&X, &Y);
         X = X * 100 / ViewZoom;
         Y = Y * 100 / ViewZoom;
         X += KeyboardEntryBaseObject->absolute_X;
@@ -11278,9 +11287,9 @@ void CMathomirView::OnEditCopylatexcode()
     //len+=(int)strlen(head);
     for (int i = 0; i < NumDocumentElements; i++)
     {
-        if ((TheDocument + i)->MovingDotState == 3 && (TheDocument + i)->Type == 1)
+        if ((TheDocument + i)->MovingDotState == 3 && (TheDocument + i)->Type == EXPRESSION)
         {
-            len += ((CExpression*)(TheDocument + i)->Object)->LaTeX_output(nullptr, 1);
+            len += (TheDocument + i)->Object.exp->LaTeX_output(nullptr, 1);
             len += 6;
         }
     }
@@ -11292,7 +11301,7 @@ void CMathomirView::OnEditCopylatexcode()
     int start = 0;
     for (int i = 0; i < NumDocumentElements; i++)
     {
-        if ((TheDocument + i)->MovingDotState == 3 && (TheDocument + i)->Type == 1)
+        if ((TheDocument + i)->MovingDotState == 3 && (TheDocument + i)->Type == EXPRESSION)
         {
             if (start)
             {
@@ -11300,7 +11309,7 @@ void CMathomirView::OnEditCopylatexcode()
                 pnt += 6;
             }
             start++;
-            int tt = ((CExpression*)(TheDocument + i)->Object)->LaTeX_output(pnt, 0);
+            int tt = (TheDocument + i)->Object.exp->LaTeX_output(pnt, 0);
             pnt += tt;
         }
     }

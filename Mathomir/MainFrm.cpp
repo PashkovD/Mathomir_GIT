@@ -905,15 +905,15 @@ int CMainFrame::ClearDocument(void)
     {
         for (i = 0; i < NumDocumentElements; i++)
         {
-            if (TheDocument[i].Type == 1) //expression
+            if (TheDocument[i].Type == EXPRESSION)
             {
                 //((CExpression*)(TheDocument[i].Object))->Delete();
-                delete (CExpression*)TheDocument[i].Object;
+                delete TheDocument[i].Object.exp;
             }
-            else if (TheDocument[i].Type == 2) //drawing
+            else if (TheDocument[i].Type == DRAWING)
             {
                 //((CDrawing*)(TheDocument[i].Object))->Delete();
-                delete (CDrawing*)TheDocument[i].Object;
+                delete TheDocument[i].Object.draw;
             }
         }
         free(TheDocument);
@@ -936,7 +936,7 @@ int CMainFrame::ClearDocument(void)
 
 
 //adds new object to the document
-int AddDocumentObject(int type, int X, int Y)
+int AddDocumentObject(doc_type type, int X, int Y)
 {
     if (NumDocumentElementsReserved <= NumDocumentElements)
     {
@@ -997,7 +997,7 @@ int AddDocumentObject(int type, int X, int Y)
     TheDocument[NumDocumentElements].absolute_Y = Y;
     TheDocument[NumDocumentElements].Type = type;
     TheDocument[NumDocumentElements].MovingDotState = 0;
-    TheDocument[NumDocumentElements].Object = nullptr;
+    TheDocument[NumDocumentElements].Object.exp = nullptr;
     TheDocument[NumDocumentElements].Above = 0;
     TheDocument[NumDocumentElements].Below = 0;
     TheDocument[NumDocumentElements].Length = 0;
@@ -1401,7 +1401,7 @@ int CMainFrame::UndoInit(void)
 
     UndoNumObjects = 0;
     UndoNumObjectsReserved = 10;
-    pUndoObjectList = (tUndoObjectStruct*)malloc(10 * sizeof(tUndoObjectStruct));
+    pUndoObjectList = new tUndoObjectStruct[10];;
 
     for (i = 0; i < UndoNumLevels; i++)
     {
@@ -1501,10 +1501,10 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
     //calculate checksums
     tDocumentStruct* ds = TheDocument;
     for (i = 0; i < NumDocumentElements; i++, ds++)
-        if (ds->Object)
+        if (ds->Object.exp)
         {
-            if (ds->Type == 1) ds->Checksum = ((CExpression*)ds->Object)->CalcChecksum();
-            else if (ds->Type == 2) ds->Checksum = ((CDrawing*)ds->Object)->CalcChecksum();
+            if (ds->Type == EXPRESSION) ds->Checksum = ds->Object.exp->CalcChecksum();
+            else if (ds->Type == DRAWING) ds->Checksum = ds->Object.draw->CalcChecksum();
         }
 
     //store the main document structure
@@ -1525,7 +1525,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
         int j;
         tUndoObjectStruct* us = pUndoObjectList;
         for (j = 0; j < UndoNumObjects; j++, us++)
-            if (ds->Object == us->pOriginal && us->Type == ds->Type && ds->Checksum == us->Checksum)
+            if ((CObject*)ds->Object.exp == us->pOriginal && us->Type == ds->Type && ds->Checksum == us->Checksum)
                 break;
 
         if (j == UndoNumObjects)
@@ -1543,19 +1543,20 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
                 }
                 us = pUndoObjectList + UndoNumObjects;
             }
-            if (ds->Type == 1)
+            if (ds->Type == EXPRESSION)
             {
-                us->Checksum = ((CExpression*)ds->Object)->CalcChecksum();
-                us->pObject = (CObject*)new CExpression(nullptr, nullptr, ((CExpression*)ds->Object)->m_FontSize);
-                ((CExpression*)us->pObject)->CopyExpression((CExpression*)ds->Object, 2);
+                us->Checksum = ds->Object.exp->CalcChecksum();
+                us->pObject = (CObject*)new CExpression(nullptr, nullptr, ds->Object.exp->m_FontSize);
+                ((CExpression*)us->pObject)->CopyExpression(ds->Object.exp, 2);
+                us->pOriginal = (CObject*)ds->Object.exp;
             }
-            else if (ds->Type == 2)
+            else if (ds->Type == DRAWING)
             {
-                us->Checksum = ((CDrawing*)ds->Object)->CalcChecksum();
+                us->Checksum = ds->Object.draw->CalcChecksum();
                 us->pObject = (CObject*)new CDrawing();
-                ((CDrawing*)us->pObject)->CopyDrawing((CDrawing*)ds->Object);
+                ((CDrawing*)us->pObject)->CopyDrawing(ds->Object.draw);
+                us->pOriginal = (CObject*)ds->Object.draw;
             }
-            us->pOriginal = ds->Object;
             us->Type = ds->Type;
             us->UsedInLevel = 0;
             UndoNumObjects++;
@@ -1615,14 +1616,14 @@ int CMainFrame::UndoRestore()
     //objects that were not modified are not touched by undo restore.
     for (i = 0; i < NumDocumentElements; i++)
     {
-        if (TheDocument[i].Type == 1)
+        if (TheDocument[i].Type == EXPRESSION)
         {
             int j;
             int found = 0;
             for (j = 0; j < UndoNumObjects; j++)
-                if (TheDocument[i].Object == pUndoObjectList[j].pOriginal && pUndoObjectList[j].Type == TheDocument[
-                        i].Type &&
-                    ((CExpression*)TheDocument[i].Object)->CalcChecksum() == pUndoObjectList[j].Checksum)
+                if (TheDocument[i].Object.exp == (CExpression*)pUndoObjectList[j].pOriginal &&
+                    pUndoObjectList[j].Type == TheDocument[i].Type &&
+                    TheDocument[i].Object.exp->CalcChecksum() == pUndoObjectList[j].Checksum)
                 {
                     int tmp = 1 << UndoNumLevels - 1;
                     if (pUndoObjectList[j].UsedInLevel & tmp)
@@ -1638,19 +1639,16 @@ int CMainFrame::UndoRestore()
                 //it was modified
                 //so we will delete and latter recreate.
                 //((CExpression*)(TheDocument[i].Object))->Delete(); //MOD - removed (redundant)
-                delete (CExpression*)TheDocument[i].Object;
-                TheDocument[i].Object = nullptr;
+                delete TheDocument[i].Object.exp;
+                TheDocument[i].Object.exp = nullptr;
             }
-        }
-
-        if (TheDocument[i].Type == 2)
+        }else if (TheDocument[i].Type == DRAWING)
         {
-            int j;
             int found = 0;
-            for (j = 0; j < UndoNumObjects; j++)
-                if (TheDocument[i].Object == pUndoObjectList[j].pOriginal && pUndoObjectList[j].Type == TheDocument[
-                        i].Type &&
-                    ((CDrawing*)TheDocument[i].Object)->CalcChecksum() == pUndoObjectList[j].Checksum)
+            for (int j = 0; j < UndoNumObjects; j++)
+                if (TheDocument[i].Object.draw == (CDrawing*)pUndoObjectList[j].pOriginal &&
+                    pUndoObjectList[j].Type == TheDocument[i].Type &&
+                    TheDocument[i].Object.draw->CalcChecksum() == pUndoObjectList[j].Checksum)
                 {
                     int tmp = 1 << UndoNumLevels - 1;
                     if (pUndoObjectList[j].UsedInLevel & tmp)
@@ -1666,8 +1664,8 @@ int CMainFrame::UndoRestore()
                 //it was modified
                 //so we will delete and latter recreate.
                 //((CDrawing*)(TheDocument[i].Object))->Delete(); //MOD - removed (redundant)
-                delete (CDrawing*)TheDocument[i].Object;
-                TheDocument[i].Object = nullptr;
+                delete TheDocument[i].Object.draw;
+                TheDocument[i].Object.draw = nullptr;
             }
         }
     }
@@ -1691,14 +1689,14 @@ int CMainFrame::UndoRestore()
     for (i = 0; i < NumDocumentElements; i++)
     {
         //if (TheDocument[i].MovingDotState==4) TheDocument[i].MovingDotState=0;
-        if (TheDocument[i].Object)
+        if (TheDocument[i].Object.exp)
         {
             int cc = 1 << UndoNumLevels - 1; //MOD - added
             int j;
             int found = 0;
             for (j = 0; j < UndoNumObjects; j++)
-                if (TheDocument[i].Object == pUndoObjectList[j].pOriginal && pUndoObjectList[j].Type == TheDocument[
-                        i].Type &&
+                if ((CObject*)TheDocument[i].Object.exp == pUndoObjectList[j].pOriginal &&
+                    pUndoObjectList[j].Type == TheDocument[i].Type &&
                     TheDocument[i].Checksum == pUndoObjectList[j].Checksum &&
                     pUndoObjectList[j].UsedInLevel & cc) //MOD - strenghtened
                 {
@@ -1711,22 +1709,22 @@ int CMainFrame::UndoRestore()
                 int k;
                 //check if it also exists in the original documment, if yes keep it.
                 for (k = 0; k < oldDocNumElements; k++)
-                    if (oldDoc[k].Object == TheDocument[i].Object) break;
+                    if (oldDoc[k].Object.v == TheDocument[i].Object.v) break;
                 if (k == oldDocNumElements)
                 {
                     //we have to copy the object from our history list because it 
                     //doesn't exist in the original document
                     if (pUndoObjectList[j].Type == 1)
                     {
-                        TheDocument[i].Object = (CObject*)new CExpression(
+                        TheDocument[i].Object.exp = new CExpression(
                             nullptr, nullptr, ((CExpression*)pUndoObjectList[j].pObject)->m_FontSize);
-                        ((CExpression*)TheDocument[i].Object)->CopyExpression(
+                        TheDocument[i].Object.exp->CopyExpression(
                             (CExpression*)pUndoObjectList[j].pObject, 2);
                     }
                     else if (pUndoObjectList[j].Type == 2)
                     {
-                        TheDocument[i].Object = (CObject*)new CDrawing();
-                        ((CDrawing*)TheDocument[i].Object)->CopyDrawing((CDrawing*)pUndoObjectList[j].pObject);
+                        TheDocument[i].Object.draw = new CDrawing();
+                        TheDocument[i].Object.draw->CopyDrawing((CDrawing*)pUndoObjectList[j].pObject);
                     }
                 }
             }
@@ -1754,8 +1752,7 @@ int CMainFrame::UndoRestore()
 
     for (i = 0; i < UndoNumObjects; i++)
     {
-        int tmp;
-        tmp = 0xFFFF << UndoNumLevels; //MOD -it wa 1<<UndoNumLevels
+        int tmp = 0xFFFF << UndoNumLevels; //MOD -it wa 1<<UndoNumLevels
         tmp = ~tmp;
         pUndoObjectList[i].UsedInLevel = pUndoObjectList[i].UsedInLevel & tmp;
         if (pUndoObjectList[i].UsedInLevel == 0) //this object is not used anymore
@@ -1949,7 +1946,7 @@ int CMainFrame::RearangeObjects(int delta)
                         int minx2 = ds2->absolute_X;
                         int maxx2 = ds2->absolute_X + ds2->Length;
                         int miny2 = ds2->absolute_Y - ds2->Above;
-                        int maxy2 = ds2->absolute_Y + (ds2->Type == 1 ? 0 : ds2->Below);
+                        int maxy2 = ds2->absolute_Y + (ds2->Type == EXPRESSION ? 0 : ds2->Below);
                         if (maxx2 > minx && minx2 < maxx &&
                             maxy2 > miny && miny2 < maxy)
                         {
@@ -2115,7 +2112,7 @@ void DisplayShortText(const std::string& text, int x, int y, int langID, int fla
 }
 #pragma optimize("",on)
 
-int CopyTranslatedString(char* dest, const std::string& eng_defstr, int id, int destlen)
+int CopyTranslatedString(char* dest, const std::string& eng_defstr, int id, size_t destlen)
 {
     const char* defstr = eng_defstr.c_str();
     if (LanguageStrings && id < 36000)
@@ -2129,22 +2126,20 @@ int CopyTranslatedString(char* dest, const std::string& eng_defstr, int id, int 
         }
     }
 
-    int len = (int)strlen(defstr);
-    if (len > destlen - 1)
+    if (strlen(defstr) + 1 > destlen )
     {
         memcpy(dest, defstr, destlen - 1);
         dest[destlen - 1] = 0;
     }
     else
     {
-        strcpy(dest, defstr);
+        strcpy_s(dest, destlen, defstr);
     }
     return 1;
 }
 
 std::string GetTranslatedString(const std::string& eng_defstr, int id)
 {
-    std::string defstr = eng_defstr;
     if (LanguageStrings && id < 36000)
     {
         //language database exists - check for the translation
@@ -2152,11 +2147,11 @@ std::string GetTranslatedString(const std::string& eng_defstr, int id)
         unsigned short pntr = LanguagePointers[id];
         if (pntr != 0xFFFF)
         {
-            defstr = LanguageStrings + pntr;
+            return LanguageStrings + pntr;
         }
     }
 
-    return defstr;
+    return eng_defstr;
 }
 
 #pragma optimize("s",on)
@@ -2170,9 +2165,9 @@ int ExecuteLink(char* command)
     {
         tDocumentStruct* ds = TheDocument + i;
 
-        if (ds->Type == 1)
+        if (ds->Type == EXPRESSION)
         {
-            CExpression* e = (CExpression*)ds->Object;
+            CExpression* e = (CExpression*)ds->Object.draw;
             CExpression* label = e->GetLabel();
             if (e->m_IsHeadline || label)
             {
