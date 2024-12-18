@@ -255,13 +255,13 @@ int CDrawing::StartCreatingItem(int ItemForm)
 #pragma optimize("s",on)
 int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
 {
-    if ((GetKeyState(VK_SHIFT) & 0xFFFE) || (GetKeyState(VK_RBUTTON) & 0xFFFE)) //if the SHIFT key is held
+    if (GetKeyState(VK_SHIFT) & 0xFFFE || GetKeyState(VK_RBUTTON) & 0xFFFE) //if the SHIFT key is held
     {
-        if ((Drawing_temp_form == 1) || (Drawing_temp_form == 4) ||
-            ((Drawing_temp_form >= 8) && (Drawing_temp_form <= 13)) ||
-            ((Drawing_temp_form >= 15) && (Drawing_temp_form <= 17)) ||
-            ((Drawing_temp_form >= 20) && (Drawing_temp_form <= 23)) ||
-            (Drawing_temp_form == 27) || (Drawing_temp_form == 30))
+        if (Drawing_temp_form == 1 || Drawing_temp_form == 4 ||
+            (Drawing_temp_form >= 8 && Drawing_temp_form <= 13) ||
+            (Drawing_temp_form >= 15 && Drawing_temp_form <= 17) ||
+            (Drawing_temp_form >= 20 && Drawing_temp_form <= 23) ||
+            Drawing_temp_form == 27 || Drawing_temp_form == 30)
         {
             if (abs(X) < abs(Y))
             {
@@ -296,17 +296,17 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             else Y = -(int)((double)abs(X) * 0.866);
         }
 
-        if ((Drawing_temp_form == 2) || (Drawing_temp_form == 5))
+        if (Drawing_temp_form == 2 || Drawing_temp_form == 5)
         {
             if (abs(X) < abs(Y))
             {
                 if (abs(X) < abs(Y) / 2) X = 0;
-                else X = abs(Y) * ((X < 0) ? (-1) : 1);
+                else X = abs(Y) * (X < 0 ? -1 : 1);
             }
             else
             {
                 if (abs(Y) < abs(X) / 2) Y = 0;
-                else Y = abs(X) * ((Y < 0) ? (-1) : 1);
+                else Y = abs(X) * (Y < 0 ? -1 : 1);
             }
         }
     }
@@ -323,9 +323,9 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
 
     if (GetKeyState(VK_MENU) & 0xFFFE)
     {
-        if ((SpecialDrawingHover) &&
-            (((CDrawing*)(SpecialDrawingHover->Object))->IsSpecialDrawing == 50) &&
-            (IsDrawingMode != 6) && (IsDrawingMode != 7) && (IsDrawingMode != 25) && (IsDrawingMode != 26))
+        if (SpecialDrawingHover &&
+            ((CDrawing*)SpecialDrawingHover->Object)->IsSpecialDrawing == 50 &&
+            IsDrawingMode != 6 && IsDrawingMode != 7 && IsDrawingMode != 25 && IsDrawingMode != 26)
         {
             if (this->FindNerbyPoint(&absX, &absY, nullptr, 0, 0, 0, 0))
             {
@@ -339,7 +339,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
     }
 
 
-    if ((Drawing_temp_form == 1) || (Drawing_temp_form == 27)) //Rectangle, center drawn rectangle
+    if (Drawing_temp_form == 1 || Drawing_temp_form == 27) //Rectangle, center drawn rectangle
     {
         int x1, x2, y1, y2;
         if (Drawing_temp_form == 1)
@@ -363,9 +363,9 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             int lww = max(3*DRWZOOM/2, Items->LineWidth);
             if (len < 50 * lww) wdth = 3 * lww / 2;
             else wdth = 2 * lww;
-            if ((abs(x2 - x1) < wdth) && (abs(y2 - y1) > 4 * abs(x2 - x1))) { x2 = x1 = 0; }
+            if (abs(x2 - x1) < wdth && abs(y2 - y1) > 4 * abs(x2 - x1)) { x2 = x1 = 0; }
             //line drawing in rectangle mode
-            if ((abs(y2 - y1) < wdth) && (abs(x2 - x1) > 4 * abs(y2 - y1))) { y2 = y1 = 0; }
+            if (abs(y2 - y1) < wdth && abs(x2 - x1) > 4 * abs(y2 - y1)) { y2 = y1 = 0; }
             //line drawing in rectangle mode
         }
         else
@@ -408,7 +408,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         di->Y2 = y1;
         di++;
         NumItems = 4;
-        if ((Drawing_inside_create) && (Drawing_temp_form == 27))
+        if (Drawing_inside_create && Drawing_temp_form == 27)
         {
             NumItems = 6;
             di->X1 = -5 * DRWZOOM;
@@ -426,7 +426,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
     if (Drawing_temp_form == 2) //Line
     {
         tDrawingItem* di = Items + Drawing_temp_start;
-        if ((oabsX == -1) && (oabsY == -1) && ((di->X2) || (di->Y2)))
+        if (oabsX == -1 && oabsY == -1 && (di->X2 || di->Y2))
         {
             this->InsertItemAt(this->NumItems);
             di = Items + this->NumItems - 1;
@@ -441,7 +441,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         if (abs(X - di->X1) < min(di->LineWidth, 2*DRWZOOM)) di->X2 = di->X1;
         if (abs(Y - di->Y1) < min(di->LineWidth, 2*DRWZOOM)) di->Y2 = di->Y1;
     }
-    if ((Drawing_temp_form == 3) || (Drawing_temp_form == 14)) //Freehand line, freehand arrow
+    if (Drawing_temp_form == 3 || Drawing_temp_form == 14) //Freehand line, freehand arrow
     {
         tDrawingItem* di = Items + NumItems - 1;
         int x1 = di->X1;
@@ -450,15 +450,15 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         int y2 = Y; //di->Y2;
         int minlen = (300 + ViewZoom) * DRWZOOM;
         if (Drawing_inside_create) minlen = 10;
-        if ((Drawing_temp_form == 14) && (!Drawing_inside_create)) minlen = 2000 * DRWZOOM;
+        if (Drawing_temp_form == 14 && !Drawing_inside_create) minlen = 2000 * DRWZOOM;
         int ffactor = 1;
-        if ((SpecialDrawingHover) && (!Drawing_inside_create))
+        if (SpecialDrawingHover && !Drawing_inside_create)
             ffactor = 2;
         if (sqrt(((double)x2 - x1) * ((double)x2 - x1) + ((double)y2 - y1) * ((double)y2 - y1)) > minlen /
             ViewZoom / ffactor)
         {
             int hor_vert_line = 0;
-            if ((GetKeyState(VK_SHIFT) & 0xFFFE) || (GetKeyState(VK_RBUTTON) & 0xFFFE)) hor_vert_line = 1;
+            if (GetKeyState(VK_SHIFT) & 0xFFFE || GetKeyState(VK_RBUTTON) & 0xFFFE) hor_vert_line = 1;
 
             int addnew = 1;
             if (GetTickCount() - Drawing_last_tick < (unsigned int)(64 / ffactor))
@@ -466,7 +466,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             else
                 Drawing_last_tick = GetTickCount();
 
-            if ((addnew) && (hor_vert_line))
+            if (addnew && hor_vert_line)
             {
                 double x2 = (Items + NumItems - 1)->X1;
                 double y2 = (Items + NumItems - 1)->Y1;
@@ -488,8 +488,8 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
 
             if (addnew)
             {
-                if (((NumItems - Drawing_temp_start > 2) && (Drawing_temp_form == 3)) ||
-                    ((NumItems - Drawing_temp_start > 4) && (Drawing_temp_form == 14)))
+                if ((NumItems - Drawing_temp_start > 2 && Drawing_temp_form == 3) ||
+                    (NumItems - Drawing_temp_start > 4 && Drawing_temp_form == 14))
                 {
                     double x1 = (Items + NumItems - 3)->X1;
                     double y1 = (Items + NumItems - 3)->Y1;
@@ -500,20 +500,19 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                     double l1 = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) * 1000 / DRWZOOM;
                     double l2 = sqrt((x2 - X) * (x2 - X) + (y2 - Y) * (y2 - Y)) * 1000 / DRWZOOM;
                     double l3 = sqrt((X - x1) * (X - x1) + (Y - y1) * (Y - y1)) * 1000 / DRWZOOM;
-                    double factorf = (l2 * l3) / (l2 + l3) / l1 * 3.0;
+                    double factorf = l2 * l3 / (l2 + l3) / l1 * 3.0;
                     if (factorf == 0) factorf = 0.001;
                     double a1 = atan2(Y - y1, X - x1);
                     double a2 = atan2(y2 - Y, x2 - X);
                     if (fabs(a1 - a2) > fabs(a1 + 6.28318 - a2)) a1 += 6.28318;
                     if (fabs(a2 - a1) > fabs(a2 + 6.28318 - a1)) a2 += 6.28318;
 
-                    if ((fabs(a1 - a2) < 0.5 / ffactor) ||
-                        ((fabs(fabs(a1 - a2) - 3.14159) < 0.5 / ffactor) && (hor_vert_line)))
+                    if (fabs(a1 - a2) < 0.5 / ffactor ||
+                        (fabs(fabs(a1 - a2) - 3.14159) < 0.5 / ffactor && hor_vert_line))
                         //when drawing horizontal/vertical lines we can 'return' (undraw)
                         if (!Drawing_inside_create)
-                            if (((l2 + l3 < l1 + 20.0 / factorf / (double)ffactor) && (!hor_vert_line)) || (
-                                    hor_vert_line) ||
-                                ((l2 + l3 < l1 * 1.015) && (hor_vert_line)))
+                            if ((l2 + l3 < l1 + 20.0 / factorf / (double)ffactor && !hor_vert_line) || hor_vert_line ||
+                                (l2 + l3 < l1 * 1.015 && hor_vert_line))
                             {
                                 *(Items + NumItems - 2) = *(Items + NumItems - 1);
                                 (Items + NumItems - 3)->X2 = (Items + NumItems - 2)->X1;
@@ -589,7 +588,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         int rmin = (int)sqrt((double)max(x2-x1, y2-y1) * 100) / DRWZOOM;
         if (rmin < 6) rmin = 6;
         int points = min(32, rmin);
-        if ((SpecialDrawingHover) && (!Drawing_inside_create))
+        if (SpecialDrawingHover && !Drawing_inside_create)
         {
             points = 3 * points / 2;
             if (points < 9) points = 9;
@@ -619,19 +618,19 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             x1 = t;
         }
         int points = 16;
-        if ((SpecialDrawingHover) && (!Drawing_inside_create)) points = 24;
+        if (SpecialDrawingHover && !Drawing_inside_create) points = 24;
         NumItems = Drawing_temp_start + points;
-        int kk = (points / 2);
+        int kk = points / 2;
         for (int i = 0; i < points; i++)
         {
             di->X1 = (x2 - x1) * i / points + x1;
-            di->Y1 = ((i - kk) * (i - kk) * (y1 - y2) / (kk * kk) + y2);
+            di->Y1 = (i - kk) * (i - kk) * (y1 - y2) / (kk * kk) + y2;
             di->X2 = (x2 - x1) * (i + 1) / points + x1;
-            di->Y2 = ((i + 1 - kk) * (i + 1 - kk) * (y1 - y2) / (kk * kk) + y2);
+            di->Y2 = (i + 1 - kk) * (i + 1 - kk) * (y1 - y2) / (kk * kk) + y2;
             di++;
         }
     }
-    if ((Drawing_temp_form == 4) || (Drawing_temp_form == 15) || (Drawing_temp_form == 16) || (Drawing_temp_form == 17))
+    if (Drawing_temp_form == 4 || Drawing_temp_form == 15 || Drawing_temp_form == 16 || Drawing_temp_form == 17)
     //Circle, 5-polygon, 6-polygon
     {
         int x1, x2, y1, y2;
@@ -660,9 +659,9 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             int lww = max(3*DRWZOOM/2, Items->LineWidth);
             if (len < 50 * lww) wdth = 3 * lww / 2;
             else wdth = 2 * lww;
-            if ((abs(x2 - x1) < wdth) && (abs(y2 - y1) > 4 * abs(x2 - x1))) { x2 = x1 = 0; }
+            if (abs(x2 - x1) < wdth && abs(y2 - y1) > 4 * abs(x2 - x1)) { x2 = x1 = 0; }
             //line drawing in rectangle mode
-            if ((abs(y2 - y1) < wdth) && (abs(x2 - x1) > 4 * abs(y2 - y1))) { y2 = y1 = 0; }
+            if (abs(y2 - y1) < wdth && abs(x2 - x1) > 4 * abs(y2 - y1)) { y2 = y1 = 0; }
             //line drawing in rectangle mode
         }
         tDrawingItem* di = Items + Drawing_temp_start;
@@ -670,7 +669,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         int rmin = (int)sqrt((double)max(x2-x1, y2-y1) * 4 * 1000 / DRWZOOM) / 33 + 1;
         if (rmin < 3) rmin = 3;
         int points = min(32, rmin);
-        if ((SpecialDrawingHover) && (!Drawing_inside_create))
+        if (SpecialDrawingHover && !Drawing_inside_create)
         {
             points = 3 * points / 2;
             if (points < 6) points = 6;
@@ -689,7 +688,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         (Items + Drawing_temp_start + points - 1)->X2 = (Items + Drawing_temp_start)->X1;
         (Items + Drawing_temp_start + points - 1)->Y2 = (Items + Drawing_temp_start)->Y1;
 
-        if ((Drawing_inside_create) && (points < 30) && (Drawing_temp_form == 17))
+        if (Drawing_inside_create && points < 30 && Drawing_temp_form == 17)
         {
             NumItems += 2;
             di->X1 = -5 * DRWZOOM;
@@ -704,19 +703,19 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         }
     }
 
-    if ((Drawing_temp_form == 32)) //sector of circle
+    if (Drawing_temp_form == 32) //sector of circle
     {
         tDrawingItem* di = Items + Drawing_temp_start;
 
         double radius = sqrt((double)X * X + (double)Y * Y);
         int points = min(36, (int)(sqrt(radius)*16/DRWZOOM));
-        if ((SpecialDrawingHover) && (!Drawing_inside_create))
+        if (SpecialDrawingHover && !Drawing_inside_create)
         {
             points = 3 * points / 2;
             if (points < 6) points = 6;
         }
 
-        double arc = atan2(-(double)(Y), X);
+        double arc = atan2(-(double)Y, X);
         double step = 0;
         if (arc >= 0)
         {
@@ -753,13 +752,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         (Items + Drawing_temp_start + points - 1)->Y2 = (Items + Drawing_temp_start)->Y1;
     }
 
-    if ((Drawing_temp_form == 33)) //segment of circle
+    if (Drawing_temp_form == 33) //segment of circle
     {
         tDrawingItem* di = Items + Drawing_temp_start;
         int Cx, Cy;
         double radius = abs(Y);
         int points = min(36, (int)(sqrt(radius)*16/DRWZOOM));
-        if ((SpecialDrawingHover) && (!Drawing_inside_create))
+        if (SpecialDrawingHover && !Drawing_inside_create)
         {
             points = 3 * points / 2;
             if (points < 6) points = 6;
@@ -891,7 +890,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         di->Y2 = 0;
     }
 
-    if ((Drawing_temp_form == 25) || (Drawing_temp_form == 26)) //diagonals
+    if (Drawing_temp_form == 25 || Drawing_temp_form == 26) //diagonals
     {
         tDrawingItem* di;
         int sz = 12;
@@ -968,13 +967,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
 
             if (Drawing_temp_form == 25)
             {
-                tt = abs(((absY - absX)) % 100);
-                if ((tt == 1) && (absY > absX))
+                tt = abs((absY - absX) % 100);
+                if (tt == 1 && absY > absX)
                 {
                     absY--;
                     tt = 0;
                 }
-                if ((tt == 1) && (absY < absX))
+                if (tt == 1 && absY < absX)
                 {
                     absY++;
                     tt = 0;
@@ -982,13 +981,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             }
             else
             {
-                tt = abs(((absY + absX)) % 100);
-                if ((tt == 1) && (absY + absX > 0))
+                tt = abs((absY + absX) % 100);
+                if (tt == 1 && absY + absX > 0)
                 {
                     absY--;
                     tt = 0;
                 }
-                if ((tt == 1) && (absY + absX < 0))
+                if (tt == 1 && absY + absX < 0)
                 {
                     absY++;
                     tt = 0;
@@ -1004,15 +1003,15 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                 for (int i = 0; i < NumDocumentElements; i++)
                 {
                     tDocumentStruct* ds = TheDocument + i;
-                    if ((ds->Type == 2) && (ds->absolute_X <= sabsX + sz) && (ds->absolute_X + ds->Length >= sabsX - sz)
-                        && (ds->absolute_Y <= sabsY + sz) && (ds->absolute_Y + ds->Below >= sabsY - sz)
-                        && (ds->MovingDotState != 5) && (ds->Object) && (((CDrawing*)(ds->Object))->IsSpecialDrawing ==
-                            0))
+                    if (ds->Type == 2 && ds->absolute_X <= sabsX + sz && ds->absolute_X + ds->Length >= sabsX - sz
+                        && ds->absolute_Y <= sabsY + sz && ds->absolute_Y + ds->Below >= sabsY - sz
+                        && ds->MovingDotState != 5 && ds->Object && ((CDrawing*)ds->Object)->IsSpecialDrawing ==
+                        0)
                     {
                         int l1, l2;
-                        ((CDrawing*)(ds->Object))->FindDiagonalLength((sabsX - ds->absolute_X) * DRWZOOM,
-                                                                      (sabsY - ds->absolute_Y) * DRWZOOM, &l1, &l2,
-                                                                      (Drawing_temp_form == 25) ? 1 : -1);
+                        ((CDrawing*)ds->Object)->FindDiagonalLength((sabsX - ds->absolute_X) * DRWZOOM,
+                                                                    (sabsY - ds->absolute_Y) * DRWZOOM, &l1, &l2,
+                                                                    Drawing_temp_form == 25 ? 1 : -1);
                         if (l2 < l22) l22 = l2;
                         if (l1 < l11) l11 = l1;
                     }
@@ -1030,9 +1029,9 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                 deltaY = deltaY * DRWZOOM / 10;
                 di = Items + NumItems - 1;
                 di->X1 = X + deltaX - l22;
-                di->Y1 = Y + deltaY - ((Drawing_temp_form == 25) ? l22 : -l22);
+                di->Y1 = Y + deltaY - (Drawing_temp_form == 25 ? l22 : -l22);
                 di->X2 = X + deltaX + l11;
-                di->Y2 = Y + deltaY + ((Drawing_temp_form == 25) ? l11 : -l11);;
+                di->Y2 = Y + deltaY + (Drawing_temp_form == 25 ? l11 : -l11);;
                 di->Type = 1;
                 di->LineWidth = 4 * DRWZOOM / 10;
 
@@ -1041,14 +1040,12 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                     tDrawingItem* di2 = Items + ii;
                     if (di2 != di)
                     {
-                        if (((abs((di2->X1 - di->X1) - (di2->Y1 - di->Y1)) < ViewZoom * DRWZOOM / 100) && (
-                                Drawing_temp_form == 25)) ||
-                            ((abs((di2->X1 - di->X1) + (di2->Y1 - di->Y1)) < ViewZoom * DRWZOOM / 100) && (
-                                Drawing_temp_form == 26))) //if has the right position/direction/offset
+                        if ((abs(di2->X1 - di->X1 - (di2->Y1 - di->Y1)) < ViewZoom * DRWZOOM / 100 && Drawing_temp_form == 25) ||
+                            (abs(di2->X1 - di->X1 + (di2->Y1 - di->Y1)) < ViewZoom * DRWZOOM / 100 && Drawing_temp_form == 26)) //if has the right position/direction/offset
                         {
-                            if ((di2->X1 <= di->X1) && (di2->X2 >= di->X1))
+                            if (di2->X1 <= di->X1 && di2->X2 >= di->X1)
                             {
-                                if ((di2->X1 <= di->X2) && (di2->X2 >= di->X2))
+                                if (di2->X1 <= di->X2 && di2->X2 >= di->X2)
                                 {
                                     //the di2 completely covers di
                                     di->X1 = di2->X1;
@@ -1069,7 +1066,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                                     if (di > di2) di--;
                                 }
                             }
-                            else if ((di2->X1 <= di->X2) && (di2->X2 >= di->X2))
+                            else if (di2->X1 <= di->X2 && di2->X2 >= di->X2)
                             {
                                 //the di2 covers only other part of di
                                 di->X2 = di2->X2;
@@ -1084,7 +1081,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             }
         }
     }
-    if ((Drawing_temp_form == 6) || (Drawing_temp_form == 7)) //Eraser, large and small
+    if (Drawing_temp_form == 6 || Drawing_temp_form == 7) //Eraser, large and small
     {
         tDrawingItem* di = Items + Drawing_temp_start;
         int sz = 16 * DRWZOOM;
@@ -1111,17 +1108,17 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         di->Y2 = Y - sz;
 
         sz /= DRWZOOM;
-        if ((absX != 0) && (absY != 0))
+        if (absX != 0 && absY != 0)
             for (int i = 0; i < NumDocumentElements; i++)
             {
                 tDocumentStruct* ds = TheDocument + i;
-                if ((ds->Type == 2) && (ds->absolute_X <= absX) && (ds->absolute_X + ds->Length >= absX - sz)
-                    && (ds->absolute_Y <= absY) && (ds->absolute_Y + ds->Below >= absY - sz)
-                    && (ds->MovingDotState != 5))
+                if (ds->Type == 2 && ds->absolute_X <= absX && ds->absolute_X + ds->Length >= absX - sz
+                    && ds->absolute_Y <= absY && ds->absolute_Y + ds->Below >= absY - sz
+                    && ds->MovingDotState != 5)
                 {
                     if (ds->Object)
                     {
-                        int ret = ((CDrawing*)(ds->Object))->EraseSquare(
+                        int ret = ((CDrawing*)ds->Object)->EraseSquare(
                             absX - ds->absolute_X - sz, absY - ds->absolute_Y - sz, absX - ds->absolute_X,
                             absY - ds->absolute_Y, nullptr);
                         if (ret == 2)
@@ -1134,7 +1131,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             }
     }
 
-    if ((Drawing_temp_form == 8) || (Drawing_temp_form == 9)) //Coordinate system
+    if (Drawing_temp_form == 8 || Drawing_temp_form == 9) //Coordinate system
     {
         tDrawingItem* di = Items + Drawing_temp_start;
 
@@ -1144,7 +1141,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         di->Y1 = 0;
         di->X2 = X / tt;
         di->Y2 = Y;
-        if ((Drawing_temp_form == 9) && (Y > 0))
+        if (Drawing_temp_form == 9 && Y > 0)
         {
             di++;
             di->X1 = X / tt;
@@ -1163,19 +1160,19 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             di->X1 = X / tt;
             di->Y1 = Y;
             di->X2 = di->X1 + 4 * DRWZOOM;
-            di->Y2 = di->Y1 + ((Y < 0) ? 8 * DRWZOOM : -8 * DRWZOOM);
+            di->Y2 = di->Y1 + (Y < 0 ? 8 * DRWZOOM : -8 * DRWZOOM);
             di++;
             di->X1 = X / tt;
             di->Y1 = Y;
             di->X2 = di->X1 - 4 * DRWZOOM;
-            di->Y2 = di->Y1 + ((Y < 0) ? 8 * DRWZOOM : -8 * DRWZOOM);
+            di->Y2 = di->Y1 + (Y < 0 ? 8 * DRWZOOM : -8 * DRWZOOM);
         }
         di++;
         di->X1 = 0;
         di->Y1 = Y / tt;
         di->X2 = X;
         di->Y2 = Y / tt;
-        if ((Drawing_temp_form == 9) && (X < 0))
+        if (Drawing_temp_form == 9 && X < 0)
         {
             di++;
             di->X1 = 0;
@@ -1193,24 +1190,24 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             di++;
             di->X1 = X;
             di->Y1 = Y / tt;
-            di->X2 = di->X1 - ((X > 0) ? 8 * DRWZOOM : -8 * DRWZOOM);
+            di->X2 = di->X1 - (X > 0 ? 8 * DRWZOOM : -8 * DRWZOOM);
             di->Y2 = di->Y1 + 4 * DRWZOOM;
             di++;
             di->X1 = X;
             di->Y1 = Y / tt;
-            di->X2 = di->X1 - ((X > 0) ? 8 * DRWZOOM : -8 * DRWZOOM);
+            di->X2 = di->X1 - (X > 0 ? 8 * DRWZOOM : -8 * DRWZOOM);
             di->Y2 = di->Y1 - 4 * DRWZOOM;
         }
     }
-    if ((Drawing_temp_form == 20) || (Drawing_temp_form == 21) ||
-        (Drawing_temp_form == 22) || (Drawing_temp_form == 23)) //Okay sign, exclamation mark, question mark, star
+    if (Drawing_temp_form == 20 || Drawing_temp_form == 21 ||
+        Drawing_temp_form == 22 || Drawing_temp_form == 23) //Okay sign, exclamation mark, question mark, star
     {
         tDrawingItem* di = Items + Drawing_temp_start;
         int x1, y1, x2, y2;
         int minsize = 8 * DRWZOOM;
-        if ((Drawing_temp_form == 21) || (Drawing_temp_form == 22)) minsize = 12 * DRWZOOM;
-        if ((X > -minsize) && (X < minsize)) X = minsize;
-        if ((Y > -minsize) && (Y < minsize)) Y = minsize;
+        if (Drawing_temp_form == 21 || Drawing_temp_form == 22) minsize = 12 * DRWZOOM;
+        if (X > -minsize && X < minsize) X = minsize;
+        if (Y > -minsize && Y < minsize) Y = minsize;
 
         x1 = -minsize;
         x2 = X;
@@ -1230,10 +1227,10 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         int h = abs(y2 - y1);
         //if ((w<16*DRWZOOM) || (h<16*DRWZOOM)) {x1=-16*DRWZOOM;y1=-16*DRWZOOM;x2=0;y2=0;w=16*DRWZOOM;h=16*DRWZOOM;}
 
-        if (abs(x2) > abs(y2)) x2 = (x2 < 0) ? -abs(y2) : abs(y2);
-        if (abs(y2) > abs(x2)) y2 = (y2 < 0) ? -abs(x2) : abs(x2);
-        if (abs(x1) > abs(y1)) x1 = (x1 < 0) ? -abs(y1) : abs(y1);
-        if (abs(y1) > abs(x1)) y1 = (y1 < 0) ? -abs(x1) : abs(x1);
+        if (abs(x2) > abs(y2)) x2 = x2 < 0 ? -abs(y2) : abs(y2);
+        if (abs(y2) > abs(x2)) y2 = y2 < 0 ? -abs(x2) : abs(x2);
+        if (abs(x1) > abs(y1)) x1 = x1 < 0 ? -abs(y1) : abs(y1);
+        if (abs(y1) > abs(x1)) y1 = y1 < 0 ? -abs(x1) : abs(x1);
         w = abs(x2 - x1);
         h = abs(y2 - y1);
 
@@ -1244,12 +1241,12 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             if (h > 24 * DRWZOOM) lw = 3 * DRWZOOM;
             if (h > 80 * DRWZOOM) lw = 4 * DRWZOOM;
             di->X1 = x1;
-            di->Y1 = y1 + (2 * h) / 3;
-            di->X2 = x1 + (1 * w) / 3;
+            di->Y1 = y1 + 2 * h / 3;
+            di->X2 = x1 + 1 * w / 3;
             di->Y2 = y1 + h;
             di->LineWidth = lw;
             di++;
-            di->X1 = x1 + (1 * w) / 3;
+            di->X1 = x1 + 1 * w / 3;
             di->Y1 = y1 + h;
             di->X2 = x2;
             di->Y2 = y1;
@@ -1260,12 +1257,12 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                 NumItems = Drawing_temp_start + 4;
                 di++;
                 di->X1 = x1;
-                di->Y1 = y1 + (2 * h) / 3;
-                di->X2 = x1 + (1 * w) / 3;
+                di->Y1 = y1 + 2 * h / 3;
+                di->X2 = x1 + 1 * w / 3;
                 di->Y2 = y1 + 86 * h / 100;
                 di->LineWidth = lw;
                 di++;
-                di->X1 = x1 + (1 * w) / 3;
+                di->X1 = x1 + 1 * w / 3;
                 di->Y1 = y1 + 86 * h / 100;
                 di->X2 = x2;
                 di->Y2 = y1;
@@ -1434,13 +1431,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             di->Y2 = (di + 1)->Y1 = (c / 2 - 1) * Y / c - Y / c / 3; // new
             di++;
             di->X2 = (di + 1)->X1 = X / 2 + X / 4;
-            di->Y2 = (di + 1)->Y1 = (c / 2) * Y / c - Y / c / 3; //
+            di->Y2 = (di + 1)->Y1 = c / 2 * Y / c - Y / c / 3; //
             di++;
             di->X2 = (di + 1)->X1 = X;
-            di->Y2 = (di + 1)->Y1 = (c / 2) * Y / c; //fixed - centerpoint
+            di->Y2 = (di + 1)->Y1 = c / 2 * Y / c; //fixed - centerpoint
             di++;
             di->X2 = (di + 1)->X1 = X / 2 + X / 4;
-            di->Y2 = (di + 1)->Y1 = (c / 2) * Y / c + Y / c / 3; //new
+            di->Y2 = (di + 1)->Y1 = c / 2 * Y / c + Y / c / 3; //new
             di++;
             di->X2 = (di + 1)->X1 = X / 2;
             di->Y2 = (di + 1)->Y1 = (c / 2 + 1) * Y / c + Y / c / 3; //fixed
@@ -1474,13 +1471,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             di->X2 = (di + 1)->X1 = (c / 2 - 1) * X / c - X / c / 3;
             di++;
             di->Y2 = (di + 1)->Y1 = Y / 2 + Y / 4;
-            di->X2 = (di + 1)->X1 = (c / 2) * X / c - X / c / 3;
+            di->X2 = (di + 1)->X1 = c / 2 * X / c - X / c / 3;
             di++;
             di->Y2 = (di + 1)->Y1 = Y;
-            di->X2 = (di + 1)->X1 = (c / 2) * X / c;
+            di->X2 = (di + 1)->X1 = c / 2 * X / c;
             di++;
             di->Y2 = (di + 1)->Y1 = Y / 2 + Y / 4;
-            di->X2 = (di + 1)->X1 = (c / 2) * X / c + X / c / 3;
+            di->X2 = (di + 1)->X1 = c / 2 * X / c + X / c / 3;
             di++;
             di->Y2 = (di + 1)->Y1 = Y / 2;
             di->X2 = (di + 1)->X1 = (c / 2 + 1) * X / c + X / c / 3;
@@ -1499,9 +1496,9 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
     {
         tDrawingItem* di = Items + Drawing_temp_start;
         int thin = 0;
-        if ((SpecialDrawingHover) || (GetKeyState(VK_SHIFT) & 0xFFFE) || (GetKeyState(VK_RBUTTON) & 0xFFFE)) thin = 1;
+        if (SpecialDrawingHover || GetKeyState(VK_SHIFT) & 0xFFFE || GetKeyState(VK_RBUTTON) & 0xFFFE) thin = 1;
 
-        if ((abs(Y) > abs(X)) && ((abs(Y) > 5 * DRWZOOM) || (SpecialDrawingHover)))
+        if (abs(Y) > abs(X) && (abs(Y) > 5 * DRWZOOM || SpecialDrawingHover))
         {
             di->Y2 = Y;
             di->Y1 = 0;
@@ -1518,13 +1515,13 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                 di->LineWidth = 6 * DRWZOOM / 10;
             if (abs(Y) < 3 * abs(X) / 2)
             {
-                if (Y < 0) di->X2 = (X > 0) ? -Y : Y;
-                else di->X2 = (X > 0) ? Y : -Y;
+                if (Y < 0) di->X2 = X > 0 ? -Y : Y;
+                else di->X2 = X > 0 ? Y : -Y;
             }
         }
         else
         {
-            if ((abs(X) < 5 * DRWZOOM) && (!thin))
+            if (abs(X) < 5 * DRWZOOM && !thin)
             {
                 int offset = absX * DRWZOOM - X;
                 di->X2 = PaperWidth * DRWZOOM - offset - 48 * DRWZOOM;
@@ -1549,17 +1546,17 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                 di->LineWidth = 6 * DRWZOOM / 10;
             if (abs(X) < 3 * abs(Y) / 2)
             {
-                if (X < 0) di->Y2 = (Y > 0) ? -X : X;
-                else di->Y2 = (Y > 0) ? X : -X;
+                if (X < 0) di->Y2 = Y > 0 ? -X : X;
+                else di->Y2 = Y > 0 ? X : -X;
             }
         }
     }
-    if ((Drawing_temp_form >= 10) && (Drawing_temp_form <= 13)) //raster, linear and log
+    if (Drawing_temp_form >= 10 && Drawing_temp_form <= 13) //raster, linear and log
     {
         int num_lines_x = Drawing_prev_x;
         int num_lines_y = Drawing_prev_y;
         int min = 15 * DRWZOOM, max = 25 * DRWZOOM;
-        if ((Drawing_temp_form == 11) || (Drawing_temp_form == 13))
+        if (Drawing_temp_form == 11 || Drawing_temp_form == 13)
         {
             min = 70 * DRWZOOM;
             max = 120 * DRWZOOM;
@@ -1580,7 +1577,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         Drawing_prev_x = num_lines_x;
         min = 15 * DRWZOOM;
         max = 25 * DRWZOOM;
-        if ((Drawing_temp_form == 12) || (Drawing_temp_form == 13))
+        if (Drawing_temp_form == 12 || Drawing_temp_form == 13)
         {
             min = 70 * DRWZOOM;
             max = 120 * DRWZOOM;
@@ -1602,8 +1599,8 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
 
         NumItems = Drawing_temp_start + num_lines_x + num_lines_y + 2;
         if (NumItems > 65000) NumItems = 65000;
-        if ((Drawing_temp_form == 11) || (Drawing_temp_form == 13)) NumItems += num_lines_x * 8;
-        if ((Drawing_temp_form == 12) || (Drawing_temp_form == 13)) NumItems += num_lines_y * 8;
+        if (Drawing_temp_form == 11 || Drawing_temp_form == 13) NumItems += num_lines_x * 8;
+        if (Drawing_temp_form == 12 || Drawing_temp_form == 13) NumItems += num_lines_y * 8;
         if (NumItems > NumItemsReserved)
         {
             NumItemsReserved = NumItems;
@@ -1622,7 +1619,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             di->Y1 = 0;
             di->Y2 = Y;
             di++;
-            if ((Drawing_temp_form == 11) || (Drawing_temp_form == 13))
+            if (Drawing_temp_form == 11 || Drawing_temp_form == 13)
                 if (i != num_lines_x)
                     for (int j = 2; j < 10; j++)
                     {
@@ -1651,7 +1648,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             di->X1 = 0;
             di->X2 = X;
             di++;
-            if ((Drawing_temp_form == 12) || (Drawing_temp_form == 13))
+            if (Drawing_temp_form == 12 || Drawing_temp_form == 13)
                 if (i != num_lines_y)
                     for (int j = 2; j < 10; j++)
                     {
@@ -1671,7 +1668,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         }
     }
 
-    if ((Drawing_temp_form == 50) || (Drawing_temp_form == 51) || (Drawing_temp_form == 52))
+    if (Drawing_temp_form == 50 || Drawing_temp_form == 51 || Drawing_temp_form == 52)
     //drawing box, function ploter, bitmap image
     {
         int x1, x2, y1, y2;
@@ -1693,7 +1690,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
 
         int wdth = DRWZOOM;
         if (Drawing_temp_form == 52)
-            (abs(x1 - x2) < 30 * DRWZOOM) ? wdth = DRWZOOM / 10 : wdth = 2 * DRWZOOM;
+            abs(x1 - x2) < 30 * DRWZOOM ? wdth = DRWZOOM / 10 : wdth = 2 * DRWZOOM;
         di->X1 = x1;
         di->X2 = x2;
         di->Y1 = y1;
@@ -1726,10 +1723,10 @@ extern int LeftClickTimer;
 #pragma optimize("s",on)
 int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
 {
-    if ((X == nullptr) || (Y == nullptr)) return 0;
+    if (X == nullptr || Y == nullptr) return 0;
     this->OriginalForm = Drawing_temp_form;
     if (!Drawing_inside_create)
-        if ((Drawing_temp_form == 3) || (Drawing_temp_form == 14)) //freehand drawing, freehand arrow
+        if (Drawing_temp_form == 3 || Drawing_temp_form == 14) //freehand drawing, freehand arrow
         {
             int has_any = 5;
             while (has_any)
@@ -1741,7 +1738,7 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
             for (int ii = 0; ii < NumItems; ii++)
             {
                 tDrawingItem* di = Items + ii;
-                if ((di->X1 == di->X2) && (di->Y1 == di->Y2))
+                if (di->X1 == di->X2 && di->Y1 == di->Y2)
                 {
                     for (int iii = ii + 1; iii < NumItems - 1; iii++)
                         *(Items + iii) = *(Items + iii + 1);
@@ -1758,25 +1755,25 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
                 int y2 = (Items + NumItems - 1)->Y1;
                 int x3 = (Items + NumItems - 2)->X1;
                 int y3 = (Items + NumItems - 2)->Y1;
-                float a1 = atan2((y1 - y2), (x1 - x2));
-                float a2 = atan2((y1 - y3), (y1 - x3));
+                float a1 = atan2(y1 - y2, x1 - x2);
+                float a2 = atan2(y1 - y3, y1 - x3);
                 if (fabs(a1 - a2) < 0.06)
                 {
                     (Items + NumItems - 2)->Y2 = y1;
                     (Items + NumItems - 2)->X2 = x1;
                     NumItems--;
                 }
-                else if ((x1 == x2) && (x1 == x3))
+                else if (x1 == x2 && x1 == x3)
                 {
                     (Items + NumItems - 2)->Y2 = y1;
                     NumItems--;
                 }
-                else if ((y1 == y2) && (y1 == y3))
+                else if (y1 == y2 && y1 == y3)
                 {
                     (Items + NumItems - 2)->X2 = x1;
                     NumItems--;
                 }
-                else if ((abs(y1 - y2) < (3 * DRWZOOM / 2)) && (abs(x1 - x2) < (3 * DRWZOOM / 2)))
+                else if (abs(y1 - y2) < 3 * DRWZOOM / 2 && abs(x1 - x2) < 3 * DRWZOOM / 2)
                 {
                     (Items + NumItems - 2)->X2 = x1;
                     NumItems--;
@@ -1786,17 +1783,17 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
             }
         }
 
-    if ((Drawing_temp_form == 6) || (Drawing_temp_form == 7)) //eraser, large and small
+    if (Drawing_temp_form == 6 || Drawing_temp_form == 7) //eraser, large and small
     {
         //rearange sizes and positions of all drawing objects (erased objects can be smaller)
         for (int i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* ds = TheDocument + i;
 
-            if ((ds->Type == 2) && (ds->Object))
+            if (ds->Type == 2 && ds->Object)
             {
                 int x1, y1, w, h;
-                ((CDrawing*)(ds->Object))->AdjustCoordinates(&x1, &y1, &w, &h);
+                ((CDrawing*)ds->Object)->AdjustCoordinates(&x1, &y1, &w, &h);
                 ds->absolute_X += x1;
                 ds->absolute_Y += y1;
                 ds->Above = 0;
@@ -1888,9 +1885,9 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
     //(the only exeption is if we had a long press (>100ms) with line-drawing tool in what
     // case we will create a single dot)
     FindRealCorner(&x, &y, &x2, &y2);
-    if ((x * 2 >= x2) && (y * 2 >= y2) &&
-        ((LeftClickTimer < 2) || (this->NumItems > 1) || (this->Items->Type != 1) || (this->Items->X1 != this->Items->
-            X2) || (this->Items->Y1 != this->Items->Y2)))
+    if (x * 2 >= x2 && y * 2 >= y2 &&
+        (LeftClickTimer < 2 || this->NumItems > 1 || this->Items->Type != 1 || this->Items->X1 != this->Items->
+            X2 || this->Items->Y1 != this->Items->Y2))
         return 0;
 
     //all OK.
@@ -1901,15 +1898,15 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
 //empties the drawing
 int CDrawing::Delete(void)
 {
-    if ((IsSpecialDrawing == 50) && (SpecialData))
+    if (IsSpecialDrawing == 50 && SpecialData)
     {
         delete (CDrawingBox*)SpecialData;
     }
-    if ((IsSpecialDrawing == 51) && (SpecialData))
+    if (IsSpecialDrawing == 51 && SpecialData)
     {
         delete (CFunctionPlotter*)SpecialData;
     }
-    if ((IsSpecialDrawing == 52) && (SpecialData))
+    if (IsSpecialDrawing == 52 && SpecialData)
     {
         delete (CBitmapImage*)SpecialData;
     }
@@ -1924,15 +1921,15 @@ int CDrawing::Delete(void)
         for (int i = 0; i < NumItems; i++)
         {
             tDrawingItem* di = Items + i;
-            if ((di->Type == 0) && (di->pSubdrawing))
+            if (di->Type == 0 && di->pSubdrawing)
             {
                 //((CDrawing*)(di->pSubdrawing))->Delete();
-                delete ((CDrawing*)(di->pSubdrawing));
+                delete (CDrawing*)di->pSubdrawing;
             }
-            if ((di->Type == 2) && (di->pSubdrawing))
+            if (di->Type == 2 && di->pSubdrawing)
             {
                 //((CExpression*)(di->pSubdrawing))->Delete();
-                delete ((CExpression*)(di->pSubdrawing));
+                delete (CExpression*)di->pSubdrawing;
             }
         }
         free(Items);
@@ -1948,12 +1945,12 @@ int CDrawing::InsertEmptyElement(int form, int Cx, int Cy)
 {
     Drawing_inside_create = 1;
 
-    if ((form == 1) || (form == 2) || (form == 4) || (form == 5) || (form == 8) ||
-        (form == 9) || (form == 10) || (form == 11) || (form == 12) || (form == 13) ||
-        (form == 15) || (form == 16) || (form == 17) || (form == 19) ||
-        (form == 20) || (form == 21) || (form == 22) || (form == 23) ||
-        (form == 27) || (form == 28) || (form == 29) || (form == 30) || (form == 31) ||
-        (form == 32) || (form == 33)) //rectangle, line, circle, arrow
+    if (form == 1 || form == 2 || form == 4 || form == 5 || form == 8 ||
+        form == 9 || form == 10 || form == 11 || form == 12 || form == 13 ||
+        form == 15 || form == 16 || form == 17 || form == 19 ||
+        form == 20 || form == 21 || form == 22 || form == 23 ||
+        form == 27 || form == 28 || form == 29 || form == 30 || form == 31 ||
+        form == 32 || form == 33) //rectangle, line, circle, arrow
     {
         OriginalForm = form; //used from toolbox
         int x, y;
@@ -1969,7 +1966,7 @@ int CDrawing::InsertEmptyElement(int form, int Cx, int Cy)
             if (UpdateCreatingItem(Cx * 10, Cy, 0, 0))
                 if (EndCreatingItem(&x, &y)) goto end_EndCreatingItem;
     }
-    if ((form == 3) || (form == 14)) //freehand line
+    if (form == 3 || form == 14) //freehand line
     {
         int x, y;
         if (StartCreatingItem(form))
@@ -2226,24 +2223,24 @@ int CDrawing::CalculateSize(CDC* DC, short zoom, short* width, short* height) co
         //tDrawingItem *di=Items+i;
         if (di->Type == 1) //line
         {
-            if (wd < (di->X1 + di->LineWidth + halfDRWZOOM)) wd = (di->X1 + di->LineWidth + halfDRWZOOM);
-            if (wd < (di->X2 + di->LineWidth + halfDRWZOOM)) wd = (di->X2 + di->LineWidth + halfDRWZOOM);
-            if (hg < (di->Y1 + di->LineWidth + halfDRWZOOM)) hg = (di->Y1 + di->LineWidth + halfDRWZOOM);
-            if (hg < (di->Y2 + di->LineWidth + halfDRWZOOM)) hg = (di->Y2 + di->LineWidth + halfDRWZOOM);
+            if (wd < di->X1 + di->LineWidth + halfDRWZOOM) wd = di->X1 + di->LineWidth + halfDRWZOOM;
+            if (wd < di->X2 + di->LineWidth + halfDRWZOOM) wd = di->X2 + di->LineWidth + halfDRWZOOM;
+            if (hg < di->Y1 + di->LineWidth + halfDRWZOOM) hg = di->Y1 + di->LineWidth + halfDRWZOOM;
+            if (hg < di->Y2 + di->LineWidth + halfDRWZOOM) hg = di->Y2 + di->LineWidth + halfDRWZOOM;
         }
-        else if ((di->Type == 0) && (di->pSubdrawing)) //subdrawing
+        else if (di->Type == 0 && di->pSubdrawing) //subdrawing
         {
             short w, h;
-            ((CDrawing*)(di->pSubdrawing))->CalculateSize(DC, zoom, &w, &h);
+            ((CDrawing*)di->pSubdrawing)->CalculateSize(DC, zoom, &w, &h);
             di->X2 = di->X1 + w * DRWZOOM * 100 / zoom;
             di->Y2 = di->Y1 + h * DRWZOOM * 100 / zoom;
             if (wd < di->X2) wd = di->X2;
             if (hg < di->Y2) hg = di->Y2;
         }
-        else if ((di->Type == 2) && (di->pSubdrawing))
+        else if (di->Type == 2 && di->pSubdrawing)
         {
             short l, a, b;
-            ((CExpression*)(di->pSubdrawing))->CalculateSize(*DC, zoom, l, &a, &b);
+            ((CExpression*)di->pSubdrawing)->CalculateSize(*DC, zoom, l, &a, &b);
             di->LineWidth = a; //stored for later usage
             di->X2 = di->X1 + l * DRWZOOM * 100 / zoom;
             di->Y2 = di->Y1 + (a + b) * DRWZOOM * 100 / zoom;
@@ -2255,8 +2252,8 @@ int CDrawing::CalculateSize(CDC* DC, short zoom, short* width, short* height) co
         }
     }
 
-    *width = ((wd * zoom) / DRWZOOM + 50) / 100;
-    *height = ((hg * zoom) / DRWZOOM + 50) / 100;
+    *width = (wd * zoom / DRWZOOM + 50) / 100;
+    *height = (hg * zoom / DRWZOOM + 50) / 100;
 
     return 1;
 }
@@ -2280,17 +2277,17 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
     {
         NodeX = NodeY = -1; //it is not possible to node-edit special drawings (drawing-boxes or similar)
 
-        if ((IsSpecialDrawing == 52) && (SpecialData))
+        if (IsSpecialDrawing == 52 && SpecialData)
         {
             ((CBitmapImage*)SpecialData)->Paint(DC, zoom, X, Y, absX, absY, ClipReg);
-            if ((!IsSelected) && (((CBitmapImage*)SpecialData)->editing == 0) && (((CBitmapImage*)SpecialData)->Image))
+            if (!IsSelected && ((CBitmapImage*)SpecialData)->editing == 0 && ((CBitmapImage*)SpecialData)->Image)
                 return; //we do not show the frame around the bitmap when bitmap is loaded
         }
 
-        if ((IsSpecialDrawing == 51) && (SpecialData))
+        if (IsSpecialDrawing == 51 && SpecialData)
             ((CFunctionPlotter*)SpecialData)->Paint(DC, zoom, X, Y, absX, absY, ClipReg);
 
-        if ((IsSpecialDrawing == 50) && (SpecialData))
+        if (IsSpecialDrawing == 50 && SpecialData)
             ((CDrawingBox*)SpecialData)->Paint(DC, zoom, X, Y, absX, absY, ClipReg, no_background);
     }
 
@@ -2298,7 +2295,7 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
 
     int ShowNodes = 0;
     int sz = 0;
-    if ((IsSelected == 1) && (IsSpecialDrawing == 0) && ((AllowQuickEditNodes()) || (GetKeyState(VK_CONTROL) & 0xFFFE)))
+    if (IsSelected == 1 && IsSpecialDrawing == 0 && (AllowQuickEditNodes() || GetKeyState(VK_CONTROL) & 0xFFFE))
     {
         ShowNodes = 1;
         sz = 2 * MovingDotSize / 3 + 1;
@@ -2316,10 +2313,10 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
             {
                 prevwidth = width;
                 int zwidth = width * zoom;
-                if (zwidth < (130 * DRWZOOM))
+                if (zwidth < 130 * DRWZOOM)
                 {
-                    if (zwidth < (70 * DRWZOOM))
-                        DC->SelectObject(((color == 0) && (IsSelected == 0))
+                    if (zwidth < 70 * DRWZOOM)
+                        DC->SelectObject(color == 0 && IsSelected == 0
                                              ? GrayThin
                                              : GetPenFromPool(1, IsSelected,PALE_RGB(color)));
                     else
@@ -2327,9 +2324,9 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
                 }
                 else
                 {
-                    if (zwidth < (200 * DRWZOOM))
+                    if (zwidth < 200 * DRWZOOM)
                     {
-                        DC->SelectObject((color == 0) ? GrayFat : GetPenFromPool(2, IsSelected,PALE_RGB(color)));
+                        DC->SelectObject(color == 0 ? GrayFat : GetPenFromPool(2, IsSelected,PALE_RGB(color)));
                         use_shadowed_line = 1;
                         //this will paint another thin line over the fat gray line to make illusion of pixel-and-half width
                     }
@@ -2339,7 +2336,7 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
             }
 
             POINT pp[64];
-            if (((m_Color & 0xF8) == 0x08) && (NumItems < 64))
+            if ((m_Color & 0xF8) == 0x08 && NumItems < 64)
             {
                 //painting color-filled shapes
                 char is_closed;
@@ -2372,13 +2369,13 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
                 if (i + j == NumItems) break;
                 if (j == 63) break;
                 tDrawingItem* di2 = di + 1;
-                if ((di2->Type != di->Type) || (di2->LineWidth != width) ||
-                    (di2->X1 != di->X2) || (di2->Y1 != di->Y2))
+                if (di2->Type != di->Type || di2->LineWidth != width ||
+                    di2->X1 != di->X2 || di2->Y1 != di->Y2)
                     break;
                 di++;
             }
 
-            if ((j == 1) && (di->X1 == di->X2) && (di->Y1 == di->Y2)) //single dot painting
+            if (j == 1 && di->X1 == di->X2 && di->Y1 == di->Y2) //single dot painting
                 DC->Ellipse(pp[0].x - 1, pp[0].y - 1, pp[0].x + 1, pp[0].y + 1);
 
             pp[j].x = X + (di->X2 * zoom + 50 * DRWZOOM) / 100 / DRWZOOM;
@@ -2398,11 +2395,11 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
                 for (int k = 0; k < j; k++)
                 {
                     clr = RGB(160, 0, 0);
-                    if (((Items + i + k)->X1 == NodeX) && ((Items + i + k)->Y1 == NodeY)) clr = RGB(255, 0, 0);
+                    if ((Items + i + k)->X1 == NodeX && (Items + i + k)->Y1 == NodeY) clr = RGB(255, 0, 0);
                     DC->FillSolidRect(pp[k].x - sz / 2, pp[k].y - sz / 2, sz, sz, clr);
                 }
                 clr = RGB(160, 0, 0);
-                if (((Items + i + j - 1)->X2 == NodeX) && ((Items + i + j - 1)->Y2 == NodeY)) clr = RGB(255, 0, 0);
+                if ((Items + i + j - 1)->X2 == NodeX && (Items + i + j - 1)->Y2 == NodeY) clr = RGB(255, 0, 0);
                 DC->FillSolidRect(pp[j].x - sz / 2, pp[j].y - sz / 2, sz, sz, clr);
             }
 
@@ -2414,16 +2411,16 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
 
             if (di->Type == 0) //subdrawing
             {
-                ((CDrawing*)(di->pSubdrawing))->PaintDrawing(DC, zoom, X + di->X1 * zoom / 100 / DRWZOOM,
-                                                             Y + di->Y1 * zoom / 100 / DRWZOOM, absX + di->X1 / DRWZOOM,
-                                                             absY + di->Y1 / DRWZOOM, ClipReg, color);
+                ((CDrawing*)di->pSubdrawing)->PaintDrawing(DC, zoom, X + di->X1 * zoom / 100 / DRWZOOM,
+                                                           Y + di->Y1 * zoom / 100 / DRWZOOM, absX + di->X1 / DRWZOOM,
+                                                           absY + di->Y1 / DRWZOOM, ClipReg, color);
             }
-            if ((di->Type == 2) && (!IsSpecialDrawing)) //expression 
+            if (di->Type == 2 && !IsSpecialDrawing) //expression 
             {
                 //the value of 'above' was stored in LineWidth
-                ((CExpression*)(di->pSubdrawing))->PaintExpression(DC, zoom, X + di->X1 * zoom / 100 / DRWZOOM,
-                                                                   Y + (di->LineWidth) + (di->Y1) * zoom / 100 /
-                                                                   DRWZOOM, ClipReg, color);
+                ((CExpression*)di->pSubdrawing)->PaintExpression(DC, zoom, X + di->X1 * zoom / 100 / DRWZOOM,
+                                                                 Y + di->LineWidth + di->Y1 * zoom / 100 /
+                                                                 DRWZOOM, ClipReg, color);
             }
         }
     }
@@ -2441,7 +2438,7 @@ void CDrawing::SelectDrawing(char select)
         if (di->pSubdrawing)
         {
             if (di->Type == 0) ((CDrawing*)di->pSubdrawing)->SelectDrawing(select);
-            if ((di->Type == 2) && (IsSpecialDrawing != 51)) ((CExpression*)di->pSubdrawing)->SelectExpression(select);
+            if (di->Type == 2 && IsSpecialDrawing != 51) ((CExpression*)di->pSubdrawing)->SelectExpression(select);
         }
 }
 
@@ -2454,8 +2451,8 @@ int CDrawing::CalcChecksum() const
         ret += di->LineWidth + di->Type * 128 + di->X1 * 4 + di->X2 * 8 + di->Y1 * 16 + di->Y2 * 32;
         if (di->pSubdrawing)
         {
-            if (di->Type == 0) ret += ((CDrawing*)(di->pSubdrawing))->CalcChecksum();
-            else if (di->Type == 2) ret += ((CExpression*)(di->pSubdrawing))->CalcChecksum();
+            if (di->Type == 0) ret += ((CDrawing*)di->pSubdrawing)->CalcChecksum();
+            else if (di->Type == 2) ret += ((CExpression*)di->pSubdrawing)->CalcChecksum();
         }
         ret *= i;
     }
@@ -2470,7 +2467,7 @@ int CDrawing::CopyToWindowsClipboard() const
     {
         char tmp[64];
         int len = XML_output(tmp, 0, 1);
-        if ((len > 0) && (len < 1000 * DRWZOOM))
+        if (len > 0 && len < 1000 * DRWZOOM)
         {
             EmptyClipboard();
             HANDLE hmem = GlobalAlloc(GMEM_ZEROINIT, len + 256);
@@ -2528,15 +2525,15 @@ int CDrawing::CopyDrawing(CDrawing* Original)
         {
             tDrawingItem* di = Items + i;
             *di = *(Original->Items + i);
-            if ((di->Type == 0) && (di->pSubdrawing)) //subdrawing
+            if (di->Type == 0 && di->pSubdrawing) //subdrawing
             {
                 CDrawing* tmp = new CDrawing();
                 tmp->CopyDrawing((CDrawing*)di->pSubdrawing);
                 di->pSubdrawing = (void*)tmp;
             }
-            if ((di->Type == 2) && (di->pSubdrawing))
+            if (di->Type == 2 && di->pSubdrawing)
             {
-                CExpression* tmp = new CExpression(nullptr, nullptr, ((CExpression*)(di->pSubdrawing))->m_FontSize);
+                CExpression* tmp = new CExpression(nullptr, nullptr, ((CExpression*)di->pSubdrawing)->m_FontSize);
                 //tmp->m_FontSizeHQ=((CExpression*)(di->pSubdrawing))->m_FontSizeHQ;
                 tmp->CopyExpression((CExpression*)di->pSubdrawing, 0);
                 di->pSubdrawing = (void*)tmp;
@@ -2558,14 +2555,14 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
     CObject* ret = nullptr;
 
     //we are going to ignore request for function plotter as much as possible (while it is drawing) because this lowers posibility of crash!!
-    if ((IsSpecialDrawing == 51) && (DrawingThreadUsed) && (SpecialDrawingHover)) return nullptr;
+    if (IsSpecialDrawing == 51 && DrawingThreadUsed && SpecialDrawingHover) return nullptr;
 
     //special handling for bitmap (clicking at interior)
-    if ((IsSpecialDrawing == 52) && (!internal_call))
+    if (IsSpecialDrawing == 52 && !internal_call)
     {
-        if ((X < ((CBitmapImage*)SpecialData)->MenuX + 45) && (X > 3 * ViewZoom / 100) && (Y > 3 * ViewZoom / 100))
+        if (X < ((CBitmapImage*)SpecialData)->MenuX + 45 && X > 3 * ViewZoom / 100 && Y > 3 * ViewZoom / 100)
         {
-            if ((Y - ((CBitmapImage*)SpecialData)->MenuY) < 36) *NodeEdit = 0xFFFF8000;
+            if (Y - ((CBitmapImage*)SpecialData)->MenuY < 36) *NodeEdit = 0xFFFF8000;
             //magic value returned - marks that mouse is pointing at a special drawing interrior
         }
         ((CBitmapImage*)SpecialData)->ShowMenu = 1;
@@ -2574,7 +2571,7 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
     }
 
     int sz;
-    if (/*(IsNodeEdit) ||*/ (AllowQuickEditNodes()) || ((GetKeyState(VK_CONTROL) & 0xFFFE)))
+    if (/*(IsNodeEdit) ||*/ AllowQuickEditNodes() || GetKeyState(VK_CONTROL) & 0xFFFE)
     {
         sz = MovingDotSize / 3 + 1;
         if (ViewZoom > 100) sz += sz * (ViewZoom - 100) / 384;
@@ -2587,14 +2584,14 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
     {
         if (di->Type == 1) //line
         {
-            int x1 = ((di->X1) * zoom) / 100 / DRWZOOM;
-            int x2 = ((di->X2) * zoom) / 100 / DRWZOOM;
-            int y1 = ((di->Y1) * zoom) / 100 / DRWZOOM;
-            int y2 = ((di->Y2) * zoom) / 100 / DRWZOOM;
+            int x1 = di->X1 * zoom / 100 / DRWZOOM;
+            int x2 = di->X2 * zoom / 100 / DRWZOOM;
+            int y1 = di->Y1 * zoom / 100 / DRWZOOM;
+            int y2 = di->Y2 * zoom / 100 / DRWZOOM;
 
             if (sz) //If node-editing is active - check if mouse is pointing at a node
             {
-                if ((x1 - sz < X) && (x1 + sz > X) && (y1 - sz < Y) && (y1 + sz > Y))
+                if (x1 - sz < X && x1 + sz > X && y1 - sz < Y && y1 + sz > Y)
                 {
                     NodeX = di->X1;
                     NodeY = di->Y1;
@@ -2602,7 +2599,7 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
                     ret = (CObject*)this;
                     break;
                 }
-                if ((x2 - sz < X) && (x2 + sz > X) && (y2 - sz < Y) && (y2 + sz > Y))
+                if (x2 - sz < X && x2 + sz > X && y2 - sz < Y && y2 + sz > Y)
                 {
                     NodeX = di->X2;
                     NodeY = di->Y2;
@@ -2614,9 +2611,9 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
             double l1 = sqrt(((double)x2 - x1) * (x2 - x1) + ((double)y2 - y1) * (y2 - y1));
             double l2 = sqrt(((double)x2 - X) * (x2 - X) + ((double)y2 - Y) * (y2 - Y));
             double l3 = sqrt(((double)X - x1) * (X - x1) + ((double)Y - y1) * (Y - y1));
-            double factorf = (l2 * l3) / (l2 + l3);
+            double factorf = l2 * l3 / (l2 + l3);
             if (factorf == 0) factorf = 0.001;
-            factorf /= ((double)max(di->LineWidth*ViewZoom/100, 34*DRWZOOM/10)) / 2.0 / (double)DRWZOOM;
+            factorf /= (double)max(di->LineWidth*ViewZoom/100, 34*DRWZOOM/10) / 2.0 / (double)DRWZOOM;
             if (l2 + l3 < l1 + (double)zoom / 100.0 / factorf)
             {
                 ret = (CObject*)this;
@@ -2628,8 +2625,8 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
             if (di->Type == 0)
             {
                 int ne;
-                CObject* tmpret = ((CDrawing*)(di->pSubdrawing))->SelectObjectAtPoint(
-                    DC, zoom, X - (di->X1) * zoom / 100 / DRWZOOM, Y - (di->Y1) * zoom / 100 / DRWZOOM, &ne, 1);
+                CObject* tmpret = ((CDrawing*)di->pSubdrawing)->SelectObjectAtPoint(
+                    DC, zoom, X - di->X1 * zoom / 100 / DRWZOOM, Y - di->Y1 * zoom / 100 / DRWZOOM, &ne, 1);
                 if (ne) *NodeEdit = ne;
                 if (tmpret)
                 {
@@ -2637,10 +2634,10 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
                     break;
                 }
             }
-            if ((di->Type == 2) && (!IsSpecialDrawing)) //expression
+            if (di->Type == 2 && !IsSpecialDrawing) //expression
             {
-                if ((di->X1 < X * 100 * DRWZOOM / zoom) && (di->X2 > X * 100 * DRWZOOM / zoom) &&
-                    (di->Y1 < Y * 100 * DRWZOOM / zoom) && (di->Y2 > Y * 100 * DRWZOOM / zoom))
+                if (di->X1 < X * 100 * DRWZOOM / zoom && di->X2 > X * 100 * DRWZOOM / zoom &&
+                    di->Y1 < Y * 100 * DRWZOOM / zoom && di->Y2 > Y * 100 * DRWZOOM / zoom)
                 {
                     ret = (CObject*)di->pSubdrawing;
                     break;
@@ -2649,7 +2646,7 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
         }
     }
 
-    if ((IsSpecialDrawing) && (ret == nullptr) && (internal_call == 0))
+    if (IsSpecialDrawing && ret == nullptr && internal_call == 0)
     {
         *NodeEdit = 0xFFFF8000; //magic value returned - marks that mouse is pointing at a special drawing interrior
         return nullptr;
@@ -2693,7 +2690,7 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
                 strcpy(output, tmpstr);
                 output += strlen(tmpstr);
             }
-            int tt = ((CDrawing*)(di->pSubdrawing))->XML_output(output, num_tabs + 1, only_calculate);
+            int tt = ((CDrawing*)di->pSubdrawing)->XML_output(output, num_tabs + 1, only_calculate);
             len += tt;
             if (!only_calculate) output += tt;
             memset(tmpstr, 9, num_tabs);
@@ -2722,7 +2719,7 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
                 strcpy(output, tmpstr);
                 output += strlen(tmpstr);
             }
-            int tt = ((CExpression*)(di->pSubdrawing))->XML_output(output, num_tabs + 1, only_calculate);
+            int tt = ((CExpression*)di->pSubdrawing)->XML_output(output, num_tabs + 1, only_calculate);
             len += tt;
             if (!only_calculate) output += tt;
             memset(tmpstr, 9, num_tabs);
@@ -2742,7 +2739,7 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
                 sprintf_s(tmpstr, "<draw type=\"%d\" ", typecode);
             else
             {
-                if ((typecode != 11) && (typecode != 1)) //black color (m_Color=-1 or m_Color=0) line segment
+                if (typecode != 11 && typecode != 1) //black color (m_Color=-1 or m_Color=0) line segment
                     sprintf_s(tmpstr, "<dw t=\"%d\" ", typecode);
                 else
                     strcpy_s(tmpstr, "<dw ");
@@ -2754,7 +2751,7 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
                 output += strlen(tmpstr);
             }
 
-            if ((IsSpecialDrawing) && (i == 0))
+            if (IsSpecialDrawing && i == 0)
             {
                 sprintf_s(tmpstr, "spec=\"%d\" ", IsSpecialDrawing);
                 len += (int)strlen(tmpstr);
@@ -2779,10 +2776,10 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
             }
 
             int jj = 3;
-            while ((i < NumItems - 1) && (di->LineWidth == (di + 1)->LineWidth) &&
-                (di->Type == (di + 1)->Type) &&
-                (di->X2 == (di + 1)->X1) &&
-                (di->Y2 == (di + 1)->Y1))
+            while (i < NumItems - 1 && di->LineWidth == (di + 1)->LineWidth &&
+                di->Type == (di + 1)->Type &&
+                di->X2 == (di + 1)->X1 &&
+                di->Y2 == (di + 1)->Y1)
             {
                 char fstr[64];
                 i++;
@@ -2798,7 +2795,7 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
                 strcat_s(tmpstr, fstr);
                 jj++;
                 if (jj > 18) break;
-                if ((XMLFileVersion == 1) && (jj > 9)) break;
+                if (XMLFileVersion == 1 && jj > 9) break;
             }
             if (XMLFileVersion == 1) strcat_s(tmpstr, "/>\r\n");
             else strcat_s(tmpstr, "\" />\r\n");
@@ -2885,9 +2882,9 @@ char* CDrawing::XML_input(char* file)
             }
         }
 
-        if ((strncmp(file, "group", 5) == 0) ||
-            (strncmp(file, "gr", 2) == 0) ||
-            (strncmp(file, "subexp", 6) == 0))
+        if (strncmp(file, "group", 5) == 0 ||
+            strncmp(file, "gr", 2) == 0 ||
+            strncmp(file, "subexp", 6) == 0)
         {
             NumItems++;
             if (NumItems > 65000) NumItems = 65000;
@@ -2902,13 +2899,13 @@ char* CDrawing::XML_input(char* file)
             if (file[0] == 's')
             {
                 di->Type = 2;
-                di->pSubdrawing = (void*)(new CExpression(nullptr, nullptr, 100));
+                di->pSubdrawing = (void*)new CExpression(nullptr, nullptr, 100);
                 file += 6;
             }
             else
             {
                 di->Type = 0;
-                di->pSubdrawing = (void*)(new CDrawing());
+                di->pSubdrawing = (void*)new CDrawing();
                 if (file[2] == 'o') file += 5;
                 else file += 2;
             }
@@ -2929,7 +2926,7 @@ char* CDrawing::XML_input(char* file)
                     char ch = ',';
                     while (ch)
                     {
-                        if (((ch < '0') || (ch > '9')) && (ch != '-'))
+                        if ((ch < '0' || ch > '9') && ch != '-')
                         {
                             ttt = atoi(value + parsepos);
                             if (parseelm == 0) di->X1 = ttt;
@@ -2938,22 +2935,22 @@ char* CDrawing::XML_input(char* file)
                             if (parseelm == 3) di->Y2 = ttt;
                             parseelm++;
                         }
-                        ch = *(value + (parsepos++));
+                        ch = *(value + parsepos++);
                     }
                 }
             }
             while (attribute[0]);
 
             if (di->Type == 0)
-                file = ((CDrawing*)(di->pSubdrawing))->XML_input(file);
+                file = ((CDrawing*)di->pSubdrawing)->XML_input(file);
             else
-                file = ((CExpression*)(di->pSubdrawing))->XML_input(file);
+                file = ((CExpression*)di->pSubdrawing)->XML_input(file);
 
             continue;
         }
 
-        if ((strncmp(file, "dw", 2) != 0) &&
-            (strncmp(file, "draw", 4) != 0))
+        if (strncmp(file, "dw", 2) != 0 &&
+            strncmp(file, "draw", 4) != 0)
             continue; //we expect dwg or draw (draw is to support old file version)
 
         //'dwg' has been found
@@ -2979,7 +2976,7 @@ char* CDrawing::XML_input(char* file)
             file = mf->XML_read_attribute(attribute, value, file, 256);
             if (file == nullptr) return nullptr;
             int ttt = atoi(value);
-            if ((strcmp(attribute, "t") == 0) || (strcmp(attribute, "type") == 0))
+            if (strcmp(attribute, "t") == 0 || strcmp(attribute, "type") == 0)
             {
                 int val = atoi(value);
                 di->Type = val % 10;
@@ -2989,13 +2986,13 @@ char* CDrawing::XML_input(char* file)
             if (strcmp(attribute, "Y1") == 0) { di->Y1 = ttt * DRWZOOM / 1000; }
             if (strcmp(attribute, "X2") == 0) { di->X2 = ttt * DRWZOOM / 1000; }
             if (strcmp(attribute, "Y2") == 0) { di->Y2 = ttt * DRWZOOM / 1000; }
-            if ((strcmp(attribute, "X3") == 0) ||
-                (strcmp(attribute, "X4") == 0) ||
-                (strcmp(attribute, "X5") == 0) ||
-                (strcmp(attribute, "X6") == 0) ||
-                (strcmp(attribute, "X7") == 0) ||
-                (strcmp(attribute, "X8") == 0) ||
-                (strcmp(attribute, "X9") == 0))
+            if (strcmp(attribute, "X3") == 0 ||
+                strcmp(attribute, "X4") == 0 ||
+                strcmp(attribute, "X5") == 0 ||
+                strcmp(attribute, "X6") == 0 ||
+                strcmp(attribute, "X7") == 0 ||
+                strcmp(attribute, "X8") == 0 ||
+                strcmp(attribute, "X9") == 0)
             {
                 NumItems++;
                 if (NumItems > 65000) NumItems = 65000;
@@ -3012,13 +3009,13 @@ char* CDrawing::XML_input(char* file)
                 di->Y1 = (di - 1)->Y2;
                 di->X2 = ttt * DRWZOOM / 1000;
             }
-            if ((strcmp(attribute, "Y3") == 0) ||
-                (strcmp(attribute, "Y4") == 0) ||
-                (strcmp(attribute, "Y5") == 0) ||
-                (strcmp(attribute, "Y6") == 0) ||
-                (strcmp(attribute, "Y7") == 0) ||
-                (strcmp(attribute, "Y8") == 0) ||
-                (strcmp(attribute, "Y9") == 0))
+            if (strcmp(attribute, "Y3") == 0 ||
+                strcmp(attribute, "Y4") == 0 ||
+                strcmp(attribute, "Y5") == 0 ||
+                strcmp(attribute, "Y6") == 0 ||
+                strcmp(attribute, "Y7") == 0 ||
+                strcmp(attribute, "Y8") == 0 ||
+                strcmp(attribute, "Y9") == 0)
             {
                 di->Y2 = ttt * DRWZOOM / 1000;
             }
@@ -3048,7 +3045,7 @@ char* CDrawing::XML_input(char* file)
                 char ch = ',';
                 while (ch)
                 {
-                    if (((ch < '0') || (ch > ':')) && (ch != '-'))
+                    if ((ch < '0' || ch > ':') && ch != '-')
                     {
                         ttt = atoi(value + parsepos);
                         if (parseelm == 0) di->LineWidth = ttt;
@@ -3087,7 +3084,7 @@ char* CDrawing::XML_input(char* file)
                         }
                         parseelm++;
                     }
-                    ch = *(value + (parsepos++));
+                    ch = *(value + parsepos++);
                 }
             }
         }
@@ -3116,15 +3113,15 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
 
         if (di->Type == 0) //the subdrawing
         {
-            if ((X2 > di->X1) && (X1 < di->X2) && (Y2 > di->Y1) && (Y1 < di->Y2))
+            if (X2 > di->X1 && X1 < di->X2 && Y2 > di->Y1 && Y1 < di->Y2)
             {
-                int ret = ((CDrawing*)(di->pSubdrawing))->EraseSquare((X1 - di->X1) / DRWZOOM, (Y1 - di->Y1) / DRWZOOM,
-                                                                      (X2 - di->X1) / DRWZOOM, (Y2 - di->Y1) / DRWZOOM,
-                                                                      this);
+                int ret = ((CDrawing*)di->pSubdrawing)->EraseSquare((X1 - di->X1) / DRWZOOM, (Y1 - di->Y1) / DRWZOOM,
+                                                                    (X2 - di->X1) / DRWZOOM, (Y2 - di->Y1) / DRWZOOM,
+                                                                    this);
                 if (ret == 2) //should delete the subdrawing
                 {
                     //((CDrawing*)(di->pSubdrawing))->Delete();
-                    delete ((CDrawing*)(di->pSubdrawing));
+                    delete (CDrawing*)di->pSubdrawing;
                     for (int j = i; j < NumItems - 1; j++)
                         *(Items + j) = *(Items + j + 1);
                     NumItems--;
@@ -3135,8 +3132,8 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
             continue;
         }
 
-        if ((di->X1 >= X1) && (di->X2 >= X1) && (di->X1 <= X2) && (di->X2 <= X2) &&
-            (di->Y1 >= Y1) && (di->Y2 >= Y1) && (di->Y1 <= Y2) && (di->Y2 <= Y2))
+        if (di->X1 >= X1 && di->X2 >= X1 && di->X1 <= X2 && di->X2 <= X2 &&
+            di->Y1 >= Y1 && di->Y2 >= Y1 && di->Y1 <= Y2 && di->Y2 <= Y2)
         {
             //the whole line should be erased
             for (int j = i; j < NumItems - 1; j++)
@@ -3154,13 +3151,13 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
         int b = FindCrosspointX(di, X2, Y1, Y2, &x2, &y2);
         int c = FindCrosspointY(di, Y2, X1, X2, &x3, &y3);
         int d = FindCrosspointX(di, X1, Y1, Y2, &x4, &y4);
-        if ((a) || (b) || (c) || (d)) is_touched = 1;
+        if (a || b || c || d) is_touched = 1;
 
-        if ((a) && (b)) //crossing upper and right edges
+        if (a && b) //crossing upper and right edges
         {
             if (InsertItemAt(i + 1) == 0) return 1;
             di = Items + i;
-            if ((di->X1 < di->X2) || (di->Y1 < di->Y2))
+            if (di->X1 < di->X2 || di->Y1 < di->Y2)
             {
                 di->X2 = x1;
                 di->Y2 = y1;
@@ -3179,7 +3176,7 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
             BreakApart(di, parent);
             i++;
         }
-        else if ((a) && (c)) //crossing upper and bottom edges
+        else if (a && c) //crossing upper and bottom edges
         {
             if (InsertItemAt(i + 1) == 0) return 1;
             di = Items + i;
@@ -3202,11 +3199,11 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
             BreakApart(di, parent);
             i++;
         }
-        else if ((a) && (d)) //crossing upper and left edges
+        else if (a && d) //crossing upper and left edges
         {
             if (InsertItemAt(i + 1) == 0) return 1;
             di = Items + i;
-            if ((di->X1 < di->X2) || (di->Y1 > di->Y2))
+            if (di->X1 < di->X2 || di->Y1 > di->Y2)
             {
                 di->X2 = x4;
                 di->Y2 = y4;
@@ -3225,11 +3222,11 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
             BreakApart(di, parent);
             i++;
         }
-        else if ((b) && (c)) //crossing left and bottom edges
+        else if (b && c) //crossing left and bottom edges
         {
             if (InsertItemAt(i + 1) == 0) return 1;
             di = Items + i;
-            if ((di->X1 < di->X2) || (di->Y1 > di->Y2))
+            if (di->X1 < di->X2 || di->Y1 > di->Y2)
             {
                 di->X2 = x3;
                 di->Y2 = y3;
@@ -3248,7 +3245,7 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
             BreakApart(di, parent);
             i++;
         }
-        else if ((b) && (d)) //crossing left and right edges
+        else if (b && d) //crossing left and right edges
         {
             if (InsertItemAt(i + 1) == 0) return 1;
             di = Items + i;
@@ -3271,11 +3268,11 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
             BreakApart(di, parent);
             i++;
         }
-        else if ((c) && (d)) //crossing bottom and left
+        else if (c && d) //crossing bottom and left
         {
             if (InsertItemAt(i + 1) == 0) return 1;
             di = Items + i;
-            if ((di->X1 < di->X2) || (di->Y1 < di->Y2))
+            if (di->X1 < di->X2 || di->Y1 < di->Y2)
             {
                 di->X2 = x4;
                 di->Y2 = y4;
@@ -3359,34 +3356,34 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
 // finds crospoint of an drawing item with vertical line
 int CDrawing::FindCrosspointX(tDrawingItem* di, int X, int Y1, int Y2, int* pX, int* pY)
 {
-    if ((di->X1 < X) && (di->X2 < X)) return 0; //no crosspoint
-    if ((di->X1 > X) && (di->X2 > X)) return 0; //no crosspoint
+    if (di->X1 < X && di->X2 < X) return 0; //no crosspoint
+    if (di->X1 > X && di->X2 > X) return 0; //no crosspoint
 
     if (di->X1 == di->X2) return 0;
-    if ((di->Y1 < Y1) && (di->Y2 < Y1)) return 0;
-    if ((di->Y1 > Y2) && (di->Y2 > Y2)) return 0;
+    if (di->Y1 < Y1 && di->Y2 < Y1) return 0;
+    if (di->Y1 > Y2 && di->Y2 > Y2) return 0;
 
     double a = (double)(di->Y2 - di->Y1) / (double)(di->X2 - di->X1);
     *pY = (int)(a * (X - di->X1) + di->Y1);
     *pX = X;
-    if ((*pY < Y1) || (*pY > Y2)) return 0;
+    if (*pY < Y1 || *pY > Y2) return 0;
     return 1;
 }
 
 // finds crosspoint of an drawing item with horizontal line
 int CDrawing::FindCrosspointY(tDrawingItem* di, int Y, int X1, int X2, int* pX, int* pY)
 {
-    if ((di->Y1 < Y) && (di->Y2 < Y)) return 0; //no crosspoint
-    if ((di->Y1 > Y) && (di->Y2 > Y)) return 0; //no crosspoint
+    if (di->Y1 < Y && di->Y2 < Y) return 0; //no crosspoint
+    if (di->Y1 > Y && di->Y2 > Y) return 0; //no crosspoint
 
     if (di->Y1 == di->Y2) return 0;
-    if ((di->X1 < X1) && (di->X2 < X1)) return 0;
-    if ((di->X1 > X2) && (di->X2 > X2)) return 0;
+    if (di->X1 < X1 && di->X2 < X1) return 0;
+    if (di->X1 > X2 && di->X2 > X2) return 0;
 
     double a = (double)(di->X2 - di->X1) / (double)(di->Y2 - di->Y1);
     *pX = (int)(a * (Y - di->Y1) + di->X1);
     *pY = Y;
-    if ((*pX < X1) || (*pX > X2)) return 0;
+    if (*pX < X1 || *pX > X2) return 0;
     return 1;
 }
 
@@ -3436,13 +3433,13 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                     int y4 = di3->Y2;
                     int xx, yy;
                     int found = 0;
-                    if ((x2 - x1) != 0)
+                    if (x2 - x1 != 0)
                     {
                         double a = (double)(y2 - y1) / (double)(x2 - x1);
                         double ya = a * (x3 - x1) + y1 - y3;
                         double yb = a * (x4 - x1) + y1 - y4;
-                        if ((fabs(ya) > 1) && (fabs(yb) > 1))
-                            if (((ya > 0) && (yb < 0)) || ((ya < 0) && (yb > 0)))
+                        if (fabs(ya) > 1 && fabs(yb) > 1)
+                            if ((ya > 0 && yb < 0) || (ya < 0 && yb > 0))
                             {
                                 if (x4 == x3)
                                 {
@@ -3457,9 +3454,9 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                                     xx = (int)(x3 + (double)(x4 - x3) * (ya / (ya + yb)));
                                     yy = (int)(y3 + a * (xx - x3));
                                 }
-                                if ((xx > min(x3, x4)) && (xx < max(x3, x4)) &&
-                                    (yy > min(y3, y4)) && (yy < max(y3, y4)) &&
-                                    (xx > min(x1, x2)) && (xx < max(x1, x2)))
+                                if (xx > min(x3, x4) && xx < max(x3, x4) &&
+                                    yy > min(y3, y4) && yy < max(y3, y4) &&
+                                    xx > min(x1, x2) && xx < max(x1, x2))
                                     found = 1;
                             }
                     }
@@ -3468,8 +3465,8 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                         double a = (double)(y4 - y3) / (double)(x4 - x3);
                         xx = x1;
                         yy = (int)(y3 + a * (x1 - x3));
-                        if ((x1 < max(x3, x4)) && (x1 > min(x3, x4)))
-                            if ((yy < max(y1, y2)) && (yy > min(y1, y2)))
+                        if (x1 < max(x3, x4) && x1 > min(x3, x4))
+                            if (yy < max(y1, y2) && yy > min(y1, y2))
                                 found = 1;
                     }
 
@@ -3514,7 +3511,7 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                     tDrawingItem* di2 = Items + i;
                     tDrawingItem* di3 = Items + j;
                     int x = 0x7FFFFFFF, y, x1, y1, x2, y2;
-                    if ((di3->X1 == di2->X1) && (di3->Y1 == di2->Y1))
+                    if (di3->X1 == di2->X1 && di3->Y1 == di2->Y1)
                     {
                         x = di2->X1;
                         y = di2->Y1;
@@ -3523,7 +3520,7 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                         x2 = di3->X2;
                         y2 = di3->Y2;
                     }
-                    if ((di3->X2 == di2->X1) && (di3->Y2 == di2->Y1))
+                    if (di3->X2 == di2->X1 && di3->Y2 == di2->Y1)
                     {
                         x = di2->X1;
                         y = di2->Y1;
@@ -3532,7 +3529,7 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                         x2 = di3->X1;
                         y2 = di3->Y1;
                     }
-                    if ((di3->X1 == di2->X2) && (di3->Y1 == di2->Y2))
+                    if (di3->X1 == di2->X2 && di3->Y1 == di2->Y2)
                     {
                         x = di2->X2;
                         y = di2->Y2;
@@ -3541,7 +3538,7 @@ int CDrawing::BreakApart(tDrawingItem* di, CDrawing* parent)
                         x2 = di3->X2;
                         y2 = di3->Y2;
                     }
-                    if ((di3->X2 == di2->X2) && (di3->Y2 == di2->Y2))
+                    if (di3->X2 == di2->X2 && di3->Y2 == di2->Y2)
                     {
                         x = di2->X2;
                         y = di2->Y2;
@@ -3594,21 +3591,21 @@ break_apart_again:
         has_others = 0;
         di = Items;
         for (int k = 0; k < NumItems; k++, di++)
-            if ((di->LineWidth) & 0x8000)
+            if (di->LineWidth & 0x8000)
             {
                 tDrawingItem* di2 = Items;
                 for (int i = 0; i < NumItems; i++, di2++)
                     if ((di2->LineWidth & 0x8000) == 0)
-                        if (((di2->X1 == di->X1) && (di2->Y1 == di->Y1)) ||
-                            ((di2->X2 == di->X1) && (di2->Y2 == di->Y1)) ||
-                            ((di2->X1 == di->X2) && (di2->Y1 == di->Y2)) ||
-                            ((di2->X2 == di->X2) && (di2->Y2 == di->Y2)))
+                        if ((di2->X1 == di->X1 && di2->Y1 == di->Y1) ||
+                            (di2->X2 == di->X1 && di2->Y2 == di->Y1) ||
+                            (di2->X1 == di->X2 && di2->Y1 == di->Y2) ||
+                            (di2->X2 == di->X2 && di2->Y2 == di->Y2))
                         {
                             double r;
                             if (!first_pass)
                             {
                                 int x, y, x1, y1, x2, y2;
-                                if ((di2->X1 == di->X1) && (di2->Y1 == di->Y1))
+                                if (di2->X1 == di->X1 && di2->Y1 == di->Y1)
                                 {
                                     x = di->X1;
                                     y = di->Y1;
@@ -3617,7 +3614,7 @@ break_apart_again:
                                     x2 = di2->X2;
                                     y2 = di2->Y2;
                                 }
-                                if ((di2->X2 == di->X1) && (di2->Y2 == di->Y1))
+                                if (di2->X2 == di->X1 && di2->Y2 == di->Y1)
                                 {
                                     x = di->X1;
                                     y = di->Y1;
@@ -3626,7 +3623,7 @@ break_apart_again:
                                     x2 = di2->X1;
                                     y2 = di2->Y1;
                                 }
-                                if ((di2->X1 == di->X2) && (di2->Y1 == di->Y2))
+                                if (di2->X1 == di->X2 && di2->Y1 == di->Y2)
                                 {
                                     x = di->X2;
                                     y = di->Y2;
@@ -3635,7 +3632,7 @@ break_apart_again:
                                     x2 = di2->X2;
                                     y2 = di2->Y2;
                                 }
-                                if ((di2->X2 == di->X2) && (di2->Y2 == di->Y2))
+                                if (di2->X2 == di->X2 && di2->Y2 == di->Y2)
                                 {
                                     x = di->X2;
                                     y = di->Y2;
@@ -3646,11 +3643,11 @@ break_apart_again:
                                 }
                                 int ii;
                                 for (ii = 0; ii < NumItems; ii++)
-                                    if ((ii != i) && (ii != k))
+                                    if (ii != i && ii != k)
                                     {
                                         tDrawingItem* di3 = Items + ii;
-                                        if ((di3->X1 == x) && (di3->Y1 == y) ||
-                                            (di3->X2 == x) && (di3->Y2 == y))
+                                        if (di3->X1 == x && di3->Y1 == y ||
+                                            di3->X2 == x && di3->Y2 == y)
                                             break;
                                     }
                                 if (ii < NumItems)
@@ -3663,7 +3660,7 @@ break_apart_again:
                                     if (r > 3.1415926) r = 2 * 3.1415926 - r;
                                 }
                             }
-                            if ((first_pass) || (r > angle))
+                            if (first_pass || r > angle)
                             {
                                 any_found = 1;
                                 di2->LineWidth |= 0x8000;
@@ -3685,7 +3682,7 @@ break_apart_again:
         for (int i = 0; i < NumItems; i++)
         {
             tDrawingItem* di2 = Items + i;
-            if ((di2->LineWidth) & 0x8000)
+            if (di2->LineWidth & 0x8000)
             {
                 di2->LineWidth &= 0x7FFF;
                 temp->NumItems++;
@@ -3698,7 +3695,7 @@ break_apart_again:
                         temp->Items, sizeof(tDrawingItem) * temp->NumItemsReserved);
                     else temp->Items = (tDrawingItem*)malloc(sizeof(tDrawingItem) * temp->NumItemsReserved);
                 }
-                *((temp->Items) + jj) = *di2;
+                *(temp->Items + jj) = *di2;
                 jj++;
 
                 for (int j = i; j < NumItems - 1; j++) *(Items + j) = *(Items + j + 1);
@@ -3743,7 +3740,7 @@ break_apart_again:
             for (int i = 0; i < parent->NumItems; i++)
             {
                 tDrawingItem* di = parent->Items + i;
-                if ((di->Type == 0) && (di->pSubdrawing == this))
+                if (di->Type == 0 && di->pSubdrawing == this)
                 {
                     parent->NumItems++;
                     if (parent->NumItems > 65000) parent->NumItems = 65000;
@@ -3878,9 +3875,9 @@ int CDrawing::SetLineWidth(int width) const
     {
         tDrawingItem* di = Items + i;
         di->LineWidth = width; //*DRWZOOM;
-        if ((di->Type == 0) && (di->pSubdrawing))
+        if (di->Type == 0 && di->pSubdrawing)
         {
-            ((CDrawing*)(di->pSubdrawing))->SetLineWidth(width);
+            ((CDrawing*)di->pSubdrawing)->SetLineWidth(width);
         }
     }
     return 0;
@@ -3891,11 +3888,11 @@ int CDrawing::ScaleForFactor(float factorx, float factory)
     for (int i = 0; i < NumItems; i++)
     {
         tDrawingItem* di = Items + i;
-        if ((di->Type == 0) && (di->pSubdrawing))
+        if (di->Type == 0 && di->pSubdrawing)
         {
             int w = abs((int)((di->X2 - di->X1) * factorx));
             int h = abs((int)((di->Y2 - di->Y1) * factory));
-            ((CDrawing*)(di->pSubdrawing))->ScaleForFactor(factorx, factory);
+            ((CDrawing*)di->pSubdrawing)->ScaleForFactor(factorx, factory);
             di->X1 = (int)(di->X1 * factorx);
             if (factorx < 0) di->X1 -= w;
             di->Y1 = (int)(di->Y1 * factory);
@@ -3903,20 +3900,20 @@ int CDrawing::ScaleForFactor(float factorx, float factory)
             di->X2 = di->X1 + w;
             di->Y2 = di->Y1 + h;
         }
-        else if ((di->Type == 2) && (di->pSubdrawing))
+        else if (di->Type == 2 && di->pSubdrawing)
         {
             int w = abs((int)((di->X2 - di->X1) * factorx));
             int h = abs((int)((di->Y2 - di->Y1) * factory));
             //((CExpression*)(di->pSubdrawing))->ScaleForFactor(factorx,factory);
-            if ((factorx != 1.0) && (factory != 1.0))
+            if (factorx != 1.0 && factory != 1.0)
             {
                 float fx = fabs(factorx);
                 float fy = fabs(factory);
-                if ((fx > 1.0) && (fy > 1.0)) fx = min(fx, fy);
-                else if ((fx <= 1.0) && (fy > 1.0)) fx = 1.0;
-                else if ((fx > 1.0) && (fy < 1.0)) fx = 1.0;
+                if (fx > 1.0 && fy > 1.0) fx = min(fx, fy);
+                else if (fx <= 1.0 && fy > 1.0) fx = 1.0;
+                else if (fx > 1.0 && fy < 1.0) fx = 1.0;
                 else fx = max(fx, fy);
-                ((CExpression*)(di->pSubdrawing))->ChangeFontSize(fx);
+                ((CExpression*)di->pSubdrawing)->ChangeFontSize(fx);
             }
             di->X1 = (int)(di->X1 * factorx);
             if (factorx < 0) di->X1 -= w;
@@ -3949,22 +3946,22 @@ int CDrawing::RotateForAngle(float angle, int centerX, int centerY, int* newX1, 
     {
         tDrawingItem* di = Items + i;
 
-        if ((di->Type == 0) && (di->pSubdrawing))
+        if (di->Type == 0 && di->pSubdrawing)
         {
             int x1, y1, w, h;
-            ((CDrawing*)(di->pSubdrawing))->RotateForAngle(angle, (centerX - di->X1) / DRWZOOM,
-                                                           (centerY - di->Y1) / DRWZOOM, &x1, &y1, &w, &h);
+            ((CDrawing*)di->pSubdrawing)->RotateForAngle(angle, (centerX - di->X1) / DRWZOOM,
+                                                         (centerY - di->Y1) / DRWZOOM, &x1, &y1, &w, &h);
             di->X1 = x1 * DRWZOOM;
             di->Y1 = y1 * DRWZOOM;
             di->X2 = di->X1 + w * DRWZOOM;
             di->Y2 = di->Y1 + h * DRWZOOM;
         }
-        else if ((di->Type == 2) && (di->pSubdrawing))
+        else if (di->Type == 2 && di->pSubdrawing)
         {
             int x1 = 0, y1 = 0;
             short l, a, b;
             CDC* DC = pMainView->GetDC();
-            ((CExpression*)(di->pSubdrawing))->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            ((CExpression*)di->pSubdrawing)->CalculateSize(*DC, ViewZoom, l, &a, &b);
             a = a * 100 / ViewZoom;
             pMainView->ReleaseDC(DC);
             int Y = di->Y1 + a;
@@ -4016,12 +4013,12 @@ int CDrawing::MoveNodeCoordinate(int X, int Y)
     for (int i = 0; i < NumItems; i++)
     {
         tDrawingItem* di = Items + i;
-        if ((di->Type == 0) && (di->pSubdrawing))
+        if (di->Type == 0 && di->pSubdrawing)
         {
             int x1, y1, w, h;
-            ((CDrawing*)(di->pSubdrawing))->
-                MoveNodeCoordinate(X - (di->X1) * 10 / DRWZOOM, Y - (di->Y1) * 10 / DRWZOOM);
-            ((CDrawing*)(di->pSubdrawing))->AdjustCoordinates(&x1, &y1, &w, &h);
+            ((CDrawing*)di->pSubdrawing)->
+                MoveNodeCoordinate(X - di->X1 * 10 / DRWZOOM, Y - di->Y1 * 10 / DRWZOOM);
+            ((CDrawing*)di->pSubdrawing)->AdjustCoordinates(&x1, &y1, &w, &h);
             di->X1 += x1 * DRWZOOM;
             di->Y1 += y1 * DRWZOOM;
             di->X2 = di->X1 + w * DRWZOOM;
@@ -4031,7 +4028,7 @@ int CDrawing::MoveNodeCoordinate(int X, int Y)
         {
             int n = 3 * DRWZOOM / 2;
             if (ViewZoom >= 256) n = n * 16 / (ViewZoom / 16);
-            if ((abs(di->X1 - NodeX) < n) && (abs(di->Y1 - NodeY) < n))
+            if (abs(di->X1 - NodeX) < n && abs(di->Y1 - NodeY) < n)
             {
                 deltax = di->X1 - X * DRWZOOM / 10;
                 deltay = di->Y1 - Y * DRWZOOM / 10;
@@ -4039,7 +4036,7 @@ int CDrawing::MoveNodeCoordinate(int X, int Y)
                 di->Y1 = Y * DRWZOOM / 10;
                 num_found++;
             }
-            if ((abs(di->X2 - NodeX) < n) && (abs(di->Y2 - NodeY) < n))
+            if (abs(di->X2 - NodeX) < n && abs(di->Y2 - NodeY) < n)
             {
                 deltax = di->X2 - X * DRWZOOM / 10;
                 deltay = di->Y2 - Y * DRWZOOM / 10;
@@ -4047,7 +4044,7 @@ int CDrawing::MoveNodeCoordinate(int X, int Y)
                 di->Y2 = Y * DRWZOOM / 10;
                 num_found++;
             }
-            if ((di->X1 == di->X2) && (di->Y1 == di->Y2) && (NumItems > 1))
+            if (di->X1 == di->X2 && di->Y1 == di->Y2 && NumItems > 1)
             {
                 for (int j = i; j < NumItems - 1; j++)
                     *(Items + j) = *(Items + j + 1);
@@ -4058,7 +4055,7 @@ int CDrawing::MoveNodeCoordinate(int X, int Y)
         }
     }
 
-    if ((GetKeyState(VK_SHIFT) & 0xFFFE) || (GetKeyState(VK_RBUTTON) & 0xFFFE))
+    if (GetKeyState(VK_SHIFT) & 0xFFFE || GetKeyState(VK_RBUTTON) & 0xFFFE)
         if (num_found > 0)
         {
             int x = X * DRWZOOM / 10;
@@ -4067,7 +4064,7 @@ int CDrawing::MoveNodeCoordinate(int X, int Y)
             for (int i = 0; i < NumItems; i++)
             {
                 tDrawingItem* di2 = Items + i;
-                if ((di2->Type == 1) && (di2->X1 != x) && (di2->Y1 != y))
+                if (di2->Type == 1 && di2->X1 != x && di2->Y1 != y)
                 {
                     int dx = di2->X1 - x;
                     int dy = di2->Y1 - y;
@@ -4076,7 +4073,7 @@ int CDrawing::MoveNodeCoordinate(int X, int Y)
                     di2->X1 -= 100 * deltax / (100 + dist);
                     di2->Y1 -= 100 * deltay / (100 + dist);
                 }
-                if ((di2->Type == 1) && (di2->X2 != x) && (di2->Y2 != y))
+                if (di2->Type == 1 && di2->X2 != x && di2->Y2 != y)
                 {
                     int dx = di2->X2 - x;
                     int dy = di2->Y2 - y;
@@ -4121,7 +4118,7 @@ int CDrawing::AdjustCoordinates(int* x1, int* y1, int* w, int* h, int absX, int 
         if (di->Type == 0) //subdrawing
         {
             int a, b, c, d;
-            ((CDrawing*)(di->pSubdrawing))->AdjustCoordinates(&a, &b, &c, &d);
+            ((CDrawing*)di->pSubdrawing)->AdjustCoordinates(&a, &b, &c, &d);
             a *= DRWZOOM;
             b *= DRWZOOM;
             c *= DRWZOOM;
@@ -4146,16 +4143,16 @@ int CDrawing::AdjustCoordinates(int* x1, int* y1, int* w, int* h, int absX, int 
         di++;
     }
     di = Items;
-    x = ((x + halfDRWZOOM) / DRWZOOM) * DRWZOOM;
-    y = ((y + halfDRWZOOM) / DRWZOOM) * DRWZOOM;
-    x2 = ((x2 + 3 * DRWZOOM / 2 - 1) / DRWZOOM) * DRWZOOM;
-    y2 = ((y2 + 3 * DRWZOOM / 2 - 1) / DRWZOOM) * DRWZOOM;
+    x = (x + halfDRWZOOM) / DRWZOOM * DRWZOOM;
+    y = (y + halfDRWZOOM) / DRWZOOM * DRWZOOM;
+    x2 = (x2 + 3 * DRWZOOM / 2 - 1) / DRWZOOM * DRWZOOM;
+    y2 = (y2 + 3 * DRWZOOM / 2 - 1) / DRWZOOM * DRWZOOM;
 
     //checking if the zero desn't move (the 0,0 should have the same absolute postion after readjustment)
     if (absX != 0x7FFFFFFF)
     {
-        int deltaX = absX * ViewZoom / 100 - (absX + (x / DRWZOOM)) * ViewZoom / 100 + (x / DRWZOOM);
-        int deltaY = absY * ViewZoom / 100 - (absY + (y / DRWZOOM)) * ViewZoom / 100 + (y / DRWZOOM);
+        int deltaX = absX * ViewZoom / 100 - (absX + x / DRWZOOM) * ViewZoom / 100 + x / DRWZOOM;
+        int deltaY = absY * ViewZoom / 100 - (absY + y / DRWZOOM) * ViewZoom / 100 + y / DRWZOOM;
         if (deltaX)
         {
             x -= 32 * DRWZOOM / ViewZoom;
@@ -4176,7 +4173,7 @@ int CDrawing::AdjustCoordinates(int* x1, int* y1, int* w, int* h, int absX, int 
         di->Y2 -= y;
         di++;
     }
-    if ((NodeX != -1) || (NodeY != -1))
+    if (NodeX != -1 || NodeY != -1)
     {
         NodeX -= x;
         NodeY -= y;
@@ -4191,17 +4188,17 @@ int CDrawing::AdjustCoordinates(int* x1, int* y1, int* w, int* h, int absX, int 
 
 int CDrawing::AnyNodeSelected() const
 {
-    if (((AllowQuickEditNodes()) && (IsSelected)) ||
-        ((GetKeyState(VK_CONTROL) & 0xFFFE) && (IsSelected)))
+    if ((AllowQuickEditNodes() && IsSelected) ||
+        (GetKeyState(VK_CONTROL) & 0xFFFE && IsSelected))
     {
-        if ((NodeX != -1) || (NodeY != -1)) return 1;
+        if (NodeX != -1 || NodeY != -1) return 1;
     }
     tDrawingItem* di = Items;
     for (int i = 0; i < NumItems; i++, di++)
     {
-        if ((di->pSubdrawing) && (di->Type == 0))
+        if (di->pSubdrawing && di->Type == 0)
         {
-            if (((CDrawing*)(di->pSubdrawing))->AnyNodeSelected()) return 1;
+            if (((CDrawing*)di->pSubdrawing)->AnyNodeSelected()) return 1;
         }
     }
     return 0;
@@ -4213,8 +4210,8 @@ int CDrawing::AllowQuickEditNodes() const
     if (ToolbarEditNodes)
     {
         if (!IsSelected) return 1;
-        if ((this->OriginalForm >= 8) && (this->OriginalForm <= 13)) return 0; //coordinate systems, rasters
-        if ((this->OriginalForm >= 19) && (this->OriginalForm <= 26)) return 0;
+        if (this->OriginalForm >= 8 && this->OriginalForm <= 13) return 0; //coordinate systems, rasters
+        if (this->OriginalForm >= 19 && this->OriginalForm <= 26) return 0;
         //curly brackets, okay, !, ?, X, diagonal lines
         int maxlen = 0;
         tDrawingItem* di = Items;
@@ -4223,7 +4220,7 @@ int CDrawing::AllowQuickEditNodes() const
             int len = abs(di->X1 - di->X2) + abs(di->Y1 - di->Y2);
             if (len > maxlen) maxlen = len;
         }
-        if ((maxlen - (5 * DRWZOOM)) * ViewZoom > (700 * DRWZOOM)) return 1;
+        if ((maxlen - 5 * DRWZOOM) * ViewZoom > 700 * DRWZOOM) return 1;
         //there is enough distance between two nodes to grip the line with the mouse
     }
     return 0;
@@ -4250,10 +4247,10 @@ int CDrawing::FindRealCorner(int* X, int* Y, int* X2, int* Y2) const
             if (di->Y1 > y2) y2 = di->Y1;
             if (di->Y2 > y2) y2 = di->Y2;
         }
-        if ((di->Type == 0) && (di->pSubdrawing))
+        if (di->Type == 0 && di->pSubdrawing)
         {
             int tmpx, tmpy, tmpx2, tmpy2;
-            ((CDrawing*)(di->pSubdrawing))->FindRealCorner(&tmpx, &tmpy, &tmpx2, &tmpy2);
+            ((CDrawing*)di->pSubdrawing)->FindRealCorner(&tmpx, &tmpy, &tmpx2, &tmpy2);
             tmpx *= DRWZOOM;
             tmpy *= DRWZOOM;
             tmpx2 *= DRWZOOM;
@@ -4264,7 +4261,7 @@ int CDrawing::FindRealCorner(int* X, int* Y, int* X2, int* Y2) const
             if (di->X1 + tmpx2 > x2) x2 = di->X1 + tmpx2;
             if (di->Y1 + tmpy2 > y2) y2 = di->Y1 + tmpy2;
         }
-        if ((di->Type == 2) && (di->pSubdrawing))
+        if (di->Type == 2 && di->pSubdrawing)
         {
             if (di->X1 < x1) x1 = di->X1;
             if (di->Y1 < y1) y1 = di->Y1;
@@ -4288,22 +4285,22 @@ int CDrawing::SplitLineAtPos(int X, int Y)
     {
         tDrawingItem* di = Items + i;
 
-        if ((di->Type == 0) && (di->pSubdrawing))
+        if (di->Type == 0 && di->pSubdrawing)
         {
-            int tmpret = ((CDrawing*)(di->pSubdrawing))->SplitLineAtPos(X - (di->X1) / DRWZOOM, Y - (di->Y1) / DRWZOOM);
+            int tmpret = ((CDrawing*)di->pSubdrawing)->SplitLineAtPos(X - di->X1 / DRWZOOM, Y - di->Y1 / DRWZOOM);
             if (tmpret == 1) return 1;
         }
         if (di->Type == 1) //line
         {
-            int x1 = (di->X1) / DRWZOOM;
-            int x2 = (di->X2) / DRWZOOM;
-            int y1 = (di->Y1) / DRWZOOM;
-            int y2 = (di->Y2) / DRWZOOM;
+            int x1 = di->X1 / DRWZOOM;
+            int x2 = di->X2 / DRWZOOM;
+            int y1 = di->Y1 / DRWZOOM;
+            int y2 = di->Y2 / DRWZOOM;
 
             double l1 = sqrt(((double)x2 - x1) * (x2 - x1) + ((double)y2 - y1) * (y2 - y1));
             double l2 = sqrt(((double)x2 - X) * (x2 - X) + ((double)y2 - Y) * (y2 - Y));
             double l3 = sqrt(((double)X - x1) * (X - x1) + ((double)Y - y1) * (Y - y1));
-            double factorf = (l2 * l3) / (l2 + l3);
+            double factorf = l2 * l3 / (l2 + l3);
             if (factorf == 0) factorf = 0.001;
             if (l2 + l3 < l1 + 1.5 / factorf)
             {
@@ -4341,13 +4338,13 @@ int CDrawing::MouseClick(int X, int Y) const
 {
     if (ViewOnlyMode) return 0;
 
-    if ((IsSpecialDrawing == 52) && (SpecialData))
+    if (IsSpecialDrawing == 52 && SpecialData)
         return ((CBitmapImage*)SpecialData)->MouseClick(X, Y);
 
-    if ((IsSpecialDrawing == 51) && (SpecialData))
+    if (IsSpecialDrawing == 51 && SpecialData)
         return ((CFunctionPlotter*)SpecialData)->MouseClick(X, Y);
 
-    if ((IsSpecialDrawing == 50) && (SpecialData))
+    if (IsSpecialDrawing == 50 && SpecialData)
         return ((CDrawingBox*)SpecialData)->MouseClick(X, Y);
 
     return 0;
@@ -4360,13 +4357,13 @@ int CDrawing::MouseMove(CDC* DC, int X, int Y, UINT flags) const
 {
     if (ViewOnlyMode) return 0;
 
-    if ((IsSpecialDrawing == 52) && (SpecialData))
+    if (IsSpecialDrawing == 52 && SpecialData)
         return ((CBitmapImage*)SpecialData)->MouseMove(DC, X, Y, flags);
 
-    if ((IsSpecialDrawing == 51) && (SpecialData))
+    if (IsSpecialDrawing == 51 && SpecialData)
         return ((CFunctionPlotter*)SpecialData)->MouseMove(DC, X, Y, flags);
 
-    if ((IsSpecialDrawing == 50) && (SpecialData))
+    if (IsSpecialDrawing == 50 && SpecialData)
         return ((CDrawingBox*)SpecialData)->MouseMove(DC, X, Y, flags);
 
     return 0;
@@ -4380,18 +4377,18 @@ int CDrawing::FindDiagonalLength(int X, int Y, int* l1, int* l2, int direction) 
     for (int i = 0; i < NumItems; i++)
     {
         tDrawingItem* di = Items + i;
-        if ((di->Type == 0) && (di->pSubdrawing)) //subdrawing
+        if (di->Type == 0 && di->pSubdrawing) //subdrawing
         {
             int l11, l22;
-            ((CDrawing*)(di->pSubdrawing))->FindDiagonalLength(X - di->X1, Y - di->Y1, &l11, &l22, direction);
+            ((CDrawing*)di->pSubdrawing)->FindDiagonalLength(X - di->X1, Y - di->Y1, &l11, &l22, direction);
             if (l11 < *l1) *l1 = l11;
             if (l22 < *l2) *l2 = l22;
         }
-        if ((di->Type == 2) && (di->pSubdrawing)) //subexpression
+        if (di->Type == 2 && di->pSubdrawing) //subexpression
         {
             //does nothing
         }
-        if ((di->Type == 1) && (di->LineWidth > 45 * DRWZOOM / 100)) //line
+        if (di->Type == 1 && di->LineWidth > 45 * DRWZOOM / 100) //line
         {
             int x1 = di->X1 - X;
             int y1 = di->Y1 - Y;
@@ -4419,22 +4416,22 @@ int CDrawing::FindDiagonalLength(int X, int Y, int* l1, int* l2, int direction) 
                 if (a2 == a) continue;
                 xs = (int)((-a2 * x1 + y1) / (a - a2));
                 ys = (int)(xs * a);
-                if ((xs < x1) || (xs > x2)) continue;
+                if (xs < x1 || xs > x2) continue;
             }
             else
             {
                 xs = x1;
                 ys = (int)(xs * a);
-                if ((ys < y2) && (ys < y1)) continue;
-                if ((ys > y2) && (ys > y1)) continue;
+                if (ys < y2 && ys < y1) continue;
+                if (ys > y2 && ys > y1) continue;
             }
-            if ((xs > 0) && (ys > 0))
+            if (xs > 0 && ys > 0)
                 if (*l1 > xs) *l1 = xs;
-            if ((xs < 0) && (ys < 0))
+            if (xs < 0 && ys < 0)
                 if (*l2 > -xs) *l2 = -xs;
-            if ((xs > 0) && (ys < 0))
+            if (xs > 0 && ys < 0)
                 if (*l1 > xs) *l1 = xs;
-            if ((xs < 0) && (ys > 0))
+            if (xs < 0 && ys > 0)
                 if (*l2 > -xs) *l2 = -xs;
         }
     }
@@ -4456,13 +4453,13 @@ int CDrawing::SetColor(int color)
     for (int i = 0; i < NumItems; i++)
     {
         tDrawingItem* di = Items + i;
-        if ((di->pSubdrawing) && (di->Type == 0))
+        if (di->pSubdrawing && di->Type == 0)
         {
-            ((CDrawing*)(di->pSubdrawing))->SetColor(color);
+            ((CDrawing*)di->pSubdrawing)->SetColor(color);
         }
-        if ((di->pSubdrawing) && (di->Type == 2))
+        if (di->pSubdrawing && di->Type == 2)
         {
-            ((CExpression*)(di->pSubdrawing))->SetColor(color & 0x07);
+            ((CExpression*)di->pSubdrawing)->SetColor(color & 0x07);
         }
     }
 
@@ -4486,8 +4483,8 @@ int CDrawing::Combine(void)
     for (int i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = TheDocument + i;
-        if ((ds->Type == 2) && (ds->Object) && (ds->Object != (CObject*)this) &&
-            ((ds->MovingDotState == 3) || (((CDrawing*)(ds->Object))->IsSelected)))
+        if (ds->Type == 2 && ds->Object && ds->Object != (CObject*)this &&
+            (ds->MovingDotState == 3 || ((CDrawing*)ds->Object)->IsSelected))
         {
             CDrawing* drw = (CDrawing*)ds->Object;
             for (int j = 0; j < drw->NumItems; j++)
@@ -4547,8 +4544,8 @@ int CDrawing::IsOpenPath(int close_path, char* is_closed_path, LPPOINT points, c
 
     if (points)
     {
-        (points)->x = this->Items->X1;
-        (points)->y = this->Items->Y1;
+        points->x = this->Items->X1;
+        points->y = this->Items->Y1;
         num_points++;
         (points + num_points)->x = this->Items->X2;
         (points + num_points)->y = this->Items->Y2;
@@ -4568,14 +4565,14 @@ int CDrawing::IsOpenPath(int close_path, char* is_closed_path, LPPOINT points, c
                 if (di2->LineWidth & 0x8000) continue;
                 if (S1 == 1)
                 {
-                    if ((di->X1 == di2->X1) && (di->Y1 == di2->Y1))
+                    if (di->X1 == di2->X1 && di->Y1 == di2->Y1)
                     {
                         P1 = j;
                         S1 = 2;
                         di2->LineWidth |= 0x8000;
                         break;
                     }
-                    if ((di->X1 == di2->X2) && (di->Y1 == di2->Y2))
+                    if (di->X1 == di2->X2 && di->Y1 == di2->Y2)
                     {
                         P1 = j;
                         S1 = 1;
@@ -4585,14 +4582,14 @@ int CDrawing::IsOpenPath(int close_path, char* is_closed_path, LPPOINT points, c
                 }
                 else
                 {
-                    if ((di->X2 == di2->X1) && (di->Y2 == di2->Y1))
+                    if (di->X2 == di2->X1 && di->Y2 == di2->Y1)
                     {
                         P1 = j;
                         S1 = 2;
                         di2->LineWidth |= 0x8000;
                         break;
                     }
-                    if ((di->X2 == di2->X2) && (di->Y2 == di2->Y2))
+                    if (di->X2 == di2->X2 && di->Y2 == di2->Y2)
                     {
                         P1 = j;
                         S1 = 1;
@@ -4611,14 +4608,14 @@ int CDrawing::IsOpenPath(int close_path, char* is_closed_path, LPPOINT points, c
                 if (di2->LineWidth & 0x8000) continue;
                 if (S2 == 1)
                 {
-                    if ((di->X1 == di2->X1) && (di->Y1 == di2->Y1))
+                    if (di->X1 == di2->X1 && di->Y1 == di2->Y1)
                     {
                         P2 = j;
                         S2 = 2;
                         di2->LineWidth |= 0x8000;
                         break;
                     }
-                    if ((di->X1 == di2->X2) && (di->Y1 == di2->Y2))
+                    if (di->X1 == di2->X2 && di->Y1 == di2->Y2)
                     {
                         P2 = j;
                         S2 = 1;
@@ -4628,14 +4625,14 @@ int CDrawing::IsOpenPath(int close_path, char* is_closed_path, LPPOINT points, c
                 }
                 else
                 {
-                    if ((di->X2 == di2->X1) && (di->Y2 == di2->Y1))
+                    if (di->X2 == di2->X1 && di->Y2 == di2->Y1)
                     {
                         P2 = j;
                         S2 = 2;
                         di2->LineWidth |= 0x8000;
                         break;
                     }
-                    if ((di->X2 == di2->X2) && (di->Y2 == di2->Y2))
+                    if (di->X2 == di2->X2 && di->Y2 == di2->Y2)
                     {
                         P2 = j;
                         S2 = 1;
@@ -4646,8 +4643,8 @@ int CDrawing::IsOpenPath(int close_path, char* is_closed_path, LPPOINT points, c
             }
 
         //check if we are finished (nowhere to move the pointer)
-        if ((oP1 == P1) && (oP2 == P2)) break;
-        if ((points) && (num_points < 63))
+        if (oP1 == P1 && oP2 == P2) break;
+        if (points && num_points < 63)
         {
             if (oP1 != P1)
             {
@@ -4655,13 +4652,13 @@ int CDrawing::IsOpenPath(int close_path, char* is_closed_path, LPPOINT points, c
                 memmove(points + 1, points, num_points * sizeof(POINT));
                 if (S1 == 1)
                 {
-                    (points)->x = di->X1;
-                    (points)->y = di->Y1;
+                    points->x = di->X1;
+                    points->y = di->Y1;
                 }
                 else
                 {
-                    (points)->x = di->X2;
-                    (points)->y = di->Y2;
+                    points->x = di->X2;
+                    points->y = di->Y2;
                 }
                 num_points++;
             }
@@ -4697,10 +4694,10 @@ int CDrawing::IsOpenPath(int close_path, char* is_closed_path, LPPOINT points, c
     {
         tDrawingItem* di = this->Items + P1;
         tDrawingItem* di2 = this->Items + P2;
-        if (((S1 == 1) && (S2 == 1) && (di->X1 == di2->X1) && (di->Y1 == di2->Y1)) ||
-            ((S1 == 1) && (S2 == 2) && (di->X1 == di2->X2) && (di->Y1 == di2->Y2)) ||
-            ((S1 == 2) && (S2 == 1) && (di->X2 == di2->X1) && (di->Y2 == di2->Y1)) ||
-            ((S1 == 2) && (S2 == 2) && (di->X2 == di2->X2) && (di->Y2 == di2->Y2)))
+        if ((S1 == 1 && S2 == 1 && di->X1 == di2->X1 && di->Y1 == di2->Y1) ||
+            (S1 == 1 && S2 == 2 && di->X1 == di2->X2 && di->Y1 == di2->Y2) ||
+            (S1 == 2 && S2 == 1 && di->X2 == di2->X1 && di->Y2 == di2->Y1) ||
+            (S1 == 2 && S2 == 2 && di->X2 == di2->X2 && di->Y2 == di2->Y2))
         {
             if (is_closed_path) *is_closed_path = 1;
             if (points)
@@ -4767,7 +4764,7 @@ int CDrawing::MakeDashed(char dash_dot)
         int x2 = di->X2;
         int y1 = di->Y1;
         int y2 = di->Y2;
-        if ((x2 == x1) && (y2 == y1)) continue;
+        if (x2 == x1 && y2 == y1) continue;
 
         if (abs(x2 - x1) > abs(y2 - y1))
         {
@@ -4780,12 +4777,12 @@ int CDrawing::MakeDashed(char dash_dot)
             while (!exit)
             {
                 int dashlen = dlen;
-                if ((dash_dot) && ((draw & 0x03) == 0x03)) dashlen = dlen / 4;
-                int step = (int)(((double)(dashlen - dphase) * (double)(x2 - x1)) / sqrt(
+                if (dash_dot && (draw & 0x03) == 0x03) dashlen = dlen / 4;
+                int step = (int)((double)(dashlen - dphase) * (double)(x2 - x1) / sqrt(
                     (double)(x2 - x1) * (double)(x2 - x1) + (double)(y2 - y1) * (double)(y2 - y1)));
                 dphase = 0;
-                if (((step > 0) && (pos + step >= x2)) ||
-                    ((step < 0) && (pos + step <= x2)))
+                if ((step > 0 && pos + step >= x2) ||
+                    (step < 0 && pos + step <= x2))
                 {
                     dphase = dashlen * (x2 - pos) / step;
                     step = x2 - pos;
@@ -4820,12 +4817,12 @@ int CDrawing::MakeDashed(char dash_dot)
             while (!exit)
             {
                 int dashlen = dlen;
-                if ((dash_dot) && ((draw & 0x03) == 0x03)) dashlen = dlen / 4;
-                int step = (int)(((double)(dashlen - dphase) * (double)(y2 - y1)) / sqrt(
+                if (dash_dot && (draw & 0x03) == 0x03) dashlen = dlen / 4;
+                int step = (int)((double)(dashlen - dphase) * (double)(y2 - y1) / sqrt(
                     (double)(x2 - x1) * (double)(x2 - x1) + (double)(y2 - y1) * (double)(y2 - y1)));
                 dphase = 0;
-                if (((step > 0) && (pos + step >= y2)) ||
-                    ((step < 0) && (pos + step <= y2)))
+                if ((step > 0 && pos + step >= y2) ||
+                    (step < 0 && pos + step <= y2))
                 {
                     dphase = dashlen * (y2 - pos) / step;
                     step = y2 - pos;
@@ -4888,9 +4885,9 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
         tDocumentStruct* ds = TheDocument;
         for (int i = 0; i < NumDocumentElements; i++, ds++)
         {
-            if ((ds->Type == 2) && (ds->Object))
-                if ((ds->absolute_Y - 15 < *Y) && (ds->absolute_Y + ds->Below + 15 > *Y) &&
-                    (ds->absolute_X - 15 < *X) && (ds->absolute_X + ds->Length + 15 > *X))
+            if (ds->Type == 2 && ds->Object)
+                if (ds->absolute_Y - 15 < *Y && ds->absolute_Y + ds->Below + 15 > *Y &&
+                    ds->absolute_X - 15 < *X && ds->absolute_X + ds->Length + 15 > *X)
                 {
                     CDrawing* drw1 = (CDrawing*)ds->Object;
                     if (drw1->IsSpecialDrawing == 0)
@@ -4898,9 +4895,9 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                         tDocumentStruct* ds2 = TheDocument;
                         for (int j = 0; j < NumDocumentElements; j++, ds2++)
                         {
-                            if ((ds2->Type == 2) && (ds2->Object))
-                                if ((ds2->absolute_Y - 15 < *Y) && (ds2->absolute_Y + ds2->Below + 15 > *Y) &&
-                                    (ds2->absolute_X - 15 < *X) && (ds2->absolute_X + ds2->Length + 15 > *X))
+                            if (ds2->Type == 2 && ds2->Object)
+                                if (ds2->absolute_Y - 15 < *Y && ds2->absolute_Y + ds2->Below + 15 > *Y &&
+                                    ds2->absolute_X - 15 < *X && ds2->absolute_X + ds2->Length + 15 > *X)
                                 {
                                     CDrawing* drw2 = (CDrawing*)ds2->Object;
                                     if (drw2->IsSpecialDrawing == 0)
@@ -4939,7 +4936,7 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                 this->FindNerbyPoint(X, Y, subdrw, X1, Y1, X2 + di2->X1 / DRWZOOM, Y2 + di2->Y1 / DRWZOOM);
                 continue;
             }
-            if ((di->Type == 1) && (di2->Type == 1))
+            if (di->Type == 1 && di2->Type == 1)
             {
                 //find intersection point of two lines
                 double x, y;
@@ -4948,22 +4945,22 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                 double aa1, aa2;
                 if (this == drw)
                 {
-                    if (((di->X1 == di2->X1) && (di->Y1 == di2->Y1)) ||
-                        ((di->X1 == di2->X2) && (di->Y1 == di2->Y2)) ||
-                        ((di->X2 == di2->X1) && (di->Y2 == di2->Y1)) ||
-                        ((di->X2 == di2->X2) && (di->Y2 == di2->Y2)))
+                    if ((di->X1 == di2->X1 && di->Y1 == di2->Y1) ||
+                        (di->X1 == di2->X2 && di->Y1 == di2->Y2) ||
+                        (di->X2 == di2->X1 && di->Y2 == di2->Y1) ||
+                        (di->X2 == di2->X2 && di->Y2 == di2->Y2))
                     {
                         aa1 = atan2(di->X2 - di->X1, di->Y2 - di->Y1);
                         aa2 = atan2(di2->X2 - di2->X1, di2->Y2 - di2->Y1);
                         double aa = fabs(aa1 - aa2);
-                        if ((abs(di->X2 - di->X1) > 5 * DRWZOOM) || (abs(di->Y2 - di->Y1) > 5 * DRWZOOM) ||
-                            (abs(di2->X2 - di2->X1) > 5 * DRWZOOM) || (abs(di2->Y2 - di2->Y1) > 5 * DRWZOOM))
+                        if (abs(di->X2 - di->X1) > 5 * DRWZOOM || abs(di->Y2 - di->Y1) > 5 * DRWZOOM ||
+                            abs(di2->X2 - di2->X1) > 5 * DRWZOOM || abs(di2->Y2 - di2->Y1) > 5 * DRWZOOM)
                         {
-                            if ((aa < 0.60) || (aa > 6.28 - 0.60)) continued = 1;
+                            if (aa < 0.60 || aa > 6.28 - 0.60) continued = 1;
                         }
                         else
                         {
-                            if ((aa < 1.00) || (aa > 6.28 - 1.00)) continued = 1;
+                            if (aa < 1.00 || aa > 6.28 - 1.00) continued = 1;
                         }
                     }
                 }
@@ -4972,7 +4969,7 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                 {
                     //do nothing
                 }
-                else if ((di->X1 != di->X2) && (di2->X1 != di2->X2))
+                else if (di->X1 != di->X2 && di2->X1 != di2->X2)
                 {
                     double a1 = (double)(di->Y2 - di->Y1) / (double)(di->X2 - di->X1);
                     double a2 = (double)(di2->Y2 - di2->Y1) / (double)(di2->X2 - di2->X1);
@@ -4988,14 +4985,14 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                     {
                         x = (y20 - y10) / (a1 - a2);
                         y = y10 + x * a1;
-                        if (((min(di->X1, di->X2) / DRWZOOM + X1 - 1 <= x) && (max(di->X1, di->X2) / DRWZOOM + X1 + 1 >=
-                                x)) &&
-                            ((min(di2->X1, di2->X2) / DRWZOOM + X2 - 1 <= x) && (max(di2->X1, di2->X2) / DRWZOOM + X2 +
-                                1 >= x)))
+                        if (min(di->X1, di->X2) / DRWZOOM + X1 - 1 <= x && max(di->X1, di->X2) / DRWZOOM + X1 + 1 >=
+                            x &&
+                            (min(di2->X1, di2->X2) / DRWZOOM + X2 - 1 <= x && max(di2->X1, di2->X2) / DRWZOOM + X2 +
+                                1 >= x))
                             fnd = 1;
                     }
                 }
-                else if ((di->X1 == di->X2) && (di2->X1 != di2->X2))
+                else if (di->X1 == di->X2 && di2->X1 != di2->X2)
                 {
                     double a2 = (double)(di2->Y2 - di2->Y1) / (double)(di2->X2 - di2->X1);
 
@@ -5004,13 +5001,13 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                     x = di->X1 / DRWZOOM + X1;
                     y = a2 * x + y20;
 
-                    if (((min(di->Y1, di->Y2) / DRWZOOM + Y1 - 1 <= y) && (max(di->Y1, di->Y2) / DRWZOOM + Y1 + 1 >= y))
+                    if (min(di->Y1, di->Y2) / DRWZOOM + Y1 - 1 <= y && max(di->Y1, di->Y2) / DRWZOOM + Y1 + 1 >= y
                         &&
-                        ((min(di2->X1, di2->X2) / DRWZOOM + X2 - 1 <= x) && (max(di2->X1, di2->X2) / DRWZOOM + X2 + 1 >=
-                            x)))
+                        (min(di2->X1, di2->X2) / DRWZOOM + X2 - 1 <= x && max(di2->X1, di2->X2) / DRWZOOM + X2 + 1 >=
+                            x))
                         fnd = 1;
                 }
-                else if ((di->X1 != di->X2) && (di2->X1 == di2->X2))
+                else if (di->X1 != di->X2 && di2->X1 == di2->X2)
                 {
                     double a1 = (double)(di->Y2 - di->Y1) / (double)(di->X2 - di->X1);
 
@@ -5018,10 +5015,10 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
 
                     x = di2->X1 / DRWZOOM + X2;
                     y = a1 * x + y10;
-                    if (((min(di2->Y1, di2->Y2) / DRWZOOM + Y2 - 1 <= y) && (max(di2->Y1, di2->Y2) / DRWZOOM + Y2 + 1 >=
-                            y)) &&
-                        ((min(di->X1, di->X2) / DRWZOOM + X1 - 1 <= x) && (max(di->X1, di->X2) / DRWZOOM + X1 + 1 >=
-                            x)))
+                    if (min(di2->Y1, di2->Y2) / DRWZOOM + Y2 - 1 <= y && max(di2->Y1, di2->Y2) / DRWZOOM + Y2 + 1 >=
+                        y &&
+                        (min(di->X1, di->X2) / DRWZOOM + X1 - 1 <= x && max(di->X1, di->X2) / DRWZOOM + X1 + 1 >=
+                            x))
                         fnd = 1;
                 }
                 if (fnd)
@@ -5037,8 +5034,8 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
 
                 if (j == 0)
                 {
-                    if ((di2->X1 != (drw->Items + drw->NumItems - 1)->X2) || (di2->Y1 != (drw->Items + drw->NumItems -
-                        1)->Y2))
+                    if (di2->X1 != (drw->Items + drw->NumItems - 1)->X2 || di2->Y1 != (drw->Items + drw->NumItems -
+                        1)->Y2)
                     {
                         x = di2->X1 / DRWZOOM + X2;
                         y = di2->Y1 / DRWZOOM + Y2;
@@ -5053,7 +5050,7 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                 }
                 if (j == drw->NumItems - 1)
                 {
-                    if ((di2->X2 != (drw->Items)->X1) || (di2->Y2 != (drw->Items)->Y1))
+                    if (di2->X2 != drw->Items->X1 || di2->Y2 != drw->Items->Y1)
                     {
                         x = di2->X2 / DRWZOOM + X2;
                         y = di2->Y2 / DRWZOOM + Y2;
@@ -5068,7 +5065,7 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                 }
                 if (j < drw->NumItems - 1)
                 {
-                    if ((di2->X2 != (di2 + 1)->X1) || (di2->Y2 != (di2 + 1)->Y1))
+                    if (di2->X2 != (di2 + 1)->X1 || di2->Y2 != (di2 + 1)->Y1)
                     {
                         x = di2->X2 / DRWZOOM + X2;
                         y = di2->Y2 / DRWZOOM + Y2;
@@ -5083,7 +5080,7 @@ int CDrawing::FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X1, int Y1, int 
                 }
                 if (j > 0)
                 {
-                    if ((di2->X1 != (di2 - 1)->X2) || (di2->Y1 != (di2 - 1)->Y2))
+                    if (di2->X1 != (di2 - 1)->X2 || di2->Y1 != (di2 - 1)->Y2)
                     {
                         x = di2->X1 / DRWZOOM + X2;
                         y = di2->Y1 / DRWZOOM + Y2;
@@ -5112,10 +5109,10 @@ void CDrawing::FindBottomRightDrawingPoint(int* X, int* Y) const
     for (int i = 0; i < NumItems; i++)
     {
         tDrawingItem* di = Items + i;
-        if ((di->Type == 0) && (di->pSubdrawing))
+        if (di->Type == 0 && di->pSubdrawing)
         {
             int x1, y1;
-            ((CDrawing*)(di->pSubdrawing))->FindBottomRightDrawingPoint(&x1, &y1);
+            ((CDrawing*)di->pSubdrawing)->FindBottomRightDrawingPoint(&x1, &y1);
             x1 += di->X1;
             y1 += di->Y1;
             if (x1 + y1 > max)
@@ -5127,13 +5124,13 @@ void CDrawing::FindBottomRightDrawingPoint(int* X, int* Y) const
         }
         if (di->Type == 1)
         {
-            if ((di->X1 + di->Y1) > max)
+            if (di->X1 + di->Y1 > max)
             {
                 max = di->X1 + di->Y1;
                 *X = di->X1;
                 *Y = di->Y1;
             }
-            if ((di->X2 + di->Y2) > max)
+            if (di->X2 + di->Y2 > max)
             {
                 max = di->X2 + di->Y2;
                 *X = di->X2;

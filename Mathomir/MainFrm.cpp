@@ -1350,29 +1350,14 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     theMenu->CheckMenuItem(ID_OUTPUTIMAGE_PRINTFONTSASIMAGES, PrintTextAsImage ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(ID_KEYBOARD_USECAPSLOCKTOTOGGLETYPINGMODE, UseCapsLock ? MF_CHECKED : MF_UNCHECKED);
     theMenu->CheckMenuItem(ID_KEYBOARD_USECOMPLEXINDEXES, UseComplexIndexes ? MF_CHECKED : MF_UNCHECKED);
-    {
-        char str[64];
-        CopyTranslatedString(str, "Font &1", 32866, 63);
-        strcat_s(str, " - ");
-        strcat_s(str, FontFacenames[0]);
-        strcat_s(str, "...");
-        theMenu->ModifyMenu(ID_FONTFACES_FONT1,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT1, str);
-        CopyTranslatedString(str, "Font &2", 32867, 63);
-        strcat_s(str, " - ");
-        strcat_s(str, FontFacenames[1]);
-        strcat_s(str, "...");
-        theMenu->ModifyMenu(ID_FONTFACES_FONT2,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT2, str);
-        CopyTranslatedString(str, "Font &3", 32868, 63);
-        strcat_s(str, " - ");
-        strcat_s(str, FontFacenames[2]);
-        strcat_s(str, "...");
-        theMenu->ModifyMenu(ID_FONTFACES_FONT3,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT3, str);
-        CopyTranslatedString(str, "Font &4", 32869, 63);
-        strcat_s(str, " - ");
-        strcat_s(str, FontFacenames[3]);
-        strcat_s(str, "...");
-        theMenu->ModifyMenu(ID_FONTFACES_FONT4,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT4, str);
-    }
+    theMenu->ModifyMenu(ID_FONTFACES_FONT1,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT1,
+                        (GetTranslatedString("Font &1", 32866) + " - " + FontFacenames[0] + "...").c_str());
+    theMenu->ModifyMenu(ID_FONTFACES_FONT2,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT2,
+                        (GetTranslatedString("Font &2", 32867) + " - " + FontFacenames[1] + "...").c_str());
+    theMenu->ModifyMenu(ID_FONTFACES_FONT3,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT3,
+                        (GetTranslatedString("Font &3", 32868) + " - " + FontFacenames[2] + "...").c_str());
+    theMenu->ModifyMenu(ID_FONTFACES_FONT4,MF_BYCOMMAND | MF_STRING,ID_FONTFACES_FONT4,
+                        (GetTranslatedString("Font &4", 32869) + " - " + FontFacenames[3] + "...").c_str());
 
     //theMenu->CheckMenuItem(ID_EDIT_IMAGE,(NumSelectedObjects)?M
     return 0;
@@ -1691,7 +1676,7 @@ int CMainFrame::UndoRestore()
     tDocumentStruct* oldDoc = TheDocument;
     int oldDocNumElements = NumDocumentElements;
 
-    TheDocument = (tDocumentStruct*)malloc(UndoStruct[UndoNumLevels - 1].NumElements * sizeof(tDocumentStruct));
+    TheDocument = new tDocumentStruct[UndoStruct[UndoNumLevels - 1].NumElements];
     if (TheDocument == nullptr)
     {
         NumDocumentElementsReserved = NumDocumentElements = 0;
@@ -2130,9 +2115,9 @@ void DisplayShortText(const std::string& text, int x, int y, int langID, int fla
 }
 #pragma optimize("",on)
 
-int CopyTranslatedString(char* dest, const char* eng_defstr, int id, int destlen)
+int CopyTranslatedString(char* dest, const std::string& eng_defstr, int id, int destlen)
 {
-    char* defstr = (char*)eng_defstr;
+    const char* defstr = eng_defstr.c_str();
     if (LanguageStrings && id < 36000)
     {
         //language database exists - check for the translation

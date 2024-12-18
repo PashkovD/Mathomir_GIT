@@ -264,17 +264,17 @@ BOOL CMathomirApp::InitInstance()
     this->m_nCmdShow = 0; //this will suppress the ProcessShellCommand to show the window
 
     int origcmd = 0;
-    if ((cmdInfo.m_nShellCommand == cmdInfo.FilePrint) || (cmdInfo.m_nShellCommand == cmdInfo.FilePrintTo))
+    if (cmdInfo.m_nShellCommand == cmdInfo.FilePrint || cmdInfo.m_nShellCommand == cmdInfo.FilePrintTo)
     {
         //for file print and file print to commands we must call the ProcessShellCommand later (when settings are loaded)
-        origcmd = (cmdInfo.m_nShellCommand == cmdInfo.FilePrint) ? 1 : 2;
+        origcmd = cmdInfo.m_nShellCommand == cmdInfo.FilePrint ? 1 : 2;
         cmdInfo.m_nShellCommand = cmdInfo.FileNew;
     }
     ProcessShellCommand(cmdInfo);
 
 
     ((CMathomirView*)m_pMainWnd)->InitSpecific(); //adjusting the menu
-    ((CMainFrame*)(theApp.m_pMainWnd))->SetFontsToDefaults();
+    ((CMainFrame*)theApp.m_pMainWnd)->SetFontsToDefaults();
 
     //creates popupmenu
     Popup = new PopupMenu();
@@ -287,10 +287,10 @@ BOOL CMathomirApp::InitInstance()
     //TODO  should better investigate how the following works when there are more than one monitor (What gets returned by GetDesktopWindow()?)
     RECT desk_rect;
     GetWindowRect(GetDesktopWindow(), &desk_rect);
-    if ((desk_rect.right >= 1300) && (desk_rect.bottom >= 750)) { BaseToolboxSize = ToolboxSize = 84; }
-    if ((desk_rect.right >= 1900) && (desk_rect.bottom >= 1100)) { BaseToolboxSize = ToolboxSize = 102; }
-    if ((desk_rect.right >= 1600) && (desk_rect.bottom >= 900)) { DefaultZoom = ViewZoom = 120; }
-    if ((desk_rect.right >= 1900) && (desk_rect.bottom >= 1100)) { DefaultZoom = ViewZoom = 150; }
+    if (desk_rect.right >= 1300 && desk_rect.bottom >= 750) { BaseToolboxSize = ToolboxSize = 84; }
+    if (desk_rect.right >= 1900 && desk_rect.bottom >= 1100) { BaseToolboxSize = ToolboxSize = 102; }
+    if (desk_rect.right >= 1600 && desk_rect.bottom >= 900) { DefaultZoom = ViewZoom = 120; }
+    if (desk_rect.right >= 1900 && desk_rect.bottom >= 1100) { DefaultZoom = ViewZoom = 150; }
 
     //creates toolbox
     int pw = PaperWidth;
@@ -315,7 +315,7 @@ BOOL CMathomirApp::InitInstance()
 
     if (origcmd)
     {
-        cmdInfo.m_nShellCommand = (origcmd == 1) ? cmdInfo.FilePrint : cmdInfo.FilePrintTo;
+        cmdInfo.m_nShellCommand = origcmd == 1 ? cmdInfo.FilePrint : cmdInfo.FilePrintTo;
         ProcessShellCommand(cmdInfo);
     }
 
@@ -324,12 +324,12 @@ BOOL CMathomirApp::InitInstance()
 
     int X, Y, CX, CY;
     int StartMaximized = 0;
-    if ((MainWindowRect.right - MainWindowRect.left > 80) &&
-        (MainWindowRect.bottom - MainWindowRect.top > 60) &&
-        (MainWindowRect.right > 30) &&
-        (MainWindowRect.left < desk_rect.right - 30) &&
-        (MainWindowRect.bottom > 30) &&
-        (MainWindowRect.top < desk_rect.bottom - 30))
+    if (MainWindowRect.right - MainWindowRect.left > 80 &&
+        MainWindowRect.bottom - MainWindowRect.top > 60 &&
+        MainWindowRect.right > 30 &&
+        MainWindowRect.left < desk_rect.right - 30 &&
+        MainWindowRect.bottom > 30 &&
+        MainWindowRect.top < desk_rect.bottom - 30)
     {
         //the MainWindowRect will be visible on the desktop window; we will use these settings
         X = MainWindowRect.left;
@@ -337,10 +337,10 @@ BOOL CMathomirApp::InitInstance()
         CX = MainWindowRect.right - MainWindowRect.left;
         CY = MainWindowRect.bottom - MainWindowRect.top;
 
-        if ((X <= 0) && (Y <= 0) &&
-            ((CX >= desk_rect.right) || (CY >= desk_rect.bottom)) &&
-            (CX > 2 * desk_rect.right / 3) &&
-            (CY > 2 * desk_rect.bottom / 3))
+        if (X <= 0 && Y <= 0 &&
+            (CX >= desk_rect.right || CY >= desk_rect.bottom) &&
+            CX > 2 * desk_rect.right / 3 &&
+            CY > 2 * desk_rect.bottom / 3)
         {
             //the MainWindowRect is big enough, we can start window maximized
             StartMaximized = 1;
@@ -359,7 +359,7 @@ BOOL CMathomirApp::InitInstance()
         CY = max(2*desk_rect.bottom/3+65, 525);
         X = desk_rect.right / 2 - CX / 2;
         Y = (desk_rect.bottom - CY) / 3;
-        if ((HelpTutorLoaded) && (CX < 800)) StartMaximized = 1;
+        if (HelpTutorLoaded && CX < 800) StartMaximized = 1;
     }
 
     //finally, position the main window (Toolbox position will be adjusted automatically)
@@ -377,7 +377,7 @@ BOOL CMathomirApp::InitInstance()
     wp.rcNormalPosition.right = X + CX;
     wp.rcNormalPosition.top = Y;
     wp.rcNormalPosition.bottom = Y + CY;
-    wp.showCmd = (StartMaximized) ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
+    wp.showCmd = StartMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
     if (ViewOnlyMode)
     {
         //adjusting the window size for the view-only mode
@@ -398,7 +398,7 @@ BOOL CMathomirApp::InitInstance()
 
 
     m_pMainWnd->SetWindowPlacement(&wp);
-    this->m_nCmdShow = (StartMaximized) ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
+    this->m_nCmdShow = StartMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
 
     Sleep(20);
     m_pMainWnd->SetActiveWindow();

@@ -116,12 +116,12 @@ int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int abs
         for (int ii = 0; ii < 8; ii++)
             for (int jj = 0; jj < 8; jj++)
                 DC->FillSolidRect(X + ii * Xlen / 8, Y + jj * Ylen / 8, Xlen / 8, Ylen / 8,
-                                  ((ii + jj) % 2)
+                                  (ii + jj) % 2
                                       ? RGB(255, 255, 255)
-                                      : ((Xlen < 30) ? RGB(208, 208, 208) : RGB(240, 240, 240)));
+                                      : Xlen < 30 ? RGB(208, 208, 208) : RGB(240, 240, 240));
     }
 
-    if ((ShowMenu) && (!ViewOnlyMode))
+    if (ShowMenu && !ViewOnlyMode)
     {
         DC->SetTextAlign(TA_LEFT | TA_TOP);
         DC->SetBkColor(RGB(240, 240, 240));
@@ -134,23 +134,23 @@ int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int abs
 
         int sel = SelectedItem;
         DC->FillSolidRect(X, Y, 45, 26,RGB(240, 240, 240));
-        DC->SetTextColor((sel == 1) ? BLUE_COLOR : 0);
+        DC->SetTextColor(sel == 1 ? BLUE_COLOR : 0);
         DC->TextOut(X, Y, (editing ? str1 : str2).data());
         if (sel == 1) DC->TextOut(X + 1, Y, (editing ? str1 : str2).data());
-        DC->SetTextColor((sel == 2) ? BLUE_COLOR : 0);
+        DC->SetTextColor(sel == 2 ? BLUE_COLOR : 0);
         DC->TextOut(X, Y + 12, (editing ? str4 : str3).data());
         if (sel == 2) DC->TextOut(X + 1, Y + 12, (editing ? str4 : str3).data());
         BITMAPINFOHEADER* bhead = (BITMAPINFOHEADER*)Image;
         if (bhead)
         {
-            if ((Base->Items + 1)->Y2 > (40 * DRWZOOM))
-                if ((abs(bhead->biWidth - (Base->Items->X2 - Base->Items->X1 - 2 * Base->Items->LineWidth) / DRWZOOM) >
-                        1) ||
-                    (abs(bhead->biHeight - ((Base->Items + 1)->Y2 - (Base->Items + 1)->Y1 - 2 * Base->Items->LineWidth)
-                        / DRWZOOM) > 1))
+            if ((Base->Items + 1)->Y2 > 40 * DRWZOOM)
+                if (abs(bhead->biWidth - (Base->Items->X2 - Base->Items->X1 - 2 * Base->Items->LineWidth) / DRWZOOM) >
+                    1 ||
+                    abs(bhead->biHeight - ((Base->Items + 1)->Y2 - (Base->Items + 1)->Y1 - 2 * Base->Items->LineWidth)
+                        / DRWZOOM) > 1)
                 {
                     DC->FillSolidRect(X, Y + 24, 45, 14,RGB(240, 240, 240));
-                    DC->SetTextColor((sel == 3) ? BLUE_COLOR : 0);
+                    DC->SetTextColor(sel == 3 ? BLUE_COLOR : 0);
                     DC->TextOut(X, Y + 24, "1:1", 3);
                     if (sel == 3) DC->TextOut(X + 1, Y + 24, "1:1", 3);
                 }
@@ -185,10 +185,10 @@ int CBitmapImage::MouseClick(int X, int Y)
                     if (SaveImageToFileForEditing((CObject*)Base))
                     {
                         for (int i = 0; i < NumDocumentElements; i++)
-                            if ((TheDocument[i].Type == 2) && (TheDocument[i].Object))
+                            if (TheDocument[i].Type == 2 && TheDocument[i].Object)
                             {
                                 CDrawing* d = (CDrawing*)TheDocument[i].Object;
-                                if (d->IsSpecialDrawing == 52) ((CBitmapImage*)(d->SpecialData))->editing = 0;
+                                if (d->IsSpecialDrawing == 52) ((CBitmapImage*)d->SpecialData)->editing = 0;
                             }
                         editing = 1;
                     }
@@ -222,11 +222,11 @@ int CBitmapImage::MouseClick(int X, int Y)
                     int orgx = bhead->biWidth;
                     int orgy = bhead->biHeight;
 
-                    (Base->Items + 0)->X2 = (Base->Items + 0)->X1 + orgx * DRWZOOM + (2 * Base->Items->LineWidth);
+                    (Base->Items + 0)->X2 = (Base->Items + 0)->X1 + orgx * DRWZOOM + 2 * Base->Items->LineWidth;
                     (Base->Items + 1)->X1 = (Base->Items + 1)->X2 = (Base->Items + 0)->X2;
                     (Base->Items + 2)->X1 = (Base->Items + 1)->X2;
 
-                    (Base->Items + 1)->Y2 = (Base->Items + 1)->Y1 + orgy * DRWZOOM + (2 * Base->Items->LineWidth);
+                    (Base->Items + 1)->Y2 = (Base->Items + 1)->Y1 + orgy * DRWZOOM + 2 * Base->Items->LineWidth;
                     (Base->Items + 2)->Y1 = (Base->Items + 2)->Y2 = (Base->Items + 1)->Y2;
                     (Base->Items + 3)->Y1 = (Base->Items + 2)->Y2;
                     pMainView->RepaintTheView();
@@ -254,7 +254,7 @@ int CBitmapImage::MouseMove(CDC* DC, int X, int Y, UINT flags)
     {
         SelectedItem = 0;
         if (X != 0x7FFFFFFF)
-            if ((X * ViewZoom / 100 < 45 + MenuX) && (X > 3) && (Y > 3))
+            if (X * ViewZoom / 100 < 45 + MenuX && X > 3 && Y > 3)
             {
                 if (Y * ViewZoom / 100 < 12 + MenuY) SelectedItem = 1;
                 else if (Y * ViewZoom / 100 < 24 + MenuY) SelectedItem = 2;
@@ -263,9 +263,9 @@ int CBitmapImage::MouseMove(CDC* DC, int X, int Y, UINT flags)
                     BITMAPINFOHEADER* bhead = (BITMAPINFOHEADER*)Image;
                     if (bhead)
                     {
-                        if ((Base->Items + 1)->Y2 > (40 * DRWZOOM))
-                            if ((abs(bhead->biWidth - (Base->Items->X2 - Base->Items->X1) / DRWZOOM) > 1) ||
-                                (abs(bhead->biHeight - ((Base->Items + 1)->Y2 - (Base->Items + 1)->Y1) / DRWZOOM) > 1))
+                        if ((Base->Items + 1)->Y2 > 40 * DRWZOOM)
+                            if (abs(bhead->biWidth - (Base->Items->X2 - Base->Items->X1) / DRWZOOM) > 1 ||
+                                abs(bhead->biHeight - ((Base->Items + 1)->Y2 - (Base->Items + 1)->Y1) / DRWZOOM) > 1)
                                 SelectedItem = 3;
                     }
                 }
@@ -300,7 +300,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
         if (i < xlen) d1 = (unsigned char)*(Image + i);
         if (i + 1 < xlen) d2 = (unsigned char)*(Image + i + 1);
         if (i + 2 < xlen) d3 = (unsigned char)*(Image + i + 2);
-        if ((pd1 == d1) && (pd2 == d2) && (pd3 == d3))
+        if (pd1 == d1 && pd2 == d2 && pd3 == d3)
         {
             repeater++;
             if (repeater == 1)
@@ -315,11 +315,11 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
             }
             else
             {
-                if (!only_calculate) *(output - 1) = (*(output - 1)) + 1;
+                if (!only_calculate) *(output - 1) = *(output - 1) + 1;
                 if (repeater > 25) repeater = 0;
             }
         }
-        else if ((d1 == 0xFF) && (d2 == 0xFF) && (d3 == 0xFF))
+        else if (d1 == 0xFF && d2 == 0xFF && d3 == 0xFF)
         {
             pd1 = d1;
             pd2 = d2;
@@ -335,7 +335,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
             len += 1;
             j += 1;
         }
-        else if ((d1 == 0x00) && (d2 == 0x00) && (d3 == 0x00))
+        else if (d1 == 0x00 && d2 == 0x00 && d3 == 0x00)
         {
             pd1 = d1;
             pd2 = d2;
@@ -359,7 +359,7 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
             repeater = 0;
 
             unsigned char d4 = 0;
-            d4 = (d1 >> 6) | ((d2 >> 4) & 0x0C) | ((d3 >> 2) & 0x30);
+            d4 = d1 >> 6 | d2 >> 4 & 0x0C | d3 >> 2 & 0x30;
             d1 &= 0x3F;
             d2 &= 0x3F;
             d3 &= 0x3F;
@@ -422,13 +422,13 @@ char* CBitmapImage::XML_input(char* file)
         {
             file = mf->XML_read_attribute(attribute, value, file, 256);
             if (file == nullptr) return nullptr;
-            if ((strcmp(attribute, "len") == 0) || (strcmp(attribute, "bmplen") == 0))
+            if (strcmp(attribute, "len") == 0 || strcmp(attribute, "bmplen") == 0)
             {
                 Image = (char*)malloc(atoi(value) + 16);
                 imgsize = atoi(value);
                 bitmap_position_counter = 0;
             }
-            if ((strcmp(attribute, "b") == 0) || (strcmp(attribute, "bits") == 0))
+            if (strcmp(attribute, "b") == 0 || strcmp(attribute, "bits") == 0)
             {
                 for (int i = 0; i < (int)strlen(value); i++)
                 {
@@ -481,9 +481,9 @@ char* CBitmapImage::XML_input(char* file)
                         c4 -= 35;
 
 
-                        unsigned char d1 = c | (c4 << 6);
-                        unsigned char d2 = c2 | ((c4 << 4) & 0xC0);
-                        unsigned char d3 = c3 | ((c4 << 2) & 0xC0);
+                        unsigned char d1 = c | c4 << 6;
+                        unsigned char d2 = c2 | c4 << 4 & 0xC0;
+                        unsigned char d3 = c3 | c4 << 2 & 0xC0;
                         Image[bitmap_position_counter++] = d1;
                         Image[bitmap_position_counter++] = d2;
                         Image[bitmap_position_counter++] = d3;
@@ -533,8 +533,8 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, char* fname)
         bpp = min(bpp, 24);
     }
 
-    if (((CBitmapImage*)(d->SpecialData))->Image)
-        free(((CBitmapImage*)(d->SpecialData))->Image);
+    if (((CBitmapImage*)d->SpecialData)->Image)
+        free(((CBitmapImage*)d->SpecialData)->Image);
 
     CBitmap bmp;
     CDC dc;
@@ -555,9 +555,9 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, char* fname)
     int colors = 0;
     if (m2->bmiHeader.biBitCount < 24) colors = 1 << m2->bmiHeader.biBitCount;
     int tablesize = colors * sizeof(RGBQUAD);
-    GetDIBits(dc.m_hDC, bmp, 0, Y, ((char*)m2) + sizeof(BITMAPINFOHEADER) + tablesize, m2,DIB_RGB_COLORS);
-    ((CBitmapImage*)(d->SpecialData))->Image = (char*)m2;
-    ((CBitmapImage*)(d->SpecialData))->imgsize = m2->bmiHeader.biSizeImage + tablesize + sizeof(BITMAPINFOHEADER) + 16;
+    GetDIBits(dc.m_hDC, bmp, 0, Y, (char*)m2 + sizeof(BITMAPINFOHEADER) + tablesize, m2,DIB_RGB_COLORS);
+    ((CBitmapImage*)d->SpecialData)->Image = (char*)m2;
+    ((CBitmapImage*)d->SpecialData)->imgsize = m2->bmiHeader.biSizeImage + tablesize + sizeof(BITMAPINFOHEADER) + 16;
     pMainView->ReleaseDC(DC);
     pMainView->RepaintTheView();
 
@@ -568,10 +568,10 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, char* fname)
 int CBitmapImage::SaveImageToFileForEditing(CObject* dwg)
 {
     CDrawing* d = (CDrawing*)dwg;
-    if (((CBitmapImage*)(d->SpecialData))->Image == nullptr) return 0;
+    if (((CBitmapImage*)d->SpecialData)->Image == nullptr) return 0;
 
     CImage img;
-    BITMAPINFOHEADER* hdr = (BITMAPINFOHEADER*)((CBitmapImage*)(d->SpecialData))->Image;
+    BITMAPINFOHEADER* hdr = (BITMAPINFOHEADER*)((CBitmapImage*)d->SpecialData)->Image;
 
     int X = hdr->biWidth;
     int Y = hdr->biHeight;
@@ -594,9 +594,9 @@ int CBitmapImage::SaveImageToFileForEditing(CObject* dwg)
     memset(buff, 0, 32);
     buff[0] = 'B';
     buff[1] = 'M';
-    if (hdr->biSizeImage == 0) hdr->biSizeImage = (hdr->biBitCount / 8) * hdr->biHeight * hdr->biWidth;
-    *((int*)&buff[2]) = 40 + tablesize + hdr->biSizeImage;
-    *((int*)&buff[10]) = 40 + tablesize + 14;
+    if (hdr->biSizeImage == 0) hdr->biSizeImage = hdr->biBitCount / 8 * hdr->biHeight * hdr->biWidth;
+    *(int*)&buff[2] = 40 + tablesize + hdr->biSizeImage;
+    *(int*)&buff[10] = 40 + tablesize + 14;
     fwrite(buff, 14, 1, fil);
     fwrite(hdr, 40 + tablesize + hdr->biSizeImage, 1, fil);
     fclose(fil);

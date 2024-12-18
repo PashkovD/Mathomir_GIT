@@ -22,7 +22,7 @@ public:
     CMathomirApp();
 
 public:
-    virtual BOOL InitInstance();
+    BOOL InitInstance() override;
 
     afx_msg void OnAppAbout();
     DECLARE_MESSAGE_MAP()
@@ -155,8 +155,8 @@ extern char NoImageAutogeneration;
 #ifdef TEACHER_VERSION
 typedef struct PUBLIC_KEY
 {
-    __int64 N;
-    __int64 X;
+    int64_t N;
+    int64_t X;
 } tPublicKey;
 
 extern tPublicKey* PublicKey;
@@ -188,7 +188,14 @@ HPEN GetPenFromPool(short width, char IsBlue, int color = 0);
 int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked);
 void DisplayShortText(const std::string& text, int x, int y, int LanguageID, int flags = 0);
 int AddDocumentObject(int type, int X, int Y);
-int CopyTranslatedString(char* dest, const char* defstr, int id, int destlen);
+int CopyTranslatedString(char* dest, const std::string& defstr, int id, int destlen);
+extern "C++" {
+    template <size_t Size>
+    int CopyTranslatedString(char (&dest)[Size], const std::string& defstr, int id)
+    {
+        return CopyTranslatedString(dest, defstr, id, Size-1);
+    }
+}
 std::string GetTranslatedString(const std::string& eng_defstr, int id);
 void FatalErrorHandling();
 

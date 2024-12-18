@@ -67,18 +67,12 @@ BOOL CPasswordDlg::OnInitDialog()
     {
         PasswordDlgStruct->canceled = 1;
         PasswordBox.SendMessage(EM_SETPASSWORDCHAR, '*', 0);
-
-        char str[192];
-        CopyTranslatedString(str, "Password entry", 5500, 80);
-        this->SetWindowText(str);
-        CopyTranslatedString(str, "Password:", 5501, 50);
-        this->GetDlgItem(IDC_STATIC1)->SetWindowText(str);
-        CopyTranslatedString(str, "Time limit:", 5502, 60);
-        this->GetDlgItem(IDC_STATIC2)->SetWindowText(str);
-        CopyTranslatedString(str, "Disable calculator", 5503, 50);
-        this->GetDlgItem(IDC_CHECK1)->SetWindowText(str);
-        CopyTranslatedString(str, "Disable symbolic computation", 5504, 50);
-        this->GetDlgItem(IDC_CHECK3)->SetWindowText(str);
+        
+        this->SetWindowText(GetTranslatedString("Password entry", 5500).c_str());
+        this->GetDlgItem(IDC_STATIC1)->SetWindowText(GetTranslatedString("Password:", 5501).c_str());
+        this->GetDlgItem(IDC_STATIC2)->SetWindowText(GetTranslatedString("Time limit:", 5502).c_str());
+        this->GetDlgItem(IDC_CHECK1)->SetWindowText(GetTranslatedString("Disable calculator", 5503).c_str());
+        this->GetDlgItem(IDC_CHECK3)->SetWindowText(GetTranslatedString("Disable symbolic computation", 5504).c_str());
 
 
         if (PasswordDlgStruct->is_exam == 0)
@@ -92,14 +86,12 @@ BOOL CPasswordDlg::OnInitDialog()
         else
         {
 #ifdef TEACHER_VERSION
-            CopyTranslatedString(str, "Exam parameters", 5505, 80);
-            this->SetWindowText(str);
-            CopyTranslatedString(str, "Password is used to open exam results", 5506, 190);
-            CommentBox.SetWindowText(str);
+            this->SetWindowText(GetTranslatedString("Exam parameters", 5505).c_str());
+            CommentBox.SetWindowText(GetTranslatedString("Password is used to open exam results", 5506).c_str());
 
             //CommentBox.SetWindowText("Password is used to open exam results.");
             char buf[16];
-            itoa(PasswordDlgStruct->time_limit, buf, 10);
+            _itoa_s(PasswordDlgStruct->time_limit, buf, 10);
             TimeLimitBox.SetWindowText(buf);
             this->CheckDlgButton(IDC_CHECK1, PasswordDlgStruct->disable_math);
             this->CheckDlgButton(IDC_CHECK3, PasswordDlgStruct->disable_symbolic_math);
@@ -130,8 +122,8 @@ void CPasswordDlg::OnBnClickedOk()
         char buf[15];
         TimeLimitBox.GetWindowText(buf, 15);
         PasswordDlgStruct->time_limit = atoi(buf);
-        PasswordDlgStruct->disable_math = (this->IsDlgButtonChecked(IDC_CHECK1)) ? 1 : 0;
-        PasswordDlgStruct->disable_symbolic_math = (this->IsDlgButtonChecked(IDC_CHECK3)) ? 1 : 0;
+        PasswordDlgStruct->disable_math = this->IsDlgButtonChecked(IDC_CHECK1) ? 1 : 0;
+        PasswordDlgStruct->disable_symbolic_math = this->IsDlgButtonChecked(IDC_CHECK3) ? 1 : 0;
     }
     OnOK();
 }

@@ -83,14 +83,14 @@ CElement::CElement()
 {
     //most of initialization is already done in the overloaded 'new' operator
     m_Color = -1;
-    m_Text = (((CExpression*)m_pPaternalExpression)->m_StartAsText) ? 1 : 0;
+    m_Text = ((CExpression*)m_pPaternalExpression)->m_StartAsText ? 1 : 0;
     m_VMods = 0;
 }
 
 CElement::~CElement(void)
 {
     SelectedTab = nullptr;
-    if ((m_Type == 9) && (Expression2 == nullptr) && (Expression3 == nullptr) && (Data1[0] == 'H'))
+    if (m_Type == 9 && Expression2 == nullptr && Expression3 == nullptr && Data1[0] == 'H')
     {
         //deleting hyperlink
         try
@@ -145,7 +145,7 @@ void* CElement::operator new(size_t size)
 
     ((CElement*)p)->m_pPaternalExpression = CElementInitPaternalExpression;
     ((CElement*)p)->m_Type = (char)CElementInitType;
-    ((CElement*)p)->Data3 = (short*)((char*)&(((CElement*)p)->Data1) + ElementMemoryReservations[CElementInitType].
+    ((CElement*)p)->Data3 = (short*)((char*)&((CElement*)p)->Data1 + ElementMemoryReservations[CElementInitType].
         D3pos);
     return p;
 }
@@ -177,8 +177,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         else
         {
             tElementStruct* ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position - 1;
-            if ((ts->Type == 11) || (ts->Type == 12) || ((ts->Type == 2) && (ts->pElementObject->Data1[0] == (char)
-                0xFF)))
+            if (ts->Type == 11 || ts->Type == 12 || (ts->Type == 2 && ts->pElementObject->Data1[0] == (char)
+                0xFF))
                 IsFirst = 1;
         }
         length = CalculateText(&DC, Data1, Data2, Data3, ActualSize, &IsHigh, &IsLow, m_Text, IsFirst, m_VMods);
@@ -192,39 +192,38 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             {
                 char pretext = 0;
                 if (elm2->m_Type == 1) pretext = elm2->m_Text;
-                if (((elm2->m_Type == 2) && (elm2->Data1[0] == (char)0xFF)) ||
-                    (elm2->m_Type == 11) || (elm2->m_Type == 12))
+                if ((elm2->m_Type == 2 && elm2->Data1[0] == (char)0xFF) ||
+                    elm2->m_Type == 11 || elm2->m_Type == 12)
                     pretext = m_Text;
-                if (((pretext == 0) && (this->m_Text != 0)) || ((pretext != 0) && (this->m_Text == 0)))
+                if ((pretext == 0 && this->m_Text != 0) || (pretext != 0 && this->m_Text == 0))
                 {
                     int delta = (((CExpression*)m_pPaternalExpression)->m_MarginX * 3 - 1) / 4;
                     char ch = this->Data1[0];
-                    if ((ch == ',') || (ch == '.') || (ch == ';') || (ch == '?') || (ch == ':'))
-                        delta = -2 * (((CExpression*)m_pPaternalExpression)->m_MarginX) / 3;
+                    if (ch == ',' || ch == '.' || ch == ';' || ch == '?' || ch == ':')
+                        delta = -2 * ((CExpression*)m_pPaternalExpression)->m_MarginX / 3;
 
-                    (((CExpression*)(this->m_pPaternalExpression))->m_pElementList + paternal_position)->X_pos += delta;
+                    (((CExpression*)this->m_pPaternalExpression)->m_pElementList + paternal_position)->X_pos += delta;
                 }
-                if ((pretext) && (elm2->Expression1) && ((this->Data1[0] == ',') || (this->Data1[0] == '.') || (this->
-                    Data1[0] == ';'))) //make comma closer to an indexed word/variable (text mode only)
-                    (((CExpression*)(this->m_pPaternalExpression))->m_pElementList + paternal_position)->X_pos -= (
-                        ((IsHighQualityRendering) && (ArmedTextReposition == 0)) ? 2 : 3) * ActualSize / 12;
+                if (pretext && elm2->Expression1 && (this->Data1[0] == ',' || this->Data1[0] == '.' || this->
+                    Data1[0] == ';')) //make comma closer to an indexed word/variable (text mode only)
+                    (((CExpression*)this->m_pPaternalExpression)->m_pElementList + paternal_position)->X_pos -= (
+                        IsHighQualityRendering && ArmedTextReposition == 0 ? 2 : 3) * ActualSize / 12;
 
-                if ((pretext) && ((this->m_Text == 2) || (this->m_Text == 3) || (ArmedTextReposition))) //babaluj2
+                if (pretext && (this->m_Text == 2 || this->m_Text == 3 || ArmedTextReposition)) //babaluj2
                 {
                     //spliced words of text!
 
                     //(((CExpression*)(this->m_pPaternalExpression))->m_pElementList+paternal_position)->X_pos-=((IsHighQualityRendering)?5:4)*((CExpression*)m_pPaternalExpression)->m_MarginX/5;
-                    (((CExpression*)(this->m_pPaternalExpression))->m_pElementList + paternal_position)->X_pos -= (
-                        ((IsHighQualityRendering) && (ArmedTextReposition == 0)) ? 3 : 3) * ActualSize / 16;
+                    (((CExpression*)this->m_pPaternalExpression)->m_pElementList + paternal_position)->X_pos -= (
+                        IsHighQualityRendering && ArmedTextReposition == 0 ? 3 : 3) * ActualSize / 16;
                 }
-                else if ((pretext) && (this->m_Text) && (elm2->m_Type == 1))
+                else if (pretext && this->m_Text && elm2->m_Type == 1)
                 {
                     //some more space between words of text
-                    (((CExpression*)(this->m_pPaternalExpression))->m_pElementList + paternal_position)->X_pos += max(
+                    (((CExpression*)this->m_pPaternalExpression)->m_pElementList + paternal_position)->X_pos += max(
                         ((CExpression*)m_pPaternalExpression)->m_MarginX*2-4, 0) / 3;
-                    if (((this->Data1[0] >= 'A') && (this->Data1[0] <= 'Z')) || (this->Data1[0] < 0))
-                        (((CExpression*)(
-                            this->m_pPaternalExpression))->m_pElementList + paternal_position)->X_pos += ((CExpression*)
+                    if ((this->Data1[0] >= 'A' && this->Data1[0] <= 'Z') || this->Data1[0] < 0)
+                        (((CExpression*)this->m_pPaternalExpression)->m_pElementList + paternal_position)->X_pos += ((CExpression*)
                             m_pPaternalExpression)->m_MarginX / 4;
                 }
             }
@@ -265,19 +264,19 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             if ((Data2[last] & 0xE0) != 0x60)
             {
                 //latin characters
-                if ((ch == 'F') || (ch == 'P')) Xrepos = -ActualSize / 8;
-                if ((ch == 'Y') || (ch == 'T') || (ch == 'r') || (ch == 'V')) Xrepos = -ActualSize / 8;
-                if ((ch == '\'') || (ch == '*')) Xrepos = -ActualSize / 8;
+                if (ch == 'F' || ch == 'P') Xrepos = -ActualSize / 8;
+                if (ch == 'Y' || ch == 'T' || ch == 'r' || ch == 'V') Xrepos = -ActualSize / 8;
+                if (ch == '\'' || ch == '*') Xrepos = -ActualSize / 8;
             }
             else
             {
                 //greek characters
-                if ((ch == 'G')) Xrepos = -ActualSize / 8;
-                if ((ch == 'R') || (ch == 'U')) Xrepos = -ActualSize / 16;
+                if (ch == 'G') Xrepos = -ActualSize / 8;
+                if (ch == 'R' || ch == 'U') Xrepos = -ActualSize / 16;
             }
-            if ((m_pPaternalExpression) &&
-                (((CExpression*)m_pPaternalExpression)->m_pPaternalElement) &&
-                (((CExpression*)m_pPaternalExpression)->m_pPaternalElement->m_Type == 3))
+            if (m_pPaternalExpression &&
+                ((CExpression*)m_pPaternalExpression)->m_pPaternalElement &&
+                ((CExpression*)m_pPaternalExpression)->m_pPaternalElement->m_Type == 3)
                 Xrepos += ActualSize / 24;
             //if this is within an exponent then move it a bit to the right (because exponent must be aligned)
 
@@ -293,7 +292,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 if (zoom > 200) tt2 = 2 * ActualSize / 9;
             }
             E1_posY = tt + max(((CExpression*)Expression1)->GetActualFontSize(zoom)/2, E1_above+tt2) - ActualSize / 8;
-            if (below < (E1_posY + E1_below)) below = E1_posY + E1_below;
+            if (below < E1_posY + E1_below) below = E1_posY + E1_below;
         }
         if (!armed_here) ArmedTextReposition = 0;
         return;
@@ -337,7 +336,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         int rs; //right space
         Data3[2] = -4 * ActualSize / 33; //Y position correction (to baseline)
 
-        if ((Data1[0] == '-') || (Data1[0] == '+'))
+        if (Data1[0] == '-' || Data1[0] == '+')
         {
             Data3[1] = ActualSize;
             ls = rs = 0;
@@ -348,7 +347,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             ls = rs = tmp;
         }
 
-        if ((Data1[0] != '+') && (Data1[0] != '-')) //if either plus or minus we will jump over -> faster
+        if (Data1[0] != '+' && Data1[0] != '-') //if either plus or minus we will jump over -> faster
         {
             char ch = Data1[0];
 
@@ -368,12 +367,12 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 else if (Data1[3] == 1)
                     ls = rs = -(ActualSize + 40) / 80; //single space character
                 else
-                    ls = rs = ((unsigned char)Data1[3]) * ActualSize / 20;
+                    ls = rs = (unsigned char)Data1[3] * ActualSize / 20;
             }
             if (ch == (char)0xFF) //line wrapper
             {
                 Data2[1] = ' ';
-                length = (short)(0);
+                length = (short)0;
                 above = (short)ActualSize / 4;
                 below = (short)ActualSize / 3;
                 return;
@@ -397,7 +396,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             {
                 rs /= 8;
                 CElement* prev = GetPreviousElement();
-                if ((prev) && (prev->m_Type == 2)) ls /= 8;
+                if (prev && prev->m_Type == 2) ls /= 8;
             }
 
             if (ch == 'P') //paralel operator
@@ -429,7 +428,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 Data3[1] = 95 * ActualSize / 100;
                 rs = -ActualSize / 8;
             }
-            if ((ch == (char)0xD9) || (ch == (char)0xDA)) //and and or operators
+            if (ch == (char)0xD9 || ch == (char)0xDA) //and and or operators
             {
                 ls = rs = rs / 2;
             }
@@ -456,14 +455,14 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 rs = rs / 2;
                 ls = ls / 2;
             }
-            if ((ch == (char)0xA0) || (ch == (char)0x9F)) //approx. equal (equal with dot above) and 'equal with hat'
+            if (ch == (char)0xA0 || ch == (char)0x9F) //approx. equal (equal with dot above) and 'equal with hat'
             {
                 Data2[1] = '=';
             }
 
             if (ch == (char)0x5B) //triple dot in triangle formation (upside down)
                 Data2[1] = 0x5C; //triple dot in triangle formation
-            if ((ch == 0x5B) || (ch == 0x5C))
+            if (ch == 0x5B || ch == 0x5C)
             {
                 ls -= ActualSize / 20;
                 rs -= ActualSize / 20;
@@ -478,28 +477,28 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 rs = -tmp;
             } //small dot (multiplying)
 
-            if ((ch == '/') ||
-                (ch == '&') ||
-                (ch == (char)0xA1) || //gama
-                (ch == (char)0xA6) || //elongated f
-                (ch == (char)0xD1) || //nabla
-                (ch == 'D')) //delta
+            if (ch == '/' ||
+                ch == '&' ||
+                ch == (char)0xA1 || //gama
+                ch == (char)0xA6 || //elongated f
+                ch == (char)0xD1 || //nabla
+                ch == 'D') //delta
             {
                 Data3[2] = 0;
             }
 
-            if ((ch == (char)0xD7) || (ch == '/'))
+            if (ch == (char)0xD7 || ch == '/')
             {
                 //check if the operator is between two measurement units, if yes condense a bit
-                if ((paternal_position) && (paternal_position < ((CExpression*)(m_pPaternalExpression))->m_NumElements -
-                    1))
+                if (paternal_position && paternal_position < ((CExpression*)m_pPaternalExpression)->m_NumElements -
+                    1)
                 {
-                    tElementStruct* ts = ((CExpression*)(m_pPaternalExpression))->m_pElementList + paternal_position -
+                    tElementStruct* ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position -
                         1;
-                    if ((ts->pElementObject) && (ts->pElementObject->IsMeasurementUnit()))
+                    if (ts->pElementObject && ts->pElementObject->IsMeasurementUnit())
                     {
-                        ts = ((CExpression*)(m_pPaternalExpression))->m_pElementList + paternal_position + 1;
-                        if ((ts->pElementObject) && (ts->pElementObject->IsMeasurementUnit()))
+                        ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position + 1;
+                        if (ts->pElementObject && ts->pElementObject->IsMeasurementUnit())
                         {
                             if (!HQR) Font = 0x70;
                             rs = ls = -ActualSize / 8;
@@ -510,11 +509,11 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
             if (ch == '*') { Data3[2] /= 3; }
 
-            if ((ch == (char)0xA3) || //less or equal
-                (ch == (char)0xB3) || //greater or equal
-                (ch == (char)0xB1) || //plus minus
-                (ch == (char)0xC4) || //encircled plus
-                (ch == (char)0xC5)) //encircled x
+            if (ch == (char)0xA3 || //less or equal
+                ch == (char)0xB3 || //greater or equal
+                ch == (char)0xB1 || //plus minus
+                ch == (char)0xC4 || //encircled plus
+                ch == (char)0xC5) //encircled x
             {
                 Data3[2] /= 2;
             }
@@ -564,19 +563,19 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 Data3[1] = ActualSize;
             }
 
-            if ((ch == 0x22) || (ch == 0x24)) { Data3[1] = 4 * ActualSize / 3; } //'all' and 'exists'
+            if (ch == 0x22 || ch == 0x24) { Data3[1] = 4 * ActualSize / 3; } //'all' and 'exists'
 
-            if ((ch == (char)0xAB) ||
-                (ch == (char)0xAC) ||
-                (ch == (char)0xAD) ||
-                (ch == (char)0xAE) ||
-                (ch == (char)0xAF))
+            if (ch == (char)0xAB ||
+                ch == (char)0xAC ||
+                ch == (char)0xAD ||
+                ch == (char)0xAE ||
+                ch == (char)0xAF)
             {
                 rs = ls = -tmp;
             } //arrows (simple arrows)
 
             //the following operators must be aligned to left
-            if ((ch == '!') || (ch == ',') || (ch == ';'))
+            if (ch == '!' || ch == ',' || ch == ';')
             {
                 Font = 0x60;
                 Data3[2] = 0;
@@ -591,13 +590,13 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
                 //we would like to move this operator closer to the left (to be closer to the previous element)
                 //but we first have to check what element was there before it (paternal_position contains position of this element in paternal expression)
-                if ((m_pPaternalExpression) && (paternal_position > 0))
+                if (m_pPaternalExpression && paternal_position > 0)
                 {
                     tElementStruct* theElement;
-                    theElement = ((CExpression*)(m_pPaternalExpression))->m_pElementList + paternal_position - 1;
-                    if ((theElement->Type == 1) || //variable
-                        (theElement->Type == 4) || //rational number
-                        (theElement->Type == 8)) //root
+                    theElement = ((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position - 1;
+                    if (theElement->Type == 1 || //variable
+                        theElement->Type == 4 || //rational number
+                        theElement->Type == 8) //root
                     {
                         ls = -ActualSize / 6;
                     }
@@ -660,8 +659,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 for (int i = 0; i < Expression1->m_NumElements; i++)
                 {
                     tElementStruct* ts = Expression1->m_pElementList + i;
-                    if ((ts->Type == 2) && ((ts->pElementObject->Data1[0] == '/') || (ts->pElementObject->Data1[0] == (
-                        char)0xD7)))
+                    if (ts->Type == 2 && (ts->pElementObject->Data1[0] == '/' || ts->pElementObject->Data1[0] == (
+                        char)0xD7))
                         continue;
                     if (ts->pElementObject)
                         if (ts->pElementObject->IsMeasurementUnit()) continue;
@@ -696,8 +695,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             }
 
             //fine adjusting, according to the character
-            if ((Base->m_NumElements == 1) && (Base->m_DrawParentheses == 0) &&
-                (Base->m_pElementList->Type == 1))
+            if (Base->m_NumElements == 1 && Base->m_DrawParentheses == 0 &&
+                Base->m_pElementList->Type == 1)
             {
                 //we found that there is only one element in the power base 
                 // and that this element is a variable and that no parentheses are drawn
@@ -708,10 +707,10 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 if ((fnt & 0xE0) != 0x60)
                 {
                     //latin characters
-                    if ((ch == 'L')) ExponentPosXCorrection += ActualSize / 7;
-                    if ((ch == 'A')) ExponentPosXCorrection += ActualSize / 14;
-                    if ((IsCharacterHigh(ch, fnt)) && (fnt & 0x02) && (ch != 'h') && (ch != 'b') && (ch != 'i') && (ch
-                        != 'j'))
+                    if (ch == 'L') ExponentPosXCorrection += ActualSize / 7;
+                    if (ch == 'A') ExponentPosXCorrection += ActualSize / 14;
+                    if (IsCharacterHigh(ch, fnt) && fnt & 0x02 && ch != 'h' && ch != 'b' && ch != 'i' && ch
+                        != 'j')
                     {
                         //high italic characters
                         if (ch == 'f')
@@ -724,12 +723,12 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 {
                     //greek characters
                     //if ((ch=='G'))  ExponentPosXCorrection+=ActualSize/7;
-                    if ((ch == 'D') || (ch == 'L')) ExponentPosXCorrection += ActualSize / 14;
+                    if (ch == 'D' || ch == 'L') ExponentPosXCorrection += ActualSize / 14;
                 }
             }
 
             E2_posX = length - ExponentPosXCorrection;
-            length += E2_length - ExponentPosXCorrection - ((HQR) ? ActualSize / 40 : ActualSize / 8);
+            length += E2_length - ExponentPosXCorrection - (HQR ? ActualSize / 40 : ActualSize / 8);
 
             //in order to corectly position (y-coordinate) the exponent, we have to check
             //what is in the exponent base, especially the parenthese type of the base (if it has parentheses)
@@ -750,17 +749,17 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 }
                 //ParentheseType=Base->m_ParentheseHeightFactor;
                 DrawsParentheses = 1;
-                if ((Base->m_ParentheseShape == '['))
+                if (Base->m_ParentheseShape == '[')
                 {
                     E2_posX += Base->m_ParentheseWidth / 3;
                     length += Base->m_ParentheseWidth / 3;
                 }
-                if ((Base->m_ParentheseShape == '/'))
+                if (Base->m_ParentheseShape == '/')
                 {
                     E2_posX += Base->m_ParentheseWidth / 4;
                     length += Base->m_ParentheseWidth / 4;
                 }
-                if ((Base->m_ParentheseShape == '{') || (Base->m_ParentheseShape == '\\'))
+                if (Base->m_ParentheseShape == '{' || Base->m_ParentheseShape == '\\')
                 {
                     E2_posX -= Base->m_ParentheseWidth / 4;
                     length -= Base->m_ParentheseWidth / 4;
@@ -775,36 +774,36 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                     length += -ActualSize / 20;
                     //ParentheseType=((CExpression*)(Base->m_pElementList->pElementObject->Expression1))->m_ParentheseHeightFactor;
                     DrawsParentheses = 1;
-                    if ((Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '[')
+                    if (Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '['
                         ||
-                        (Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '/'))
+                        Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '/')
                     {
                         E2_posX += ActualSize / 15;
                         length += ActualSize / 15;
                     }
-                    if ((Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '{')
+                    if (Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '{'
                         ||
-                        (Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape ==
-                            '\\'))
+                        Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape ==
+                        '\\')
                     {
                         E2_posX -= ActualSize / 20;
                         length -= ActualSize / 20;
                     }
                 }
-                if ((Base->m_pElementList->Type == 4) && (Base->m_pElementList->pElementObject->Data1[0] == ' '))
+                if (Base->m_pElementList->Type == 4 && Base->m_pElementList->pElementObject->Data1[0] == ' ')
                 {
                     // a over b handling
                     ExponentPosYCorrection += ActualSize / 6;
                 }
             }
             if (!DrawsParentheses) //no parentheses
-                E2_posY = E1_posY - E1_above + ((!HQR) ? ExponentPosYCorrection : (4 * ExponentPosYCorrection / 5)) -
+                E2_posY = E1_posY - E1_above + (!HQR ? ExponentPosYCorrection : 4 * ExponentPosYCorrection / 5) -
                     E2_below;
                 //else if (ParentheseType==0) //large parentheses (full height of expression)
                 //	E2_posY=E1_posY-E1_above-E2_below+ActualSize/3;
             else //medium parentheses (only to cover rational numbers)
                 E2_posY = -ParenthesesAbove - E2_below + ExponentPosYCorrection - ActualSize / 8 + (
-                    (HQR) ? ActualSize / 8 : 0);
+                    HQR ? ActualSize / 8 : 0);
             //else //small parentheses (always the size of font)
             //	E2_posY=-ActualSize/3-E2_below+ExponentPosYCorrection-ActualSize/6;
 
@@ -814,15 +813,15 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             if (Expression1)
             {
                 short bt = Base->m_pElementList->Type;
-                if ((Base->m_NumElements == 1) && (Base->m_DrawParentheses == 0) &&
-                    ((bt == 1) || (bt == 5)))
+                if (Base->m_NumElements == 1 && Base->m_DrawParentheses == 0 &&
+                    (bt == 1 || bt == 5))
                 {
                     //we found that there is only one element in the power base 
                     // and that this element is a variable or parenthese
                     // and that no parentheses are drawn at the base level
                     CElement* BaseElement = Base->m_pElementList->pElementObject;
-                    if (((BaseElement->Expression1) && (bt == 1)) ||
-                        ((BaseElement->Expression2) && (bt == 5)))
+                    if ((BaseElement->Expression1 && bt == 1) ||
+                        (BaseElement->Expression2 && bt == 5))
                     {
                         //this variable has defined index so we will change position of our exponent
                         int MoveToRight;
@@ -830,7 +829,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                         if (bt == 1)
                         {
                             int skew = 0;
-                            if ((Base->m_pElementList->pElementObject->Data2[0] & 0x02)) skew = ActualSize / 12;
+                            if (Base->m_pElementList->pElementObject->Data2[0] & 0x02) skew = ActualSize / 12;
                             E2_posX = BaseElement->E1_posX + Base->m_pElementList->X_pos + skew + BaseElement->Expression1->m_pElementList->X_pos - Expression2->
                                 m_pElementList->X_pos;
                             MoveToRight = BaseElement->E1_length - E2_length - skew;
@@ -851,8 +850,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                         if ((BaseElement->Data2[last] & 0xE0) != 0x60)
                         {
                             //latin characters
-                            if ((ch == 'F') || (ch == 'P')) { E2_posX += ActualSize / 8; }
-                            if ((ch == 'Y') || (ch == 'T') || (ch == 'r') || (ch == 'V'))
+                            if (ch == 'F' || ch == 'P') { E2_posX += ActualSize / 8; }
+                            if (ch == 'Y' || ch == 'T' || ch == 'r' || ch == 'V')
                             {
                                 E2_posX += ActualSize / 16;
                             }
@@ -860,25 +859,25 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                         else
                         {
                             //greek characters
-                            if ((ch == 'G')) { E2_posX += ActualSize / 8; }
-                            if ((ch == 'R') || (ch == 'U')) { E2_posX += ActualSize / 16; }
+                            if (ch == 'G') { E2_posX += ActualSize / 8; }
+                            if (ch == 'R' || ch == 'U') { E2_posX += ActualSize / 16; }
                         }
-                        length = E2_posX + E2_length + MoveToRight - ((HQR) ? 0 : ActualSize / 9);
+                        length = E2_posX + E2_length + MoveToRight - (HQR ? 0 : ActualSize / 9);
                     }
                 }
 
                 if (Base->m_DrawParentheses == 0)
-                    if (((Base->m_NumElements == 1) && (Base->m_pElementList->Type == 6)) ||
-                        ((Base->m_NumElements == 2) && (FrameSelections) && (Base->m_pElementList->Type == 6) && ((Base
-                            ->m_pElementList + 1)->Type == 1) && ((Base->m_pElementList + 1)->pElementObject->Data1[0]
-                            == 0)) ||
-                        ((Base->m_NumElements == 2) && (FrameSelections) && (Base->m_pElementList->Type == 1) && ((Base
-                            ->m_pElementList + 1)->Type == 6) && ((Base->m_pElementList + 0)->pElementObject->Data1[0]
-                            == 0)))
+                    if ((Base->m_NumElements == 1 && Base->m_pElementList->Type == 6) ||
+                        (Base->m_NumElements == 2 && FrameSelections && Base->m_pElementList->Type == 6 && (Base
+                            ->m_pElementList + 1)->Type == 1 && (Base->m_pElementList + 1)->pElementObject->Data1[0]
+                            == 0) ||
+                        (Base->m_NumElements == 2 && FrameSelections && Base->m_pElementList->Type == 1 && (Base
+                            ->m_pElementList + 1)->Type == 6 && (Base->m_pElementList + 0)->pElementObject->Data1[0]
+                            == 0))
                     {
                         int elpos = 0;
                         CElement* BaseElement = Base->m_pElementList->pElementObject;
-                        if ((Base->m_NumElements == 2) && (Base->m_pElementList->Type == 1))
+                        if (Base->m_NumElements == 2 && Base->m_pElementList->Type == 1)
                         {
                             elpos = 1;
                             BaseElement = (Base->m_pElementList + 1)->pElementObject;
@@ -901,17 +900,17 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                                 }
                             }
 
-                            int MoveToRight = E2_length - index_length - ((HQR) ? 0 : (ActualSize / 6));
+                            int MoveToRight = E2_length - index_length - (HQR ? 0 : ActualSize / 6);
                             if (MoveToRight < 0) MoveToRight = 0;
 
                             E2_posX = (Base->m_pElementList + elpos)->Length - (Base->m_pElementList + elpos)->
                                                                                pElementObject->Data3[1];
                             //+ActualSize/6;
                             if (HQR) E2_posX += ActualSize / 8;
-                            if ((BaseElement->Expression2) && (!is_lim))
+                            if (BaseElement->Expression2 && !is_lim)
                                 E2_posX = (Base->m_pElementList + elpos)->X_pos + BaseElement->E2_posX;
 
-                            E2_posY = (HQR) ? (-ActualSize / 8 - E2_below) : (-ActualSize / 32 - E2_below);
+                            E2_posY = HQR ? -ActualSize / 8 - E2_below : -ActualSize / 32 - E2_below;
                             if (IsCharacterHigh(BaseElement->Data1[strlen(BaseElement->Data1) - 1],
                                                 BaseElement->Data2[0]) == 0)
                                 E2_posY += ActualSize / 10;
@@ -922,7 +921,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                             //we also need to adjust function element (it was calculated before)
                             //its argument expression must be moved to the right
 
-                            if ((Base->m_NumElements == 2) && (elpos == 0))
+                            if (Base->m_NumElements == 2 && elpos == 0)
                                 (Base->m_pElementList + 1)->X_pos += 3 *
                                     MoveToRight / 4;
                             BaseElement->E1_posX += MoveToRight;
@@ -931,7 +930,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                         }
                     }
             }
-            if (above < (-E2_posY + E2_above)) above = -E2_posY + E2_above;
+            if (above < -E2_posY + E2_above) above = -E2_posY + E2_above;
             if (ParenthesesAbove < -E2_posY) ParenthesesAbove = -E2_posY;
         }
         return;
@@ -1037,19 +1036,19 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             //special handling for d/d() operator
             CExpression* num = Expression1;
             CExpression* denom = Expression2;
-            if ((num) && (denom) && (num->m_pElementList->pElementObject))
-                if ((num->m_NumElements == 1) ||
-                    ((num->m_NumElements == 2) && (num->m_pElementList->Type == 1) && (num->m_pElementList->
-                        pElementObject->Data1[0] == 0) && ((num->m_pElementList + 1)->Type == 6)) ||
-                    ((num->m_NumElements == 2) && ((num->m_pElementList + 1)->Type == 1) && ((num->m_pElementList + 1)->
-                        pElementObject->Data1[0] == 0) && (num->m_pElementList->Type == 6)))
+            if (num && denom && num->m_pElementList->pElementObject)
+                if (num->m_NumElements == 1 ||
+                    (num->m_NumElements == 2 && num->m_pElementList->Type == 1 && num->m_pElementList->
+                        pElementObject->Data1[0] == 0 && (num->m_pElementList + 1)->Type == 6) ||
+                    (num->m_NumElements == 2 && (num->m_pElementList + 1)->Type == 1 && (num->m_pElementList + 1)->
+                        pElementObject->Data1[0] == 0 && num->m_pElementList->Type == 6))
                 {
                     int elpos = 0;
-                    if ((num->m_NumElements > 1) && ((num->m_pElementList + 1)->Type == 6)) elpos = 1;
+                    if (num->m_NumElements > 1 && (num->m_pElementList + 1)->Type == 6) elpos = 1;
                     CElement* numelement = (num->m_pElementList + elpos)->pElementObject;
                     if (numelement->IsDifferential())
-                        if ((numelement->Expression1) && (numelement->Expression1->m_ParenthesesFlags &
-                            0x81))
+                        if (numelement->Expression1 && numelement->Expression1->m_ParenthesesFlags &
+                            0x81)
                         {
                             ddform = 1;
                             //we have an fraction if form: d()/d() we will change the function below it
@@ -1152,8 +1151,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 }
 
                 //adjusting positions on character level
-                E2_posY = ParenthesesBelow + E2_above - ((HQR) ? ActualSize / 4 : ActualSize / 3);
-                if (below < (E2_posY + E2_below)) below = E2_posY + E2_below;
+                E2_posY = ParenthesesBelow + E2_above - (HQR ? ActualSize / 4 : ActualSize / 3);
+                if (below < E2_posY + E2_below) below = E2_posY + E2_below;
             }
         }
     }
@@ -1178,9 +1177,9 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
         //for very small fonts, fix the font facename to Arial (math-o-mir system font) 
         //for better readability (important for toolbox items)
-        if (ActualSize <= 11) font = ((font & 0xE0) != 0x60) ? (char)0x80 : (char)0x60;
+        if (ActualSize <= 11) font = (font & 0xE0) != 0x60 ? (char)0x80 : (char)0x60;
 
-        if ((m_VMods) || (Data1[strlen(Data1) - 1] == '\''))
+        if (m_VMods || Data1[strlen(Data1) - 1] == '\'')
         {
             char xfont[24];
             short spacing[24];
@@ -1199,11 +1198,11 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         if (cs.cx == 0) cs.cx = ActualSize / 10;
 
         //special handling if the last character in the name is 'f' character
-        if ((Data1[len - 1] == 'f') && ((font & 0xE0) != (char)0x60)) cs.cx += ActualSize / 15;
+        if (Data1[len - 1] == 'f' && (font & 0xE0) != (char)0x60) cs.cx += ActualSize / 15;
 
-        length = (short)(cs.cx) + (HQR || (Expression1 && Expression1->m_DrawParentheses)
-                                        ? ActualSize / 6
-                                        : ActualSize / 32);
+        length = (short)cs.cx + (HQR || (Expression1 && Expression1->m_DrawParentheses)
+                                     ? ActualSize / 6
+                                     : ActualSize / 32);
 
         if (IsHigh > 1) above = (short)ActualSize / 2;
         else if (IsHigh == 1) above = (short)2 * ActualSize / 5;
@@ -1234,7 +1233,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 else
                 {
                     E2_posX = 0;
-                    length += (E2_length - (short)cs.cx);
+                    length += E2_length - (short)cs.cx;
                     Data3[2] = (E2_length - (short)cs.cx) / 2;
                 }
             }
@@ -1263,7 +1262,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
                 //E2_posY=((HQR)?ActualSize/24:ActualSize/15)+max(((CExpression*)Expression2)->GetActualFontSize(zoom)/2,E2_above);
             }
-            if (below < (E2_posY + E2_below)) below = E2_posY + E2_below;
+            if (below < E2_posY + E2_below) below = E2_posY + E2_below;
         }
 
 
@@ -1309,23 +1308,23 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             }
             else
             {
-                if ((m_pPaternalExpression) && (paternal_position < ((CExpression*)m_pPaternalExpression)->m_NumElements
-                    - 1))
+                if (m_pPaternalExpression && paternal_position < ((CExpression*)m_pPaternalExpression)->m_NumElements
+                    - 1)
                 {
                     //search through paternal expression and find the next element in the expression
                     //If the next element is not operator (like + or -) then we intentionaly make a little space are
-                    tElementStruct* ts = ((CExpression*)(m_pPaternalExpression))->m_pElementList + paternal_position +
+                    tElementStruct* ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position +
                         1;
                     char ch = 0;
                     if (ts->pElementObject) ch = ts->pElementObject->Data1[0];
-                    if ((ts->Type != 2) || (GetOperatorLevel(ch) > MulLevel))
-                        if ((ts->Type != 1) || (ch != 0))
+                    if (ts->Type != 2 || GetOperatorLevel(ch) > MulLevel)
+                        if (ts->Type != 1 || ch != 0)
                             if (ts->Type != 6)
                             {
-                                if (((Expression1->m_ParenthesesFlags) & 0xFD) == 0)
+                                if ((Expression1->m_ParenthesesFlags & 0xFD) == 0)
                                 {
-                                    if ((Expression1->m_NumElements > 1) ||
-                                        (Expression1->m_pElementList->Type != 5))
+                                    if (Expression1->m_NumElements > 1 ||
+                                        Expression1->m_pElementList->Type != 5)
                                     {
                                         length += ActualSize / 12;
                                         //the space is added at the end to distinct function argument
@@ -1363,27 +1362,27 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             //if (CenterParentheses) E1_CenterParentheses(above,below);
 
             if (Data1[0] != '/') //we are not adding end space for right bars
-                if ((m_pPaternalExpression) && (paternal_position < ((CExpression*)m_pPaternalExpression)->m_NumElements
-                    - 1))
+                if (m_pPaternalExpression && paternal_position < ((CExpression*)m_pPaternalExpression)->m_NumElements
+                    - 1)
                 {
                     //search through paternal expression and find the next element in the expression
                     //If the next element is not operator (like + or -) then we intentionaly make a little space are
-                    tElementStruct* ts = ((CExpression*)(m_pPaternalExpression))->m_pElementList + paternal_position +
+                    tElementStruct* ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position +
                         1;
                     char ch = 0;
                     if (ts->pElementObject) ch = ts->pElementObject->Data1[0];
-                    if ((ts->Type != 2) || (GetOperatorLevel(ch) >= MulLevel))
+                    if (ts->Type != 2 || GetOperatorLevel(ch) >= MulLevel)
                     {
-                        if ((ts->Type != 1) || (!ts->pElementObject->m_Text))
+                        if (ts->Type != 1 || !ts->pElementObject->m_Text)
                             AddEndingSpace = ActualSize / 4;
                     }
-                    else if ((Data1[0] == 'I') || (Data1[0] == 'O'))
+                    else if (Data1[0] == 'I' || Data1[0] == 'O')
                     {
                         CExpression* a = Expression1;
                         if (a->m_NumElements)
                         {
                             tElementStruct* t = a->m_pElementList + a->m_NumElements - 1;
-                            if ((t->Type != 6) || (strcmp(t->pElementObject->Data1, "d")))
+                            if (t->Type != 6 || strcmp(t->pElementObject->Data1, "d"))
                                 AddEndingSpace = ActualSize * 2 / 7;
                         }
                     }
@@ -1393,7 +1392,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         //calculate the height of the symbol (three posible sizes, according to Data2[0])
         int HalfSymbolHeight;
 
-        if ((Data1[0] == 'S') || (Data1[0] == 'P')) //sigma and pi
+        if (Data1[0] == 'S' || Data1[0] == 'P') //sigma and pi
         {
             if (Data2[0] == 0) //large symbol
                 HalfSymbolHeight = ActualSize * 36 / 30;
@@ -1423,20 +1422,20 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         CSize cs;
         Data1[1] = (char)0xE5;
         Data1[2] = 0;
-        if ((Data1[0] == 'S')) Data1[1] = (char)0xE5; //sigma
-        if ((Data1[0] == 'P')) Data1[1] = (char)0xD5; //Pi
-        if ((Data1[0] == 'I')) Data1[1] = 'a'; //integral
-        if ((Data1[0] == 'O')) Data1[1] = 'a'; //circular integral
-        if ((Data1[0] == '|') || (Data1[0] == '/')) Data1[1] = 'a'; //bar (left or right)
-        if ((Data1[0] == 'S') || (Data1[0] == 'P'))
+        if (Data1[0] == 'S') Data1[1] = (char)0xE5; //sigma
+        if (Data1[0] == 'P') Data1[1] = (char)0xD5; //Pi
+        if (Data1[0] == 'I') Data1[1] = 'a'; //integral
+        if (Data1[0] == 'O') Data1[1] = 'a'; //circular integral
+        if (Data1[0] == '|' || Data1[0] == '/') Data1[1] = 'a'; //bar (left or right)
+        if (Data1[0] == 'S' || Data1[0] == 'P')
             hfont = GetFontFromPool(3, 0, 0,max(2*HalfSymbolHeight, 1)); //always greek alphabet
         else
             hfont = GetFontFromPool(3, 0, 0,max(ActualSize/2+HalfSymbolHeight/3, 1));
         DC.SelectObject(hfont);
         cs = DC.GetTextExtent(&Data1[1]);
         if (cs.cx == 0) cs.cx = ActualSize / 10;
-        if ((IsHighQualityRendering) && ((Data1[0] == 'I') || (Data1[0] == 'O'))) cs.cx = (cs.cx + 2) * 7 / 6;
-        if ((IsHighQualityRendering) && ((Data1[0] == '|') || (Data1[0] == '/'))) cs.cx = (cs.cx + 1) * 6 / 5;
+        if (IsHighQualityRendering && (Data1[0] == 'I' || Data1[0] == 'O')) cs.cx = (cs.cx + 2) * 7 / 6;
+        if (IsHighQualityRendering && (Data1[0] == '|' || Data1[0] == '/')) cs.cx = (cs.cx + 1) * 6 / 5;
 
         if (above < HalfSymbolHeight) above = (short)HalfSymbolHeight;
         if (below < HalfSymbolHeight) below = (short)HalfSymbolHeight;
@@ -1459,7 +1458,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         if (Expression2)
         {
             Expression2->CalculateSize(DC, zoom, E2_length, &E2_above, &E2_below, HQR);
-            if ((Data1[0] == 'S') || (Data1[0] == 'P'))
+            if (Data1[0] == 'S' || Data1[0] == 'P')
             {
                 if (HQR)
                     E2_posY = -HalfSymbolHeight * 85 / 100 - E2_below + Ycorr;
@@ -1468,7 +1467,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             }
             else
                 E2_posY = -HalfSymbolHeight - E2_below + Ycorr - ActualSize / 10;
-            if (above < (-E2_posY + E2_above)) above = -E2_posY + E2_above;
+            if (above < -E2_posY + E2_above) above = -E2_posY + E2_above;
             if (ParenthesesAbove < -E2_posY) ParenthesesAbove = -E2_posY;
         }
         else
@@ -1481,7 +1480,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         if (Expression3)
         {
             Expression3->CalculateSize(DC, zoom, E3_length, &E3_above, &E3_below, HQR);
-            if ((Data1[0] == 'S') || (Data1[0] == 'P'))
+            if (Data1[0] == 'S' || Data1[0] == 'P')
             {
                 if (HQR)
                     E3_posY = +HalfSymbolHeight * 83 / 100 + E3_above - Ycorr;
@@ -1490,7 +1489,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             }
             else
                 E3_posY = +HalfSymbolHeight + E3_above - Ycorr + ActualSize / 24;
-            if (below < (E3_posY + E3_below)) below = E3_posY + E3_below;
+            if (below < E3_posY + E3_below) below = E3_posY + E3_below;
             if (ParenthesesBelow < E3_posY) ParenthesesBelow = E3_posY;
         }
         else
@@ -1527,7 +1526,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                     E1_posX -= Data3[3] / 10;
                 }
                 length = E1_posX + E1_length + AddEndingSpace;
-                if ((Data1[0] != 'S') && (Data1[0] != 'P') && (Data1[0] != '|'))
+                if (Data1[0] != 'S' && Data1[0] != 'P' && Data1[0] != '|')
                 {
                     int Move = Data3[3] / 4;
                     E3_posX -= Move;
@@ -1556,9 +1555,9 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
                 E2_posX = (longest - E2_length) / 2;
                 E3_posX = (longest - E3_length) / 2;
-                E1_posX = longest + ((HQR) ? (ActualSize / 8) : 0);
+                E1_posX = longest + (HQR ? ActualSize / 8 : 0);
                 length = E1_posX + E1_length + AddEndingSpace;
-                if ((Data1[0] != 'S') && (Data1[0] != 'P') && (Data1[0] != '|'))
+                if (Data1[0] != 'S' && Data1[0] != 'P' && Data1[0] != '|')
                 {
                     int Move = Data3[3] / 4;
                     E3_posX -= Move;
@@ -1582,8 +1581,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         {
             //handling argument
             Expression1->CalculateSize(DC, zoom, E1_length, &E1_above, &E1_below, HQR);
-            if ((Expression1->m_NumElements == 1) && (Expression1->m_pElementList->Type
-                == 0))
+            if (Expression1->m_NumElements == 1 && Expression1->m_pElementList->Type
+                == 0)
             {
                 E1_above = ActualSize / 3 + ActualSize / 20;
                 E1_below = ActualSize / 2 - ActualSize / 20;
@@ -1591,7 +1590,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             E1_posX = 0;
             E1_posY = ActualSize / 24;
             length = E1_length + 2;
-            above = E1_above + ActualSize / 8 + ((HQR) ? (ActualSize / 16) : 0);
+            above = E1_above + ActualSize / 8 + (HQR ? ActualSize / 16 : 0);
             below = (short)(E1_posY + E1_below);
             ParenthesesAbove = above - ActualSize / 8;
             ParenthesesBelow = below - ActualSize / 8;
@@ -1604,7 +1603,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             if (E2_length < 2 * ActualSize / 5) E2_length = 2 * ActualSize / 5;
             E2_posX = 0;
             E2_posY = -ActualSize / 10 - E2_below;
-            if (above < (-E2_posY + E2_above)) above = -E2_posY + E2_above;
+            if (above < -E2_posY + E2_above) above = -E2_posY + E2_above;
         }
         else
         {
@@ -1629,7 +1628,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
     if (m_Type == 9) //Vertical line (with condition list), also an HTML element
     {
-        if ((Expression2 == nullptr) && (Expression3 == nullptr))
+        if (Expression2 == nullptr && Expression3 == nullptr)
         {
             //an HTML element (type 9 without Expression2 and Expression3 defined)
             //pointer to additional data (URL) is in Data3
@@ -1639,7 +1638,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
             E1_posX = 0;
             E1_posY = 0;
-            length = E1_length + ((Data1[0] == 'H') ? (ActualSize / 2) : (ActualSize / 6));
+            length = E1_length + (Data1[0] == 'H' ? ActualSize / 2 : ActualSize / 6);
             above = max(E1_above, ActualSize/3);
             below = max(E1_below, ActualSize/3);
         }
@@ -1761,7 +1760,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         ParenthesesAbove = -E1_posY + Expression1->m_ParenthesesAbove;
         ParenthesesBelow = E3_posY + Expression3->m_ParenthesesBelow;
     }
-    if ((m_Type == 11) || (m_Type == 12))
+    if (m_Type == 11 || m_Type == 12)
     {
         above = ActualSize / 4;
         below = ActualSize / 3;
@@ -1784,7 +1783,7 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
         int ok = 0;
         int l = (int)strlen(Data1);
 
-        if ((m_pPaternalExpression != KeyboardEntryObject) || (this->m_Text))
+        if (m_pPaternalExpression != KeyboardEntryObject || this->m_Text)
             if (l > 0)
             {
                 //re-calculate text again for better rendering
@@ -1800,11 +1799,11 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
                 CElement* previous = this->GetPreviousElement();
                 char is_last_word = 0;
                 char is_first_word = 0;
-                if ((!next) || ((next->m_Type == 11) || (next->m_Type == 12) || ((next->m_Type == 2) && (next->Data1[0]
-                    == (char)0xFF))))
+                if (!next || (next->m_Type == 11 || next->m_Type == 12 || (next->m_Type == 2 && next->Data1[0]
+                    == (char)0xFF)))
                     is_last_word = 1;
-                if ((!previous) || ((previous->m_Type == 11) || (previous->m_Type == 12) || ((previous->m_Type == 2) &&
-                    (previous->Data1[0] == (char)0xFF))))
+                if (!previous || (previous->m_Type == 11 || previous->m_Type == 12 || (previous->m_Type == 2 &&
+                    previous->Data1[0] == (char)0xFF)))
                     is_first_word = 1;
 
                 CalculateText(DC, Data1, Data2, Data3, as, &hi, &lo, this->m_Text, is_first_word, m_VMods);
@@ -1832,9 +1831,9 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
 
                 //centering the word if it is of different size than ideal
                 int delta = orig_extend - Data3[l];
-                if ((is_first_word) && (align == 'l')) //if left alignment, don't move the first words
+                if (is_first_word && align == 'l') //if left alignment, don't move the first words
                     delta = 0;
-                else if ((is_last_word) && (align == 'r')) //if right alignment, algin right words to the end
+                else if (is_last_word && align == 'r') //if right alignment, algin right words to the end
                     delta = delta;
                 else
                     delta = delta / 2;
@@ -1857,11 +1856,11 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
         Data3[1] = (Data3[1] * zoom + HQZMp) / HQZM;
         Data3[2] = (Data3[2] * zoom + HQZMp) / HQZM;
     }
-    else if ((m_Type == 3) || (m_Type == 5))
+    else if (m_Type == 3 || m_Type == 5)
     {
         E2 = 1;
     }
-    else if ((m_Type == 4) || (m_Type == 7))
+    else if (m_Type == 4 || m_Type == 7)
     {
         Data3[0] = (Data3[0] * zoom + HQZMp) / HQZM;
         Data3[1] = (Data3[1] * zoom + HQZMp) / HQZM;
@@ -1881,9 +1880,9 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
         Data3[0] = (Data3[0] * zoom + HQZMp) / HQZM;
         E2 = 1;
     }
-    else if ((m_Type == 9) || (m_Type == 10))
+    else if (m_Type == 9 || m_Type == 10)
     {
-        if ((m_Type == 9) && (Expression2 == nullptr) && (Expression3 == nullptr) && ((Data1[0] == 'H') || (Data1[0] == 'L')))
+        if (m_Type == 9 && Expression2 == nullptr && Expression3 == nullptr && (Data1[0] == 'H' || Data1[0] == 'L'))
         //hyperlink or label
         {
             E2 = E3 = 0;
@@ -1939,8 +1938,8 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
     if (m_Color != -1) color = ColorTable[m_Color];
     if (m_Type == 1) //variable / constant
     {
-        if (((IsBlue) && (m_Text) && ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint > 0) && (!Popup->
-            IsWindowVisible()))
+        if (IsBlue && m_Text && ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint > 0 && !Popup->
+            IsWindowVisible())
         {
             //for plain text we are going to display insertion point also within the words (this differs
             //from math variables where a multi-letter variable would become 'touched' instead)
@@ -1951,8 +1950,8 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 if (Data3[strlen(Data1)] >= kk)
                 {
                     IsBlue = 0;
-                    if ((((CExpression*)m_pPaternalExpression)->m_IsKeyboardEntry != paternal_pos + 1) ||
-                        (Data3[((CExpression*)m_pPaternalExpression)->m_KeyboardCursorPos] != kk))
+                    if (((CExpression*)m_pPaternalExpression)->m_IsKeyboardEntry != paternal_pos + 1 ||
+                        Data3[((CExpression*)m_pPaternalExpression)->m_KeyboardCursorPos] != kk)
                     {
                         int ActualSize2;
                         if (IsHighQualityRendering)
@@ -1975,7 +1974,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 }
         }
 
-        if ((Data1[0] == '\'') && (Data1[1] == 0) && (this->IsMeasurementUnit() == 0))
+        if (Data1[0] == '\'' && Data1[1] == 0 && this->IsMeasurementUnit() == 0)
         //special handling for the apostrophe key (it is repositioned according to the previous element height)
         {
             int ll = GetPaternalPosition();
@@ -2004,7 +2003,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
     if (m_Type == 2) //operator (Like: '+', '-', '/')
     {
         char oper_type = Data1[0];
-        int clr = (IsBlue) ? BLUE_COLOR : ((Data2[0] & 0x10) ? PALE_RGB(color) : color);
+        int clr = IsBlue ? BLUE_COLOR : Data2[0] & 0x10 ? PALE_RGB(color) : color;
 
         if (oper_type & 0x80)
         {
@@ -2038,7 +2037,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             {
                 DC->SelectObject(GetPenFromPool(max(1, Data3[1]/16), IsBlue, clr));
                 int xx = X + Data3[0] + Data3[1] / 12;
-                int yy = Y + Data3[2] + Data3[1] / 3 + Data3[1] / 16 - ((Data3[1] < 14) ? 1 : 0);
+                int yy = Y + Data3[2] + Data3[1] / 3 + Data3[1] / 16 - (Data3[1] < 14 ? 1 : 0);
                 int h = Data3[1] / 2 + Data3[1] / 16;
                 int l = h;
                 DC->MoveTo(xx, yy);
@@ -2054,7 +2053,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 int r = 2 * (h + 3) / 7;
                 DC->SelectObject(GetPenFromPool(max(1, Data3[1]/20), IsBlue, clr));
                 CBrush br;
-                br.CreateSolidBrush((IsBlue) ? BLUE_COLOR : clr);
+                br.CreateSolidBrush(IsBlue ? BLUE_COLOR : clr);
                 DC->SelectObject(br);
                 Y -= Data3[1] / 32;
                 X += h;
@@ -2065,7 +2064,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                     DC->Ellipse(X + 2 * h, Y - h, X + 2 * h + r, Y - h + r);
                     DC->Ellipse(X + h, Y + h, X + h + r, Y + h + r);
                 }
-                else if ((r == 2) || (r == 3))
+                else if (r == 2 || r == 3)
                 {
                     DC->Rectangle(X, Y - h, X + r, Y - h + r);
                     DC->Rectangle(X + 2 * h, Y - h, X + 2 * h + r, Y - h + r);
@@ -2073,9 +2072,9 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 }
                 else
                 {
-                    DC->SetPixelV(X, Y - h, (IsBlue) ? BLUE_COLOR : clr);
-                    DC->SetPixelV(X + 2 * h, Y - h, (IsBlue) ? BLUE_COLOR : clr);
-                    DC->SetPixelV(X + h, Y + h, (IsBlue) ? BLUE_COLOR : clr);
+                    DC->SetPixelV(X, Y - h, IsBlue ? BLUE_COLOR : clr);
+                    DC->SetPixelV(X + 2 * h, Y - h, IsBlue ? BLUE_COLOR : clr);
+                    DC->SetPixelV(X + h, Y + h, IsBlue ? BLUE_COLOR : clr);
                 }
 
                 return;
@@ -2115,35 +2114,35 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                     0, 0, 1, 0);
             return;
         }
-        if ((oper_type == 9) &&
-            ((IsBlue) || (((CExpression*)this->m_pPaternalExpression)->m_Selection) || (this->m_pPaternalExpression ==
-                KeyboardEntryObject))) //the tab (space)
+        if (oper_type == 9 &&
+            (IsBlue || ((CExpression*)this->m_pPaternalExpression)->m_Selection || this->m_pPaternalExpression ==
+                KeyboardEntryObject)) //the tab (space)
         {
             int ok = 0;
             if (IsBlue) ok = 1;
 
             CExpression* p = (CExpression*)this->m_pPaternalExpression;
-            if ((p->m_Selection > 0) && (p->m_Selection <= p->m_NumElements + 1))
+            if (p->m_Selection > 0 && p->m_Selection <= p->m_NumElements + 1)
             {
                 int sel = p->m_Selection;
-                if ((sel <= p->m_NumElements) && ((p->m_pElementList + sel - 1)->pElementObject == this))
+                if (sel <= p->m_NumElements && (p->m_pElementList + sel - 1)->pElementObject == this)
                     ok = 1;
-                if ((sel > 1) && ((p->m_pElementList + sel - 2)->pElementObject == this))
+                if (sel > 1 && (p->m_pElementList + sel - 2)->pElementObject == this)
                     ok = 1;
             }
             if (KeyboardEntryObject == (CObject*)p)
             {
-                if ((p->m_IsKeyboardEntry > 0) && (p->m_IsKeyboardEntry <= p->m_NumElements))
+                if (p->m_IsKeyboardEntry > 0 && p->m_IsKeyboardEntry <= p->m_NumElements)
                 {
                     int sel = p->m_IsKeyboardEntry;
                     CElement* elm = (p->m_pElementList + sel - 1)->pElementObject;
                     if (elm->m_Type == 1)
                     {
-                        if ((sel < p->m_NumElements) && ((p->m_pElementList + sel)->pElementObject == this) && (p->
-                            m_KeyboardCursorPos >= (int)strlen(elm->Data1)))
+                        if (sel < p->m_NumElements && (p->m_pElementList + sel)->pElementObject == this && p->
+                            m_KeyboardCursorPos >= (int)strlen(elm->Data1))
                             ok = 1;
-                        if ((sel > 1) && ((p->m_pElementList + sel - 2)->pElementObject == this) && (p->
-                            m_KeyboardCursorPos == 0))
+                        if (sel > 1 && (p->m_pElementList + sel - 2)->pElementObject == this && p->
+                            m_KeyboardCursorPos == 0)
                             ok = 1;
                     }
                 }
@@ -2151,7 +2150,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             if (ok)
             {
                 DC->SelectObject(GetPenFromPool(1, 1, 0));
-                if ((Data1[3] == 1))
+                if (Data1[3] == 1)
                 {
                     DC->MoveTo(X - Data3[1] / 16, Y - Data3[1] / 20);
                     DC->LineTo(X + Data3[1] / 16, Y + Data3[1] / 20);
@@ -2192,7 +2191,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
         hfont = GetFontFromPool(Data2[0],max(Data3[1], 1));
         DC->SelectObject(hfont);
         DC->SetTextColor(clr);
-        if ((ShadowSelection) && (IsBlue == 1) && (ActualSize > 10) && (ActualSize < 40))
+        if (ShadowSelection && IsBlue == 1 && ActualSize > 10 && ActualSize < 40)
             DC->TextOut(X + Data3[0] + 1, Y + Data3[1] / 3 + Data3[2], &Data2[1]);
         DC->TextOut(X + Data3[0], Y + Data3[1] / 3 + Data3[2], &Data2[1]);
 
@@ -2202,7 +2201,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             {
                 DC->TextOut(X + Data3[0], Y + Data3[1] / 3 + Data3[2], &Data2[1]);
                 DC->FillSolidRect(X + Data3[0], Y + ActualSize / 40 + Data3[2],max(ActualSize/22, 1),
-                                  ActualSize / 4 + ((ActualSize > 15) ? 1 : 0), clr);
+                                  ActualSize / 4 + (ActualSize > 15 ? 1 : 0), clr);
             }
             if (oper_type == (char)0xA0) //approx. equal (dot over equal)
             {
@@ -2245,7 +2244,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
     {
         if (Expression2)
             Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
-                                                         (Data3[0]) ? PALE_RGB(color) : color);
+                                                         Data3[0] ? PALE_RGB(color) : color);
         if (Expression1)
             Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
                                                          color);
@@ -2267,7 +2266,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
         if (Data1[0] == '/')
         {
-            DC->SelectObject(GetPenFromPool(max(ActualSize/12, 1), (IsBlue) ? 1 : 0, color));
+            DC->SelectObject(GetPenFromPool(max(ActualSize/12, 1), IsBlue ? 1 : 0, color));
             DC->MoveTo(X + E1_posX + E1_length + (E2_posX - E1_posX - E1_length) / 2 + ActualSize / 24 - Data3[0],
                        Y + Data3[1]);
             DC->LineTo(X + E1_posX + E1_length + (E2_posX - E1_posX - E1_length) / 2 - ActualSize / 24 + Data3[2],
@@ -2286,10 +2285,10 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             int len = Data3[0];
             if (!IsHighQualityRendering)
                 DC->FillSolidRect(X + ActualSize / 16, Y - (ActualSize + 0) / 26, len - ActualSize / 8,
-                                  max((ActualSize+0)/13, 1), (IsBlue) ? BLUE_COLOR : color);
+                                  max((ActualSize+0)/13, 1), IsBlue ? BLUE_COLOR : color);
             else
                 DC->FillSolidRect(X + ActualSize / 16, Y - (ActualSize + 0) / 26, len,max((ActualSize+0)/13, 1),
-                                  (IsBlue) ? BLUE_COLOR : color);
+                                  IsBlue ? BLUE_COLOR : color);
         }
         return;
     }
@@ -2307,13 +2306,13 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
     if (m_Type == 6) //function; like sin(...)
     {
-        COLORREF thecolor = (IsBlue)
+        COLORREF thecolor = IsBlue
                                 ? BLUE_COLOR
-                                : ((color == 0) && (IsHighQualityRendering == 0))
-                                ? RGB(0, (PrintRendering)?88:((ActualSize<20)?104:96), 0)
+                                : color == 0 && IsHighQualityRendering == 0
+                                ? RGB(0, PrintRendering?88:ActualSize<20?104:96, 0)
                                 : color;
         char font_params = Data2[0];
-        if (ActualSize <= 11) font_params = ((font_params & 0xE0) != 0x60) ? (char)0x80 : (char)0x60;
+        if (ActualSize <= 11) font_params = (font_params & 0xE0) != 0x60 ? (char)0x80 : (char)0x60;
 
         if (Data3[0])
         {
@@ -2333,7 +2332,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             DC->SetTextColor(thecolor);
             hfont = GetFontFromPool(font_params,max(ActualSize, 1) | 0x8000);
             DC->SelectObject(hfont);
-            if ((ShadowSelection) && (IsBlue == 1) && (ActualSize > 10) && (ActualSize < 40))
+            if (ShadowSelection && IsBlue == 1 && ActualSize > 10 && ActualSize < 40)
                 DC->TextOut(X + Data3[2] + 1, Y + ActualSize / 3 + Data3[3], Data1);
             DC->TextOut(X + Data3[2], Y + ActualSize / 3 + Data3[3], Data1);
         }
@@ -2349,18 +2348,18 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
     if (m_Type == 7) //sigma, pi, integral
     {
-        DC->SetTextColor((IsBlue) ? BLUE_COLOR : color);
-        if ((Data1[0] == 'S') || (Data1[0] == 'P'))
+        DC->SetTextColor(IsBlue ? BLUE_COLOR : color);
+        if (Data1[0] == 'S' || Data1[0] == 'P')
         {
             hfont = GetFontFromPool(3, 0, 0,max(Data3[0]*20/10, 1));
             DC->SelectObject(hfont);
             DC->TextOut(X + Data3[2], Y + Data3[0] * 20 / 30 - Data3[0] / 7, &Data1[1]);
         }
-        else if ((Data1[0] == '|') || (Data1[0] == '/')) // bar
+        else if (Data1[0] == '|' || Data1[0] == '/') // bar
         {
             if (!IsHighQualityRendering)
             {
-                DC->SelectObject(GetPenFromPool(max(Data3[3]/6+ActualSize/20, 1), (IsBlue) ? 1 : 0, color));
+                DC->SelectObject(GetPenFromPool(max(Data3[3]/6+ActualSize/20, 1), IsBlue ? 1 : 0, color));
 
                 int X1, Y1, Y2;
                 X1 = X + Data3[2]; //x_placement
@@ -2405,11 +2404,11 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 if (Data2[2] == 2) N = 2;
                 if (Data2[2] == 3) N = 3;
 
-                DC->SelectObject(GetPenFromPool(max(Data3[3]/8+ActualSize/20, 1), (IsBlue) ? 1 : 0, color));
+                DC->SelectObject(GetPenFromPool(max(Data3[3]/8+ActualSize/20, 1), IsBlue ? 1 : 0, color));
                 DC->SelectObject(GetStockObject(WHITE_BRUSH));
                 if (Data1[0] == 'O') //circular integral
                     DC->Ellipse(X + Data3[2], Y - Data3[3] / 2,
-                                X + Data3[2] + Data3[1] - ((N == 1) ? 0 : ((N == 2) ? Data3[3] / 3 : Data3[3] / 5)),
+                                X + Data3[2] + Data3[1] - (N == 1 ? 0 : N == 2 ? Data3[3] / 3 : Data3[3] / 5),
                                 Y + Data3[3] / 2);
 
                 for (n = 0; n < N; n++)
@@ -2419,8 +2418,8 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                     Y1 = Y - Data3[0];
                     Y2 = Y + Data3[0];
                     int h = (Y2 - Y1) / 4;
-                    int w = (4 * Data3[3]) / 9; // bilo /10
-                    int ww = (4 * Data3[3]) / 8;
+                    int w = 4 * Data3[3] / 9; // bilo /10
+                    int ww = 4 * Data3[3] / 8;
 
                     DC->Arc(X1 + ww, Y1, X1 + ww + 2 * w, Y1 + 2 * h, X1 + ww + 10 * w / 8, Y1 + 0, X1 + ww, Y1 + h);
                     DC->Arc(X1 + ww - 2 * w, Y2 - 2 * h, X1 + ww, Y2, X1 + ww - 10 * w / 8, Y2 - 0, X1 + ww, Y2 - h);
@@ -2479,7 +2478,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                     //int cxx=4*PenWidth/2+(N-1)*Data3[3]*2;
                     int xx = Data3[1] * 4 / 2;
                     int cxx = /*4*PenWidth/2+*/Data3[1] * 2 - PenWidth;
-                    int cc = ((N == 1) ? 0 : ((N == 2) ? Data3[3] / 3 : Data3[3] / 5)) * 2;
+                    int cc = (N == 1 ? 0 : N == 2 ? Data3[3] / 3 : Data3[3] / 5) * 2;
                     cxx -= cc;
                     xx -= cc;
                     mf->MyCircle(DC, xx - cxx, Y1 + HalfHeight - 5 * PenWidth / 2, xx + cxx,
@@ -2517,7 +2516,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             if (Expression1) h = this->E1_above + this->E1_below;
 
             int penwidth = (ActualSize + h / 24) / 5;
-            DC->SelectObject(GetPenFromPool(max(penwidth/3, 1), (IsBlue) ? 1 : 0, color));
+            DC->SelectObject(GetPenFromPool(max(penwidth/3, 1), IsBlue ? 1 : 0, color));
 
             {
                 int before = 0, after = 0, down = 0;
@@ -2537,8 +2536,8 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 DC->LineTo(X + E2_length - ActualSize / 10, Y + E2_posY + E2_below + down);
                 DC->LineTo(X + E2_length + Data3[0] / 2 - ActualSize / 20, Y + E1_posY + E1_below - ActualSize / 12);
                 int plafon = Y + E1_posY - E1_above - ActualSize / 10 + (
-                    (IsHighQualityRendering) ? ActualSize / 16 : 0);
-                DC->LineTo(X + E2_length + Data3[0] - ((IsHighQualityRendering) ? ActualSize / 32 : 0), plafon);
+                    IsHighQualityRendering ? ActualSize / 16 : 0);
+                DC->LineTo(X + E2_length + Data3[0] - (IsHighQualityRendering ? ActualSize / 32 : 0), plafon);
                 DC->LineTo(X2, plafon);
                 DC->SelectClipRgn(nullptr);
             }
@@ -2549,7 +2548,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
     if (m_Type == 9) //vertical line with condition list
     {
-        if ((Expression2 == nullptr) && (Expression3 == nullptr))
+        if (Expression2 == nullptr && Expression3 == nullptr)
         {
             //an HTML element
             if (Expression1)
@@ -2558,7 +2557,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             if (Data1[0] == 'H')
             {
                 //hyperlink
-                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), (IsBlue) ? 1 : 0,PALE_RGB(color)));
+                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0,PALE_RGB(color)));
                 int l1 = ActualSize / 3 + ActualSize / 20;
                 int off = -ActualSize / 10;
                 int offx = -ActualSize / 20;
@@ -2571,7 +2570,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 DC->LineTo(X, Y + l1);
                 DC->LineTo(X, Y);
 
-                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), (IsBlue) ? 1 : 0,RGB(255, 0, 255)));
+                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0,RGB(255, 0, 255)));
                 DC->MoveTo(X + l1 / 2, Y + l1 / 2);
                 DC->LineTo(X + l1 / 2 + l2, Y + l1 / 2 - l2);
                 DC->LineTo(X + l1 / 2 + l2, Y + l1 / 2);
@@ -2586,7 +2585,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 else tmp = ActualSize / 6;
                 int sz = max(1, ActualSize/4);
                 DC->FillSolidRect(X + E1_length - tmp, Y - E1_above + ActualSize / 6, sz, sz,
-                                  (IsBlue) ? BLUE_COLOR : RGB(255, 0, 255));
+                                  IsBlue ? BLUE_COLOR : RGB(255, 0, 255));
             }
         }
         else
@@ -2601,7 +2600,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 Expression3->PaintExpression(
                     DC, zoom, X + E3_posX, Y + E3_posY, ClipReg, color);
 
-            DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), (IsBlue) ? 1 : 0, color));
+            DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, color));
             DC->MoveTo(X + E1_length + ActualSize / 20, Y - Data3[0]);
             DC->LineTo(X + E1_length + ActualSize / 20, Y + Data3[1]);
         }
@@ -2620,7 +2619,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             Expression3->PaintExpression(DC, zoom, X + E3_posX, Y + E3_posY, ClipReg,
                                                          color);
 
-        DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), (IsBlue) ? 1 : 0, color));
+        DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, color));
 
         if (Data1[0] & 0x01)
         {
@@ -2673,8 +2672,8 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
 int CElement::ContainsBlinkingCursor() const
 {
-    if ((this->m_pPaternalExpression == KeyboardEntryObject) && (((CExpression*)this->m_pPaternalExpression)->
-        m_IsKeyboardEntry == this->GetPaternalPosition() + 1))
+    if (this->m_pPaternalExpression == KeyboardEntryObject && ((CExpression*)this->m_pPaternalExpression)->
+        m_IsKeyboardEntry == this->GetPaternalPosition() + 1)
         return 1;
     int t = 0;
     if (this->Expression1)
@@ -2691,24 +2690,24 @@ int CElement::IsDifferential(int only_nonparentheses) const
 {
     // checks if this element is a differential 
 
-    if ((m_Type == 6) && (Data1[1] == 0) && (m_VMods == 0))
+    if (m_Type == 6 && Data1[1] == 0 && m_VMods == 0)
     {
         if (this->Expression1 == 0) return 0;
 
-        if ((this->Expression1->m_ParenthesesFlags & 0x81) && (only_nonparentheses))
+        if (this->Expression1->m_ParenthesesFlags & 0x81 && only_nonparentheses)
         {
             CExpression* e = (CExpression*)this->m_pPaternalExpression;
-            if ((e) && (e->m_pPaternalElement) && (only_nonparentheses == 2) &&
-                (e->m_pPaternalElement->m_Type == 4) &&
-                (e->m_pPaternalElement->Data1[0] == 'd'))
+            if (e && e->m_pPaternalElement && only_nonparentheses == 2 &&
+                e->m_pPaternalElement->m_Type == 4 &&
+                e->m_pPaternalElement->Data1[0] == 'd')
             {
                 //this is special handling for the d/d element - we are acting as if there is no parentheses
             }
             else
                 return 0;
         }
-        if ((Data1[0] == 'd') && ((Data2[0] & 0xE0) != 0x60)) return 1;
-        if ((Data1[0] == (char)0xB6) && ((Data2[0] & 0xE0) == 0x60)) return 2;
+        if (Data1[0] == 'd' && (Data2[0] & 0xE0) != 0x60) return 1;
+        if (Data1[0] == (char)0xB6 && (Data2[0] & 0xE0) == 0x60) return 2;
     }
     return 0;
 }
@@ -2720,7 +2719,7 @@ int CElement::IsDifferential(int only_nonparentheses) const
 void CElement::Empty(char oper)
 {
     //determining wheter this is a text or math element
-    if ((m_Type == 1) && (this->m_pPaternalExpression) && (((CExpression*)m_pPaternalExpression)->m_StartAsText))
+    if (m_Type == 1 && this->m_pPaternalExpression && ((CExpression*)m_pPaternalExpression)->m_StartAsText)
         m_Text = 1;
     else
         m_Text = 0;
@@ -2851,7 +2850,7 @@ void CElement::Empty(char oper)
         }
 
         char func = 23;
-        if ((Data1[0] > 4) && (Data1[0] <= 8))
+        if (Data1[0] > 4 && Data1[0] <= 8)
         {
             func = 24;
             Data1[0] -= 4;
@@ -2866,7 +2865,7 @@ void CElement::Empty(char oper)
             Expression1->InsertEmptyElement(0, 6, func);
             Expression2->InsertEmptyElement(0, 6, func);
         }
-        if ((Data1[0] == 2) || (Data1[0] == 'd')) //  d() /dx
+        if (Data1[0] == 2 || Data1[0] == 'd') //  d() /dx
         {
             Expression1->InsertEmptyElement(0, 6, func);
             if (Expression1->m_pElementList->pElementObject)
@@ -2938,8 +2937,8 @@ void CElement::Empty(char oper)
             Expression1->m_ParentheseShape = '[';
             Expression1->m_ParenthesesFlags = 2; //automatic
             //((CExpression*)Expression1)->m_ParentheseHeightFactor=1;
-            int columns = ((oper >> 4) & 0x07);
-            int rows = (oper & 0x0F);
+            int columns = oper >> 4 & 0x07;
+            int rows = oper & 0x0F;
             Expression1->FindMatrixElement(rows, columns, 1); //this builds the matrix
             Expression1->AdjustMatrix();
         }
@@ -3051,32 +3050,32 @@ void CElement::Empty(char oper)
 
         Expression1->m_ParenthesesFlags = 2; //automatic	
         //((CExpression*)Expression1)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
-        if ((oper == 'I' - 1) || (oper == 'i' - 1) || (oper == 'O' - 1) || (oper == 'o' - 2))
+        if (oper == 'I' - 1 || oper == 'i' - 1 || oper == 'O' - 1 || oper == 'o' - 2)
         {
             //adding dx
             Data1[0] += 1;
             Expression1->InsertEmptyElement(0, 6, 23); // dx
         }
-        if ((oper == 'I' - 2) || (oper == 'i' - 2) || (oper == 'O' - 2) || (oper == 'o' - 2))
+        if (oper == 'I' - 2 || oper == 'i' - 2 || oper == 'O' - 2 || oper == 'o' - 2)
         {
             //adding parentheses and dx
             Data1[0] += 2;
             Expression1->InsertEmptyElement(0, 5, '(');
             Expression1->InsertEmptyElement(1, 6, 23);
         }
-        if ((oper == 'I' - 3) || (oper == 'i' - 3) || (oper == 'O' - 3) || (oper == 'o' - 3))
+        if (oper == 'I' - 3 || oper == 'i' - 3 || oper == 'O' - 3 || oper == 'o' - 3)
         {
             //double integral
             Data1[0] += 3;
             Data2[2] = 2;
         }
-        if ((oper == 'I' - 4) || (oper == 'i' - 4) || (oper == 'O' - 4) || (oper == 'o' - 4))
+        if (oper == 'I' - 4 || oper == 'i' - 4 || oper == 'O' - 4 || oper == 'o' - 4)
         {
             //triple integral
             Data1[0] += 4;
             Data2[2] = 3;
         }
-        if ((oper == '|') || (oper == '/') || (oper < 'a')) //lowercase letters represent non-determined integrals
+        if (oper == '|' || oper == '/' || oper < 'a') //lowercase letters represent non-determined integrals
         {
             Expression2 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(2));
             //((CExpression*)Expression2)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
@@ -3108,7 +3107,7 @@ void CElement::Empty(char oper)
     if (m_Type == 9) //vertical line with condition list
     {
         Data1[0] = oper;
-        if ((oper == 'H') || (oper == 'L'))
+        if (oper == 'H' || oper == 'L')
         {
             //an HTML element
             Expression1 = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSizeForType(1));
@@ -3155,7 +3154,7 @@ void CElement::Empty(char oper)
         //((CExpression*)Expression3)->m_ParentheseHeightFactor=1;//DefaultParentheseType;
         Expression3->m_Alignment = 1;
     }
-    if ((m_Type == 11) || (m_Type == 12))
+    if (m_Type == 11 || m_Type == 12)
     {
         memset(Data1, 32, 20);
         Data1[21] = '?'; //marks that data is uninitialized
@@ -3188,19 +3187,19 @@ void CElement::CopyElement(const CElement* Element)
     {
         CExpression* oexp;
         CExpression* exp;
-        if (i == 0) { oexp = (CExpression*)(Element->Expression1); }
-        else if (i == 1) { oexp = (CExpression*)(Element->Expression2); }
-        else if (i == 2) { oexp = (CExpression*)(Element->Expression3); }
+        if (i == 0) { oexp = (CExpression*)Element->Expression1; }
+        else if (i == 1) { oexp = (CExpression*)Element->Expression2; }
+        else if (i == 2) { oexp = (CExpression*)Element->Expression3; }
         if (oexp)
         {
             //calculate font size for subexpression - font must be proportional between subexpression and paternal expression
             int FontSize = macroFontSizeForType(i);
-            if ((Element->m_pPaternalExpression) && (FontSize) && (oexp->m_FontSize))
+            if (Element->m_pPaternalExpression && FontSize && oexp->m_FontSize)
             {
-                int NewFontSize = ((CExpression*)(m_pPaternalExpression))->m_FontSize *
-                    (oexp->m_FontSize) /
-                    ((CExpression*)(Element->m_pPaternalExpression))->m_FontSize;
-                if ((abs(NewFontSize - FontSize) * 100 / FontSize) > 2)
+                int NewFontSize = ((CExpression*)m_pPaternalExpression)->m_FontSize *
+                    oexp->m_FontSize /
+                    ((CExpression*)Element->m_pPaternalExpression)->m_FontSize;
+                if (abs(NewFontSize - FontSize) * 100 / FontSize > 2)
                     FontSize = NewFontSize;
             }
             exp = new CExpression(this, (CExpression*)m_pPaternalExpression, FontSize);
@@ -3210,8 +3209,8 @@ void CElement::CopyElement(const CElement* Element)
             else if (i == 2) Expression3 = exp;
         }
     }
-    if ((m_Type == 9) && (Expression2 == nullptr) && (Expression3 == nullptr) && (Data1[0] == 'H') && (*(char**)Element->
-        Data3))
+    if (m_Type == 9 && Expression2 == nullptr && Expression3 == nullptr && Data1[0] == 'H' && *(char**)Element->
+        Data3)
     {
         //copy hyperlinks
         try
@@ -3271,9 +3270,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                                  short paternal_position)
 {
     //special handling for the HTML link element (we will select the whole element so it can be clicked on it)
-    if ((this->m_Type == 9) && (this->Data1[0] == 'H') && (Expression2 == nullptr) && (Expression3 == nullptr) && (
-            Expression1) &&
-        (Expression1->m_pElementList->Type))
+    if (this->m_Type == 9 && this->Data1[0] == 'H' && Expression2 == nullptr && Expression3 == nullptr && Expression1 &&
+        Expression1->m_pElementList->Type)
     {
         *IsExpression = 0;
         if (Expression1) Expression1->SelectExpression(1);
@@ -3285,8 +3283,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
     {
         int extends = 0;
         int extends2 = 0;
-        if ((this->m_Type == 4) || (this->m_Type == 7) || (this->m_Type == 6) || (this->m_Type == 10) || (this->m_Type
-            == 8) || (this->m_Type == 5))
+        if (this->m_Type == 4 || this->m_Type == 7 || this->m_Type == 6 || this->m_Type == 10 || this->m_Type
+            == 8 || this->m_Type == 5)
             extends = 5 * Expression2->m_MarginX / 2;
         if (this->m_Type == 3)
         {
@@ -3295,8 +3293,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
         }
         int ttt = 0;
         if (IsHighQualityRendering) ttt = Expression2->GetActualFontSize(zoom) / 12;
-        if ((X >= E2_posX - ttt - extends) && (X <= E2_posX + E2_length + ttt + extends) &&
-            (Y > E2_posY - E2_above) && (Y < E2_posY + E2_below - extends2))
+        if (X >= E2_posX - ttt - extends && X <= E2_posX + E2_length + ttt + extends &&
+            Y > E2_posY - E2_above && Y < E2_posY + E2_below - extends2)
         {
             CObject* obj;
 
@@ -3308,15 +3306,15 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
     if (Expression3)
     {
         int extends = 0;
-        if ((this->m_Type == 4) || (this->m_Type == 7) || (this->m_Type == 6) || (this->m_Type == 3) || (this->m_Type ==
-            10) || (this->m_Type == 8) || (this->m_Type == 5))
+        if (this->m_Type == 4 || this->m_Type == 7 || this->m_Type == 6 || this->m_Type == 3 || this->m_Type ==
+            10 || this->m_Type == 8 || this->m_Type == 5)
             extends = 5 * Expression3->m_MarginX / 2;
 
         int ttt = 0;
         if (IsHighQualityRendering) ttt = Expression3->GetActualFontSize(zoom) / 12;
 
-        if ((X >= E3_posX - ttt - extends) && (X <= E3_posX + E3_length + ttt + extends) &&
-            (Y > E3_posY - E3_above) && (Y < E3_posY + E3_below))
+        if (X >= E3_posX - ttt - extends && X <= E3_posX + E3_length + ttt + extends &&
+            Y > E3_posY - E3_above && Y < E3_posY + E3_below)
         {
             CObject* obj;
             obj = Expression3->SelectObjectAtPoint(DC, zoom, X - E3_posX, Y - E3_posY, IsExpression,
@@ -3332,8 +3330,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
         {
             int as = Expression1->GetActualFontSize(zoom);
             if (m_Type == 4) ttt = ttt2 = as / 8;
-            if ((m_Type == 10) || (m_Type == 1)) ttt = ttt2 = as / 12;
-            if ((m_Type == 6) || (m_Type == 8)) ttt = as / 12;
+            if (m_Type == 10 || m_Type == 1) ttt = ttt2 = as / 12;
+            if (m_Type == 6 || m_Type == 8) ttt = as / 12;
             if (m_Type == 7)
             {
                 if (Data1[0] == '/') ttt2 = as / 12;
@@ -3344,15 +3342,15 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
         }
         int extends = 0;
         int extends2 = 0;
-        if ((this->m_Type == 4) || (this->m_Type == 10)) extends = 5 * Expression1->m_MarginX / 2;
+        if (this->m_Type == 4 || this->m_Type == 10) extends = 5 * Expression1->m_MarginX / 2;
         if (this->m_Type == 1)
         {
             extends2 = Expression1->m_MarginX;
             extends = Expression1->m_MarginX;
         }
 
-        if ((X >= E1_posX - ttt - extends) && (X <= E1_posX + E1_length + ttt2 + extends) &&
-            (Y > E1_posY - E1_above + extends2) && (Y < E1_posY + E1_below))
+        if (X >= E1_posX - ttt - extends && X <= E1_posX + E1_length + ttt2 + extends &&
+            Y > E1_posY - E1_above + extends2 && Y < E1_posY + E1_below)
         {
             CObject* obj;
             obj = Expression1->SelectObjectAtPoint(DC, zoom, X - E1_posX, Y - E1_posY, IsExpression,
@@ -3366,16 +3364,16 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
     *IsParenthese = 0;
 
     //babaluj
-    if ((this->m_Type == 1) && (this->m_Text) && (strlen(this->Data1) >= 1))
+    if (this->m_Type == 1 && this->m_Text && strlen(this->Data1) >= 1)
     {
         int ok = 0;
         if (TouchMouseMode == 0) ok = 1;
-        if ((((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint) && (TouchMouseMode == 1)) ok = 1;
+        if (((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint && TouchMouseMode == 1) ok = 1;
         ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint = 0;
         if (ClipboardExpression == nullptr)
-            if ((((GetKeyState(VK_SHIFT) & 0xFFFE) == 0) && (ok)) || (DisableMultitouch))
+            if (((GetKeyState(VK_SHIFT) & 0xFFFE) == 0 && ok) || DisableMultitouch)
             {
-                if ((X <= Data3[1] / 2) && (this->m_Text != 2))
+                if (X <= Data3[1] / 2 && this->m_Text != 2)
                 {
                     ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint = 1;
                     return (CObject*)this;
@@ -3383,7 +3381,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                 int i = 1;
                 while (Data1[i])
                 {
-                    if ((X >= ((Data3[i - 1] + Data3[i]) / 2)) && (X < ((Data3[i + 1] + Data3[i]) / 2)))
+                    if (X >= (Data3[i - 1] + Data3[i]) / 2 && X < (Data3[i + 1] + Data3[i]) / 2)
                     {
                         ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint = Data3[i];
                         return (CObject*)this;
@@ -3393,19 +3391,19 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                 if (this->m_Text != 4)
                     ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint = Data3[i];
                 else
-                    ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint = (i > 1) ? Data3[i - 1] : 1;
+                    ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint = i > 1 ? Data3[i - 1] : 1;
                 return (CObject*)this;
             }
     }
 
-    if ((GetKeyState(VK_MENU) & 0xFFFE)) return nullptr;
+    if (GetKeyState(VK_MENU) & 0xFFFE) return nullptr;
 
 
     SelectedTab = nullptr;
 
     if ((GetKeyState(16) & 0xFFFE) == 0) //shift not pressed
         if (TouchMouseMode == 0)
-            if ((m_Type == 2) && (Data1[0] == 9) && (Data1[3] != 1))
+            if (m_Type == 2 && Data1[0] == 9 && Data1[3] != 1)
             {
                 int len = Data3[0] * 2 + Data3[1] / 16;
                 int c2 = (Data3[1] + 28) / 16;
@@ -3428,8 +3426,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
     //pointing at the right half of some operators can select multiple elements
     if ((GetKeyState(16) & 0xFFFE) == 0) //shift not pressed
         if (TouchMouseMode == 0)
-            if ((m_Type == 2) && (X > (((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position)->
-                Length / 2))
+            if (m_Type == 2 && X > (((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position)->
+                Length / 2)
             {
                 char ch = Data1[0];
 
@@ -3437,40 +3435,40 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                 if (GetOperatorLevel(ch) == PlusLevel)
                 {
                     //select all elements until another operator
-                    (((CExpression*)(m_pPaternalExpression))->m_pElementList + paternal_position)->IsSelected = 1;
-                    for (int jj = paternal_position + 1; jj < ((CExpression*)(m_pPaternalExpression))->m_NumElements; jj
+                    (((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position)->IsSelected = 1;
+                    for (int jj = paternal_position + 1; jj < ((CExpression*)m_pPaternalExpression)->m_NumElements; jj
                          ++)
                     {
-                        tElementStruct* ts = ((CExpression*)(m_pPaternalExpression))->m_pElementList + jj;
-                        if ((ts->Type == 1) && (ts->pElementObject->m_Text)) break;
-                        if ((ts->Type == 2) && (GetOperatorLevel(ts->pElementObject->Data1[0]) <= PlusLevel)) break;
-                        if ((ts->Type == 11) || (ts->Type == 12) || (ts->Type == 9) || (ts->Type == 10)) break;
+                        tElementStruct* ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + jj;
+                        if (ts->Type == 1 && ts->pElementObject->m_Text) break;
+                        if (ts->Type == 2 && GetOperatorLevel(ts->pElementObject->Data1[0]) <= PlusLevel) break;
+                        if (ts->Type == 11 || ts->Type == 12 || ts->Type == 9 || ts->Type == 10) break;
                         if (ts->Type == 0) break;
-                        ((CExpression*)(m_pPaternalExpression))->SelectElement(1, jj);
+                        ((CExpression*)m_pPaternalExpression)->SelectElement(1, jj);
                     }
                     return this->m_pPaternalExpression;
                 }
 
                 //check if it is pointing =,<,>,<<,>>,<=,>=,...
-                if ((GetOperatorLevel(ch) == EqLevel) ||
-                    (ch == (char)0xBA) || (ch == (char)0x40) || (ch == (char)0xB5) || (ch == (char)0x7E))
+                if (GetOperatorLevel(ch) == EqLevel ||
+                    ch == (char)0xBA || ch == (char)0x40 || ch == (char)0xB5 || ch == (char)0x7E)
                 {
                     //select all elements until '=' operator
-                    (((CExpression*)(m_pPaternalExpression))->m_pElementList + paternal_position)->IsSelected = 1;
-                    for (int jj = paternal_position + 1; jj < ((CExpression*)(m_pPaternalExpression))->m_NumElements; jj
+                    (((CExpression*)m_pPaternalExpression)->m_pElementList + paternal_position)->IsSelected = 1;
+                    for (int jj = paternal_position + 1; jj < ((CExpression*)m_pPaternalExpression)->m_NumElements; jj
                          ++)
                     {
-                        tElementStruct* ts = ((CExpression*)(m_pPaternalExpression))->m_pElementList + jj;
-                        if ((ts->Type == 1) && (ts->pElementObject->m_Text)) break;
-                        if ((ts->Type == 2) && (ts->pElementObject))
+                        tElementStruct* ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + jj;
+                        if (ts->Type == 1 && ts->pElementObject->m_Text) break;
+                        if (ts->Type == 2 && ts->pElementObject)
                         {
                             char ch = ts->pElementObject->Data1[0];
-                            if ((GetOperatorLevel(ch) <= EqLevel) ||
-                                (ch == (char)0xBA) || (ch == 0x7E) || (ch == 0x40) || (ch == (char)0xB5))
+                            if (GetOperatorLevel(ch) <= EqLevel ||
+                                ch == (char)0xBA || ch == 0x7E || ch == 0x40 || ch == (char)0xB5)
                                 break;
                         }
-                        if ((ts->Type == 11) || (ts->Type == 12) || (ts->Type == 9) || (ts->Type == 10)) break;
-                        ((CExpression*)(m_pPaternalExpression))->SelectElement(1, jj);
+                        if (ts->Type == 11 || ts->Type == 12 || ts->Type == 9 || ts->Type == 10) break;
+                        ((CExpression*)m_pPaternalExpression)->SelectElement(1, jj);
                     }
                     return this->m_pPaternalExpression;
                 }
@@ -3512,7 +3510,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
     }
     len += num_tabs;
 
-    if ((XMLFileVersion == 1) || (m_Type >= 7))
+    if (XMLFileVersion == 1 || m_Type >= 7)
     {
         sprintf_s(tmpstr, "<elm tp=\"%d\" ", m_Type);
         tmp = (int)strlen(tmpstr);
@@ -3567,10 +3565,10 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
     //addidng decoration description (encircled, strikeout, underlined, overlined...)
     if (m_pPaternalExpression)
     {
-        for (i = 0; i < ((CExpression*)(m_pPaternalExpression))->m_NumElements; i++)
+        for (i = 0; i < ((CExpression*)m_pPaternalExpression)->m_NumElements; i++)
         {
             d_cnt = i;
-            tElementStruct* ts = ((CExpression*)(m_pPaternalExpression))->m_pElementList + i;
+            tElementStruct* ts = ((CExpression*)m_pPaternalExpression)->m_pElementList + i;
             if (ts->pElementObject == this)
             {
                 if (ts->Decoration)
@@ -3590,8 +3588,8 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
     }
 
     tmpstr[0] = 0;
-    if ((m_Type == 1) || //variable
-        (m_Type == 6)) //function
+    if (m_Type == 1 || //variable
+        m_Type == 6) //function
     {
         short j;
         if (XMLFileVersion == 1)
@@ -3607,7 +3605,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         tmp = (short)strlen(Data1);
         for (i = 0; i < tmp; i++)
         {
-            if ((Data1[i] < ' ') || (Data1[i] > 0x7E) || (Data1[i] == '\\') || (Data1[i] == '"'))
+            if (Data1[i] < ' ' || Data1[i] > 0x7E || Data1[i] == '\\' || Data1[i] == '"')
             {
                 char ppp[4];
                 sprintf_s(ppp, "\\%02X", (unsigned char)Data1[i]);
@@ -3650,11 +3648,11 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         {
             char ppp[4];
             unsigned char dd = (unsigned char)Data2[i];
-            if (XMLFileVersion == 1) dd = (dd & 0xE3) | (m_VMods & 0x1C);
+            if (XMLFileVersion == 1) dd = dd & 0xE3 | m_VMods & 0x1C;
             sprintf_s(ppp, "%02X", dd);
             tmpstr[j++] = ppp[0];
             tmpstr[j++] = ppp[1];
-            if ((m_Type == 6) || (all_chars_same_font)) break;
+            if (m_Type == 6 || all_chars_same_font) break;
         }
         memcpy(tmpstr + j, "\"\0", 2);
 
@@ -3672,7 +3670,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 
         if (m_Type == 1)
         {
-            if ((Data1[14] == 0) && ((Data1[15] & 0x7F) == 126))
+            if (Data1[14] == 0 && (Data1[15] & 0x7F) == 126)
             {
                 //adding the floating point value data (for numbers)
                 strcat_s(tmpstr, " float=\"");
@@ -3698,8 +3696,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 
     if (m_Type == 2) //operator
     {
-        if ((Data1[0] < ' ') || (Data1[0] > 0x7E) || (Data1[0] == '\\') || (Data1[0] == '\'') || (Data1[0] == '\"') || (
-            Data1[0] == '<') || (Data1[0] == '>'))
+        if (Data1[0] < ' ' || Data1[0] > 0x7E || Data1[0] == '\\' || Data1[0] == '\'' || Data1[0] == '\"' || Data1[0] == '<' || Data1[0] == '>')
         {
             if (XMLFileVersion == 1) sprintf_s(tmpstr, "stp=\"\\%02X\"", (unsigned char)Data1[0]);
             else sprintf_s(tmpstr, "s=\"\\%02X\"", (unsigned char)Data1[0]);
@@ -3709,7 +3706,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             if (XMLFileVersion == 1) sprintf_s(tmpstr, "stp=\"%c\"", Data1[0]);
             else sprintf_s(tmpstr, "s=\"%c\"", Data1[0]);
         }
-        if ((Data1[0] == 9) && (Data1[3] != 0))
+        if (Data1[0] == 9 && Data1[3] != 0)
         {
             char tmps[32];
             sprintf_s(tmps, " tablen=\"%d\"", Data1[3]);
@@ -3761,7 +3758,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         strcat_s(tmpstr, "\"");
 
         if (Data2[1] != 1) Data2[1] = 0;
-        if ((XMLFileVersion == 1) || (Data2[1]))
+        if (XMLFileVersion == 1 || Data2[1])
         {
             strcat_s(tmpstr, " limits_aside=\"");
             itoa(Data2[1], h, 10);
@@ -3769,10 +3766,10 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             strcat_s(tmpstr, "\"");
         }
 
-        if ((Data1[0] == 'I') || (Data1[0] == 'O'))
+        if (Data1[0] == 'I' || Data1[0] == 'O')
         {
-            if ((Data2[2] != 2) && (Data2[2] != 3)) Data2[2] = 1;
-            if ((XMLFileVersion == 1) || (Data2[2] != 1))
+            if (Data2[2] != 2 && Data2[2] != 3) Data2[2] = 1;
+            if (XMLFileVersion == 1 || Data2[2] != 1)
             {
                 strcat_s(tmpstr, " dimension=\"");
                 itoa(Data2[2], h, 10);
@@ -3795,11 +3792,11 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         if (Expression1) *E1 = "";
         if (Expression2) *E2 = "h";
         if (Expression3) *E3 = "l";
-        if ((Expression3 == 0) && (Expression2 == 0) && (Data1[0] == 'L'))
+        if (Expression3 == 0 && Expression2 == 0 && Data1[0] == 'L')
             strcat_s(tmpstr, "label=\"1\"");
-        if ((Expression3 == 0) && (Expression2 == 0) && (Data1[0] == 'H'))
+        if (Expression3 == 0 && Expression2 == 0 && Data1[0] == 'H')
         {
-            if ((*(char**)this->Data3) == nullptr)
+            if (*(char**)this->Data3 == nullptr)
                 strcat_s(tmpstr, " URL=\"\"");
             else
             {
@@ -3808,7 +3805,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
                 strcat_s(tmpstr, " URL=\"");
                 int j = (int)strlen(tmpstr);
                 for (int i = 0; i < tmp; i++)
-                    if ((url[i] < ' ') || (url[i] > 0x7E) || (url[i] == '\\') || (url[i] == '"'))
+                    if (url[i] < ' ' || url[i] > 0x7E || url[i] == '\\' || url[i] == '"')
                     {
                         char ppp[4];
                         sprintf_s(ppp, "\\%02X", (unsigned char)url[i]);
@@ -3831,7 +3828,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         else strcat_s(tmpstr, "left_bar=\"0\"");
         if (Data1[0] & 0x02) strcat_s(tmpstr, " right_bar=\"1\"");
         else strcat_s(tmpstr, " right_bar=\"0\"");
-        if ((Data2[0] < 0) || (Data2[0] > 2)) Data2[0] = 0;
+        if (Data2[0] < 0 || Data2[0] > 2) Data2[0] = 0;
         strcat_s(tmpstr, " align=\"");
         char tmp[10];
         itoa(Data2[0], tmp, 10);
@@ -3885,7 +3882,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         }
     }
 
-    if ((Expression1 == nullptr) && (Expression2 == nullptr) && (Expression3 == nullptr))
+    if (Expression1 == nullptr && Expression2 == nullptr && Expression3 == nullptr)
         strcat_s(tmpstr, " />\r\n");
     else
         strcat_s(tmpstr, ">\r\n");
@@ -3916,13 +3913,13 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         if (!only_calculate) output += tmp;
     }
 
-    if ((Expression1 != nullptr) || (Expression2 != nullptr) || (Expression3 != nullptr))
+    if (Expression1 != nullptr || Expression2 != nullptr || Expression3 != nullptr)
     {
         if (!only_calculate)
         {
             memset(output, 9, num_tabs);
             output += num_tabs;
-            if ((XMLFileVersion == 1) || (m_Type >= 7))
+            if (XMLFileVersion == 1 || m_Type >= 7)
             {
                 strcpy(output, "</elm>\r\n");
                 output += 8;
@@ -3967,19 +3964,19 @@ char* CElement::XML_input(char* file, void* element_struct)
         file = mf->XML_read_attribute(attribute, value, file, 299);
         if (file == nullptr) return nullptr;
         if (strcmp(attribute, "color") == 0) m_Color = atoi(value);
-        if ((strcmp(attribute, "decor") == 0) && (element_struct))
+        if (strcmp(attribute, "decor") == 0 && element_struct)
         {
             tElementStruct* ts = (tElementStruct*)element_struct;
             ts->Decoration = atoi(value);
         }
-        if ((strcmp(attribute, "Exp1") == 0) || (strcmp(attribute, "E1") == 0)) hasE1 = 1;
-        if ((strcmp(attribute, "Exp2") == 0) || (strcmp(attribute, "E2") == 0)) hasE2 = 1;
-        if ((strcmp(attribute, "Exp3") == 0) || (strcmp(attribute, "E3") == 0)) hasE3 = 1;
+        if (strcmp(attribute, "Exp1") == 0 || strcmp(attribute, "E1") == 0) hasE1 = 1;
+        if (strcmp(attribute, "Exp2") == 0 || strcmp(attribute, "E2") == 0) hasE2 = 1;
+        if (strcmp(attribute, "Exp3") == 0 || strcmp(attribute, "E3") == 0) hasE3 = 1;
 
-        if ((m_Type == 1) || //variable
-            (m_Type == 6)) //function
+        if (m_Type == 1 || //variable
+            m_Type == 6) //function
         {
-            if ((strcmp(attribute, "tx") == 0) || (strcmp(attribute, "t") == 0))
+            if (strcmp(attribute, "tx") == 0 || strcmp(attribute, "t") == 0)
             {
                 int i = 0;
                 int j = 0;
@@ -4004,7 +4001,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 m_VMods = (unsigned char)tt;
             }
 
-            if ((strcmp(attribute, "fnt") == 0) || (strcmp(attribute, "f") == 0))
+            if (strcmp(attribute, "fnt") == 0 || strcmp(attribute, "f") == 0)
             {
                 int i = 0;
                 int j = 0;
@@ -4019,7 +4016,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                     Data2[j] = (char)tt;
                     if (j >= 23) break;
                     if (j == 0) memset(Data2 + 1, *Data2, 24 - 1);
-                    if ((XMLFileVersion == 1) && (j == 0)) m_VMods = tt & 0x1C;
+                    if (XMLFileVersion == 1 && j == 0) m_VMods = tt & 0x1C;
                     Data2[j] &= 0xE3;
                     j++;
                     i += 2;
@@ -4064,12 +4061,12 @@ char* CElement::XML_input(char* file, void* element_struct)
         }
         if (m_Type == 2) //operator
         {
-            if ((strcmp(attribute, "stp") == 0) || (strcmp(attribute, "s") == 0))
+            if (strcmp(attribute, "stp") == 0 || strcmp(attribute, "s") == 0)
             {
                 Data1[0] = value[0];
                 if (Data1[0] == 9) Data1[3] = 0;
             }
-            if ((strcmp(attribute, "tablen") == 0) && (Data1[0] == 9))
+            if (strcmp(attribute, "tablen") == 0 && Data1[0] == 9)
                 Data1[3] = atoi(value);
         }
 
@@ -4091,7 +4088,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 if (toupper(value[0]) == 'C') Data1[0] = 'O';
                 Data2[2] = 1; //default value
             }
-            if ((strcmp(attribute, "symbol_height") == 0) || (strcmp(attribute, "sze") == 0))
+            if (strcmp(attribute, "symbol_height") == 0 || strcmp(attribute, "sze") == 0)
             {
                 Data2[0] = atoi(value);
             }
@@ -4195,7 +4192,7 @@ int CElement::CalcChecksum() const
         int i = 1;
         while (Data1[i])
         {
-            c += (Data1[i] + Data2[i]) ^ i;
+            c += Data1[i] + Data2[i] ^ i;
             i++;
             if (i > 23) return c;
         }
@@ -4217,7 +4214,7 @@ int CElement::CalcChecksum() const
         c += Data2[1] * 16 + Data2[2] * 32;
         return c;
     }
-    else if ((m_Type == 11) || (m_Type == 12))
+    else if (m_Type == 11 || m_Type == 12)
     {
         c += 4 * Data1[1] + 8 * Data1[2] + 16 * Data1[3] + Data1[10];
     }
@@ -4238,7 +4235,7 @@ int MakeOutput(char** output, char* tabs, char only_calculate, const char* text1
     if (!only_calculate)
     {
         strcpy(*output, tmpstr);
-        (*output) += tt;
+        *output += tt;
     }
     return tt;
 }
@@ -4259,7 +4256,7 @@ int MakeExpressionOutput(char** output, char** tabs, int num_tabs, char only_cal
         //tt=((CExpression*)(expression))->MathML_output(*output,num_tabs+1,only_calculate,output_type);
         //memset(*tabs,9,num_tabs);*(*tabs+num_tabs)=0; //generating the tablist string
     }
-    if (!only_calculate) (*output) += tt;
+    if (!only_calculate) *output += tt;
     return tt;
 }
 
@@ -4680,14 +4677,14 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
     memset(tabs,9,num_tabs);tabs[num_tabs]=0; //generating the tablist string
     */
 
-    if ((m_Type == 1) || (m_Type == 6)) //variable or function
+    if (m_Type == 1 || m_Type == 6) //variable or function
     {
         int is_squared_function = 0;
         if (m_Type == 6)
         {
             CExpression* p = (CExpression*)this->m_pPaternalExpression;
-            if ((p->m_pPaternalElement) && (p->m_pPaternalElement->m_Type == 3) &&
-                (p == p->m_pPaternalElement->Expression1) && (p->m_NumElements == 1))
+            if (p->m_pPaternalElement && p->m_pPaternalElement->m_Type == 3 &&
+                p == p->m_pPaternalElement->Expression1 && p->m_NumElements == 1)
                 is_squared_function = 1;
         }
         if (m_VMods) //decorations (hat, dash, arrow, dot...)
@@ -4712,8 +4709,8 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
         }
         char fnt = Data2[0] & 0xE0;
 
-        if ((Data2[0] != (char)0xE3) && (fnt != 0x60))
-            if (((Data2[0] & 0x03) == 1) || ((Data2[0] & 0x03) == 3)) //bold or bold-italic
+        if (Data2[0] != (char)0xE3 && fnt != 0x60)
+            if ((Data2[0] & 0x03) == 1 || (Data2[0] & 0x03) == 3) //bold or bold-italic
                 OUTPUT("\\mathbf{");
 
         int function_def = 0;
@@ -4757,7 +4754,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
                 OUTPUT("\\min ");
             else if (strcmp(Data1, "max") == 0)
                 OUTPUT("\\max ");
-            else if ((Data1[0] == (char)0xB6) && (fnt == 0x60))
+            else if (Data1[0] == (char)0xB6 && fnt == 0x60)
                 OUTPUT("\\partial ");
             else
             {
@@ -4801,7 +4798,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
                         ii++;
                         continue;
                     }
-                    if (((c >= '0') && (c <= '9')) || (c == '.'))
+                    if ((c >= '0' && c <= '9') || c == '.')
                     {
                         char bf[8];
                         bf[0] = c;
@@ -4812,7 +4809,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
                     }
                     char lower = 1;
                     if ((c & 0x80) == 0)
-                        if ((c <= 'Z') && (c >= 'A'))
+                        if (c <= 'Z' && c >= 'A')
                         {
                             c += 32;
                             lower = 0;
@@ -4882,25 +4879,25 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
                 if (fnt != 0x60)
                     OUTPUT("} ");
                 if (this->Expression1)
-                    if ((this->Expression2 == nullptr) &&
-                        (this->Expression1->m_pElementList->Type == 1) &&
-                        (this->Expression1->m_DrawParentheses == 0) &&
-                        (!is_squared_function))
+                    if (this->Expression2 == nullptr &&
+                        this->Expression1->m_pElementList->Type == 1 &&
+                        this->Expression1->m_DrawParentheses == 0 &&
+                        !is_squared_function)
                         OUTPUT("\\, ");
             }
         }
 
-        if ((Data2[0] != (char)0xE3) && (fnt != 0x60))
-            if (((Data2[0] & 0x03) == 1) || ((Data2[0] & 0x03) == 3))
+        if (Data2[0] != (char)0xE3 && fnt != 0x60)
+            if ((Data2[0] & 0x03) == 1 || (Data2[0] & 0x03) == 3)
                 OUTPUT("}");
 
         if (m_VMods)
             OUTPUT("}"); //close if there was some decorations
 
-        if (((Expression1) && (m_Type == 1)) || ((Expression2) && (m_Type == 6)))
+        if ((Expression1 && m_Type == 1) || (Expression2 && m_Type == 6))
         {
             OUTPUT("_{");
-            OUTPUT_EXPRESSION((m_Type==1)?Expression1:Expression2);
+            OUTPUT_EXPRESSION(m_Type==1?Expression1:Expression2);
             OUTPUT("}");
         }
 
@@ -4910,7 +4907,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
             {
                 //this is form of: func^2(x)
                 OUTPUT("^{");
-                OUTPUT_EXPRESSION(((CExpression*)(this->m_pPaternalExpression))->m_pPaternalElement->Expression2);
+                OUTPUT_EXPRESSION(((CExpression*)this->m_pPaternalExpression)->m_pPaternalElement->Expression2);
                 OUTPUT("} ");
             }
             OUTPUT_EXPRESSION(Expression1);
@@ -5003,7 +5000,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
     if (m_Type == 3) //exponent (power) or
     {
         CExpression* p = this->Expression1;
-        if ((p->m_pElementList->Type == 6) && (p->m_NumElements == 1))
+        if (p->m_pElementList->Type == 6 && p->m_NumElements == 1)
         {
             //this is form of: func^2(x)
             OUTPUT_EXPRESSION(Expression1);
@@ -5057,18 +5054,18 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
         if (Data1[0] == 'P')
             OUTPUT("\\prod ");
         if (Data1[0] == 'I')
-            OUTPUT((Data2[2]==3)?"\\iiint ":(Data2[2]==2)?"\\iint ":"\\int ");
+            OUTPUT(Data2[2]==3?"\\iiint ":Data2[2]==2?"\\iint ":"\\int ");
         if (Data1[0] == 'O')
-            OUTPUT((Data2[2]==2)?"\\oiint ":"\\oint ");
+            OUTPUT(Data2[2]==2?"\\oiint ":"\\oint ");
         if (Data1[0] == '|')
             OUTPUT("\\mid "); //????? vertical line????
-        if ((Expression3) && (Expression3->m_pElementList->Type))
+        if (Expression3 && Expression3->m_pElementList->Type)
         {
             OUTPUT("_{");
             OUTPUT_EXPRESSION(Expression3);
             OUTPUT("}");
         }
-        if ((Expression2) && (Expression2->m_pElementList->Type))
+        if (Expression2 && Expression2->m_pElementList->Type)
         {
             OUTPUT("^{");
             OUTPUT_EXPRESSION(Expression2);
@@ -5084,7 +5081,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
     if (m_Type == 8) //root
     {
         CExpression* e = Expression2;
-        if ((e) && (e->m_NumElements) && (e->m_pElementList->Type))
+        if (e && e->m_NumElements && e->m_pElementList->Type)
         {
             OUTPUT("\\sqrt[");
             OUTPUT_EXPRESSION(Expression2);
@@ -5139,7 +5136,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
 //check if the given element is actually measurement unit (or its exponent)
 int CElement::IsMeasurementUnit() const
 {
-    if (m_Type == 1) return (m_VMods == 0x10) ? 1 : 0;
+    if (m_Type == 1) return m_VMods == 0x10 ? 1 : 0;
     if (m_Type == 3)
     {
         CExpression* base = Expression1;
@@ -5149,7 +5146,7 @@ int CElement::IsMeasurementUnit() const
         tElementStruct* ts = base->m_pElementList;
         for (int i = 0; i < base->m_NumElements; i++, ts++)
         {
-            if ((ts->pElementObject) && (ts->pElementObject->IsMeasurementUnit())) continue;
+            if (ts->pElementObject && ts->pElementObject->IsMeasurementUnit()) continue;
             only_units = 0;
             break;
         }
@@ -5159,19 +5156,19 @@ int CElement::IsMeasurementUnit() const
             if (exp->m_NumElements == 2)
             {
                 if (exp->m_pElementList->Type != 2) only_units = 0;
-                else if ((exp->m_pElementList->pElementObject->Data1[0] != '+') && (exp->m_pElementList->pElementObject
-                    ->Data1[0] != '-'))
+                else if (exp->m_pElementList->pElementObject->Data1[0] != '+' && exp->m_pElementList->pElementObject
+                    ->Data1[0] != '-')
                     only_units = 0;
                 if ((exp->m_pElementList + 1)->Type != 1) only_units = 0;
-                else if (((exp->m_pElementList + 1)->pElementObject->Data1[0] < '0') || ((exp->m_pElementList + 1)->
-                    pElementObject->Data1[0] > '9'))
+                else if ((exp->m_pElementList + 1)->pElementObject->Data1[0] < '0' || (exp->m_pElementList + 1)->
+                    pElementObject->Data1[0] > '9')
                     only_units = 0;
             }
             if (exp->m_NumElements == 1)
             {
-                if ((exp->m_pElementList)->Type != 1) only_units = 0;
-                else if (((exp->m_pElementList)->pElementObject->Data1[0] < '0') || ((exp->m_pElementList)->
-                    pElementObject->Data1[0] > '9'))
+                if (exp->m_pElementList->Type != 1) only_units = 0;
+                else if (exp->m_pElementList->pElementObject->Data1[0] < '0' || exp->m_pElementList->
+                    pElementObject->Data1[0] > '9')
                     only_units = 0;
             }
         }

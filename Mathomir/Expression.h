@@ -189,7 +189,7 @@ public:
     int PaintParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth, char Type,
                          short data, char IsBlue, int color = 0);
     int PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth,
-                                   char Type, short data, char IsBlue, int color = 0);
+                                   char Type, short data, char IsBlue, int color = 0) const;
 
     int KeyboardStop(void);
     int XML_output(char* output, int num_tabs, bool only_calculate);

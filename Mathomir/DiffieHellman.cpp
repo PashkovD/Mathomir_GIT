@@ -33,19 +33,19 @@ CDiffieHellman::~CDiffieHellman()
 int64_t CDiffieHellman::XpowYmodN(int64_t x, int64_t y, int64_t N)
 {
     int64_t tmp = 0;
-    if (y == 1) return (x % N);
+    if (y == 1) return x % N;
 
     if ((y & 1) == 0)
     {
         tmp = XpowYmodN(x, y / 2, N);
-        return ((tmp * tmp) % N);
+        return tmp * tmp % N;
     }
     else
     {
         tmp = XpowYmodN(x, (y - 1) / 2, N);
-        tmp = ((tmp * tmp) % N);
-        tmp = ((tmp * x) % N);
-        return (tmp);
+        tmp = tmp * tmp % N;
+        tmp = tmp * x % N;
+        return tmp;
     }
 }
 
@@ -125,7 +125,7 @@ void CDiffieHellman::DerivePublicKey(char* password, int64_t* N, int64_t* X)
     for (int i = 0; i < (int)strlen(password); i++)
         pswd[i % 8] += password[i];
 
-    a = *((int64_t*)pswd);
+    a = *(int64_t*)pswd;
     a = a % MAX_RANDOM_INTEGER;
     if (a == 0) a = 0x112233;
 

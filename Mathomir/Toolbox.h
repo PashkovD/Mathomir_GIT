@@ -91,7 +91,7 @@ public:
     UINT GetMixedFormatting(char key, char is_greek);
     CExpression* CheckForKeycodes(char* keystrokes, int* len);
     CExpression* ReturnKeycode(int keycode_order, char** Keycode);
-    void ShowHelptext(const char* text, const char* command, const char* accelerator, const char* easycast, int language_code);
+    void ShowHelptext(const std::string& text, const std::string& command, const std::string& accelerator, const std::string& easycast, int language_code);
     void PickUpElementFromToolbox(int member, int submember);
     int InsertIntoToolbox(void);
     void ToolbarShowHelp(void);

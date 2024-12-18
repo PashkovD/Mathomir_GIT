@@ -1214,17 +1214,17 @@ void CToolbox::OnPaint()
 
             if (Keycode == 1)
             {
-                CopyTranslatedString(string, "EXIT", 0, 39);
+                CopyTranslatedString(string, "EXIT", 0);
             }
             if (Keycode == 2)
             {
                 if (is_header)
                 {
-                    CopyTranslatedString(string, "FONT...", 2500, 39);
+                    CopyTranslatedString(string, "FONT...", 2500);
                 }
                 else if (!is_drawing)
                 {
-                    CopyTranslatedString(string, "Easycast..", 2501, 39);
+                    CopyTranslatedString(string, "Easycast..", 2501);
                 }
                 else string[0] = 0;
             }
@@ -1232,7 +1232,7 @@ void CToolbox::OnPaint()
             {
                 if (m_ContextMenuMember >= 0 && m_ContextMenuSubmember >= 0 && ToolboxMembers[m_ContextMenuMember].
                     userdef_mask & 1 << m_ContextMenuSubmember)
-                    CopyTranslatedString(string, "Delete", 501, 39);
+                    CopyTranslatedString(string, "Delete", 501);
                 else
                     string[0] = 0; //separator
             }
@@ -2544,11 +2544,8 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
             pdc.SetTextColor(RGB(0, 0, 255));
             pdc.TextOut(5, -2 - zz, "S", 1);
             pdc.SelectObject(GetFontFromPool(4, 0, 1, ToolboxSize / 5 + (ToolboxSize < 60 ? 1 : 0)));
-            char bff[16];
-            CopyTranslatedString(bff, "Math", 6054, 15);
-            pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 8 - 4 - zz, bff);
-            CopyTranslatedString(bff, "mode", 6055, 15);
-            pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 4 - 3 - zz, bff);
+            pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 8 - 4 - zz, GetTranslatedString("Math", 6054).c_str());
+            pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 4 - 3 - zz, GetTranslatedString("mode", 6055).c_str());
         }
 
         int yy = ToolboxSize - ToolboxSize / 3;
@@ -2808,14 +2805,13 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
                 p[4].x = cc + Ly;
                 p[4].y = Ly - Ly - 1;
                 xdc.Polygon(p, 5);
-                char bff[48];
-                CopyTranslatedString(bff, "font...", 5081, 47);
-                int zzz = (int)strlen(bff);
+                std::string bff = GetTranslatedString("font...", 5081);
+                int zzz = bff.length();
                 xdc.SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 4 - 1 - (zzz > 9 ? 1 : 0)));
                 xdc.SetTextAlign(TA_LEFT);
                 xdc.SetBkMode(TRANSPARENT);
                 xdc.SetTextColor(0);
-                xdc.TextOutA(cc + 3 * Ly / 4 - (zzz > 9 ? ToolboxSize / 40 : 0), Ly - ToolboxSize / 10, bff, zzz);
+                xdc.TextOutA(cc + 3 * Ly / 4 - (zzz > 9 ? ToolboxSize / 40 : 0), Ly - ToolboxSize / 10, bff.c_str(), zzz);
             }
         }
         if (ToolboxSize % 5 == 0)
@@ -2863,7 +2859,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
             xdc.SetTextColor(RGB(128, 128, 128));
 
             char bff[128];
-            CopyTranslatedString(bff, "Per-character font settings", 5082, 127);
+            CopyTranslatedString(bff, "Per-character font settings", 5082);
             xdc.TextOutA(2, ToolboxSize / 32, bff, (int)strlen(bff));
 
             if (m_IsArrowSelected)
@@ -2871,7 +2867,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
                                   RGB(200, 200, 255));
 
             xdc.SetTextColor(0);
-            CopyTranslatedString(bff, "Alter all...", 5083, 127);
+            CopyTranslatedString(bff, "Alter all...", 5083);
             xdc.TextOutA(5 * ToolboxSize + 2, ToolboxSize / 32, bff, (int)strlen(bff));
             xdc.FillSolidRect(5 * ToolboxSize, 0, 1, ToolboxSize / 4,RGB(128, 128, 128));
             xdc.FillSolidRect(cr.right - 2, 0, 1, ToolboxSize / 4,RGB(128, 128, 128));
@@ -3414,7 +3410,7 @@ int CToolbox::PaintToolbar(CDC* dc)
         if (ToolboxSize >= 80) //we don't paint description texts under icons if toolbox is of very small size
         {
             char buff[64];
-            CopyTranslatedString(buff, ToolbarIcons[icon].name, ToolbarIcons[icon].lang_code, 64);
+            CopyTranslatedString(buff, ToolbarIcons[icon].name, ToolbarIcons[icon].lang_code);
             int l = (int)strlen(buff);
             for (int k = 1; k < l; k++)
             {
@@ -6412,13 +6408,13 @@ CExpression* CToolbox::ReturnKeycode(int keycode_order, char** Keycode)
 
 int prev_lang_code;
 
-void CToolbox::ShowHelptext(const char* text, const char* command, const char* accelerator, const char* easycast, int language_code)
+void CToolbox::ShowHelptext(const std::string& text, const std::string& command, const std::string& accelerator, const std::string& easycast, int language_code)
 {
     if (!Toolbox->IsWindowVisible()) return;
     if (ToolboxSize < 1) return;
     CMainFrame* mf = (CMainFrame*)theApp.m_pMainWnd;
     char buff[256];
-    CopyTranslatedString(buff, text, language_code, 256);
+    CopyTranslatedString(buff, text, language_code);
     RECT r;
 
     Toolbox->GetClientRect(&r);
@@ -6476,9 +6472,9 @@ void CToolbox::ShowHelptext(const char* text, const char* command, const char* a
     {
         DC->SetTextColor(RGB(240, 192, 192));
         DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 5));
-        size = DC->GetTextExtent(accelerator);
+        size = DC->GetTextExtent(accelerator.c_str());
         if (size.cx > ToolboxSize - 1) DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 6));
-        DC->TextOut(2, yy, accelerator);
+        DC->TextOut(2, yy, accelerator.c_str());
         yy += ToolboxSize / 6 + 1;
     }
 
@@ -6486,7 +6482,7 @@ void CToolbox::ShowHelptext(const char* text, const char* command, const char* a
     {
         char bbf[48];
         strcpy_s(bbf, "\"");
-        strcat_s(bbf, easycast);
+        strcat_s(bbf, easycast.c_str());
         strcat_s(bbf, "\"");
         DC->SetTextColor(RGB(240, 192, 192));
         DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 5));
@@ -6500,7 +6496,7 @@ void CToolbox::ShowHelptext(const char* text, const char* command, const char* a
     {
         char bbf[48];
         strcpy_s(bbf, "\\");
-        strcat_s(bbf, command);
+        strcat_s(bbf, command.c_str());
         DC->SetTextColor(RGB(192, 192, 192));
         DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize > 70 ? ToolboxSize / 5 : ToolboxSize / 4));
         size = DC->GetTextExtent(bbf);
@@ -6665,7 +6661,7 @@ int CToolbox::InsertIntoToolbox(void)
         if (ok)
         {
             char bff[128];
-            CopyTranslatedString(bff, "Insert into toolbox?", 5080, 127);
+            CopyTranslatedString(bff, "Insert into toolbox?", 5080);
             if (AfxMessageBox(bff,MB_YESNO) != IDYES) ok = 0;
         }
         if (ok)
