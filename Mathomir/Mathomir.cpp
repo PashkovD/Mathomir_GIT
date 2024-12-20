@@ -130,9 +130,9 @@ Whats NEW
 
 // global definitions
 
-const unsigned int ColorTable[] =
+const COLORREF ColorTable[] =
 {
-    0,
+    RGB(0, 0, 0),
     RGB(204, 0, 0),
     RGB(0, 204, 0),
     RGB(0, 0, 192),

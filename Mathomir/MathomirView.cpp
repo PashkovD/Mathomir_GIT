@@ -577,7 +577,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                 {
                     a = 0;
                     ds->Object.draw->CalculateSize(&tmpDC, ViewZoom, &l, &b);
-                    ds->Object.draw->SelectDrawing(0);
+                    ds->Object.draw->SelectDrawing(false);
                 }
                 tmpbmp.CreateCompatibleBitmap(pDC, l, a + b);
                 tmpDC.SelectObject(tmpbmp);
@@ -776,7 +776,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                                                         &TheClientRect);
                     else if (ds->Type == DRAWING && ds != SpecialDrawingHover)
                         ds->Object.draw->PaintDrawing(&bitmapDC, ViewZoom, RelativeX, RelativeY,
-                                                              ds->absolute_X, ds->absolute_Y, &TheClientRect);
+                                                      ds->absolute_X, ds->absolute_Y, &TheClientRect);
                 }
 
                 if (ds->Type == EXPRESSION && (ds->MovingDotState == 1 || ds->MovingDotState == 2 || MovingDotPermanent))
@@ -1240,7 +1240,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                         short w, h;
                         ds->Object.draw->CalculateSize(&bitmapDC, Tillens.Zoom, &w, &h);
                         ds->Object.draw->PaintDrawing(&bitmapDC, Tillens.Zoom, RelativeX, RelativeY,
-                                                              ds->absolute_X, ds->absolute_Y);
+                                                      ds->absolute_X, ds->absolute_Y);
                         ds->Object.draw->CalculateSize(&bitmapDC, ViewZoom, &w, &h);
                     }
                 }
@@ -1308,7 +1308,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                             short w, h;
                             ds->Object.draw->CalculateSize(&bitmapDC, Zoom, &w, &h);
                             ds->Object.draw->PaintDrawing(&bitmapDC, Zoom, RelativeX, RelativeY,
-                                                                  ds->absolute_X, ds->absolute_Y);
+                                                          ds->absolute_X, ds->absolute_Y);
                             ds->Object.draw->CalculateSize(&bitmapDC, ViewZoom, &w, &h);
                         }
                     }
@@ -1562,7 +1562,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 if (ds->Type == EXPRESSION)
                     ds->Object.exp->DeselectExpression();
                 else if (ds->Type == DRAWING)
-                    ds->Object.draw->SelectDrawing(0);
+                    ds->Object.draw->SelectDrawing(false);
             }
             RepaintTheView();
 
@@ -3226,7 +3226,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                         if (ds->Type == EXPRESSION)
                             ds->Object.exp->DeselectExpression();
                         else if (ds->Type == DRAWING)
-                            ds->Object.draw->SelectDrawing(0);
+                            ds->Object.draw->SelectDrawing(false);
                     }
 
                 RepaintTheView();
@@ -3673,7 +3673,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                            ? ds->Object.exp->DeselectExpressionExceptKeyboardSelection()
                                            : ds->Object.exp->DeselectExpression();
                     else if (ds->Type == DRAWING)
-                        ds->Object.draw->SelectDrawing(0);
+                        ds->Object.draw->SelectDrawing(false);
                 }
                 else if (ds->MovingDotState != 3)
                 {
@@ -3779,7 +3779,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                             GuidlineElement = -2;
                         }
                         else
-                            ds->Object.draw->SelectDrawing(0);
+                            ds->Object.draw->SelectDrawing(false);
                     }
                     if (!any_expression_touched)
                     {
@@ -3868,7 +3868,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                                 if (ds3->Type == EXPRESSION)
                                                     ds3->Object.exp->DeselectExpression();
                                                 else if (ds3->Type == DRAWING)
-                                                    ds3->Object.draw->SelectDrawing(0);
+                                                    ds3->Object.draw->SelectDrawing(false);
                                             }
                                         counted_already = 0;
                                         any_drawing_touched = 0;
@@ -4061,7 +4061,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                 if (ds->Type == EXPRESSION)
                                     ds->Object.exp->SelectExpression(1);
                                 else if (ds->Type == DRAWING)
-                                    ds->Object.draw->SelectDrawing(1);
+                                    ds->Object.draw->SelectDrawing(true);
 
                                 ds->MovingDotState = 3;
                                 IsSelectionFresh = 1;
@@ -4071,7 +4071,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                 if (ds->Type == EXPRESSION)
                                     ds->Object.exp->DeselectExpression();
                                 else if (ds->Type == DRAWING)
-                                    ds->Object.draw->SelectDrawing(0);
+                                    ds->Object.draw->SelectDrawing(false);
                                 ds->MovingDotState = 0;
                                 IsSelectionFresh = 1;
                             }
@@ -4140,7 +4140,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                             if (ds->Type == EXPRESSION)
                                 ds->Object.exp->DeselectExpression();
                             else if (ds->Type == DRAWING)
-                                ds->Object.draw->SelectDrawing(0);
+                                ds->Object.draw->SelectDrawing(false);
                         }
                     }
                     if (clearscreen)
@@ -5205,7 +5205,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                             if (ds->Type == EXPRESSION)
                                 ds->Object.exp->DeselectExpression();
                             else if (ds->Type == DRAWING)
-                                ds->Object.draw->SelectDrawing(0);
+                                ds->Object.draw->SelectDrawing(false);
                             is_deselected = 1;
                         }
                         if (ds->MovingDotState != 5) ds->MovingDotState = 0;
@@ -5906,7 +5906,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                         if (TheDocument[i].Type == EXPRESSION)
                             TheDocument[i].Object.exp->DeselectExpression();
                         else if (TheDocument[i].Type == DRAWING)
-                            TheDocument[i].Object.draw->SelectDrawing(0);
+                            TheDocument[i].Object.draw->SelectDrawing(false);
                     }
                 InvalidateRect(nullptr, 0);
                 NumSelectedObjects = 0;
@@ -7682,7 +7682,7 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
             if (ds->Type == EXPRESSION)
                 ds->Object.exp->SelectExpression(TemporaryShowColoredSelection ? 0 : 1);
             else if (ds->Type == DRAWING)
-                ds->Object.draw->SelectDrawing(TemporaryShowColoredSelection ? 0 : 2);
+                ds->Object.draw->SelectDrawing(TemporaryShowColoredSelection ? false : true);
         }
 
     //paint the object
@@ -7702,7 +7702,7 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
             ds->Object.exp->PaintExpression(bitmapDC, ViewZoom, borderX, inY + borderY, &tmpr);
         else if (ds->Type == DRAWING)
             ds->Object.draw->PaintDrawing(bitmapDC, -ViewZoom, borderX, inY + borderY, ds->absolute_X,
-                                                  ds->absolute_Y, &tmpr);
+                                          ds->absolute_Y, &tmpr);
 
         //also paint the special drawing objects
         if (SpecialDrawingHover && ds != SpecialDrawingHover &&
@@ -8058,7 +8058,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                 if (ds->Type == EXPRESSION)
                                     ds->Object.exp->DeselectExpression();
                                 else if (ds->Type == DRAWING)
-                                    ds->Object.draw->SelectDrawing(0);
+                                    ds->Object.draw->SelectDrawing(false);
                                 anything = 1;
                                 is_deselected = 1;
                             }
@@ -8696,7 +8696,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         if (TheDocument[i].Type == EXPRESSION && TheDocument[i].Object.exp)
                             TheDocument[i].Object.exp->DeselectExpression();
                         else if (TheDocument[i].Type == DRAWING && TheDocument[i].Object.draw)
-                            TheDocument[i].Object.draw->SelectDrawing(0);
+                            TheDocument[i].Object.draw->SelectDrawing(false);
                         MultipleModeWasAccepted = 0;
                     }
             }
@@ -8845,7 +8845,7 @@ int CMathomirView::PopupCloses(int UserParam, int ExitCode)
     for (int ii = 0; ii < NumDocumentElements; ii++)
         if (TheDocument[ii].Type == DRAWING && TheDocument[ii].Object.draw &&
             TheDocument[ii].Object.draw->IsSelected)
-            TheDocument[ii].Object.draw->SelectDrawing(0);
+            TheDocument[ii].Object.draw->SelectDrawing(false);
 
     //popup menu has been closed, so repaint the entire screen, and recalculate sizes
     if (m_PopupMenuObject && m_PopupMenuObject >= TheDocument && m_PopupMenuObject - TheDocument <
@@ -9001,7 +9001,7 @@ int CMathomirView::PaintClipboard(int X, int Y)
     if (ClipboardExpression)
         ClipboardExpression->SelectExpression(3);
     else if (ClipboardDrawing)
-        ClipboardDrawing->SelectDrawing(1);
+        ClipboardDrawing->SelectDrawing(true);
 
     CDC* DC = GetDC();
 
@@ -9762,7 +9762,7 @@ void CMathomirView::OnEditCopyImage()
             }
             else if (ds->Type == DRAWING)
             {
-                ds->Object.draw->SelectDrawing(0);
+                ds->Object.draw->SelectDrawing(false);
                 ds->Object.draw->CalculateSize(DC, ImageSize, &l, &b);
                 a = 0;
             }
@@ -9803,7 +9803,7 @@ void CMathomirView::OnEditCopyImage()
             else if (ds->Type == DRAWING)
             {
                 ds->Object.draw->PaintDrawing(&bmpDC, ImageSize, FactX - X1 + 3, FactY - Y1 + 3, -1, -1);
-                ds->Object.draw->SelectDrawing(1);
+                ds->Object.draw->SelectDrawing(true);
             }
             PrintRendering = 0;
         }
@@ -9945,7 +9945,7 @@ int CMathomirView::MakeImageOfDrawing(CObject* drawing_obj)
 
     CDC* DC = GetDC();
 
-    drawing->SelectDrawing(0);
+    drawing->SelectDrawing(false);
     short w, h;
     drawing->CalculateSize(DC, ImageSize, &w, &h);
 

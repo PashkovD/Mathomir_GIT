@@ -25,7 +25,7 @@ public:
     unsigned short NumItems;
     unsigned short NumItemsReserved;
 
-    char IsSelected;
+    bool IsSelected;
     char m_Color;
     char OriginalForm; //used from toolbox (to store the purpose of this drawing)
     char IsSpecialDrawing;
@@ -39,8 +39,8 @@ public:
     int Delete(void);
     int InsertEmptyElement(int form, int Cx, int Cy);
     int CalculateSize(CDC* DC, short zoom, short* width, short* height) const;
-    void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = nullptr, int color = 0);
-    void SelectDrawing(char select);
+    void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = nullptr, COLORREF color = 0);
+    void SelectDrawing(bool select);
     int CalcChecksum(void) const;
     int CopyDrawing(CDrawing* Original);
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, int* NodeEdit, int internal_call = 0);

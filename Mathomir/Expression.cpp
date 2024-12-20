@@ -1390,7 +1390,7 @@ void CExpression::CalculateSizeReadjust(short zoom, short* length, short* above,
 CBitmap* cursor_bitmap;
 //paints the expression - the expression must be already prepared for displaying (by call to CalculateSize)
 //this function must be fast!!
-void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg, int color)
+void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg, COLORREF color)
 {
     try
     {
@@ -4250,7 +4250,7 @@ int CExpression::KeyboardStart(CDC* DC, short zoom)
                 if (ds->Type == EXPRESSION)
                     ds->Object.exp->DeselectExpression();
                 else if (ds->Type == DRAWING)
-                    ds->Object.draw->SelectDrawing(0);
+                    ds->Object.draw->SelectDrawing(false);
             }
         }
     if (found_selection)

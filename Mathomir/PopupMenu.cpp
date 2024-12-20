@@ -1895,7 +1895,7 @@ int PopupMenu::PaintThePopupMenu(void)
         }
     }
 
-    dc->SelectObject(GetPenFromPool(1, 0,SHADOW_BLUE_COLOR2));
+    dc->SelectObject(GetPenFromPool(1, 0, SHADOW_BLUE_COLOR2));
 
     dc->MoveTo(0, 0);
     dc->LineTo(rct.right - 1, 0);
@@ -1909,7 +1909,7 @@ int PopupMenu::PaintThePopupMenu(void)
     if (cursor.x + cursor.y < TSize / 4 && cursor.x > 0 && cursor.y > 0)
         dc->SelectObject(GetPenFromPool(1, 1, 0));
     else
-        dc->SelectObject(GetPenFromPool(1, 0,SHADOW_BLUE_COLOR2));
+        dc->SelectObject(GetPenFromPool(1, 0, SHADOW_BLUE_COLOR2));
 
     dc->MoveTo(1, TSize / 4 - 1);
     dc->LineTo(TSize / 4, 0);
@@ -2904,7 +2904,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     if (ds->Type == EXPRESSION)
                                         ds->Object.exp->DeselectExpression();
                                     if (ds->Type == DRAWING)
-                                        ds->Object.draw->SelectDrawing(0);
+                                        ds->Object.draw->SelectDrawing(false);
                                 }
                                 ds->MovingDotState = 5;
                             }
@@ -3315,7 +3315,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     ds2->MovingDotState = 0;
                                     ds2->Object.v = di->pSubdrawing;
                                     if (di->Type == 0)
-                                        ((CDrawing*)di->pSubdrawing)->SelectDrawing(0);
+                                        ((CDrawing*)di->pSubdrawing)->SelectDrawing(false);
                                     else if (di->Type == 2)
                                         ((CExpression*)di->pSubdrawing)->DeselectExpression();
                                     for (int kkk = kk; kkk < drw->NumItems - 1; kkk++)

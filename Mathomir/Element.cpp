@@ -1930,12 +1930,13 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
 //the element must be already prepared for painting (by calling 'CalculateSize' earlier)
 //this function should be fast!
 void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlue, int ActualSize, RECT* ClipReg,
-                               int color)
+                               COLORREF color)
 {
     CMainFrame* mf;
     HFONT hfont;
 
-    if (m_Color != -1) color = ColorTable[m_Color];
+    if (m_Color != -1)
+        color = ColorTable[m_Color];
     if (m_Type == 1) //variable / constant
     {
         if (IsBlue && m_Text && ((CExpression*)m_pPaternalExpression)->m_InternalInsertionPoint > 0 && !Popup->
@@ -1994,7 +1995,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
         PaintText(DC, X, Y, Data1, Data2, Data3, ActualSize, IsBlue, color, m_Text, m_VMods);
         if (Expression1)
             Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                                         color);
+                                         color);
         return;
     }
 
@@ -2244,10 +2245,10 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
     {
         if (Expression2)
             Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
-                                                         Data3[0] ? PALE_RGB(color) : color);
+                                         Data3[0] ? PALE_RGB(color) : color);
         if (Expression1)
             Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                                         color);
+                                         color);
         return;
     }
 
@@ -2259,10 +2260,10 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
         if (Expression1)
             Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                                         color);
+                                         color);
         if (Expression2)
             Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
-                                                         color);
+                                         color);
 
         if (Data1[0] == '/')
         {
@@ -2297,10 +2298,10 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
     {
         if (Expression1)
             Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                                         color);
+                                         color);
         if (Expression2)
             Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
-                                                         color);
+                                         color);
         return;
     }
 
@@ -2339,10 +2340,10 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
         if (Expression1)
             Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                                         color);
+                                         color);
         if (Expression2)
             Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
-                                                         color);
+                                         color);
         return;
     }
 
@@ -2490,13 +2491,13 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
         }
         if (Expression1)
             Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                                         color);
+                                         color);
         if (Expression3)
             Expression3->PaintExpression(DC, zoom, X + E3_posX, Y + E3_posY, ClipReg,
-                                                         color);
+                                         color);
         if (Expression2)
             Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
-                                                         color);
+                                         color);
         return;
     }
 
@@ -2553,11 +2554,11 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             //an HTML element
             if (Expression1)
                 Expression1->PaintExpression(
-                    DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,RGB(0, 0, 192));
+                    DC, zoom, X + E1_posX, Y + E1_posY, ClipReg, RGB(0, 0, 192));
             if (Data1[0] == 'H')
             {
                 //hyperlink
-                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0,PALE_RGB(color)));
+                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, PALE_RGB(color)));
                 int l1 = ActualSize / 3 + ActualSize / 20;
                 int off = -ActualSize / 10;
                 int offx = -ActualSize / 20;
@@ -2570,7 +2571,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 DC->LineTo(X, Y + l1);
                 DC->LineTo(X, Y);
 
-                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0,RGB(255, 0, 255)));
+                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, RGB(255, 0, 255)));
                 DC->MoveTo(X + l1 / 2, Y + l1 / 2);
                 DC->LineTo(X + l1 / 2 + l2, Y + l1 / 2 - l2);
                 DC->LineTo(X + l1 / 2 + l2, Y + l1 / 2);
@@ -2611,13 +2612,13 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
     {
         if (Expression1)
             Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                                         color);
+                                         color);
         if (Expression2)
             Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
-                                                         color);
+                                         color);
         if (Expression3)
             Expression3->PaintExpression(DC, zoom, X + E3_posX, Y + E3_posY, ClipReg,
-                                                         color);
+                                         color);
 
         DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, color));
 

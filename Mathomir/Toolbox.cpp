@@ -1027,7 +1027,7 @@ void CToolbox::PaintToolboxHeader(CDC* dc) const
                          ToolboxSize / 6, textmodeactivated == 1 ? 2 : 1);
 
     //paint borderlines
-    pdc.SelectObject(GetPenFromPool(1, 0,RGB(96, 96, 96)));
+    pdc.SelectObject(GetPenFromPool(1, 0, RGB(96, 96, 96)));
     int ttt = 0;
     pdc.MoveTo(ToolboxSize / 2 + ttt - 1, 0);
     pdc.LineTo(ToolboxSize / 2 + ttt - 1, ToolboxSize / 2);
@@ -1050,7 +1050,7 @@ void CToolbox::PaintToolboxHeader(CDC* dc) const
         {
             if (m_FontModeElement != i)
             {
-                pdc.SelectObject(GetPenFromPool(1, 0,RGB(255, 255, 255)));
+                pdc.SelectObject(GetPenFromPool(1, 0, RGB(255, 255, 255)));
                 pdc.MoveTo(Lx * (i + 1) - j - 2 - kk, Ly - 0);
                 pdc.LineTo(Lx * (i + 1) - 0 - kk, Ly - j - 2);
             }
@@ -1170,7 +1170,7 @@ void CToolbox::OnPaint()
 
         int i = 0;
         int SelectedKeycode = -1;
-        dc.SelectObject(GetPenFromPool(1, 0,SHADOW_BLUE_COLOR2));
+        dc.SelectObject(GetPenFromPool(1, 0, SHADOW_BLUE_COLOR2));
         dc.MoveTo(0, 0);
         dc.LineTo(ClientRect.right - 1, 0);
         dc.LineTo(ClientRect.right - 1, ClientRect.bottom - 1);
@@ -2818,7 +2818,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
         else
             dc->BitBlt(0, Cy - Ly + 1, 3 * ToolboxSize, 2 * Ly, &xdc, 0, 0,SRCCOPY);
 
-        dc->SelectObject(GetPenFromPool(1, 0,RGB(96, 96, 96)));
+        dc->SelectObject(GetPenFromPool(1, 0, RGB(96, 96, 96)));
         dc->MoveTo(Cx - Lx, Cy + Ly - 1);
         dc->LineTo(Cx + Lx, Cy + Ly - 1);
         dc->MoveTo(0, 0);
@@ -3025,7 +3025,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
             xdc.SetBkMode(OPAQUE);
         }
         dc->BitBlt(x, y, ToolboxSize / 2 + 1, ToolboxSize / 2 + 1, &xdc, 0, 0,SRCCOPY);
-        dc->SelectObject(GetPenFromPool(1, 0,RGB(96, 96, 96)));
+        dc->SelectObject(GetPenFromPool(1, 0, RGB(96, 96, 96)));
         for (int i = 0; i < 4; i++)
         {
             dc->MoveTo(i * ToolboxSize / 2, 0);
@@ -3166,7 +3166,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
         {
             if (!issel)
             {
-                xdc.SelectObject(GetPenFromPool(1, 0,RGB(255, 255, 255)));
+                xdc.SelectObject(GetPenFromPool(1, 0, RGB(255, 255, 255)));
                 xdc.MoveTo(2 * Lx - i - 2, 2 * Ly - 0);
                 xdc.LineTo(2 * Lx - 0, 2 * Ly - i - 2);
             }
@@ -3209,7 +3209,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
 
     dc->BitBlt(Cx - Lx + 1, Cy - Ly + 1, 2 * Lx - 1, 2 * Ly - 1, &xdc, 1, 1,SRCCOPY);
 
-    dc->SelectObject(GetPenFromPool(1, 0,RGB(96, 96, 96)));
+    dc->SelectObject(GetPenFromPool(1, 0, RGB(96, 96, 96)));
 
     if (m_IsMain)
     {
@@ -6546,7 +6546,7 @@ void CToolbox::PickUpElementFromToolbox(int member, int submember)
         {
             IsDrawingMode = ((CDrawing*)ToolboxMembers[member].Submembers[submember])->OriginalForm;
             //if (ToolbarEditNodes) {ToolbarEditNodes=0;if ((UseToolbar) && (Toolbox->Toolbar)) Toolbox->Toolbar->ConfigureToolbar();}
-            ((CDrawing*)ToolboxMembers[member].Submembers[submember])->SelectDrawing(0);
+            ((CDrawing*)ToolboxMembers[member].Submembers[submember])->SelectDrawing(false);
         }
     }
     else
@@ -6665,7 +6665,7 @@ int CToolbox::InsertIntoToolbox(void)
         }
         if (ok)
         {
-            cd->SelectDrawing(0);
+            cd->SelectDrawing(false);
             ToolboxMembers[member].Submembers[submember] = (CExpression*)cd;
             ToolboxMembers[member].userdef_mask |= 1 << submember;
             ToolboxMembers[member].Above[submember] = -1;

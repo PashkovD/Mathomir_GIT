@@ -238,7 +238,7 @@ int CBitmapImage::MouseClick(int X, int Y)
 #pragma optimize("s",on)
 int CBitmapImage::MouseMove(CDC* DC, int X, int Y, UINT flags)
 {
-    if (Base->IsSelected == 0)
+    if (!Base->IsSelected)
     {
         if (ShowMenu)
         {

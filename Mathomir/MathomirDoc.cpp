@@ -276,7 +276,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                     if (TheDocument[i].Type == EXPRESSION)
                         TheDocument[i].Object.exp->DeselectExpressionExceptKeyboardSelection();
                     else if (TheDocument[i].Type == DRAWING)
-                        ((CDrawing*)TheDocument[i].Object.exp)->SelectDrawing(0);
+                        ((CDrawing*)TheDocument[i].Object.exp)->SelectDrawing(false);
                 }
         }
 

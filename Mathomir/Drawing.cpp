@@ -62,7 +62,7 @@ CDrawing::CDrawing()
     Items = nullptr;
     NumItems = 0;
     NumItemsReserved = 0;
-    IsSelected = 0;
+    IsSelected = false;
     OriginalForm = 0;
     //IsNodeEdit=0;
     IsSpecialDrawing = 0;
@@ -1912,7 +1912,7 @@ int CDrawing::Delete(void)
     }
     m_Color = -1;
     IsSpecialDrawing = 0;
-    IsSelected = 0;
+    IsSelected = false;
     OriginalForm = 0;
     //IsNodeEdit=0;
     NodeX = NodeY = -1;
@@ -2261,7 +2261,7 @@ int CDrawing::CalculateSize(CDC* DC, short zoom, short* width, short* height) co
 
 //this function paints the drawing 
 //MUST BE VERY FAST
-void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, int absY, RECT* ClipReg, int color)
+void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, int absY, RECT* ClipReg, COLORREF color)
 {
     int no_background = 0;
     int zoom = zoom2; //to change from short to int
@@ -2295,7 +2295,7 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
 
     int ShowNodes = 0;
     int sz = 0;
-    if (IsSelected == 1 && IsSpecialDrawing == 0 && (AllowQuickEditNodes() || GetKeyState(VK_CONTROL) & 0xFFFE))
+    if (IsSelected && IsSpecialDrawing == 0 && (AllowQuickEditNodes() || GetKeyState(VK_CONTROL) & 0xFFFE))
     {
         ShowNodes = 1;
         sz = 2 * MovingDotSize / 3 + 1;
@@ -2316,9 +2316,9 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
                 if (zwidth < 130 * DRWZOOM)
                 {
                     if (zwidth < 70 * DRWZOOM)
-                        DC->SelectObject(color == 0 && IsSelected == 0
+                        DC->SelectObject(color == 0 && !IsSelected
                                              ? GrayThin
-                                             : GetPenFromPool(1, IsSelected,PALE_RGB(color)));
+                                             : GetPenFromPool(1, IsSelected, PALE_RGB(color)));
                     else
                         DC->SelectObject(GetPenFromPool(1, IsSelected, color));
                 }
@@ -2326,7 +2326,7 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
                 {
                     if (zwidth < 200 * DRWZOOM)
                     {
-                        DC->SelectObject(color == 0 ? GrayFat : GetPenFromPool(2, IsSelected,PALE_RGB(color)));
+                        DC->SelectObject(color == 0 ? GrayFat : GetPenFromPool(2, IsSelected, PALE_RGB(color)));
                         use_shadowed_line = 1;
                         //this will paint another thin line over the fat gray line to make illusion of pixel-and-half width
                     }
@@ -2428,10 +2428,10 @@ void CDrawing::PaintDrawing(CDC* DC, short zoom2, short X, short Y, int absX, in
     return;
 }
 
-void CDrawing::SelectDrawing(char select)
+void CDrawing::SelectDrawing(bool select)
 {
     IsSelected = select;
-    if (select == 0) NodeX = NodeY = -1;
+    if (!select) NodeX = NodeY = -1;
 
     tDrawingItem* di = Items;
     for (int i = NumItems - 1; i >= 0; i--, di++)
@@ -2566,7 +2566,7 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
             //magic value returned - marks that mouse is pointing at a special drawing interrior
         }
         ((CBitmapImage*)SpecialData)->ShowMenu = 1;
-        SelectDrawing(1);
+        SelectDrawing(true);
         return (CObject*)this;
     }
 
@@ -2652,7 +2652,7 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
         return nullptr;
     }
 
-    if (ret) SelectDrawing(1);
+    if (ret) SelectDrawing(true);
     return ret;
 }
 

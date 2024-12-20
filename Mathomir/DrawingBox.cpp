@@ -102,7 +102,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
         //paint coordinate system grid
 
         DC->SetROP2(R2_MASKPEN);
-        DC->SelectObject(GetPenFromPool(1, 0,RGB(224, 224, 224)));
+        DC->SelectObject(GetPenFromPool(1, 0, RGB(224, 224, 224)));
 
         int step = 10;
         if (abs(ux / ViewZoom) > 60) step = 1;
@@ -135,7 +135,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
         CBrush br2(BLUE_COLOR);
         if (TheState == 1) DC->SelectObject(br2);
         else DC->SelectObject(br);
-        DC->SelectObject(GetPenFromPool(1, TheState == 1 ? 1 : 0,RGB(176, 176, 176)));
+        DC->SelectObject(GetPenFromPool(1, TheState == 1 ? 1 : 0, RGB(176, 176, 176)));
         DC->Ellipse(X + sx - 3, Y + sy - 3, X + sx + 3, Y + sy + 3);
 
         int tmp1 = sx + ux / 100;

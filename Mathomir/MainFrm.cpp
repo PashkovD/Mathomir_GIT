@@ -358,10 +358,10 @@ HFONT GetFontFromPool(char combination, unsigned short Size)
 
 //returns pen of given width and color - it must work fast
 //several pens are pre-created (in CMainFrame constructor)
-HPEN GetPenFromPool(short width, char IsBlue, int color)
+HPEN GetPenFromPool(short width, bool IsBlue, COLORREF color)
 {
     static short LastWidth;
-    static int LastColor;
+    static COLORREF LastColor;
 
     if (width <= 0 && IsBlue == 0 && color == 0) return HDottedLineBlack;
     if (width <= 0 && IsBlue == 1) return HDottedLineBlue;
@@ -372,7 +372,7 @@ HPEN GetPenFromPool(short width, char IsBlue, int color)
     }
 
     {
-        int new_color = IsBlue ? BLUE_COLOR : color;
+        COLORREF new_color = IsBlue ? BLUE_COLOR : color;
         if (LastWidth != width || LastColor != new_color || HOtherLine == nullptr)
         {
             if (HOtherLine) DeleteObject(HOtherLine);
@@ -677,7 +677,7 @@ int CMainFrame::StartMyPainting(CDC* DC, int width, int above, int below, int co
         }
 
         MyBitmap = new CBitmap();
-        int ret = MyBitmap->CreateCompatibleBitmap(DC, width, above + below);
+        bool ret = MyBitmap->CreateCompatibleBitmap(DC, width, above + below);
         MyDC = new CDC();
         MyDC->CreateCompatibleDC(DC);
         MyDC->SelectObject(MyBitmap);
@@ -685,7 +685,7 @@ int CMainFrame::StartMyPainting(CDC* DC, int width, int above, int below, int co
 
         MyBitmapReservedWidth = width;
         MyBitmapReservedHeight = above + below;
-        if (ret == 0)
+        if (!ret)
         {
             MyBitmapReservedWidth = 0;
             MyBitmapReservedHeight = 0;
@@ -711,7 +711,7 @@ int CMainFrame::StartMyPainting(CDC* DC, int width, int above, int below, int co
 }
 
 //clears memory and bitmaps (used when exiting application)
-int CMainFrame::ReleaseMyPainting(void)
+int CMainFrame::ReleaseMyPainting()
 {
     if (MyDC)
     {
@@ -898,12 +898,11 @@ int CMainFrame::MyBitBlt(CDC* DC, int X, int Y, int width, int height, int Xsrc,
 
 
 //clears the entire document (like File->New)
-int CMainFrame::ClearDocument(void)
+int CMainFrame::ClearDocument()
 {
-    int i;
     if (TheDocument)
     {
-        for (i = 0; i < NumDocumentElements; i++)
+        for (int i = 0; i < NumDocumentElements; i++)
         {
             if (TheDocument[i].Type == EXPRESSION)
             {
@@ -920,7 +919,7 @@ int CMainFrame::ClearDocument(void)
     }
     NumDocumentElements = 0;
     NumDocumentElementsReserved = 10;
-    TheDocument = (tDocumentStruct*)malloc(10 * sizeof(tDocumentStruct));
+    TheDocument = new tDocumentStruct[10];
     ViewX = ViewY = 0;
     if (DefaultZoom != 150 && DefaultZoom != 120 && DefaultZoom != 100 && DefaultZoom != 80) DefaultZoom = 100;
     ViewZoom = DefaultZoom;
@@ -943,7 +942,7 @@ int AddDocumentObject(doc_type type, int X, int Y)
         if (NumDocumentElementsReserved == 0)
         {
             NumDocumentElementsReserved += 20;
-            TheDocument = (tDocumentStruct*)malloc(NumDocumentElementsReserved * sizeof(tDocumentStruct));
+            TheDocument = new tDocumentStruct[NumDocumentElementsReserved];
         }
         else
         {

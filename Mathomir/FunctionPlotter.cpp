@@ -771,7 +771,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                     DC->LineTo(X + x, Y + Ylen - BottomMargin);
                     if (fabs(first) < fabs(first + xstep) && fabs(first) < fabs(first - xstep))
                     {
-                        DC->SelectObject(GetPenFromPool(1, 0,RGB(224, 224, 224)));
+                        DC->SelectObject(GetPenFromPool(1, 0, RGB(224, 224, 224)));
                         DC->MoveTo(X + x + 1, Y);
                         DC->LineTo(X + x + 1, Y + Ylen - BottomMargin);
                         DC->MoveTo(X + x - 1, Y);
@@ -860,7 +860,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                     DC->LineTo(X + Xlen, Y + y);
                     if (fabs(first) < fabs(first + ystep) && fabs(first) < fabs(first - ystep))
                     {
-                        DC->SelectObject(GetPenFromPool(1, 0,RGB(224, 224, 224)));
+                        DC->SelectObject(GetPenFromPool(1, 0, RGB(224, 224, 224)));
                         DC->MoveTo(X + LeftMargin, Y + y + 1);
                         DC->LineTo(X + Xlen, Y + y + 1);
                         DC->MoveTo(X + LeftMargin, Y + y - 1);

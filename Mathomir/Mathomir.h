@@ -89,7 +89,7 @@ extern int UndoNumLevels;
 
 
 #define NUM_COLORS 4
-extern const unsigned int ColorTable[];
+extern const COLORREF ColorTable[];
 
 extern int NumDocumentElements;
 extern int NumDocumentElementsReserved;
@@ -158,6 +158,8 @@ extern int UseComplexIndexes;
 extern char NoImageAutogeneration;
 
 //coloring definitions
+
+#define BLACK_COLOR RGB(0,0,0)
 #define BLUE_COLOR RGB(92,92,255)
 #define GREEN_COLOR RGB(32,224,32)
 #define SHADOW_BLUE_COLOR RGB(224,224,255)
@@ -198,7 +200,7 @@ extern char TheFileType;
 HFONT GetFontFromPool(char Face, char Italic, char Bold, unsigned short Size);
 HFONT GetFontFromPool(char combination, unsigned short Size);
 void ClearFontPool();
-HPEN GetPenFromPool(short width, char IsBlue, int color = 0);
+HPEN GetPenFromPool(short width, bool IsBlue, COLORREF color = 0);
 int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked);
 void DisplayShortText(const std::string& text, int x, int y, int LanguageID, int flags = 0);
 int AddDocumentObject(doc_type type, int X, int Y);
