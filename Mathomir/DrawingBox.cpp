@@ -404,7 +404,7 @@ int CDrawingBox::MouseClick(int X, int Y)
         for (int i = 0; i < NumDocumentElements; i++)
             if ((TheDocument + i)->Object.draw == Base)
             {
-                KeyboardEntryBaseObject = TheDocument + i;
+                *KeyboardEntryBaseObject = TheDocument[i];
                 break;
             }
         CDC* DC = pMainView->GetDC();

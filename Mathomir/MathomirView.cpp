@@ -3146,7 +3146,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
             {
                 try
                 {
-                    CExpression* parent = (CExpression*)SelectedTab->m_pPaternalExpression;
+                    CExpression* parent = SelectedTab->m_pPaternalExpression;
                     while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
                     if (SelectedTabObjectIndex < 0 || SelectedTabObjectIndex >= NumDocumentElements || TheDocument[
                         SelectedTabObjectIndex].Object.exp != parent)
@@ -3171,7 +3171,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                     }
 
                     tDocumentStruct* ds2 = TheDocument + SelectedTabObjectIndex;
-                    int ActualSize = ((CExpression*)SelectedTab->m_pPaternalExpression)->GetActualFontSize(ViewZoom);
+                    int ActualSize = SelectedTab->m_pPaternalExpression->GetActualFontSize(ViewZoom);
 
                     SelectedTab->Data1[3] = (unsigned char)max(min((point.x-SelectedTabX)*10/ActualSize,255), 0);
 
@@ -8301,8 +8301,8 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                     if (obj && !IsExpression && LeftClickTimer < 4)
                     {
                         CElement* elm = (CElement*)obj;
-                        if (elm && elm->m_Type == 1 && elm->m_Text && ((CExpression*)elm->m_pPaternalExpression)
-                            ->m_InternalInsertionPoint)
+                        if (elm && elm->m_Type == 1 && elm->m_Text && elm->m_pPaternalExpression
+                                                                         ->m_InternalInsertionPoint)
                         {
                             //clicked at text internal insertion point
                             if (KeyboardEntryObject)
@@ -8320,7 +8320,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                                         }
                             }
 
-                            CExpression* selection = (CExpression*)elm->m_pPaternalExpression;
+                            CExpression* selection = elm->m_pPaternalExpression;
                             KeyboardEntryBaseObject = ds;
                             KeyboardEntryObject = (CObject*)selection;
                             selection->KeyboardStart(DC, ViewZoom);

@@ -191,19 +191,19 @@ void CMainFrame::Dump(CDumpContext& dc) const
 
 
 // CMainFrame message handlers
-char FontFacenames[5][32];
+std::string FontFacenames[5];
 char FontAdjustedSizes[5];
 unsigned char FontCharSet[5];
 unsigned int FontWeight[5];
 
 #pragma optimize("s",on)
-void CMainFrame::SetFontsToDefaults(void)
+void CMainFrame::SetFontsToDefaults()
 {
-    strcpy_s(FontFacenames[0], "Arial");
-    strcpy_s(FontFacenames[1], "Times New Roman");
-    strcpy_s(FontFacenames[2], "Courier New");
-    strcpy_s(FontFacenames[3], "Symbol");
-    strcpy_s(FontFacenames[4], "Arial");
+    FontFacenames[0] = "Arial";
+    FontFacenames[1] = "Times New Roman";
+    FontFacenames[2] = "Courier New";
+    FontFacenames[3] = "Symbol";
+    FontFacenames[4] = "Arial";
     FontAdjustedSizes[0] = 95;
     FontAdjustedSizes[1] = 109;
     FontAdjustedSizes[2] = 109;
@@ -230,7 +230,7 @@ void CMainFrame::GetLogicalFont(int font_no, LOGFONT* lf, CDC* DC)
     lf->lfHeight = 20 + (FontAdjustedSizes[font_no] - 100) / 2;
     lf->lfHeight = -MulDiv(lf->lfHeight, DC->GetDeviceCaps(LOGPIXELSY), 72);
 
-    strcpy_s(lf->lfFaceName, FontFacenames[font_no]);
+    strcpy_s(lf->lfFaceName, FontFacenames[font_no].c_str());
     lf->lfCharSet = FontCharSet[font_no];
 }
 
@@ -241,7 +241,7 @@ void CMainFrame::SetLogicalFont(int font_no, LOGFONT* lf, CDC* DC)
     int r = DC->GetDeviceCaps(LOGPIXELSY);
     lf->lfHeight = MulDiv(-lf->lfHeight, 72, DC->GetDeviceCaps(LOGPIXELSY));
     FontAdjustedSizes[font_no] = (char)((abs(lf->lfHeight) - 20) * 2 + 100);
-    strcpy_s(FontFacenames[font_no], lf->lfFaceName);
+    FontFacenames[font_no] = lf->lfFaceName;
     FontCharSet[font_no] = lf->lfCharSet;
 
     ClearFontPool();
@@ -255,7 +255,7 @@ typedef struct FONT_POOL
     HFONT Font;
     int NumRequests;
     unsigned short Size;
-    char Combination;
+    byte Combination;
 } tFontPool;
 
 int NumFontsInPool;
@@ -268,18 +268,15 @@ void ClearFontPool()
 }
 
 
-HFONT GetFontFromPool(char Face, char Italic, char Bold, unsigned short Size)
+HFONT GetFontFromPool(char Face, bool Italic, bool Bold, unsigned short Size)
 {
     return GetFontFromPool(Face << 5 | Italic << 1 | Bold, Size);
 }
 
-HFONT GetFontFromPool(char combination, unsigned short Size)
+HFONT GetFontFromPool(byte combination, unsigned short Size)
 {
-    HFONT theFont;
-    int i;
-
     tFontPool* tp = FontPoolList;
-    for (i = 0; i < NumFontsInPool; i++, tp++)
+    for (int i = 0; i < NumFontsInPool; i++, tp++)
     {
         //check if the font is already in pool
         if (combination == tp->Combination && tp->Size == Size)
@@ -296,7 +293,7 @@ HFONT GetFontFromPool(char combination, unsigned short Size)
     //first, adjust usage counters
     tp = FontPoolList;
     int min_pos = 0, min_requests = 21000;
-    for (i = 0; i < NumFontsInPool; i++, tp++)
+    for (int i = 0; i < NumFontsInPool; i++, tp++)
     {
         //find the least used font
         if (tp->NumRequests <= min_requests)
@@ -307,7 +304,7 @@ HFONT GetFontFromPool(char combination, unsigned short Size)
         if (tp->NumRequests > 0) tp->NumRequests--;
     }
 
-    char Face = (combination & 0xE0) >> 5;
+    byte Face = (combination & 0xE0) >> 5;
     int sze;
     if (Size & 0x8000)
     {
@@ -317,7 +314,7 @@ HFONT GetFontFromPool(char combination, unsigned short Size)
     else
         sze = Size;
 
-    theFont = CreateFont(
+    HFONT theFont = CreateFont(
         sze, //Size
         0, //width
         0, //escapement
@@ -331,7 +328,7 @@ HFONT GetFontFromPool(char combination, unsigned short Size)
         0, //ClipPrecision
         0, //Quality
         0, //Pitch and Family
-        FontFacenames[Face]); //facename
+        FontFacenames[Face].c_str()); //facename
 
     if (theFont == nullptr) return (HFONT)GetStockObject(SYSTEM_FONT);
 
@@ -591,15 +588,15 @@ void CMainFrame::OnPaint()
 
 
 //called from pop-up menues to point the 'checked' sign
-int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked)
+int PaintCheckedSign(CDC* DC, short x, short y, short size, bool IsChecked)
 {
     CBrush* brsh;
     CPen* pn;
 
     if (IsChecked) //when IsCheked==2 then paint gray sign
     {
-        brsh = new CBrush(IsChecked == 1 ? RGB(224, 64, 128) : RGB(192, 192, 192));
-        pn = new CPen(PS_SOLID, 1, IsChecked == 1 ? RGB(224, 64, 128) : RGB(192, 192, 192)); //190,0,85
+        brsh = new CBrush(IsChecked ? RGB(224, 64, 128) : RGB(192, 192, 192));
+        pn = new CPen(PS_SOLID, 1, IsChecked ? RGB(224, 64, 128) : RGB(192, 192, 192)); //190,0,85
 
         DC->SelectObject(brsh);
         DC->SelectObject(pn);
@@ -772,7 +769,7 @@ int CMainFrame::EndMyPainting(CDC* DC, int X, int Y, int force_black, int flip_i
             if (fast_method)
             {
                 int line_size = bytes_per_pixel * MyBitmapReservedWidth;
-                unsigned char* src = bits;
+                byte* src = bits;
 
                 for (int i = 0; i < H; i++, src = bits + i * line_size)
                     for (int j = 0; j < W; j++, src += bytes_per_pixel)
@@ -919,7 +916,6 @@ int CMainFrame::ClearDocument()
     }
     NumDocumentElements = 0;
     NumDocumentElementsReserved = 10;
-    TheDocument = new tDocumentStruct[10];
     ViewX = ViewY = 0;
     if (DefaultZoom != 150 && DefaultZoom != 120 && DefaultZoom != 100 && DefaultZoom != 80) DefaultZoom = 100;
     ViewZoom = DefaultZoom;
@@ -1022,15 +1018,14 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     }
 
 
-    char* UndoText = "Undo";
-    char* HandyHelpText = "Handy help...";
-    char* F1Text = "Zoom to &Default (1:1)";
+    std::string UndoText = "Undo";
+    std::string HandyHelpText = "Handy help...";
+    std::string F1Text = "Zoom to &Default (1:1)";
     if (LanguageStrings)
     {
         if (LanguagePointers[31101] != 0xFFFF)
         {
             UndoText = LanguageStrings + LanguagePointers[31101];
-            if (strlen(UndoText) > 31) UndoText[31] = 0;
         }
         if (LanguagePointers[ID_HELP_QUICKGUIDE] != 0xFFFF)
             HandyHelpText = LanguageStrings + LanguagePointers[
@@ -1210,35 +1205,31 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
 
     if (UndoNumLevels)
     {
-        char str[64];
-        sprintf_s(str, "%s %s\tCtrl+Z", UndoText, UndoStruct[UndoNumLevels - 1].text);
-        theMenu->ModifyMenu(ID_EDIT_UNDO,MF_BYCOMMAND | MF_STRING,ID_EDIT_UNDO, str);
+        theMenu->ModifyMenu(ID_EDIT_UNDO,MF_BYCOMMAND | MF_STRING,ID_EDIT_UNDO,
+                            (UndoText + " " + UndoStruct[UndoNumLevels - 1].text + "\tCtrl+Z").c_str());
         //DrawMenuBar();
     }
     else
     {
-        char str[64];
-        sprintf_s(str, "%s\tCtrl+Z", UndoText);
-        theMenu->ModifyMenu(ID_EDIT_UNDO,MF_BYCOMMAND | MF_STRING,ID_EDIT_UNDO, str);
+        theMenu->ModifyMenu(ID_EDIT_UNDO,MF_BYCOMMAND | MF_STRING,ID_EDIT_UNDO,
+            (UndoText + "\tCtrl+Z").c_str());
         //DrawMenuBar();
     }
     if (adjust_undo_only) return 0;
 
     if (F1SetsZoom)
     {
-        char str[94];
-        strcpy_s(str, F1Text);
-        strcat_s(str, "\tF1");
-        theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1, str);
-        theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE, HandyHelpText);
+        theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1,
+            (F1Text + "\tF1").c_str());
+        theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE,
+            HandyHelpText.c_str());
     }
     else
     {
-        theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1, F1Text);
-        char str[94];
-        strcpy_s(str, HandyHelpText);
-        strcat_s(str, "\tF1");
-        theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE, str);
+        theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1,
+            F1Text.c_str());
+        theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE,
+            (HandyHelpText + "\tF1").c_str());
     }
 
     theMenu->CheckMenuItem(ID_HQ_REND, IsHighQualityRendering ? MF_CHECKED : MF_UNCHECKED);
@@ -1373,25 +1364,23 @@ int UndoNumObjects = 0;
 int UndoNumObjectsReserved = 0;
 tUndoObjectStruct* pUndoObjectList;
 
-int CMainFrame::UndoInit(void)
+int CMainFrame::UndoInit()
 {
-    int i;
-
     //delete all previous undo data
     if (pUndoObjectList)
     {
-        for (i = 0; i < UndoNumObjects; i++)
+        for (int i = 0; i < UndoNumObjects; i++)
         {
             tUndoObjectStruct* us = pUndoObjectList + i;
-            if (us->Type == 1)
+            if (us->Type == EXPRESSION)
             {
                 //((CExpression*)(us->pObject))->Delete();
-                delete (CExpression*)us->pObject;
+                delete us->pObject.exp;
             }
-            else if (us->Type == 2)
+            else if (us->Type == DRAWING)
             {
                 //((CDrawing*)(us->pObject))->Delete();
-                delete (CDrawing*)us->pObject;
+                delete us->pObject.draw;
             }
         }
         free(pUndoObjectList);
@@ -1400,9 +1389,9 @@ int CMainFrame::UndoInit(void)
 
     UndoNumObjects = 0;
     UndoNumObjectsReserved = 10;
-    pUndoObjectList = new tUndoObjectStruct[10];;
+    pUndoObjectList = new tUndoObjectStruct[10];
 
-    for (i = 0; i < UndoNumLevels; i++)
+    for (int i = 0; i < UndoNumLevels; i++)
     {
         UndoStruct[i].text[0] = 0;
         UndoStruct[i].NumElements = 0;
@@ -1453,7 +1442,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
     if (pMainViewBase)
     {
         CDocument* pDoc = pMainViewBase->GetDocument();
-        pDoc->SetModifiedFlag(1);
+        pDoc->SetModifiedFlag(true);
     }
 
     //first check if the oldest undo level must be deleted (only limited numer of undo levels is possible)
@@ -1479,11 +1468,11 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
             if (us->UsedInLevel == 0)
             {
                 //neither bit is set anymore -> this object is not used anymore
-                if (us->pObject)
-                {
-                    if (us->Type == 1) delete (CExpression*)us->pObject;
-                    else if (us->Type == 2) delete (CDrawing*)us->pObject;
-                }
+                if (us->Type == EXPRESSION)
+                    delete us->pObject.exp;
+                else if (us->Type == DRAWING)
+                    delete us->pObject.draw;
+                
                 memmove(us, us + 1, (UndoNumObjects - i - 1) * sizeof(tUndoObjectStruct));
                 i--;
                 us--;
@@ -1524,7 +1513,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
         int j;
         tUndoObjectStruct* us = pUndoObjectList;
         for (j = 0; j < UndoNumObjects; j++, us++)
-            if ((CObject*)ds->Object.exp == us->pOriginal && us->Type == ds->Type && ds->Checksum == us->Checksum)
+            if (us->Type == ds->Type && ds->Object.exp == us->pOriginal.exp && ds->Checksum == us->Checksum)
                 break;
 
         if (j == UndoNumObjects)
@@ -1545,16 +1534,16 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
             if (ds->Type == EXPRESSION)
             {
                 us->Checksum = ds->Object.exp->CalcChecksum();
-                us->pObject = (CObject*)new CExpression(nullptr, nullptr, ds->Object.exp->m_FontSize);
-                ((CExpression*)us->pObject)->CopyExpression(ds->Object.exp, 2);
-                us->pOriginal = (CObject*)ds->Object.exp;
+                us->pObject.exp = new CExpression(nullptr, nullptr, ds->Object.exp->m_FontSize);
+                us->pObject.exp->CopyExpression(ds->Object.exp, 2);
+                us->pOriginal.exp = ds->Object.exp;
             }
             else if (ds->Type == DRAWING)
             {
                 us->Checksum = ds->Object.draw->CalcChecksum();
-                us->pObject = (CObject*)new CDrawing();
-                ((CDrawing*)us->pObject)->CopyDrawing(ds->Object.draw);
-                us->pOriginal = (CObject*)ds->Object.draw;
+                us->pObject.draw = new CDrawing();
+                us->pObject.draw->CopyDrawing(ds->Object.draw);
+                us->pOriginal.draw = ds->Object.draw;
             }
             us->Type = ds->Type;
             us->UsedInLevel = 0;
@@ -1603,7 +1592,6 @@ int CMainFrame::UndoRestore()
     prevSpecialDrawingHover = nullptr;
 
 
-    int i;
     if (pMainViewBase)
     {
         CDocument* pDoc = pMainViewBase->GetDocument();
@@ -1613,21 +1601,20 @@ int CMainFrame::UndoRestore()
     //first check what object do we need to delete
     //only objects that were modified are deleted and (latter) recreated,
     //objects that were not modified are not touched by undo restore.
-    for (i = 0; i < NumDocumentElements; i++)
+    for (int i = 0; i < NumDocumentElements; i++)
     {
         if (TheDocument[i].Type == EXPRESSION)
         {
-            int j;
             int found = 0;
-            for (j = 0; j < UndoNumObjects; j++)
-                if (TheDocument[i].Object.exp == (CExpression*)pUndoObjectList[j].pOriginal &&
+            for (int j = 0; j < UndoNumObjects; j++)
+                if (TheDocument[i].Object.exp == pUndoObjectList[j].pOriginal.exp &&
                     pUndoObjectList[j].Type == TheDocument[i].Type &&
                     TheDocument[i].Object.exp->CalcChecksum() == pUndoObjectList[j].Checksum)
                 {
-                    int tmp = 1 << UndoNumLevels - 1;
+                    const int tmp = 1 << (UndoNumLevels - 1);
                     if (pUndoObjectList[j].UsedInLevel & tmp)
                     {
-                        found = 1;
+                        found = true;
                         break;
                     }
                 }
@@ -1643,16 +1630,16 @@ int CMainFrame::UndoRestore()
             }
         }else if (TheDocument[i].Type == DRAWING)
         {
-            int found = 0;
+            bool found = false;
             for (int j = 0; j < UndoNumObjects; j++)
-                if (TheDocument[i].Object.draw == (CDrawing*)pUndoObjectList[j].pOriginal &&
+                if (TheDocument[i].Object.draw == pUndoObjectList[j].pOriginal.draw &&
                     pUndoObjectList[j].Type == TheDocument[i].Type &&
                     TheDocument[i].Object.draw->CalcChecksum() == pUndoObjectList[j].Checksum)
                 {
-                    int tmp = 1 << UndoNumLevels - 1;
+                    const int tmp = 1 << (UndoNumLevels - 1);
                     if (pUndoObjectList[j].UsedInLevel & tmp)
                     {
-                        found = 1;
+                        found = true;
                         break;
                     }
                 }
@@ -1685,21 +1672,21 @@ int CMainFrame::UndoRestore()
     memcpy(TheDocument, UndoStruct[UndoNumLevels - 1].data, NumDocumentElements * sizeof(tDocumentStruct));
 
     //go through restored data and adjust pointer to objects
-    for (i = 0; i < NumDocumentElements; i++)
+    for (int i = 0; i < NumDocumentElements; i++)
     {
         //if (TheDocument[i].MovingDotState==4) TheDocument[i].MovingDotState=0;
         if (TheDocument[i].Object.exp)
         {
-            int cc = 1 << UndoNumLevels - 1; //MOD - added
+            const int cc = 1 << (UndoNumLevels - 1); //MOD - added
             int j;
-            int found = 0;
+            bool found = false;
             for (j = 0; j < UndoNumObjects; j++)
-                if ((CObject*)TheDocument[i].Object.exp == pUndoObjectList[j].pOriginal &&
+                if (TheDocument[i].Object.exp == pUndoObjectList[j].pOriginal.exp &&
                     pUndoObjectList[j].Type == TheDocument[i].Type &&
                     TheDocument[i].Checksum == pUndoObjectList[j].Checksum &&
                     pUndoObjectList[j].UsedInLevel & cc) //MOD - strenghtened
                 {
-                    found = 1;
+                    found = true;
                     break;
                 }
 
@@ -1713,17 +1700,17 @@ int CMainFrame::UndoRestore()
                 {
                     //we have to copy the object from our history list because it 
                     //doesn't exist in the original document
-                    if (pUndoObjectList[j].Type == 1)
+                    if (pUndoObjectList[j].Type == EXPRESSION)
                     {
                         TheDocument[i].Object.exp = new CExpression(
-                            nullptr, nullptr, ((CExpression*)pUndoObjectList[j].pObject)->m_FontSize);
+                            nullptr, nullptr, pUndoObjectList[j].pObject.exp->m_FontSize);
                         TheDocument[i].Object.exp->CopyExpression(
-                            (CExpression*)pUndoObjectList[j].pObject, 2);
+                            pUndoObjectList[j].pObject.exp, 2);
                     }
-                    else if (pUndoObjectList[j].Type == 2)
+                    else if (pUndoObjectList[j].Type == DRAWING)
                     {
                         TheDocument[i].Object.draw = new CDrawing();
-                        TheDocument[i].Object.draw->CopyDrawing((CDrawing*)pUndoObjectList[j].pObject);
+                        TheDocument[i].Object.draw->CopyDrawing(pUndoObjectList[j].pObject.draw);
                     }
                 }
             }
@@ -1741,30 +1728,32 @@ int CMainFrame::UndoRestore()
 
     free(oldDoc);
 
-
     //finally delete newest undo and non-needed objects
-    for (i = 0; i < UndoNumLevels - 1; i++)
-        if (UndoStruct[i].data == UndoStruct[UndoNumLevels - 1].data) break;
-    if (i == UndoNumLevels - 1) //no other level uses these data anymore, will be deleted
-        if (UndoStruct[UndoNumLevels - 1].data) free(UndoStruct[UndoNumLevels - 1].data);
+    for (int i = 0; i < UndoNumLevels - 1; i++)
+        if (UndoStruct[i].data == UndoStruct[UndoNumLevels - 1].data)
+        {
+            if (i == UndoNumLevels - 1) //no other level uses these data anymore, will be deleted
+                if (UndoStruct[UndoNumLevels - 1].data) free(UndoStruct[UndoNumLevels - 1].data);
+            break;
+        }
     UndoNumLevels--;
 
-    for (i = 0; i < UndoNumObjects; i++)
+    for (int i = 0; i < UndoNumObjects; i++)
     {
         int tmp = 0xFFFF << UndoNumLevels; //MOD -it wa 1<<UndoNumLevels
         tmp = ~tmp;
         pUndoObjectList[i].UsedInLevel = pUndoObjectList[i].UsedInLevel & tmp;
         if (pUndoObjectList[i].UsedInLevel == 0) //this object is not used anymore
         {
-            if (pUndoObjectList[i].Type == 1 && pUndoObjectList[i].pObject)
+            if (pUndoObjectList[i].Type == EXPRESSION && pUndoObjectList[i].pObject.exp)
             {
                 //((CExpression*)(pUndoObjectList[i].pObject))->Delete(); //MOD - removed (redundant)
-                delete (CExpression*)pUndoObjectList[i].pObject;
+                delete pUndoObjectList[i].pObject.exp;
             }
-            else if (pUndoObjectList[i].Type == 2 && pUndoObjectList[i].pObject)
+            else if (pUndoObjectList[i].Type == DRAWING && pUndoObjectList[i].pObject.draw)
             {
                 //((CDrawing*)(pUndoObjectList[i].pObject))->Delete();  //MOD - removed (redundant)
-                delete (CDrawing*)pUndoObjectList[i].pObject;
+                delete pUndoObjectList[i].pObject.draw;
             }
 
             //int j;								//MOD - following three lines modified (changed to single memmove)
@@ -1797,11 +1786,11 @@ int CMainFrame::UndoRelease(int exit_app)
 
 //parsing XML string until it finds the specified text
 //function must be fast!
-char* CMainFrame::XML_search(char* text, char* file)
+char* CMainFrame::XML_search(const std::string& text, char* file)
 {
     char is_quotation = 0;
     char is_inside = 0;
-    int text_len = (int)strlen(text);
+    size_t text_len = strlen(text.c_str());
     while (*file != 0)
     {
         char ch = *file;
@@ -1809,7 +1798,7 @@ char* CMainFrame::XML_search(char* text, char* file)
         if (ch == '>' && is_inside && !is_quotation) is_inside = 0;
         if (ch == '"' && is_inside && is_quotation) is_quotation = 0;
         else if (ch == '"' && is_inside && !is_quotation) is_quotation = 1;
-        if (strncmp(file, text, text_len) == 0 && is_inside && !is_quotation && ch > ' ' && ch != '<')
+        if (strncmp(file, text.c_str(), text_len) == 0 && is_inside && !is_quotation && ch > ' ' && ch != '<')
         {
             return file + text_len;
         }
@@ -1886,7 +1875,7 @@ int CMainFrame::RearangeObjects(int delta)
     for (int i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = TheDocument + i;
-        if ((char)(ds->MovingDotState & 0xC0) == (char)0x80)
+        if ((ds->MovingDotState & 0xC0) == 0x80)
         {
             int minx = ds->absolute_X;
             int maxx = ds->absolute_X + ds->Length;
@@ -1917,14 +1906,14 @@ int CMainFrame::RearangeObjects(int delta)
     delta = mx;
 
 
-    int fnd = 2;
+    bool fnd = true;
     while (fnd)
     {
-        fnd = 0;
+        fnd = false;
         for (int i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* ds = TheDocument + i;
-            if ((char)(ds->MovingDotState & 0xC0) == (char)0x80)
+            if ((ds->MovingDotState & 0xC0) == 0x80)
             {
                 //we found an object that is marked with high bit - we must 
                 //rearange other objects around it not to touch them (by moving them down)
@@ -1936,7 +1925,6 @@ int CMainFrame::RearangeObjects(int delta)
                 //if (ds->Type==1)
                 //	if (delta==0) maxy+=((CExpression*)(ds->Object))->m_FontSize/5;
 
-                int mx = 0;
                 for (int j = 0; j < NumDocumentElements; j++)
                 {
                     tDocumentStruct* ds2 = TheDocument + j;
@@ -1951,7 +1939,7 @@ int CMainFrame::RearangeObjects(int delta)
                         {
                             ds2->absolute_Y += delta;
                             ds2->MovingDotState |= 0x80;
-                            fnd = 1;
+                            fnd = true;
                         }
                     }
                 }
@@ -2065,7 +2053,7 @@ void DisplayShortText(const std::string& text, int x, int y, int langID, int fla
         0, //ClipPrecision
         0, //Quality
         0, //Pitch and Family
-        FontFacenames[fff]); //facename
+        FontFacenames[fff].c_str()); //facename
 
     StaticMessageWindow->SendMessage(WM_SETFONT, (WPARAM)StaticMessageWindowFont, 1);
     if (pref)

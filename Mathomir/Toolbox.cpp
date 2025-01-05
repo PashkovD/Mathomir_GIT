@@ -3293,7 +3293,7 @@ void CToolbox::UpdateToolbar(char force_redraw)
             mdc.FillSolidRect(0, 0, ToolboxSize, r.bottom,RGB(224, 224, 255));
 
         int h = ToolboxSize / 4;
-        mdc.SelectObject(GetFontFromPool(4, 0, 0,max(14, (ToolboxSize+30)/7)));
+        mdc.SelectObject(GetFontFromPool(4, 0, 0, max(14, (ToolboxSize+30)/7)));
         mdc.SetTextAlign(TA_RIGHT);
         mdc.SetBkMode(TRANSPARENT);
         char buff[64];
@@ -5649,7 +5649,7 @@ void CToolbox::OnClose()
 }
 
 
-extern char FontFacenames[4][32];
+extern std::string FontFacenames[4];
 extern char FontAdjustedSizes[4];
 extern unsigned char FontCharSet[4];
 extern unsigned int FontWeight[4];
@@ -5768,7 +5768,12 @@ int CToolbox::SaveSettings(char* filename) const
         fwrite(&MoveCursorOnWheel, sizeof(int), 1, fil);
         fwrite(&EnableMenuShortcuts, sizeof(int), 1, fil);
 
-        fwrite(&FontFacenames[0][0], 4 * 32, 1, fil);
+        char font_buffer[5][32];
+        for (int i = 0; i < 5; i++)
+        {
+            strcpy_s(font_buffer[i],FontFacenames[i].c_str());
+        }
+        fwrite(font_buffer[0], 4 * 32, 1, fil);
         fwrite(&FontAdjustedSizes[0], 4, 1, fil);
         fwrite(&FontCharSet[0], 4, 1, fil);
         fwrite(&FontWeight[0], 4 * sizeof(int), 1, fil);
@@ -5894,9 +5899,9 @@ int CToolbox::LoadSettings(char* filename)
     //saves toolbox setings and menu options
     char* orig_filename = filename;
 
-    char DefaultFilename[512];
     if (filename == nullptr)
     {
+        char DefaultFilename[512];
         is_first_load++;
         int j;
         strcpy_s(DefaultFilename,GetCommandLine());
@@ -6032,14 +6037,13 @@ int CToolbox::LoadSettings(char* filename)
     if (fil)
     {
         short dummy[16 * 9];
-        int i;
-        for (i = 0; i < 24; i++)
+        for (int i = 0; i < 24; i++)
         {
             fread(&ToolboxMembers[i].AcceleratorKey[0], sizeof(short), 28, fil);
             fread(dummy, sizeof(short), 4, fil); //for compatibility with earlier version
             fread(&ToolboxMembers[i].SelectedSubmember, sizeof(short), 1, fil);
         }
-        for (i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
             fread(dummy, sizeof(short), 32, fil); //for compatibility with earlier version
             fread(dummy, sizeof(short), 1, fil); //for compatibility with earlier version
@@ -6054,7 +6058,7 @@ int CToolbox::LoadSettings(char* filename)
         if (ToolboxFontFormating.SelectedUniform > 7) ToolboxFontFormating.SelectedUniform = 0;
 
         fread(dummy, sizeof(short), 1, fil);
-        for (i = 0; i < 32; i++)
+        for (int i = 0; i < 32; i++)
         {
             if (i < ToolboxFontFormating.NumFormats)
             {
@@ -6131,7 +6135,10 @@ int CToolbox::LoadSettings(char* filename)
         fread(&AutosaveOption, sizeof(int), 1, fil);
         fread(&MoveCursorOnWheel, sizeof(int), 1, fil);
         fread(&EnableMenuShortcuts, sizeof(int), 1, fil);
-        fread(&FontFacenames[0][0], 4 * 32, 1, fil);
+        char font_buffer[5][32];
+        fread(font_buffer, 4 * 32, 1, fil);
+        for (int i = 0; i < 5; i++)
+            FontFacenames[i] = font_buffer[i];
         fread(&FontAdjustedSizes[0], 4, 1, fil);
         fread(&FontCharSet[0], 4, 1, fil);
         fread(&FontWeight[0], 4 * sizeof(int), 1, fil);
@@ -6213,15 +6220,14 @@ int CToolbox::LoadSettings(char* filename)
             free(data);
         }
         //reading all keycode sequences
-        for (i = 0; i < 24; i++)
+        for (auto& toolbox_member : ToolboxMembers)
         {
-            fread(&ToolboxMembers[i].Keycodes[0], sizeof(char), 32 * 9, fil);
+            fread(&toolbox_member.Keycodes[0], sizeof(char), 32 * 9, fil);
         }
-        for (i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
             fread(dummy, sizeof(char), 32 * 9, fil);
         }
-
         fread(&UseToolbar, sizeof(int), 1, fil);
         fread(&ToolbarEditNodes, sizeof(int), 1, fil);
         fread(&ToolbarUseCross, sizeof(int), 1, fil);
@@ -6359,7 +6365,7 @@ CExpression* CToolbox::CheckForKeycodes(char* keystrokes, int* len)
         {
             char* keycode = &ToolboxMembers[i].Keycodes[j][0];
 
-            int l = (int)strlen(keycode);
+            size_t l = strlen(keycode);
             if (l < 1) continue;
 
             if (memcmp(keystrokes + l2 - l, keycode, l) == 0)
@@ -6450,7 +6456,7 @@ void CToolbox::ShowHelptext(const std::string& text, const std::string& command,
     if (buff[0])
     {
         DC->SelectObject(GetFontFromPool(4, 0, 0, 4 + ToolboxSize / 7));
-        int len = (int)strlen(buff);
+        size_t len = strlen(buff);
         int i = 0;
         int last = 0;
         while (i <= len)
@@ -6535,7 +6541,7 @@ void CToolbox::PickUpElementFromToolbox(int member, int submember)
         if (ToolboxMembers[member].userdef_mask & 1 << submember)
         {
             //user defined drawing was clicked
-            if (ClipboardDrawing) delete ClipboardDrawing;
+            delete ClipboardDrawing;
             ClipboardDrawing = new CDrawing();
             ClipboardDrawing->CopyDrawing((CDrawing*)ToolboxMembers[member].Submembers[submember]);
             ClipboardDrawing->FindBottomRightDrawingPoint(&MovingStartX, &MovingStartY);
@@ -6562,7 +6568,7 @@ void CToolbox::PickUpElementFromToolbox(int member, int submember)
 }
 
 #pragma optimize("s",on)
-int CToolbox::InsertIntoToolbox(void)
+int CToolbox::InsertIntoToolbox()
 {
     int member = ToolboxNumMembers;
     int submember = 0;

@@ -221,7 +221,7 @@ public:
     int FindLowestOperatorLevel(const unsigned int StartPos, const unsigned int EndPos, char default_operator = 0);
     int FindLowestOperatorLevel(char default_oper = 0);
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position
-    int Autocomplete(int is_internal);
+    int Autocomplete(bool is_internal);
     tElementStruct* GetElementStruct(CElement* element) const;
     CElement* DecodeInternalInsertionPoint();
     //returns nullptr if no insertion point found, otherwise the element (type=1) with the insertion point
@@ -294,7 +294,7 @@ public:
     int CodeDecodeUnitsOfMeasurement(int StartPos, int EndPos);
     int ComputeUnits();
     int SearchForString(char* str);
-    int ConvertToPlainText(int buffer_size, char* str, char force_parentheses = 0);
+    int ConvertToPlainText(int buffer_size, char* str, bool force_parentheses = false) const;
     int AutowrapText(CDC* DC, int width, int rewrap_all);
     int IsTextContained(int position, char unmark_at_line_start = 0);
     int GetCellAttributes(int row, int column, tCellAttributes* attributes);

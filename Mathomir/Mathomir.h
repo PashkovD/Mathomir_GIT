@@ -76,9 +76,13 @@ typedef struct UNDO1
 
 typedef struct UNDO2
 {
-    CObject* pObject;
-    CObject* pOriginal;
-    short Type;
+    union
+    {
+        CExpression* exp;
+        CDrawing* draw;
+        void* v;
+    } pObject, pOriginal;
+    doc_type Type;
     int UsedInLevel; //bitmask that tells us this object is used at what undo level
     int Checksum;
 } tUndoObjectStruct;
@@ -197,11 +201,11 @@ extern tPasswordDlgStruct* PasswordDlgStruct;
 extern char TheFileType;
 
 
-HFONT GetFontFromPool(char Face, char Italic, char Bold, unsigned short Size);
-HFONT GetFontFromPool(char combination, unsigned short Size);
+HFONT GetFontFromPool(char Face, bool Italic, bool Bold, unsigned short Size);
+HFONT GetFontFromPool(byte combination, unsigned short Size);
 void ClearFontPool();
 HPEN GetPenFromPool(short width, bool IsBlue, COLORREF color = 0);
-int PaintCheckedSign(CDC* DC, short x, short y, short size, char IsChecked);
+int PaintCheckedSign(CDC* DC, short x, short y, short size, bool IsChecked);
 void DisplayShortText(const std::string& text, int x, int y, int LanguageID, int flags = 0);
 int AddDocumentObject(doc_type type, int X, int Y);
 int CopyTranslatedString(char* dest, const std::string& defstr, int id, size_t destlen);

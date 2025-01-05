@@ -54,7 +54,7 @@ public:
     // finds crosspoint of an drawing item with horizontal line
     int FindCrosspointY(tDrawingItem* di, int Y, int X1, int X2, int* pX, int* pY);
     int InsertItemAt(int pos);
-    int Combine(void);
+    int Combine();
     int BreakApart(tDrawingItem* di, CDrawing* parent);
     int CopyDrawingIntoSubgroup(CDrawing* Original, int x, int y);
     int CopyExpressionIntoSubgroup(CExpression* Original, int x, int y, int widht, int height);
@@ -64,10 +64,10 @@ public:
     int MoveNodeCoordinate(int X, int Y);
     int AdjustCoordinates(int* x1, int* y1, int* w, int* h, int absX = 0x7FFFFFFF, int absY = 0x7FFFFFFF);
     int SetNodeEdit(int is_edit);
-    int AnyNodeSelected(void) const;
+    int AnyNodeSelected() const;
     // returns coordinates of the real upper left corner
     int FindRealCorner(int* X, int* Y, int* X2 = nullptr, int* Y2 = nullptr) const;
-    int CopyToWindowsClipboard(void) const;
+    auto CopyToWindowsClipboard(void) const -> int;
     int SplitLineAtPos(int X, int Y);
     int MouseClick(int X, int Y) const;
     int MouseMove(CDC* DC, int X, int Y, UINT flags) const;
@@ -154,7 +154,7 @@ public:
     char editing;
 
     CBitmapImage(CDrawing* BaseItem);
-    ~CBitmapImage(void);
+    ~CBitmapImage();
 
     int Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg);
     int MouseMove(CDC* DC, int X, int Y, UINT flags);

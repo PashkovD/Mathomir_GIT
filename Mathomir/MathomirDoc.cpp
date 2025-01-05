@@ -235,7 +235,6 @@ int CMathomirDoc::OpenMOMFile(char* filename)
     XMLFileVersion = filename ? 1 : 2;
     int OrigNumElements;
     char* file_buffer = nullptr;
-    char* file_pointer;
     FILE* fil = nullptr;
     HANDLE clipb_data = nullptr;
     int len;
@@ -264,8 +263,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
 
         //first deselect everything 
         //(when reading from clipboard we do not delete previous content, but simply adding to it)
-        int i;
-        for (i = 0; i < NumDocumentElements; i++)
+        for (int i = 0; i < NumDocumentElements; i++)
         {
             if (TheDocument[i].MovingDotState != 5)
                 TheDocument[i].MovingDotState &= 0x80; //clear everything except msb
@@ -276,7 +274,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                     if (TheDocument[i].Type == EXPRESSION)
                         TheDocument[i].Object.exp->DeselectExpressionExceptKeyboardSelection();
                     else if (TheDocument[i].Type == DRAWING)
-                        ((CDrawing*)TheDocument[i].Object.exp)->SelectDrawing(false);
+                        TheDocument[i].Object.draw->SelectDrawing(false);
                 }
         }
 
@@ -309,7 +307,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
     }
 
     //reserve memory where file will be loaded
-    file_buffer = (char*)malloc(len + 1);
+    file_buffer = new char[len + 1];
     if (file_buffer == nullptr)
     {
         if (filename == nullptr) CloseClipboard();
@@ -366,7 +364,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
         OrigNumElements = NumDocumentElements;
     }
 
-    file_pointer = file_buffer;
+    char* file_pointer = file_buffer;
     file_pointer[len] = 0;
 
     //parsing file  -  object by object  -  the MOM file has XML structure
@@ -388,9 +386,9 @@ int CMathomirDoc::OpenMOMFile(char* filename)
 
                     int lock = 0;
                     char attribute[128];
-                    char value[128];
                     do
                     {
+                        char value[128];
                         file_pointer = ((CMainFrame*)theApp.m_pMainWnd)->XML_read_attribute(
                             attribute, value, file_pointer, 128);
                         if (file_pointer == 0) goto openMOMfile_end; //unexpected end of file
@@ -506,12 +504,11 @@ openMOMfile_end:
         else
         {
             //adjusting position of objects pasted from clipboard (depending on the mouse pointer position)
-            int i;
             int MinX = 0x7FFFFFFF, MinY = 0x7FFFFFFF;
             int MaxX = -MinX;
             int MaxY = -MinY;
             tDocumentStruct* ds = TheDocument + OrigNumElements;
-            for (i = OrigNumElements; i < NumDocumentElements; i++, ds++)
+            for (int i = OrigNumElements; i < NumDocumentElements; i++, ds++)
             {
                 if (ds->absolute_X < MinX) MinX = ds->absolute_X;
                 if (ds->absolute_Y - ds->Above < MinY) MinY = ds->absolute_Y - ds->Above;
@@ -532,7 +529,7 @@ openMOMfile_end:
 
             int DeltaX = (MinX + MaxX) / 2 - p.x;
             int DeltaY = (MinY + MaxY) / 2 - p.y;
-            for (i = OrigNumElements; i < NumDocumentElements; i++)
+            for (int i = OrigNumElements; i < NumDocumentElements; i++)
             {
                 TheDocument[i].absolute_X -= DeltaX;
                 TheDocument[i].absolute_Y -= DeltaY;
@@ -556,7 +553,7 @@ openMOMfile_end:
 #endif
     }
     else
-        SetModifiedFlag(1); //when pasting 
+        SetModifiedFlag(true); //when pasting 
 
     if (!dont_empty_clipboard) //this flag is set if it is called from OnActivate()
     {
@@ -1001,11 +998,11 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
 
 
 #ifdef TEACHER_VERSION
-    unsigned char* pkey = nullptr;
+    byte* pkey = nullptr;
     if (type == 'r' || type == 'e')
     {
         //if this is an exam or exam result
-        pkey = (unsigned char*)malloc(1026);
+        pkey = new byte[1026];
         CDiffieHellman* DH = new CDiffieHellman();
         int64_t N, X, Y, key;
 
@@ -1046,8 +1043,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
 
         //add some random numbers
         unsigned int random_numbers = (unsigned int)(GetTickCount() % 64) + passlen;
-        char* buf2;
-        buf2 = (char*)malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64);
+        char* buf2 = (char*)malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64);
         buf = (char*)malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64);
         len += random_numbers;
         memcpy(buf + random_numbers, *buffer, len);
@@ -1197,8 +1193,8 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
                 PublicKey[i].N = *(__int64*)(*buffer + 16 * i);
                 PublicKey[i].X = *(__int64*)(*buffer + 16 * i + 8);
             }
-            TheTimeLimit = *(unsigned char*)(*buffer + 1024);
-            TheMathFlags = *(unsigned char*)(*buffer + 1025);
+            TheTimeLimit = *(byte*)(*buffer + 1024);
+            TheMathFlags = *(byte*)(*buffer + 1025);
         }
         len -= 1026;
         memmove(*buffer, *buffer + 1026, len);

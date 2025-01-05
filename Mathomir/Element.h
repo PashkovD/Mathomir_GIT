@@ -10,7 +10,7 @@ public:
     //void operator delete(void *p);
 
 public:
-    CObject* m_pPaternalExpression;
+    CExpression* m_pPaternalExpression;
     short* Data3;
     CExpression* Expression1;
     CExpression* Expression2;
