@@ -126,7 +126,7 @@ int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int abs
         DC->SetTextAlign(TA_LEFT | TA_TOP);
         DC->SetBkColor(RGB(240, 240, 240));
         DC->SetBkMode(TRANSPARENT);
-        DC->SelectObject(GetFontFromPool(4, 0, 0, 13));
+        DC->SelectObject(GetFontFromPool(4, false, false, 13));
         const std::string str1 = GetTranslatedString("Update", 5072);
         const std::string str2 = GetTranslatedString("Edit", 5070);
         const std::string str3 = GetTranslatedString("Load", 5071);

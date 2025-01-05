@@ -634,7 +634,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     //first, calculate briefly the length of the output data
 
     if (save_keyboard_clipboard)
-        len += TheKeyboardClipboard->XML_output(dummy, 1, 1);
+        len += TheKeyboardClipboard->XML_output(dummy, 1, true);
     else
     {
         tDocumentStruct* ds = TheDocument;
@@ -645,7 +645,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
                 if (filename || ds->MovingDotState == 3)
                 {
                     if (ds->Type == EXPRESSION)
-                        len += ds->Object.exp->XML_output(dummy, 0, 1);
+                        len += ds->Object.exp->XML_output(dummy, 0, true);
                     else if (ds->Type == DRAWING)
                         len += ds->Object.draw->XML_output(dummy, 0, 1);
                 }
@@ -686,7 +686,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         len += tmp;
 
         tmp = 0;
-        tmp = TheKeyboardClipboard->XML_output(file_pointer, 1, 0);
+        tmp = TheKeyboardClipboard->XML_output(file_pointer, 1, false);
         len += tmp;
         file_pointer += tmp;
 
@@ -772,7 +772,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
 
                     int tmp = 0;
                     if (ds->Type == EXPRESSION)
-                        tmp = ds->Object.exp->XML_output(file_pointer, 0, 0);
+                        tmp = ds->Object.exp->XML_output(file_pointer, 0, false);
                     else
                         tmp = ds->Object.draw->XML_output(file_pointer, 0, 0);
                     len += tmp;

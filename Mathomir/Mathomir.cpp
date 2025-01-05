@@ -156,7 +156,7 @@ int MouseMode = 0; //0=free moving, 1=right click moving, (many more)...
 CExpression* ClipboardExpression = nullptr;
 CExpression* prevClipboardExpression;
 CDrawing* ClipboardDrawing = nullptr;
-CObject* KeyboardEntryObject = nullptr;
+CExpression* KeyboardEntryObject = nullptr;
 tDocumentStruct* KeyboardEntryBaseObject = nullptr;
 int IsHighQualityRendering = 0;
 int IsHalftoneRendering = 0;

@@ -520,7 +520,7 @@ void CMathomirView::OnDraw(CDC* pDC)
             int sz = 20 * ViewZoom / 100;
             HDC hh = pDC->m_hAttribDC;
             pDC->m_hAttribDC = pDC->m_hDC;
-            pDC->SelectObject(GetFontFromPool(4, 0, 0, sz));
+            pDC->SelectObject(GetFontFromPool(4, false, false, sz));
             pDC->m_hAttribDC = hh;
             pDC->SetBkColor(RGB(255, 255, 255));
             pDC->SetBkMode(OPAQUE);
@@ -660,7 +660,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                 if (PageNumeration & 0x0F)
                 {
                     int sz = 20 * ViewZoom / 100;
-                    bitmapDC.SelectObject(GetFontFromPool(4, 0, 0, sz));
+                    bitmapDC.SelectObject(GetFontFromPool(4, false, false, sz));
                     bitmapDC.SetBkColor(RGB(255, 255, 255));
                     bitmapDC.SetBkMode(OPAQUE);
                     bitmapDC.SetTextColor(RGB(128, 128, 128));
@@ -856,7 +856,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                     int w = (abs(len * 32 / ViewZoom) + 230) / 64 + 4;
                     QuickDrawingWidth = width & 0xFFFF | w << 16;
                     bitmapDC.SelectObject(
-                        GetPenFromPool(max(w*ViewZoom/400, 2), 0, do_draw ? RGB(128, 128, 128) : RGB(224, 224, 224)));
+                        GetPenFromPool(max(w*ViewZoom/400, 2), false, do_draw ? RGB(128, 128, 128) : RGB(224, 224, 224)));
 
                     if (abs(width) < abs(len / 48) + 5)
                     {
@@ -1140,7 +1140,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                     }
 
 
-                    bitmapDC.SelectObject(GetFontFromPool(4, 0, 0, 14));
+                    bitmapDC.SelectObject(GetFontFromPool(4, false, false, 14));
                     tillen++;
                     char buff[16];
                     itoa(tillen, buff, 10);
@@ -1960,7 +1960,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                             CObject* ret = e->SelectObjectAtPoint(DC, ViewZoom, X, Y, &IsExpression, &IsParenthese, 1);
 
                             if (ret == nullptr && IsExpression == 0)
-                                if ((CObject*)e == KeyboardEntryObject && e->m_IsKeyboardEntry)
+                                if (e == KeyboardEntryObject && e->m_IsKeyboardEntry)
                                 //check if clicked at keyboard cursor itself
                                 {
                                     int cX, cY;
@@ -2047,9 +2047,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     nullptr && MouseMode == 0) //multiple selection started
                 {
                     //we are entering multiple selection mode
-                    if (KeyboardEntryObject)
+                    if (KeyboardEntryObject != nullptr)
                     {
-                        CExpression* expr = (CExpression*)KeyboardEntryObject;
+                        CExpression* expr = KeyboardEntryObject;
                         if (expr->m_pPaternalExpression == nullptr)
                             if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->
                                 m_NumElements == 0)
@@ -2672,17 +2672,17 @@ int GuidlinesFirstPass;
 
 bool AreGuidlinesEnabled()
 {
-    if (ViewOnlyMode) return 0;
-    if (GuidlineElement == -2 || IsDrawingMode || ShowRullerCounter == 0) return 0;
+    if (ViewOnlyMode) return false;
+    if (GuidlineElement == -2 || IsDrawingMode || ShowRullerCounter == 0) return false;
     if (GetKeyState(VK_CONTROL) & 0xFFFE)
     {
-        if (SnapToGuidlines) return 0;
+        if (SnapToGuidlines) return false;
     }
     else
     {
-        if (!SnapToGuidlines) return 0;
+        if (!SnapToGuidlines) return false;
     }
-    return 1;
+    return true;
 }
 
 bool CheckForGuidlines(int i, int AbsoluteX, int AbsoluteY, int show_range)
@@ -2717,10 +2717,10 @@ bool CheckForGuidlines(int i, int AbsoluteX, int AbsoluteY, int show_range)
                 if (i == prevGuidlineElement || i == prevGuidlineElement2)
                 {
                     GuidlineLocked = 1;
-                    return 1;
+                    return true;
                 }
             }
-            if (GuidlineLocked) return 0;
+            if (GuidlineLocked) return false;
 
             if (AbsoluteX >= ds->absolute_X - 9 && AbsoluteX < ds->absolute_X + 9)
             {
@@ -2741,7 +2741,7 @@ bool CheckForGuidlines(int i, int AbsoluteX, int AbsoluteY, int show_range)
                     if (ds->absolute_Y < -1050) GuidlinesMaxDistance = 0;
                     if (GuidlineElement < 0)
                     {
-                        return 1;
+                        return true;
                     }
                     else
                     {
@@ -2759,14 +2759,14 @@ bool CheckForGuidlines(int i, int AbsoluteX, int AbsoluteY, int show_range)
                         if (ds2->absolute_Y < -1050) dist2 = -1;
                         if (ds->absolute_Y < -1050) dist1 = -1;
 
-                        if (dist1 < dist2) return 1;
+                        if (dist1 < dist2) return true;
                     }
                 }
             }
         }
     }
 
-    return 0;
+    return false;
 }
 
 void CMathomirView::PaintDrawingHotspot(char erase_only)
@@ -2845,7 +2845,7 @@ void CMathomirView::PaintDrawingHotspot(char erase_only)
                                 CPen pen(PS_SOLID, 1,RGB(224, 224, 224));
                                 dc->SelectObject(pen);
 
-                                if (1)
+                                if (true)
                                 {
                                     dc->MoveTo(0, prevCrossY);
                                     dc->LineTo(prevCrossX - 50, prevCrossY);
@@ -3670,8 +3670,8 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 {
                     if (ds->Type == EXPRESSION)
                         KeyboardEntryObject
-                                           ? ds->Object.exp->DeselectExpressionExceptKeyboardSelection()
-                                           : ds->Object.exp->DeselectExpression();
+                            ? ds->Object.exp->DeselectExpressionExceptKeyboardSelection()
+                            : ds->Object.exp->DeselectExpression();
                     else if (ds->Type == DRAWING)
                         ds->Object.draw->SelectDrawing(false);
                 }
@@ -4771,7 +4771,7 @@ void CMathomirView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
         int ALTstate = GetKeyState(18) & 0xFFFE; //the ALT key
 
 
-        if (KeyboardEntryObject == 0 && ALTstate && nChar == ' ')
+        if (KeyboardEntryObject == nullptr && ALTstate && nChar == ' ')
         {
             //ALT+space is used to select objects
         }
@@ -4950,7 +4950,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                     CDC* DC = this->GetDC();
                     int tmp = IsALTDown;
                     IsALTDown = 1;
-                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, ViewZoom, ' ', 0, 0, 0, 1);
+                    KeyboardEntryObject->KeyboardKeyHit(DC, ViewZoom, ' ', 0, 0, 0, true);
                     IsALTDown = tmp;
                     this->ReleaseDC(DC);
                 }
@@ -5704,7 +5704,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             {
                 if (KeyboardEntryObject)
                 {
-                    CExpression* e = (CExpression*)KeyboardEntryObject;
+                    CExpression* e = KeyboardEntryObject;
                     int i = 0;
                     for (; i < e->m_NumElements; i++)
                         if ((e->m_pElementList + i)->IsSelected == 2) break;
@@ -5716,7 +5716,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                         CDC* DC = this->GetDC();
                         short l, a, b;
                         ClipboardExpression->CalculateSize(*DC, ViewZoom, l, &a, &b);
-                        e->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, 0);
+                        e->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, false);
                         this->ReleaseDC(DC);
                         return;
                     }
@@ -5802,7 +5802,7 @@ int CMathomirView::ScrollCursorIntoView()
 
             RepaintAll = 1;
 
-            int tmp = ((CExpression*)KeyboardEntryObject)->m_FontSize / 8; //*ViewZoom/100;
+            int tmp = KeyboardEntryObject->m_FontSize / 8; //*ViewZoom/100;
 
             int bottom = KeyboardEntryBaseObject->absolute_Y + KeyboardEntryBaseObject->Below;
             if (bottom > Y + 6 * tmp) bottom = Y + 6 * tmp;
@@ -5880,8 +5880,8 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             if (KeyboardEntryBaseObject->Object.v == nullptr) return;
             if (KeyboardEntryBaseObject->Type > 10) return;
-            if (((CExpression*)KeyboardEntryObject)->m_NumElements < 0) return;
-            if (((CExpression*)KeyboardEntryObject)->m_pElementList == nullptr) return;
+            if (KeyboardEntryObject->m_NumElements < 0) return;
+            if (KeyboardEntryObject->m_pElementList == nullptr) return;
         }
         catch (...)
         {
@@ -5916,13 +5916,13 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
         }
 
 
-        if (nChar != -1) ret = ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-            DC, ViewZoom, nChar, nRepCnt, nFlags, fcolor, 1);
+        if (nChar != -1) ret = KeyboardEntryObject->KeyboardKeyHit(
+            DC, ViewZoom, nChar, nRepCnt, nFlags, fcolor, true);
 
         if (ret == 0 || ret == 88)
         {
             //keyboard entry finised - if expression left empty, delete it
-            ((CExpression*)KeyboardEntryObject)->KeyboardStop();
+            KeyboardEntryObject->KeyboardStop();
             if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
             {
                 CExpression* expr = KeyboardEntryBaseObject->Object.exp;
@@ -5963,7 +5963,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (nChar != 6 && nChar <= ' ') if (UseToolbar && Toolbox->Toolbar) Toolbox->Toolbar->
             ConfigureToolbar();
 
-        if (nChar != 6 && KeyboardEntryObject && ((CExpression*)KeyboardEntryObject)->m_IsKeyboardEntry)
+        if (nChar != 6 && KeyboardEntryObject && KeyboardEntryObject->m_IsKeyboardEntry)
         {
             if (nChar == 0x08 || nChar == 0x0D || nChar == 0x07) //possible the typing mode was changed
             {
@@ -5979,15 +5979,14 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
             }
             else
             {
-                CElement* elm = (((CExpression*)KeyboardEntryObject)->m_pElementList + ((CExpression*)
-                    KeyboardEntryObject)->m_IsKeyboardEntry - 1)->pElementObject;
-                int position = ((CExpression*)KeyboardEntryObject)->m_IsKeyboardEntry - 1;
-                if (LastEditedExp2 != (CExpression*)KeyboardEntryObject)
+                int position = KeyboardEntryObject->m_IsKeyboardEntry - 1;
+                CElement* elm = KeyboardEntryObject->m_pElementList[position].pElementObject;
+                if (LastEditedExp2 != KeyboardEntryObject)
                 {
                     {
                         KeystrokesList[0] = 0;
                         KeystrokesListLen = 0;
-                        LastEditedExp2 = (CExpression*)KeyboardEntryObject;
+                        LastEditedExp2 = KeyboardEntryObject;
                     }
                 }
 
@@ -6028,8 +6027,8 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 short l, a, b;
                                 tmp->CalculateSize(*DC, ViewZoom, l, &a, &b);
                                 ClipboardExpression = tmp;
-                                KeyboardEntryObject = (CObject*)LastEditedExp2;
-                                LastEditedExp2->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, 0);
+                                KeyboardEntryObject = LastEditedExp2;
+                                LastEditedExp2->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, false);
                                 KeystrokesList[0] = 0;
                                 KeystrokesListLen = 0;
                             }
@@ -6054,7 +6053,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     {
                         if (IsSpacebarOnlyHit != 10)
                             /*if (!DisableAutocomplete) */
-                            ((CExpression*)KeyboardEntryObject)->Autocomplete(0);
+                            KeyboardEntryObject->Autocomplete(false);
 
                         if (AutocompleteSource != prevAutocompleteSource || AutocompleteTriggered !=
                             prevAutocompleteTriggered)
@@ -6087,7 +6086,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     if (RepaintAll >= 0)
                     {
                         CExpression* e = KeyboardEntryBaseObject->Object.exp;
-                        if (e == (CExpression*)KeyboardEntryObject && e->IsTextContained(-1))
+                        if (e == KeyboardEntryObject && e->IsTextContained(-1))
                         {
                             for (int l = 0; l < NumRullerGuidelines; l++)
                             {
@@ -7152,7 +7151,7 @@ void CMathomirView::OnTimer(UINT nIDEvent)
                                 if (ClipboardExpression == nullptr) ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                                 ClipboardExpression->Delete();
                                 ClipboardExpression->XML_input(data);
-                                if (KeyboardEntryObject) ((CExpression*)KeyboardEntryObject)->KeyboardStop();
+                                if (KeyboardEntryObject) KeyboardEntryObject->KeyboardStop();
                             }
                             if (*control == 0xAABBCC22 && *checksum != LastTakenChecksum)
                             {
@@ -7498,7 +7497,7 @@ void CMathomirView::OnSysKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (KeyboardEntryObject)
         {
             //this code allows Space+Alt to be interpreted as Alt+Space (changing the math/text typing mode)
-            CExpression* exp = (CExpression*)KeyboardEntryObject;
+            CExpression* exp = KeyboardEntryObject;
             if (exp->m_NumElements != 1 || exp->m_pElementList->Type != 1 || exp->m_pElementList->pElementObject->
                 Data1[0] != 0)
                 if (GetKeyState(VK_SPACE) & 0xFFFE && nChar == VK_MENU)
@@ -7763,7 +7762,7 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
             int prop = DC->SetROP2(R2_MASKPEN);
 
             HBRUSH br = CreateSolidBrush(RGB(224, 224, 255));
-            HPEN pn = GetPenFromPool(1, 0, ds->Type == EXPRESSION ? PALE_RGB(BLUE_COLOR) : RGB(240, 240, 255));
+            HPEN pn = GetPenFromPool(1, false, ds->Type == EXPRESSION ? PALE_RGB(BLUE_COLOR) : RGB(240, 240, 255));
             HBRUSH obr = (HBRUSH)DC->SelectObject(br);
             DC->SelectObject(pn);
 
@@ -7952,8 +7951,9 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                                     {
                                                         for (; start < end; start++)
                                                         {
-                                                            if (KeyboardEntryObject && KeyboardEntryObject == (
-                                                                CObject*)obj && start == obj->m_IsKeyboardEntry - 1)
+                                                            if (KeyboardEntryObject &&
+                                                                KeyboardEntryObject == obj &&
+                                                                start == obj->m_IsKeyboardEntry - 1)
                                                                 break;
                                                             obj->SelectElement(1, start);
                                                         }
@@ -8071,8 +8071,8 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                             else if (KeyboardEntryObject)
                             {
                                 //finishing keyboard entry mode
-                                ((CExpression*)KeyboardEntryObject)->KeyboardStop();
-                                CExpression* expr = (CExpression*)KeyboardEntryObject;
+                                KeyboardEntryObject->KeyboardStop();
+                                CExpression* expr = KeyboardEntryObject;
                                 if (expr->m_pPaternalExpression == nullptr)
                                     if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->
                                         m_NumElements == 0)
@@ -8307,7 +8307,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             //clicked at text internal insertion point
                             if (KeyboardEntryObject)
                             {
-                                CExpression* expr = (CExpression*)KeyboardEntryObject;
+                                CExpression* expr = KeyboardEntryObject;
                                 expr->KeyboardStop();
                                 KeyboardEntryObject = nullptr;
                                 if (expr->m_pPaternalExpression == nullptr)
@@ -8322,7 +8322,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
                             CExpression* selection = elm->m_pPaternalExpression;
                             KeyboardEntryBaseObject = ds;
-                            KeyboardEntryObject = (CObject*)selection;
+                            KeyboardEntryObject = selection;
                             selection->KeyboardStart(DC, ViewZoom);
 
                             short l, a, b;
@@ -8349,7 +8349,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         if (KeyboardEntryObject)
                         {
                             //already active keyboard entry mode, switch it off
-                            CExpression* expr = (CExpression*)KeyboardEntryObject;
+                            CExpression* expr = KeyboardEntryObject;
                             prevKeyObj = expr;
                             expr->KeyboardStop();
 
@@ -8372,7 +8372,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
 
                         IsDrawingMode = 0;
-                        KeyboardEntryObject = obj;
+                        KeyboardEntryObject = (CExpression*)obj;
                         KeyboardEntryBaseObject = ds;
                         ((CExpression*)obj)->KeyboardStart(DC, ViewZoom);
 
@@ -8389,7 +8389,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             InvalidateRect(nullptr, 0);
                             UpdateWindow();
                         }
-                        else if (prevKeyObj != (CExpression*)KeyboardEntryObject)
+                        else if (prevKeyObj != KeyboardEntryObject)
                         {
                             InvalidateRect(nullptr, 0);
                             UpdateWindow();
@@ -8400,7 +8400,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         //it may be that it is clicked on the keyboard cursor itself - check it
 
                         if (!WasWindowOutOfFocus)
-                            if ((CObject*)ds->Object.v == KeyboardEntryObject && ds->Object.exp->m_IsKeyboardEntry)
+                            if (ds->Object.exp == KeyboardEntryObject && ds->Object.exp->m_IsKeyboardEntry)
                             {
                                 int cX, cY;
                                 if (ds->Object.exp->GetKeyboardCursorPos(&cX, &cY))
@@ -8722,8 +8722,8 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         if (KeyboardEntryObject && KeyboardEntryBaseObject)
                         {
                             mark_for_redraw = 1;
-                            CExpression* ee = (CExpression*)KeyboardEntryObject;
-                            if (KeyboardEntryBaseObject->Object.v == KeyboardEntryObject &&
+                            CExpression* ee = KeyboardEntryObject;
+                            if (KeyboardEntryBaseObject->Object.exp == KeyboardEntryObject &&
                                 ee->m_NumElements == 1 &&
                                 (ee->m_pElementList->Type == 0 || (ee->m_pElementList->Type == 1 && ee->
                                     m_pElementList->pElementObject->Data1[0] == 0)))
@@ -8735,7 +8735,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                                 KeyboardEntryObject = nullptr;
                             }
                             else
-                                ((CExpression*)KeyboardEntryObject)->KeyboardStop();
+                                KeyboardEntryObject->KeyboardStop();
                         }
 
                         //clicked just below a multiline or text object - we will append a new line to that object
@@ -8752,7 +8752,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             m_Text = 1;
                         e->m_IsKeyboardEntry = e->m_NumElements;
                         e->m_Alignment = 1;
-                        KeyboardEntryObject = (CObject*)e;
+                        KeyboardEntryObject = e;
                         KeyboardEntryBaseObject = &TheDocument[NewlineAddObject & 0x3FFFFFFF];
                         /*short l,a,b;
                         CDC *DC=this->GetDC();
@@ -9356,7 +9356,7 @@ void CMathomirView::OnTextend()
 {
     if (KeyboardEntryObject)
     {
-        CExpression* expr = (CExpression*)KeyboardEntryObject;
+        CExpression* expr = KeyboardEntryObject;
         expr->KeyboardStop();
         KeyboardEntryObject = nullptr;
         if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->m_NumElements == 0)
@@ -10069,8 +10069,8 @@ void CMathomirView::OnEditUndo()
     //first stop the keyboard entry mode if it is active
     if (KeyboardEntryObject)
     {
-        ((CExpression*)KeyboardEntryObject)->KeyboardStop();
-        CExpression* expr = (CExpression*)KeyboardEntryObject;
+        KeyboardEntryObject->KeyboardStop();
+        CExpression* expr = KeyboardEntryObject;
         if (expr->m_pPaternalExpression == nullptr)
             if ((expr->m_NumElements == 1 && expr->m_pElementList->Type == 0) || expr->m_NumElements == 0)
             {
@@ -10089,16 +10089,15 @@ void CMathomirView::OnEditUndo()
     UndoRestore();
 
 
-    int i;
     int found_keyboard_entry = 0;
-    for (i = 0; i < NumDocumentElements; i++)
+    for (int i = 0; i < NumDocumentElements; i++)
     {
         if (TheDocument[i].Type == EXPRESSION && TheDocument[i].Object.exp)
         {
             CExpression* expr = TheDocument[i].Object.exp;
 
             //check if any object was in keyboard entry mode - if yes start the keyboard entry
-            CObject* ret = expr->KeyboardFindEntryPos();
+            CExpression* ret = expr->KeyboardFindEntryPos();
             if (ret)
             {
                 if (found_keyboard_entry == 0)
@@ -10108,7 +10107,7 @@ void CMathomirView::OnEditUndo()
                     found_keyboard_entry = 1;
                 }
                 else
-                    ((CExpression*)ret)->m_IsKeyboardEntry = 0;
+                    ret->m_IsKeyboardEntry = 0;
             }
             expr->DeselectExpression();
         }
@@ -10169,7 +10168,7 @@ void CMathomirView::OnHelpQuickguide()
 {
     int use_internal_file = 0;
     char DefaultFilename[512];
-    if (1)
+    if (true)
     {
         int j;
         DefaultFilename[0] = 0;
@@ -10483,7 +10482,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
     //clicked on empty screen, we are adding new empty expression
     if (KeyboardEntryObject)
     {
-        CExpression* expr = (CExpression*)KeyboardEntryObject;
+        CExpression* expr = KeyboardEntryObject;
         expr->KeyboardStop();
         KeyboardEntryObject = nullptr;
         if (expr->m_pPaternalExpression == nullptr)
@@ -10530,7 +10529,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
     if (ds->Object.exp->m_pElementList->pElementObject)
         ds->Object.exp->m_pElementList->pElementObject->m_Text = (char)start_textmode;
     ds->Object.exp->m_ModeDefinedAt = 1 + (start_textmode << 14);
-    KeyboardEntryObject = (CObject*)ds->Object.v;
+    KeyboardEntryObject = ds->Object.exp;
     KeyboardEntryBaseObject = ds;
     MultipleStartX = MultipleStartY = -1;
     GentlyPaintObject(ds, DC);
@@ -10999,13 +10998,13 @@ void CMathomirView::OnFontfacesSetfontstodefaullts()
 }
 
 #pragma optimize("s",on)
-void CMathomirView::KeyboardSelectionCut(int no_copy)
+void CMathomirView::KeyboardSelectionCut(bool no_copy)
 {
-    if (!no_copy) KeyboardSelectionCopy(1);
-    CExpression* e = (CExpression*)KeyboardEntryObject;
+    if (!no_copy) KeyboardSelectionCopy(true);
+    CExpression* e = KeyboardEntryObject;
 
     int mi = 0;
-    int i = 0;
+    int i;
     for (i = 0; i < e->m_NumElements; i++)
     {
         if ((e->m_pElementList + i)->IsSelected == 2)
@@ -11032,7 +11031,7 @@ void CMathomirView::KeyboardSelectionCut(int no_copy)
 }
 
 #pragma optimize("s",on)
-void CMathomirView::KeyboardSelectionCopy(int no_deselect)
+void CMathomirView::KeyboardSelectionCopy(bool no_deselect)
 {
     if (TheKeyboardClipboard) delete TheKeyboardClipboard;
     TheKeyboardClipboard = new CExpression(nullptr,nullptr, DefaultFontSize);
@@ -11053,7 +11052,7 @@ void CMathomirView::KeyboardSelectionCopy(int no_deselect)
     if (TheKeyboardClipboard->m_NumElements == 1 && TheKeyboardClipboard->m_pElementList->Type == 0)
     {
         delete TheKeyboardClipboard;
-        TheKeyboardClipboard = 0;
+        TheKeyboardClipboard = nullptr;
     }
 }
 
@@ -11068,8 +11067,7 @@ void CMathomirView::KeyboardSelectionPaste()
         //try to paste text 
         if (theApp.m_pMainWnd->OpenClipboard())
         {
-            HANDLE clipb_data;
-            clipb_data = GetClipboardData(CF_TEXT);
+            HANDLE clipb_data = GetClipboardData(CF_TEXT);
             if (clipb_data == nullptr)
                 CloseClipboard();
             else
@@ -11086,16 +11084,14 @@ void CMathomirView::KeyboardSelectionPaste()
                     ((CMainFrame*)theApp.m_pMainWnd)->UndoDisableSaving();
                     //int enterkey=0;
                     InhibitParentheseMerging = 1;
-                    int IsText = 0;
-                    IsText = ((CExpression*)KeyboardEntryObject)->DetermineInsertionPointType(
-                        ((CExpression*)KeyboardEntryObject)->m_IsKeyboardEntry - 1);
+                    int IsText = KeyboardEntryObject->DetermineInsertionPointType(
+                        KeyboardEntryObject->m_IsKeyboardEntry - 1);
 
                     for (int i = 0; i < len; i++)
                     {
-                        UINT ch, flags;
                         int fcolor = 0;
-                        flags = 0;
-                        ch = (UINT)*((unsigned char*)pntr + i);
+                        UINT flags = 0;
+                        UINT ch = *((unsigned char*)pntr + i);
                         if (Toolbox)
                         {
                             fcolor = Toolbox->GetFormattingColor();
@@ -11123,17 +11119,17 @@ void CMathomirView::KeyboardSelectionPaste()
                                     ch2 >= '0' && ch2 <= '9' && ch3 >= '0' && ch3 <= '9')
                                 {
                                     //handling strings like 1e+5
-                                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                        DC, ViewZoom, '*', 0, flags, fcolor, 0);
-                                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                        DC, ViewZoom, '1', 0, flags, fcolor, 0);
-                                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                        DC, ViewZoom, '0', 0, flags, fcolor, 0);
-                                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                        DC, ViewZoom, '^', 0, flags, fcolor, 0);
+                                    KeyboardEntryObject->KeyboardKeyHit(
+                                        DC, ViewZoom, '*', 0, flags, fcolor, false);
+                                    KeyboardEntryObject->KeyboardKeyHit(
+                                        DC, ViewZoom, '1', 0, flags, fcolor, false);
+                                    KeyboardEntryObject->KeyboardKeyHit(
+                                        DC, ViewZoom, '0', 0, flags, fcolor, false);
+                                    KeyboardEntryObject->KeyboardKeyHit(
+                                        DC, ViewZoom, '^', 0, flags, fcolor, false);
                                     if (ch1 == '-')
-                                        ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                            DC, ViewZoom, '-', 0, flags, fcolor, 0);
+                                        KeyboardEntryObject->KeyboardKeyHit(
+                                            DC, ViewZoom, '-', 0, flags, fcolor, false);
 
                                     int is_pass = 0;
                                     i += 2;
@@ -11149,21 +11145,21 @@ void CMathomirView::KeyboardSelectionPaste()
                                         }
                                         if (ch != '0' || is_pass)
                                         {
-                                            ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                                DC, ViewZoom, ch, 0, flags, fcolor, 0);
+                                            KeyboardEntryObject->KeyboardKeyHit(
+                                                DC, ViewZoom, ch, 0, flags, fcolor, false);
                                             is_pass = 1;
                                         }
                                         i++;
                                     }
-                                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                        DC, ViewZoom, 13, 0, flags, fcolor, 0);
+                                    KeyboardEntryObject->KeyboardKeyHit(
+                                        DC, ViewZoom, 13, 0, flags, fcolor, false);
                                     continue;
                                 }
                             }
                             if (ch == ' ' || ch == '+' || ch == '-' || ch == '*' || ch == '/' ||
                                 ch == '=' || ch == '<' || ch == '>' || ch == ',' || ch == ';' || ch == 9)
                             {
-                                CExpression* p = (CExpression*)KeyboardEntryObject;
+                                CExpression* p = KeyboardEntryObject;
                                 if (p)
                                 {
                                     CElement* e = p->m_pPaternalElement;
@@ -11172,24 +11168,24 @@ void CMathomirView::KeyboardSelectionPaste()
                                         //exits high-order structures
                                         if (e->m_Type == 3 || e->m_Type == 6 || e->m_Type == 8 ||
                                             e->m_Type == 1 ||
-                                            (e->m_Type == 5 && (CObject*)e->Expression2 == KeyboardEntryObject) ||
+                                            (e->m_Type == 5 && e->Expression2 == KeyboardEntryObject) ||
                                             e->m_Type == 7)
-                                            ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                                DC, ViewZoom, 13, 0, flags, fcolor, 0);
+                                            KeyboardEntryObject->KeyboardKeyHit(
+                                                DC, ViewZoom, 13, 0, flags, fcolor, false);
                                     }
                                 }
                             }
                             if (ch == 0x0D)
                             {
                                 IsSHIFTDown = 1;
-                                ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                    DC, ViewZoom, 13, 0, flags, fcolor, 0);
+                                KeyboardEntryObject->KeyboardKeyHit(
+                                    DC, ViewZoom, 13, 0, flags, fcolor, false);
                                 IsSHIFTDown = 0;
                                 continue;
                             }
                         }
                         first_pass = 0;
-                        ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, ViewZoom, ch, 0, flags, fcolor, 0);
+                        KeyboardEntryObject->KeyboardKeyHit(DC, ViewZoom, ch, 0, flags, fcolor, false);
                     }
                     ((CMainFrame*)theApp.m_pMainWnd)->UndoEnableSaving();
                     ReleaseDC(DC);
@@ -11209,7 +11205,7 @@ void CMathomirView::KeyboardSelectionPaste()
         //UndoSave("paste");
 
         CDC* DC = GetDC();
-        CExpression* e = (CExpression*)KeyboardEntryObject;
+        CExpression* e = KeyboardEntryObject;
 
         short l, a, b;
         TheKeyboardClipboard->CalculateSize(*DC, ViewZoom, l, &a, &b);
@@ -11222,14 +11218,14 @@ void CMathomirView::KeyboardSelectionPaste()
 
         if (!is_A_table || !is_B_table)
         {
-            KeyboardSelectionCut(1);
+            KeyboardSelectionCut(true);
 
             if (ClipboardExpression) delete ClipboardExpression;
             ClipboardExpression = new CExpression(nullptr,nullptr, 100);
             ClipboardExpression->CopyExpression(TheKeyboardClipboard, 0, 1, 0);
             short l, a, b;
             ClipboardExpression->CalculateSize(*DC, ViewZoom, l, &a, &b);
-            e->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, 0);
+            e->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, false);
             e->CalculateSize(*DC, ViewZoom, l, &a, &b);
             ReleaseDC(DC);
             this->ScrollCursorIntoView();

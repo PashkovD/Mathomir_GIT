@@ -108,7 +108,7 @@ extern int SmallCapsFactor;
 extern int ToolboxSize;
 extern int BaseToolboxSize;
 extern int MouseMode;
-extern CObject* KeyboardEntryObject;
+extern CExpression* KeyboardEntryObject;
 extern tDocumentStruct* KeyboardEntryBaseObject;
 extern int IsHighQualityRendering;
 extern int IsHalftoneRendering;

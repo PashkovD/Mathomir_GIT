@@ -102,7 +102,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
         //paint coordinate system grid
 
         DC->SetROP2(R2_MASKPEN);
-        DC->SelectObject(GetPenFromPool(1, 0, RGB(224, 224, 224)));
+        DC->SelectObject(GetPenFromPool(1, false, RGB(224, 224, 224)));
 
         int step = 10;
         if (abs(ux / ViewZoom) > 60) step = 1;
@@ -158,7 +158,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
 
     if (TheState == 100 && CommandLine)
     {
-        if (KeyboardEntryObject == (CObject*)CommandLine)
+        if (KeyboardEntryObject == CommandLine)
         {
             //the command line is active - show the command line text
             short l, a, b;
@@ -314,7 +314,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
                            iconwidth - 1, iconwidth - 1,RGB(255, 255, 255));
 
         if (DrawingTool == IsDrawingMode)
-            PaintCheckedSign(DC, xx + i * (iconwidth + 5) + iconwidth / 2 + 2, yy + iconwidth / 2, iconwidth / 2, 1);
+            PaintCheckedSign(DC, xx + i * (iconwidth + 5) + iconwidth / 2 + 2, yy + iconwidth / 2, iconwidth / 2, true);
     }
     //toolbox border lines
     DC->FillSolidRect(xx, yy, toolbox_len, 1,RGB(160, 160, 192));
@@ -385,21 +385,21 @@ int CDrawingBox::MouseClick(int X, int Y)
             }
         }
         TheState = 100;
-        if (CommandLine) delete CommandLine;
+        delete CommandLine;
         CommandLine = new CExpression(nullptr,nullptr, 80);
 
         //will start the keyboard entry
         if (KeyboardEntryObject)
         {
-            ((CExpression*)KeyboardEntryObject)->KeyboardStop();
+            KeyboardEntryObject->KeyboardStop();
             if (KeyboardEntryBaseObject &&
                 KeyboardEntryBaseObject->Object.exp->m_NumElements == 1 &&
                 KeyboardEntryBaseObject->Object.exp->m_pElementList->Type == 0)
                 pMainView->DeleteDocumentObject(KeyboardEntryBaseObject);
         }
-        KeyboardEntryObject = (CObject*)CommandLine;
-        ((CExpression*)KeyboardEntryObject)->DeselectExpression();
-        ((CExpression*)KeyboardEntryObject)->m_Selection = 1;
+        KeyboardEntryObject = CommandLine;
+        KeyboardEntryObject->DeselectExpression();
+        KeyboardEntryObject->m_Selection = 1;
 
         for (int i = 0; i < NumDocumentElements; i++)
             if ((TheDocument + i)->Object.draw == Base)
@@ -408,8 +408,8 @@ int CDrawingBox::MouseClick(int X, int Y)
                 break;
             }
         CDC* DC = pMainView->GetDC();
-        ((CExpression*)KeyboardEntryObject)->KeyboardStart(DC, ViewZoom);
-        ((CExpression*)KeyboardEntryObject)->m_Selection = 0;
+        KeyboardEntryObject->KeyboardStart(DC, ViewZoom);
+        KeyboardEntryObject->m_Selection = 0;
 
         pMainView->ReleaseDC(DC);
         return 0;
@@ -664,7 +664,7 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
     DC->SetTextAlign(TA_TOP);
     DC->SetBkColor(RGB(255, 255, 255));
     DC->SetBkMode(OPAQUE);
-    DC->SelectObject(GetFontFromPool(4, 0, 0, 12));
+    DC->SelectObject(GetFontFromPool(4, false, false, 12));
     char txt[64];
     char txt2[32];
 

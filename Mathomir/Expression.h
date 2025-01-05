@@ -183,7 +183,7 @@ public:
     int ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, UINT nFlags, int fcolor,
                               tElementStruct* theElement);
 
-    int KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, UINT nFlags, int fcolor, char extern_call);
+    int KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, UINT nFlags, int fcolor, bool extern_call);
     // only to be called from KeyboardHit function!!
     tElementStruct* KeyboardSplitVariable(void);
     int PaintParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth, char Type,
@@ -198,7 +198,7 @@ public:
     int LaTeX_output(char* output, char only_calculate) const;
 
     int CalcChecksum(void) const;
-    CObject* KeyboardFindEntryPos();
+    CExpression* KeyboardFindEntryPos();
     int CopyToWindowsClipboard(void);
     // select element of the matris at (row,column)
     int SelectMatrixElement(int row, int column, char select_type = 1);
@@ -218,7 +218,7 @@ public:
     int ChangeFontSize(float factor);
     int GetElementLen(const unsigned int StartPos, const unsigned int EndPos, const unsigned int Level,
                       char* element_type, char* has_preoperator) const;
-    int FindLowestOperatorLevel(const unsigned int StartPos, const unsigned int EndPos, char default_operator = 0);
+    int FindLowestOperatorLevel(const unsigned int StartPos, const unsigned int EndPos, char default_operator = 0) const;
     int FindLowestOperatorLevel(char default_oper = 0);
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position
     int Autocomplete(bool is_internal);

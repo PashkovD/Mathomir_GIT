@@ -1013,7 +1013,7 @@ void CToolbox::PaintToolboxHeader(CDC* dc) const
     }
     if (m_FontModeSelection == 0 || textmodeactivated)
         PaintCheckedSign(&pdc, ToolboxSize / 5 + ToolboxSize / 32, ToolboxSize / 2 - ToolboxSize / 5, ToolboxSize / 6,
-                         1);
+                         true);
 
     //Paint the mixed formatting
     ToolboxFontFormating.MixedFormat->CalculateSize(pdc, 14 * ToolboxSize / 8, l, &a, &b, 0, 1);
@@ -1027,7 +1027,7 @@ void CToolbox::PaintToolboxHeader(CDC* dc) const
                          ToolboxSize / 6, textmodeactivated == 1 ? 2 : 1);
 
     //paint borderlines
-    pdc.SelectObject(GetPenFromPool(1, 0, RGB(96, 96, 96)));
+    pdc.SelectObject(GetPenFromPool(1, false, RGB(96, 96, 96)));
     int ttt = 0;
     pdc.MoveTo(ToolboxSize / 2 + ttt - 1, 0);
     pdc.LineTo(ToolboxSize / 2 + ttt - 1, ToolboxSize / 2);
@@ -1050,20 +1050,20 @@ void CToolbox::PaintToolboxHeader(CDC* dc) const
         {
             if (m_FontModeElement != i)
             {
-                pdc.SelectObject(GetPenFromPool(1, 0, RGB(255, 255, 255)));
+                pdc.SelectObject(GetPenFromPool(1, false, RGB(255, 255, 255)));
                 pdc.MoveTo(Lx * (i + 1) - j - 2 - kk, Ly - 0);
                 pdc.LineTo(Lx * (i + 1) - 0 - kk, Ly - j - 2);
             }
 
-            pdc.SelectObject(GetPenFromPool(1, 0, IsBlue ? RGB(0, 0, 255) : RGB(176, 176, 255)));
+            pdc.SelectObject(GetPenFromPool(1, false, IsBlue ? RGB(0, 0, 255) : RGB(176, 176, 255)));
             pdc.MoveTo(Lx * (i + 1) - j - 1 - kk, Ly - 0);
             pdc.LineTo(Lx * (i + 1) - 0 - kk, Ly - j - 1);
-            pdc.SelectObject(GetPenFromPool(1, 0, IsBlue ? RGB(0, 0, 255) : RGB(176, 176, 255)));
+            pdc.SelectObject(GetPenFromPool(1, false, IsBlue ? RGB(0, 0, 255) : RGB(176, 176, 255)));
             pdc.MoveTo(Lx * (i + 1) - j - 0 - kk, Ly - 0);
             pdc.LineTo(Lx * (i + 1) - 0 - kk, Ly - j - 0);
             if (j)
             {
-                pdc.SelectObject(GetPenFromPool(1, 0, IsBlue ? RGB(0, 0, 255) : RGB(220, 220, 255)));
+                pdc.SelectObject(GetPenFromPool(1, false, IsBlue ? RGB(0, 0, 255) : RGB(220, 220, 255)));
                 pdc.MoveTo(Lx * (i + 1) - j + 1 - kk, Ly - 0);
                 pdc.LineTo(Lx * (i + 1) - 0 - kk, Ly - j + 1);
             }
@@ -1170,7 +1170,7 @@ void CToolbox::OnPaint()
 
         int i = 0;
         int SelectedKeycode = -1;
-        dc.SelectObject(GetPenFromPool(1, 0, SHADOW_BLUE_COLOR2));
+        dc.SelectObject(GetPenFromPool(1, false, SHADOW_BLUE_COLOR2));
         dc.MoveTo(0, 0);
         dc.LineTo(ClientRect.right - 1, 0);
         dc.LineTo(ClientRect.right - 1, ClientRect.bottom - 1);
@@ -1243,7 +1243,7 @@ void CToolbox::OnPaint()
             //if (Keycode>3)
             //	dc.SelectObject(GetFontFromPool(4,0,(i==m_ContextMenuSelection)?1:0,TS/4-1));
             //else
-            dc.SelectObject(GetFontFromPool(4, 0, 0, TS / 4 - 1));
+            dc.SelectObject(GetFontFromPool(4, false, false, TS / 4 - 1));
 
             int used_keycode = IsAcceleratorUsed(Keycode);
 
@@ -1272,7 +1272,7 @@ void CToolbox::OnPaint()
                     dc.TextOut(xpos + TS / 5 + 1, ypos, string);
                     dc.SetBkMode(OPAQUE);
                 }
-                if (SelectedKeycode == Keycode) PaintCheckedSign(&dc, xpos + 2, ypos, TS / 5, 1);
+                if (SelectedKeycode == Keycode) PaintCheckedSign(&dc, xpos + 2, ypos, TS / 5, true);
             }
             i++;
         }
@@ -1628,7 +1628,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                             {
                                 int tmp = IsALTDown;
                                 IsALTDown = 1;
-                                ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(ddc, ViewZoom, ' ', 0, 0, 0, 1);
+                                KeyboardEntryObject->KeyboardKeyHit(ddc, ViewZoom, ' ', 0, 0, 0, true);
                                 IsALTDown = tmp;
                             }
                             pMainView->ReleaseDC(ddc);
@@ -1661,7 +1661,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
             }
             else if (m_SelectedTextControl > 0)
             {
-                CExpression* exp = (CExpression*)KeyboardEntryObject;
+                CExpression* exp = KeyboardEntryObject;
                 if (exp)
                 {
                     CDC* ddc = pMainView->GetDC();
@@ -1669,28 +1669,28 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         int tmp = IsALTDown;
                         IsALTDown = 1;
-                        exp->KeyboardKeyHit(ddc, ViewZoom, ' ', 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, ' ', 0, 0, 0, true);
                         IsALTDown = tmp;
                     }
                     if (m_SelectedTextControl == 2)
                     {
                         int tmp = IsALTDown;
                         IsALTDown = 1;
-                        exp->KeyboardKeyHit(ddc, ViewZoom, 0x0D, 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, 0x0D, 0, 0, 0, true);
                         IsALTDown = tmp;
                     }
                     if (m_SelectedTextControl == 3 && exp->m_MaxNumColumns < 50)
                     {
                         int tmp = IsSHIFTDown;
                         IsSHIFTDown = 1;
-                        exp->KeyboardKeyHit(ddc, ViewZoom, 9, 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, 9, 0, 0, 0, true);
                         IsSHIFTDown = tmp;
                     }
                     if (m_SelectedTextControl == 4 && exp->m_MaxNumRows < 50)
                     {
                         int tmp = IsSHIFTDown;
                         IsSHIFTDown = 1;
-                        exp->KeyboardKeyHit(ddc, ViewZoom, 0x0D, 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, 0x0D, 0, 0, 0, true);
                         IsSHIFTDown = tmp;
                     }
                     if (m_SelectedTextControl >= 5 && m_SelectedTextControl <= 9)
@@ -1711,35 +1711,35 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         int tmp = IsALTDown;
                         IsALTDown = 1;
-                        exp->KeyboardKeyHit(ddc, ViewZoom, ',', 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, ',', 0, 0, 0, true);
                         IsALTDown = tmp;
                     }
                     if (m_SelectedTextControl == 6)
                     {
                         int tmp = IsALTDown;
                         IsALTDown = 1;
-                        exp->KeyboardKeyHit(ddc, ViewZoom, ',', 0, 0, 0, 1);
-                        exp->KeyboardKeyHit(ddc, ViewZoom, ',', 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, ',', 0, 0, 0, true);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, ',', 0, 0, 0, true);
                         IsALTDown = tmp;
                     }
                     if (m_SelectedTextControl == 7)
                     {
-                        exp->KeyboardKeyHit(ddc, ViewZoom, '^', 0, 0, 0, 1);
-                        ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(ddc, ViewZoom, '^', 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, '^', 0, 0, 0, true);
+                        KeyboardEntryObject->KeyboardKeyHit(ddc, ViewZoom, '^', 0, 0, 0, true);
                     }
                     if (m_SelectedTextControl == 8)
                     {
                         int tmp = IsALTDown;
                         IsALTDown = 1;
-                        exp->KeyboardKeyHit(ddc, ViewZoom, '.', 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, '.', 0, 0, 0, true);
                         IsALTDown = tmp;
                     }
                     if (m_SelectedTextControl == 9)
                     {
                         int tmp = IsALTDown;
                         IsALTDown = 1;
-                        exp->KeyboardKeyHit(ddc, ViewZoom, '.', 0, 0, 0, 1);
-                        exp->KeyboardKeyHit(ddc, ViewZoom, '.', 0, 0, 0, 1);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, '.', 0, 0, 0, true);
+                        exp->KeyboardKeyHit(ddc, ViewZoom, '.', 0, 0, 0, true);
                         IsALTDown = tmp;
                     }
 
@@ -2054,9 +2054,8 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                 if (icon == 8) pMainView->OnKeyDown(VK_F4, 0, 0);
                 if ((KeyboardEntryBaseObject && KeyboardEntryObject) || (NumSelectedObjects == 1 && NumSelectedDrawings == 0))
                 {
-                    int yes = 0;
                     tDocumentStruct* parentstr = KeyboardEntryBaseObject;
-                    CExpression* exp = (CExpression*)KeyboardEntryObject;
+                    CExpression* exp = KeyboardEntryObject;
                     CExpression* parent = KeyboardEntryBaseObject
                                               ? KeyboardEntryBaseObject->Object.exp
                                               : nullptr;
@@ -2075,6 +2074,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     }
                     if (parent && exp && parentstr && parentstr->Type == EXPRESSION)
                     {
+                        int yes = 0;
                         if (icon == 9 && exp->m_FontSize < 1400)
                         {
                             exp->ChangeFontSize(1.2f);
@@ -2397,7 +2397,7 @@ void CToolbox::PaintColorbox(CDC* dc)
     if (NumSelectedObjects == 0 || IsDrawingMode)
     {
         int clr = max(0, SelectedLineColor);
-        PaintCheckedSign(&pdc, clr * len + len / 8, ToolboxSize / 5 + 2, ToolboxSize / 8, 1);
+        PaintCheckedSign(&pdc, clr * len + len / 8, ToolboxSize / 5 + 2, ToolboxSize / 8, true);
     }
 
 
@@ -2418,7 +2418,7 @@ void CToolbox::PaintColorbox(CDC* dc)
                 (SelectedLineWidth >= 18 * DRWZOOM / 10 && SelectedLineWidth < 22 * DRWZOOM / 10 && j == 3) ||
                 (SelectedLineWidth >= 22 * DRWZOOM / 10 && SelectedLineWidth < 32 * DRWZOOM / 10 && j == 4) ||
                 (SelectedLineWidth >= 32 * DRWZOOM / 10 && j == 5))
-                PaintCheckedSign(&pdc, j * len + 2, t3 + ToolboxSize / 5, ToolboxSize / 8, 1);
+                PaintCheckedSign(&pdc, j * len + 2, t3 + ToolboxSize / 5, ToolboxSize / 8, true);
     }
 
     pdc.SelectObject(GetStockObject(BLACK_PEN));
@@ -2449,7 +2449,7 @@ void CToolbox::PaintColorbox(CDC* dc)
     pdc.LineTo(ToolboxSize / 2 - tt + 1, yy + 3 * tt);
     pdc.MoveTo(ToolboxSize / 2 + 2 * tt + 1, yy + 3 * tt);
     pdc.LineTo(ToolboxSize / 2 + tt - 1, yy + 3 * tt);
-    if (ToolbarUseCross) PaintCheckedSign(&pdc, ToolboxSize / 2 + 1, yy + 4 * tt - 2, 2 * tt + 1, 1);
+    if (ToolbarUseCross) PaintCheckedSign(&pdc, ToolboxSize / 2 + 1, yy + 4 * tt - 2, 2 * tt + 1, true);
 
     pdc.FillSolidRect(ToolboxSize - 5 * tt + 2, yy + 2 * tt + 1, 3 * tt - 2, 3 * tt - 2,RGB(164, 164, 255));
     pdc.FillSolidRect(ToolboxSize - 5 * tt - tt + 2, yy + 2 * tt - tt + 1, tt + 1, tt + 1,RGB(128, 0, 0));
@@ -2504,7 +2504,7 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
     pdc.SelectObject(tmpbmp);
     //pdc.FillSolidRect(0,0,ToolboxSize,ToolboxSize,RGB(255,255,255));
 
-    CExpression* exp = (CExpression*)KeyboardEntryObject;
+    CExpression* exp = KeyboardEntryObject;
     if (exp)
     {
         int isText = 0;
@@ -2523,12 +2523,12 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
         if (isText)
         {
             pdc.FillSolidRect(&r,RGB(192, 240, 192));
-            pdc.SelectObject(GetFontFromPool(4, 0, 1, ToolboxSize / 3 + ToolboxSize / 8));
+            pdc.SelectObject(GetFontFromPool(4, false, true, ToolboxSize / 3 + ToolboxSize / 8));
             r.bottom -= ToolboxSize / 3 + ToolboxSize / 4 - 1;
             if (m_SelectedTextControl == 1) pdc.FillSolidRect(&r,RGB(128, 128, 255));
             pdc.SetTextColor(RGB(0, 192, 0));
             pdc.TextOut(5, -zz, "T", 1);
-            pdc.SelectObject(GetFontFromPool(4, 0, 1, ToolboxSize / 5 + (ToolboxSize < 60 ? 1 : 0)));
+            pdc.SelectObject(GetFontFromPool(4, false, true, ToolboxSize / 5 + (ToolboxSize < 60 ? 1 : 0)));
             pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 8 - 4 - zz,
                         GetTranslatedString("Text", 6052).data());
             pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 4 - 3 - zz,
@@ -2537,12 +2537,12 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
         else
         {
             pdc.FillSolidRect(&r,RGB(208, 208, 248));
-            pdc.SelectObject(GetFontFromPool(3, 0, 1, ToolboxSize / 3 + ToolboxSize / 6));
+            pdc.SelectObject(GetFontFromPool(3, false, true, ToolboxSize / 3 + ToolboxSize / 6));
             r.bottom -= ToolboxSize / 3 + ToolboxSize / 4 - 1;
             if (m_SelectedTextControl == 1) pdc.FillSolidRect(&r,RGB(128, 128, 255));
             pdc.SetTextColor(RGB(0, 0, 255));
             pdc.TextOut(5, -2 - zz, "S", 1);
-            pdc.SelectObject(GetFontFromPool(4, 0, 1, ToolboxSize / 5 + (ToolboxSize < 60 ? 1 : 0)));
+            pdc.SelectObject(GetFontFromPool(4, false, true, ToolboxSize / 5 + (ToolboxSize < 60 ? 1 : 0)));
             pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 8 - 4 - zz, GetTranslatedString("Math", 6054).c_str());
             pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 4 - 3 - zz, GetTranslatedString("mode", 6055).c_str());
         }
@@ -2773,7 +2773,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
             delete exp;
 
             if (ToolboxFontFormating.SelectedUniform == member && Toolbox->m_FontModeSelection == 0)
-                PaintCheckedSign(&xdc, ToolboxSize / 2 - Ly / 2, Ly, 3 * Ly / 4, 1);
+                PaintCheckedSign(&xdc, ToolboxSize / 2 - Ly / 2, Ly, 3 * Ly / 4, true);
 
 
             if (member == m_SelectedElement)
@@ -2806,7 +2806,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
                 xdc.Polygon(p, 5);
                 std::string bff = GetTranslatedString("font...", 5081);
                 int zzz = bff.length();
-                xdc.SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 4 - 1 - (zzz > 9 ? 1 : 0)));
+                xdc.SelectObject(GetFontFromPool(4, false, false, ToolboxSize / 4 - 1 - (zzz > 9 ? 1 : 0)));
                 xdc.SetTextAlign(TA_LEFT);
                 xdc.SetBkMode(TRANSPARENT);
                 xdc.SetTextColor(0);
@@ -2818,7 +2818,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
         else
             dc->BitBlt(0, Cy - Ly + 1, 3 * ToolboxSize, 2 * Ly, &xdc, 0, 0,SRCCOPY);
 
-        dc->SelectObject(GetPenFromPool(1, 0, RGB(96, 96, 96)));
+        dc->SelectObject(GetPenFromPool(1, false, RGB(96, 96, 96)));
         dc->MoveTo(Cx - Lx, Cy + Ly - 1);
         dc->LineTo(Cx + Lx, Cy + Ly - 1);
         dc->MoveTo(0, 0);
@@ -2852,7 +2852,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
             xdc.SelectObject(xbmp);
             xdc.FillSolidRect(0, 0, cr.right, ToolboxSize / 4,RGB(224, 224, 224));
 
-            xdc.SelectObject(GetFontFromPool(4, 0, 0, 2 * ToolboxSize / 9));
+            xdc.SelectObject(GetFontFromPool(4, false, false, 2 * ToolboxSize / 9));
             xdc.SetTextAlign(TA_LEFT);
             xdc.SetBkMode(TRANSPARENT);
             xdc.SetTextColor(RGB(128, 128, 128));
@@ -3017,7 +3017,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
                                                                        (ToolboxSize / 2 - ToolboxMembers[m].Length[s]) /
                                                                        2 + 1, ToolboxSize / 16, -1, -1);
 
-            xdc.SelectObject(GetFontFromPool(4, 0, 0, 12 + ToolboxSize / 32));
+            xdc.SelectObject(GetFontFromPool(4, false, false, 12 + ToolboxSize / 32));
             xdc.SetBkMode(TRANSPARENT);
             char buff[1];
             buff[0] = member + '1';
@@ -3025,7 +3025,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
             xdc.SetBkMode(OPAQUE);
         }
         dc->BitBlt(x, y, ToolboxSize / 2 + 1, ToolboxSize / 2 + 1, &xdc, 0, 0,SRCCOPY);
-        dc->SelectObject(GetPenFromPool(1, 0, RGB(96, 96, 96)));
+        dc->SelectObject(GetPenFromPool(1, false, RGB(96, 96, 96)));
         for (int i = 0; i < 4; i++)
         {
             dc->MoveTo(i * ToolboxSize / 2, 0);
@@ -3166,18 +3166,18 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
         {
             if (!issel)
             {
-                xdc.SelectObject(GetPenFromPool(1, 0, RGB(255, 255, 255)));
+                xdc.SelectObject(GetPenFromPool(1, false, RGB(255, 255, 255)));
                 xdc.MoveTo(2 * Lx - i - 2, 2 * Ly - 0);
                 xdc.LineTo(2 * Lx - 0, 2 * Ly - i - 2);
             }
-            xdc.SelectObject(GetPenFromPool(1, 0, IsBlue ? RGB(0, 0, 255) : RGB(176, 176, 255)));
+            xdc.SelectObject(GetPenFromPool(1, false, IsBlue ? RGB(0, 0, 255) : RGB(176, 176, 255)));
             xdc.MoveTo(2 * Lx - i - 1, 2 * Ly - 0);
             xdc.LineTo(2 * Lx - 0, 2 * Ly - i - 1);
             xdc.MoveTo(2 * Lx - i - 0, 2 * Ly - 0);
             xdc.LineTo(2 * Lx - 0, 2 * Ly - i - 0);
             if (i)
             {
-                xdc.SelectObject(GetPenFromPool(1, 0, IsBlue ? RGB(0, 0, 255) : RGB(220, 220, 255)));
+                xdc.SelectObject(GetPenFromPool(1, false, IsBlue ? RGB(0, 0, 255) : RGB(220, 220, 255)));
                 xdc.MoveTo(2 * Lx - i + 1, 2 * Ly - 0);
                 xdc.LineTo(2 * Lx - 0, 2 * Ly - i + 1);
             }
@@ -3187,12 +3187,12 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
     {
         for (int i = 0; i <= ToolboxSize / 5 + move - 2; i += 4)
         {
-            xdc.SelectObject(GetPenFromPool(1, 0, IsBlue ? RGB(0, 0, 255) : RGB(176, 176, 255)));
+            xdc.SelectObject(GetPenFromPool(1, false, IsBlue ? RGB(0, 0, 255) : RGB(176, 176, 255)));
             xdc.MoveTo(i + 1, 0);
             xdc.LineTo(0, i + 1);
             xdc.MoveTo(i + 2, 0);
             xdc.LineTo(0, i + 2);
-            xdc.SelectObject(GetPenFromPool(1, 0, IsBlue ? RGB(0, 0, 255) : RGB(220, 220, 255)));
+            xdc.SelectObject(GetPenFromPool(1, false, IsBlue ? RGB(0, 0, 255) : RGB(220, 220, 255)));
             xdc.MoveTo(i + 3, 0);
             xdc.LineTo(0, i + 3);
         }
@@ -3209,7 +3209,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
 
     dc->BitBlt(Cx - Lx + 1, Cy - Ly + 1, 2 * Lx - 1, 2 * Ly - 1, &xdc, 1, 1,SRCCOPY);
 
-    dc->SelectObject(GetPenFromPool(1, 0, RGB(96, 96, 96)));
+    dc->SelectObject(GetPenFromPool(1, false, RGB(96, 96, 96)));
 
     if (m_IsMain)
     {
@@ -3293,7 +3293,7 @@ void CToolbox::UpdateToolbar(char force_redraw)
             mdc.FillSolidRect(0, 0, ToolboxSize, r.bottom,RGB(224, 224, 255));
 
         int h = ToolboxSize / 4;
-        mdc.SelectObject(GetFontFromPool(4, 0, 0, max(14, (ToolboxSize+30)/7)));
+        mdc.SelectObject(GetFontFromPool(4, false, false, max(14, (ToolboxSize+30)/7)));
         mdc.SetTextAlign(TA_RIGHT);
         mdc.SetBkMode(TRANSPARENT);
         char buff[64];
@@ -3401,10 +3401,10 @@ int CToolbox::PaintToolbar(CDC* dc)
                            RGB(255, 255, 255));
         if (ToolbarConfig[i].IconState == 2)
             PaintCheckedSign(&pdc, x + t + iconwidth / 2 - (ToolboxSize >= 120 ? 0 : 2),
-                             y + iconwidth / 2 + (ToolboxSize >= 120 ? 3 : 0), 14, 1);
+                             y + iconwidth / 2 + (ToolboxSize >= 120 ? 3 : 0), 14, true);
         if (ToolbarConfig[i].IconState == 3)
             PaintCheckedSign(&pdc, x + t + iconwidth / 2 - (ToolboxSize >= 120 ? 0 : 2),
-                             y + iconwidth / 2 + (ToolboxSize >= 120 ? 3 : 0), 14, 2);
+                             y + iconwidth / 2 + (ToolboxSize >= 120 ? 3 : 0), 14, true);
 
         if (ToolboxSize >= 80) //we don't paint description texts under icons if toolbox is of very small size
         {
@@ -3441,7 +3441,7 @@ int CToolbox::PaintToolbar(CDC* dc)
             if (ToolboxSize > 96) fntsz = 15;
             if (ToolboxSize > 115) fntsz = 17;
             if (l > 9) fntsz--;
-            pdc.SelectObject(GetFontFromPool(4, 0, 0, fntsz));
+            pdc.SelectObject(GetFontFromPool(4, false, false, fntsz));
             if (ToolbarConfig[i].IconState == 0) pdc.SetTextColor(RGB(160, 160, 160));
             else pdc.SetTextColor(RGB(0, 0, 0));
             pdc.TextOutA(x + len / 2 + 1, y + fntsz + ToolboxSize / 8 + 1, buff, (int)strlen(buff));
@@ -3536,11 +3536,11 @@ int CToolbox::ConfigureToolbar()
     int has_selection = 0;
     int last_drawing_delete = 0;
     if (NumSelectedObjects) has_selection = 1;
-    else if (KeyboardEntryBaseObject && KeyboardEntryObject && ((CExpression*)KeyboardEntryObject)->
+    else if (KeyboardEntryBaseObject && KeyboardEntryObject && KeyboardEntryObject->
         m_IsKeyboardEntry)
     {
         //check if there is a keyboard selection
-        CExpression* e = (CExpression*)KeyboardEntryObject;
+        CExpression* e = KeyboardEntryObject;
         for (int i = 0; i < e->m_NumElements; i++)
             if ((e->m_pElementList + i)->IsSelected == 2)
             {
@@ -3548,8 +3548,8 @@ int CToolbox::ConfigureToolbar()
                 break;
             }
     }
-    if (IsDrawingMode && NumDocumentElements > 0 && TheDocument[NumDocumentElements - 1].Type == DRAWING && !
-        KeyboardEntryObject)
+    if (IsDrawingMode && NumDocumentElements > 0 && TheDocument[NumDocumentElements - 1].Type == DRAWING && 
+        KeyboardEntryObject == nullptr)
         last_drawing_delete = 1;
 
     //adding 'save' option
@@ -3603,7 +3603,7 @@ int CToolbox::ConfigureToolbar()
         if (KeyboardEntryObject && KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
         {
             parent = KeyboardEntryBaseObject->Object.exp;
-            exp = (CExpression*)KeyboardEntryObject;
+            exp = KeyboardEntryObject;
         }
         if (NumSelectedObjects == 1 && KeyboardEntryObject == nullptr)
         {
@@ -3870,7 +3870,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
         }
 
         //also release capture if cursor is over subtoolbox window, contextmenu window or keyboard window
-        if (1)
+        if (true)
         {
             POINT cursor;
             GetCursorPos(&cursor);
@@ -3997,7 +3997,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
             //mouse is pointing at colorbox or textcontrolbox
             {
                 int y = point.y - (ToolboxNumMembers + 1) / 2 * m_ItemHeight - ToolboxSize / 2 - 5;
-                if (NumSelectedObjects || IsDrawingMode || KeyboardEntryObject == 0)
+                if (NumSelectedObjects || IsDrawingMode || KeyboardEntryObject == nullptr)
                 {
                     //color box
                     if (y < ToolboxSize / 3) //selecting color
@@ -4883,7 +4883,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
         if (Popup->IsWindowVisible()) Popup->HidePopupMenu();
     }
 
-    CExpression* ee = (CExpression*)KeyboardEntryObject;
+    CExpression* ee = KeyboardEntryObject;
     if (ee && ee->m_IsKeyboardEntry > 0 && ee->m_IsKeyboardEntry <= ee->m_NumElements &&
         (ee->m_pElementList + ee->m_IsKeyboardEntry - 1)->pElementObject &&
         (ee->m_pElementList + ee->m_IsKeyboardEntry - 1)->pElementObject->m_Text)
@@ -5020,8 +5020,8 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                             if (KeyboardEntryObject && KeyboardEntryBaseObject)
                             {
                                 CDC* DC = pMainView->GetDC();
-                                ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, 0);
-                                ((CExpression*)KeyboardEntryObject)->Autocomplete(0);
+                                KeyboardEntryObject->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, false);
+                                KeyboardEntryObject->Autocomplete(false);
                                 if (AutocompleteSource)
                                 {
                                     prevAutocompleteSource = AutocompleteSource;
@@ -5053,7 +5053,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                     {
                         int tmp = IsALTDown;
                         IsALTDown = 1;
-                        ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(ddc, ViewZoom, ' ', 0, 0, 0, 1);
+                        KeyboardEntryObject->KeyboardKeyHit(ddc, ViewZoom, ' ', 0, 0, 0, true);
                         IsALTDown = tmp;
                     }
                     pMainView->ReleaseDC(ddc);
@@ -5172,7 +5172,7 @@ void CToolbox::ReformatKeyboardSelection()
         }
         else return;
 
-        CExpression* e = (CExpression*)KeyboardEntryObject;
+        CExpression* e = KeyboardEntryObject;
         int any = 0;
         for (int kk = 0; kk < e->m_NumElements; kk++)
         {
@@ -5449,7 +5449,7 @@ void CToolbox::PaintKeyboardElement(CDC* dc, int element) const
         RECT ClientRect;
         GetClientRect(&ClientRect);
 
-        dc->SelectObject(GetFontFromPool(3, 0, 0, 13 * ToolboxSize / 64 + 1));
+        dc->SelectObject(GetFontFromPool(3, false, false, 13 * ToolboxSize / 64 + 1));
 
         dc->SetBkMode(TRANSPARENT);
         dc->SetTextAlign(TA_BOTTOM | TA_RIGHT);
@@ -5801,13 +5801,13 @@ int CToolbox::SaveSettings(char* filename) const
                     //we found a user-defined toolbox item
                     int len;
                     if (ToolboxMembers[i].Above[j] != -1)
-                        len = ToolboxMembers[i].Submembers[j]->XML_output(nullptr, 0, 1);
+                        len = ToolboxMembers[i].Submembers[j]->XML_output(nullptr, 0, true);
                     else
                         len = ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(nullptr, 0, 1);
                     char* data = (char*)malloc(len + 256);
 
                     if (ToolboxMembers[i].Above[j] != -1)
-                        ToolboxMembers[i].Submembers[j]->XML_output(data, 0, 0);
+                        ToolboxMembers[i].Submembers[j]->XML_output(data, 0, false);
                     else
                         ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(data, 0, 0);
 
@@ -6326,8 +6326,9 @@ CExpression* CToolbox::CheckForKeycodes(char* keystrokes, int* len)
     int l2 = *len;
     if (l2 < 1) return nullptr;
 
-    if (!KeyboardEntryObject || ((CExpression*)KeyboardEntryObject)->m_pPaternalElement == nullptr || ((CExpression*)
-        KeyboardEntryObject)->m_pPaternalElement->m_Type != 1) //do not use double-strokes in indexes
+    if (!KeyboardEntryObject ||
+        KeyboardEntryObject->m_pPaternalElement == nullptr ||
+        KeyboardEntryObject->m_pPaternalElement->m_Type != 1) //do not use double-strokes in indexes
         if (l2 >= 2)
         {
             unsigned int ttt = 750;
@@ -6455,7 +6456,7 @@ void CToolbox::ShowHelptext(const std::string& text, const std::string& command,
     DC->SetTextColor(RGB(204, 204, 204));
     if (buff[0])
     {
-        DC->SelectObject(GetFontFromPool(4, 0, 0, 4 + ToolboxSize / 7));
+        DC->SelectObject(GetFontFromPool(4, false, false, 4 + ToolboxSize / 7));
         size_t len = strlen(buff);
         int i = 0;
         int last = 0;
@@ -6476,9 +6477,9 @@ void CToolbox::ShowHelptext(const std::string& text, const std::string& command,
     if (accelerator[0])
     {
         DC->SetTextColor(RGB(240, 192, 192));
-        DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 5));
+        DC->SelectObject(GetFontFromPool(4, false, false, ToolboxSize / 5));
         size = DC->GetTextExtent(accelerator.c_str());
-        if (size.cx > ToolboxSize - 1) DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 6));
+        if (size.cx > ToolboxSize - 1) DC->SelectObject(GetFontFromPool(4, false, false, ToolboxSize / 6));
         DC->TextOut(2, yy, accelerator.c_str());
         yy += ToolboxSize / 6 + 1;
     }
@@ -6490,9 +6491,9 @@ void CToolbox::ShowHelptext(const std::string& text, const std::string& command,
         strcat_s(bbf, easycast.c_str());
         strcat_s(bbf, "\"");
         DC->SetTextColor(RGB(240, 192, 192));
-        DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 5));
+        DC->SelectObject(GetFontFromPool(4, false, false, ToolboxSize / 5));
         size = DC->GetTextExtent(bbf);
-        if (size.cx > ToolboxSize - 1) DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 6));
+        if (size.cx > ToolboxSize - 1) DC->SelectObject(GetFontFromPool(4, false, false, ToolboxSize / 6));
         DC->TextOut(2, yy, bbf);
         yy += ToolboxSize / 6 + 1;
     }
@@ -6503,9 +6504,9 @@ void CToolbox::ShowHelptext(const std::string& text, const std::string& command,
         strcpy_s(bbf, "\\");
         strcat_s(bbf, command.c_str());
         DC->SetTextColor(RGB(192, 192, 192));
-        DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize > 70 ? ToolboxSize / 5 : ToolboxSize / 4));
+        DC->SelectObject(GetFontFromPool(4, false, false, ToolboxSize > 70 ? ToolboxSize / 5 : ToolboxSize / 4));
         size = DC->GetTextExtent(bbf);
-        if (size.cx > ToolboxSize - 1) DC->SelectObject(GetFontFromPool(4, 0, 0, ToolboxSize / 5));
+        if (size.cx > ToolboxSize - 1) DC->SelectObject(GetFontFromPool(4, false, false, ToolboxSize / 5));
         DC->TextOut(2, yy, bbf);
     }
 

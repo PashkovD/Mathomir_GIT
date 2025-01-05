@@ -284,7 +284,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         ValueEntryBox->Create(ES_AUTOVSCROLL | ES_MULTILINE | ES_WANTRETURN | WS_VISIBLE | WS_CHILD | WS_BORDER,
                               CRect(Options[1].X, Options[1].Y - 1 - 20, Options[1].X + 2 * TSize,
                                     Options[1].Y + Options[1].Cy - 20 + 2), this, 1);
-        HFONT font = GetFontFromPool(4, 0, 1, TSize / 4 - 2);
+        HFONT font = GetFontFromPool(4, false, true, TSize / 4 - 2);
         ValueEntryBox->SendMessage(WM_SETFONT, (WPARAM)font,MAKELPARAM(1, 0));
         ValueEntryBox->SetFocus();
         ValueEntryBoxData = 1;
@@ -365,7 +365,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         ValueEntryBox->Create(ES_AUTOVSCROLL | ES_MULTILINE | ES_WANTRETURN | WS_VISIBLE | WS_CHILD | WS_BORDER,
                               CRect(TSize_1p3, Options[1].Y - 1, TSize_1p3 + TSize, Options[1].Y + Options[1].Cy + 2),
                               this, 1);
-        HFONT font = GetFontFromPool(4, 0, 1, TSize / 4 - 2);
+        HFONT font = GetFontFromPool(4, false, true, TSize / 4 - 2);
         ValueEntryBox->SendMessage(WM_SETFONT, (WPARAM)font,MAKELPARAM(1, 0));
         ValueEntryBox->SetFocus();
         ValueEntryBox->SetWindowText(TheKeycodeString);
@@ -967,7 +967,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             //list now contains pointers to document objects sorted by Y coordinate
             int i;
             CDC* DC = GetDC();
-            DC->SelectObject(GetFontFromPool(4, 0, 0, TSize / 4));
+            DC->SelectObject(GetFontFromPool(4, false, false, TSize / 4));
             for (i = 0; i < 25; i++, EasycastListStart++)
             {
                 if (EasycastListStart >= kkk) break;
@@ -1212,7 +1212,7 @@ int PopupMenu::PrepareParenthesesMenu(int y)
             ((theexp->m_pElementList + ii)->Type == 2 && (theexp->m_pElementList + ii)->pElementObject->Data1[0] == (
                 char)0xFF))
         {
-            isMultiline = 1;
+            isMultiline = true;
             break;
         }
 
@@ -1687,7 +1687,7 @@ int PopupMenu::PaintThePopupMenu()
             char face = 4;
             if (Options[i].Data >= 10 && Options[i].Data <= 13) face = Options[i].Data - 10; //font options
 
-            dc->SelectObject(GetFontFromPool(face, 0, bold, TSize / 4));
+            dc->SelectObject(GetFontFromPool(face, false, bold, TSize / 4));
             if (m_SelectedOption == i)
                 dc->SetTextColor(BLUE_COLOR);
             else
@@ -1695,7 +1695,7 @@ int PopupMenu::PaintThePopupMenu()
         }
         else
         {
-            dc->SelectObject(GetFontFromPool(4, 0, 0, TSize / 5 + 2));
+            dc->SelectObject(GetFontFromPool(4, false, false, TSize / 5 + 2));
             dc->SetTextColor(SHADOW_BLUE_COLOR3);
         }
 
@@ -1741,7 +1741,7 @@ int PopupMenu::PaintThePopupMenu()
                     for (int jj = i; jj >= 0; jj--)
                         if (Options[jj].IsEnabled == 0)
                         {
-                            dc->SelectObject(GetFontFromPool(4, 0, 0, TSize / 5 + 2));
+                            dc->SelectObject(GetFontFromPool(4, false, false, TSize / 5 + 2));
                             dc->SetTextColor(SHADOW_BLUE_COLOR3);
                             dc->SetBkColor(SHADOW_BLUE_COLOR);
                             dc->TextOut(Options[jj].X + 2, Options[jj].Y + 1,
@@ -1790,7 +1790,7 @@ int PopupMenu::PaintThePopupMenu()
                     CSize len = dc->GetTextExtent(Options[i].Text.c_str(), (int)strlen(Options[i].Text.c_str()));
                     if (len.cx > Options[i].Cx + TSize / 12 - TSize / 5)
                         dc->SelectObject(
-                            GetFontFromPool(4, 0, 0, TSize / 5 + 2));
+                            GetFontFromPool(4, false, false, TSize / 5 + 2));
 
                     dc->TextOut(Options[i].X + TSize / 5 + 1, Options[i].Y + 1, Options[i].Text.c_str());
                     //place for Check
@@ -1818,7 +1818,7 @@ int PopupMenu::PaintThePopupMenu()
             else
             {
                 CSize len = dc->GetTextExtent(Options[i].Text.c_str(), (int)strlen(Options[i].Text.c_str()));
-                if (len.cx > Options[i].Cx + TSize / 12) dc->SelectObject(GetFontFromPool(4, 0, 0, TSize / 5 + 1));
+                if (len.cx > Options[i].Cx + TSize / 12) dc->SelectObject(GetFontFromPool(4, false, false, TSize / 5 + 1));
                 dc->TextOut(Options[i].X + 2, Options[i].Y + 1, Options[i].Text.c_str());
                 if (is_bold)
                 {
@@ -1859,7 +1859,7 @@ int PopupMenu::PaintThePopupMenu()
                 CBrush blue(BLUE_COLOR);
                 if (m_SelectedSuboption == 1 && m_SelectedOption == i)
                 {
-                    dc->SelectObject(GetPenFromPool(1, 1));
+                    dc->SelectObject(GetPenFromPool(1, true));
                     dc->SelectObject(blue);
                 }
                 else
@@ -1877,7 +1877,7 @@ int PopupMenu::PaintThePopupMenu()
                 dc->Polygon(p, 3);
                 if (m_SelectedSuboption == 2 && m_SelectedOption == i)
                 {
-                    dc->SelectObject(GetPenFromPool(1, 1));
+                    dc->SelectObject(GetPenFromPool(1, true));
                     dc->SelectObject(blue);
                 }
                 else
@@ -1895,7 +1895,7 @@ int PopupMenu::PaintThePopupMenu()
         }
     }
 
-    dc->SelectObject(GetPenFromPool(1, 0, SHADOW_BLUE_COLOR2));
+    dc->SelectObject(GetPenFromPool(1, false, SHADOW_BLUE_COLOR2));
 
     dc->MoveTo(0, 0);
     dc->LineTo(rct.right - 1, 0);
@@ -1907,9 +1907,9 @@ int PopupMenu::PaintThePopupMenu()
     GetCursorPos(&cursor);
     ScreenToClient(&cursor);
     if (cursor.x + cursor.y < TSize / 4 && cursor.x > 0 && cursor.y > 0)
-        dc->SelectObject(GetPenFromPool(1, 1, 0));
+        dc->SelectObject(GetPenFromPool(1, true, 0));
     else
-        dc->SelectObject(GetPenFromPool(1, 0, SHADOW_BLUE_COLOR2));
+        dc->SelectObject(GetPenFromPool(1, false, SHADOW_BLUE_COLOR2));
 
     dc->MoveTo(1, TSize / 4 - 1);
     dc->LineTo(TSize / 4, 0);
@@ -1990,7 +1990,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
         {
             int dataval = Options[m_SelectedOption].Data;
 
-            if (0)
+            if (false)
             {
             DirectCall:
                 dataval = nFlags;
@@ -2009,11 +2009,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if (Options[i].Graphics) Options[i].Graphics->DeselectExpression();
                 if (KeyboardEntryObject && KeyboardEntryBaseObject)
                 {
-                    if (ClipboardExpression) delete ClipboardExpression;
+                    delete ClipboardExpression;
                     ClipboardExpression = new CExpression(nullptr, nullptr, 100);
                     ClipboardExpression->CopyExpression(this->Options[d].Graphics, 0, 0, 0);
                     CDC* DC = pMainView->GetDC();
-                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, 0);
+                    KeyboardEntryObject->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, false);
                     pMainView->ReleaseDC(DC);
                 }
             }
@@ -3097,7 +3097,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                                          Options[m_SelectedOption].X + Options[m_SelectedOption].Cx,
                                                          Options[m_SelectedOption].Y + Options[m_SelectedOption].Cy +
                                                          2), this, 1);
-                                    HFONT font = GetFontFromPool(4, 0, 1, TSize / 4 - 2);
+                                    HFONT font = GetFontFromPool(4, false, true, TSize / 4 - 2);
                                     ValueEntryBox->SendMessage(WM_SETFONT, (WPARAM)font,MAKELPARAM(1, 0));
                                     ValueEntryBox->SetFocus();
                                     ValueEntryBoxData = m_SelectedOption;
@@ -3267,7 +3267,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                                          Options[m_SelectedOption].X + Options[m_SelectedOption].Cx,
                                                          Options[m_SelectedOption].Y + Options[m_SelectedOption].Cy +
                                                          2), this, 1);
-                                    HFONT font = GetFontFromPool(4, 0, 1, TSize / 4 - 2);
+                                    HFONT font = GetFontFromPool(4, false, true, TSize / 4 - 2);
                                     ValueEntryBox->SendMessage(WM_SETFONT, (WPARAM)font,MAKELPARAM(1, 0));
                                     ValueEntryBox->SetFocus();
                                     ValueEntryBoxData = m_SelectedOption;
@@ -3471,7 +3471,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     if (m_Expression->AdjustSelection() && Options[m_SelectedOption].Data != 9)
                     {
                         int is_keyboard_entry = 0;
-                        if (m_Expression == (CExpression*)KeyboardEntryObject)
+                        if (m_Expression == KeyboardEntryObject)
                         {
                             //mark the element where the keyboard entry is active
                             is_keyboard_entry = 1;
@@ -3492,7 +3492,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             m_Expression->InsertEmptyElement(0, 0, 0);
                             is_keyboard_entry = 0;
                         }
-                        if (is_keyboard_entry && m_Expression == (CExpression*)KeyboardEntryObject)
+                        if (is_keyboard_entry && m_Expression == KeyboardEntryObject)
                         {
                             //change the keyboard entry focus point to the element that is marked
                             for (int kk = 0; kk < m_Expression->m_NumElements; kk++)
@@ -3725,7 +3725,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 Options[m_SelectedOption].X, Options[m_SelectedOption].Y - 1,
                                 Options[m_SelectedOption].X + Options[m_SelectedOption].Cx,
                                 Options[m_SelectedOption].Y + Options[m_SelectedOption].Cy + 2), this, 1);
-                        HFONT font = GetFontFromPool(4, 0, 1, TSize / 4 - 2);
+                        HFONT font = GetFontFromPool(4, false, true, TSize / 4 - 2);
                         ValueEntryBox->SendMessage(WM_SETFONT, (WPARAM)font,MAKELPARAM(1, 0));
                         char* url = *(char**)m_theSelectedElement->pElementObject->Data3;
                         ValueEntryBox->SetWindowTextA(url);
@@ -3956,7 +3956,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                             if (this->m_UserParam == 0) copy2->InsertEmptyElement(0, 2, '=');
                             m_Expression->Delete();
-                            ((CExpression*)KeyboardEntryObject)->KeyboardStop();
+                            KeyboardEntryObject->KeyboardStop();
                             CDC* DC;
                             DC = pMainView->GetDC();
                             copy2->CalculateSize(*DC, 100, l, &a, &b);
@@ -4004,7 +4004,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (m_OwnerType == 3)
                         {
-                            KeyboardEntryObject = (CObject*)ds->Object.v;
+                            KeyboardEntryObject = ds->Object.exp;
                             KeyboardEntryBaseObject = ds;
                         }
 
@@ -4020,7 +4020,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (m_OwnerType == 3 && KeyboardEntryObject)
                     {
-                        ((CExpression*)KeyboardEntryObject)->KeyboardStop();
+                        KeyboardEntryObject->KeyboardStop();
                         KeyboardEntryObject = nullptr;
                         KeyboardEntryBaseObject = nullptr;
                     }
@@ -4445,12 +4445,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (m_OwnerType == 3) //keyboard entry (double '?')
             {
                 if (KeyboardEntryObject) //keyboard entry mode
-                    ((CExpression*)KeyboardEntryObject)->KeyboardPopupClosed(
-                        m_UserParam, Options[m_SelectedOption].Data);
+                    KeyboardEntryObject->KeyboardPopupClosed(m_UserParam, Options[m_SelectedOption].Data);
                 else if (m_SelectedSuboption == 0)
                 {
                     delete_clipboard_at_exit = 0;
-                    if (ClipboardExpression) delete ClipboardExpression;
+                    delete ClipboardExpression;
                     ClipboardExpression = new CExpression(nullptr, nullptr, 100);
                     ClipboardExpression->CopyExpression(m_Expression, 0);
                 }
@@ -4512,7 +4511,7 @@ int PopupMenu::HidePopupMenu()
         }
         if (m_OwnerType == 3 && KeyboardEntryObject) //keyboard entry mode
         {
-            ((CExpression*)KeyboardEntryObject)->KeyboardPopupClosed(m_UserParam, 0);
+            KeyboardEntryObject->KeyboardPopupClosed(m_UserParam, 0);
         }
         for (int ii = 0; ii < m_NumOptions; ii++)
             if (Options[ii].Graphics && m_OwnerType != 10)
@@ -5384,7 +5383,7 @@ int PopupMenu::SymbolicComputation()
                     if (PF.prec1 > precision) precision = PF.prec1;
                 }
                 else
-                    is_numbers = 0;
+                    is_numbers = false;
                 delete ex1;
 
 

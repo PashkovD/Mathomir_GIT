@@ -289,7 +289,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                     DC->SetTextColor(RGB(160, 160, 160));
                     DC->SetBkColor(RGB(255, 255, 255));
                     DC->SetBkMode(TRANSPARENT);
-                    DC->SelectObject(GetFontFromPool(4, 0, 0, MX / 3));
+                    DC->SelectObject(GetFontFromPool(4, false, false, MX / 3));
                     DC->TextOut(X + LeftMargin + 30, Y + 3, "Select the zoom-in area.", 24);
                 }
 
@@ -300,7 +300,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                     DC->SetTextColor(RGB(160, 160, 160));
                     DC->SetBkColor(RGB(255, 255, 255));
                     DC->SetBkMode(TRANSPARENT);
-                    DC->SelectObject(GetFontFromPool(4, 0, 0, MX / 3));
+                    DC->SelectObject(GetFontFromPool(4, false, false, MX / 3));
                     DC->TextOut(X + LeftMargin + sz.cx / 2, Y + sz.cy / 2 - MX / 3, "drop an equation here,", 22);
                     DC->TextOut(X + LeftMargin + sz.cx / 2, Y + sz.cy / 2, "or click at colored", 19);
                     DC->TextOut(X + LeftMargin + sz.cx / 2, Y + sz.cy / 2 + MX / 3, "buttons to type it.", 19);
@@ -422,7 +422,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                     //the lin/log sign
                     DC->FillSolidRect(X + hh, Y + Ylen - 4 * zz - hh - 1, 4 * zz, 4 * zz,
                                       TheState == 98 ? BLUE_COLOR : RGB(200, 200, 200));
-                    DC->SelectObject(GetFontFromPool(4, 0, 0, tt * 2));
+                    DC->SelectObject(GetFontFromPool(4, false, false, tt * 2));
                     DC->SetTextAlign(TA_CENTER | TA_BASELINE);
                     DC->SetBkMode(TRANSPARENT);
                     DC->SetTextColor(0);
@@ -579,7 +579,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                             if (strlen(number) > 6) fsize = 12;
                             if (strlen(number) > 9) fsize = 10;
                             fsize = fsize * MX * zoom / 5000;
-                            DC->SelectObject(GetFontFromPool(0, 0, 0, fsize));
+                            DC->SelectObject(GetFontFromPool(0, false, false, fsize));
                             DC->SetTextAlign(TA_CENTER);
                             DC->TextOut(X + (int)x, Y + Ylen - BottomMargin, number);
                             CSize cs;
@@ -706,7 +706,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                             if (strlen(number) > 6) fsize = 12;
                             if (strlen(number) > 9) fsize = 10;
                             fsize = fsize * MX * zoom / 5000;
-                            DC->SelectObject(GetFontFromPool(0, 0, 0, fsize));
+                            DC->SelectObject(GetFontFromPool(0, false, false, fsize));
                             DC->SetTextAlign(TA_RIGHT);
                             DC->TextOut(X + LeftMargin - 1, Y + (int)y - fsize / 2, number);
                             last_y = (int)y;
@@ -771,7 +771,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                     DC->LineTo(X + x, Y + Ylen - BottomMargin);
                     if (fabs(first) < fabs(first + xstep) && fabs(first) < fabs(first - xstep))
                     {
-                        DC->SelectObject(GetPenFromPool(1, 0, RGB(224, 224, 224)));
+                        DC->SelectObject(GetPenFromPool(1, false, RGB(224, 224, 224)));
                         DC->MoveTo(X + x + 1, Y);
                         DC->LineTo(X + x + 1, Y + Ylen - BottomMargin);
                         DC->MoveTo(X + x - 1, Y);
@@ -788,7 +788,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                         if (strlen(number) > 6) fsize = 12;
                         if (strlen(number) > 9) fsize = 10;
                         fsize = fsize * MX * zoom / 5000;
-                        DC->SelectObject(GetFontFromPool(0, 0, 0, fsize));
+                        DC->SelectObject(GetFontFromPool(0, false, false, fsize));
                         DC->SetTextAlign(TA_CENTER);
                         DC->TextOut(X + x, Y + Ylen - BottomMargin, number);
                         CSize cs;
@@ -860,7 +860,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                     DC->LineTo(X + Xlen, Y + y);
                     if (fabs(first) < fabs(first + ystep) && fabs(first) < fabs(first - ystep))
                     {
-                        DC->SelectObject(GetPenFromPool(1, 0, RGB(224, 224, 224)));
+                        DC->SelectObject(GetPenFromPool(1, false, RGB(224, 224, 224)));
                         DC->MoveTo(X + LeftMargin, Y + y + 1);
                         DC->LineTo(X + Xlen, Y + y + 1);
                         DC->MoveTo(X + LeftMargin, Y + y - 1);
@@ -877,7 +877,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                         if (strlen(number) > 6) fsize = 12;
                         if (strlen(number) > 9) fsize = 10;
                         fsize = fsize * MX * zoom / 5000;
-                        DC->SelectObject(GetFontFromPool(0, 0, 0, fsize));
+                        DC->SelectObject(GetFontFromPool(0, false, false, fsize));
                         DC->SetTextAlign(TA_RIGHT);
                         DC->TextOut(X + LeftMargin - 1, Y + y - fsize / 2, number);
                         last_y = y;
@@ -966,7 +966,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                 pp[6].x = pp[0].x;
                 pp[6].y = pp[0].y;
             }
-            if (TheState == 105) // Xmax
+            else if (TheState == 105) // Xmax
             {
                 x0 = X + Xlen - l - 10;
                 y0 = Y + Ylen - BottomMargin - a - b - 10;
@@ -985,7 +985,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                 pp[6].x = pp[0].x;
                 pp[6].y = pp[0].y;
             }
-            if (TheState == 106) // Ymin
+            else if (TheState == 106) // Ymin
             {
                 x0 = X + LeftMargin + 10;
                 y0 = Y + Ylen - BottomMargin - a - b - 10;
@@ -1004,7 +1004,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                 pp[6].x = pp[0].x;
                 pp[6].y = pp[0].y;
             }
-            if (TheState == 107) // Ymax
+            else if (TheState == 107) // Ymax
             {
                 x0 = X + LeftMargin + 10;
                 y0 = Y + 10;
@@ -1023,7 +1023,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                 pp[6].x = pp[0].x;
                 pp[6].y = pp[0].y;
             }
-            if (TheState == 108 ||
+            else if (TheState == 108 ||
                 TheState == 109 ||
                 TheState == 110 ||
                 TheState == 111) //function definitions
@@ -1335,9 +1335,9 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                                                                       &isparenthese, 2);
             if (sel && isexpression && sel->m_Selection && sel->m_Selection != 0x7ffff)
             {
-                ((CExpression*)KeyboardEntryObject)->KeyboardStop();
+                KeyboardEntryObject->KeyboardStop();
                 if (sel->KeyboardStart(DC, ViewZoom))
-                    KeyboardEntryObject = (CObject*)sel;
+                    KeyboardEntryObject = sel;
             }
             tmp->DeselectExpression();
             pMainView->ReleaseDC(DC);
@@ -1440,14 +1440,14 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                 Ymin /= 10.0;
                 Ymax *= 10.0;
             }
-            ((CExpression*)(Base->Items + 6)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 6)->pSubdrawing)->GenerateASCIINumber(Ymin, (long long)Ymin, 0, 5, 0);
-            ((CExpression*)(Base->Items + 7)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 7)->pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
-            ((CExpression*)(Base->Items + 4)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 4)->pSubdrawing)->GenerateASCIINumber(Xmin, (long long)Xmin, 0, 5, 0);
-            ((CExpression*)(Base->Items + 5)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 5)->pSubdrawing)->GenerateASCIINumber(Xmax, (long long)Xmax, 0, 5, 0);
+            ((CExpression*)Base->Items[6].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[6].pSubdrawing)->GenerateASCIINumber(Ymin, (long long)Ymin, 0, 5, 0);
+            ((CExpression*)Base->Items[7].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[7].pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
+            ((CExpression*)Base->Items[4].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[4].pSubdrawing)->GenerateASCIINumber(Xmin, (long long)Xmin, 0, 5, 0);
+            ((CExpression*)Base->Items[5].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[5].pSubdrawing)->GenerateASCIINumber(Xmax, (long long)Xmax, 0, 5, 0);
 
             PlotFunction(1);
             return 0;
@@ -1468,7 +1468,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         }
 
         if (edit_at_position >= Base->NumItems) return 0;
-        if ((Base->Items + edit_at_position)->Type != 2) return 0;
+        if (Base->Items[edit_at_position].Type != 2) return 0;
 
         X = -X;
         Y = -Y;
@@ -1476,12 +1476,11 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         int Ylen = (Base->Items + 1)->Y2 / DRWZOOM;
 
         //will start the keyboard entry
-        KeyboardEntryObject = (CObject*)(Base->Items + edit_at_position)->pSubdrawing;
-        ((CExpression*)KeyboardEntryObject)->m_FontSize = 100;
-        ((CExpression*)KeyboardEntryObject)->DeselectExpression();
-        ((CExpression*)KeyboardEntryObject)->m_Selection = ((CExpression*)KeyboardEntryObject)->m_pElementList->Type
-                                                               ? ((CExpression*)KeyboardEntryObject)->m_NumElements + 1
-                                                               : 1;
+        KeyboardEntryObject = (CExpression*)Base->Items[edit_at_position].pSubdrawing;
+        KeyboardEntryObject->m_FontSize = 100;
+        KeyboardEntryObject->DeselectExpression();
+        KeyboardEntryObject->m_Selection = KeyboardEntryObject->m_pElementList->Type
+                                                   ? KeyboardEntryObject->m_NumElements + 1 : 1;
 
         for (int i = 0; i < NumDocumentElements; i++)
             if ((TheDocument + i)->Object.draw == Base)
@@ -1491,8 +1490,8 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             }
         TheState = edit_at_position + 100;
         CDC* DC = pMainView->GetDC();
-        ((CExpression*)KeyboardEntryObject)->KeyboardStart(DC, ViewZoom);
-        ((CExpression*)KeyboardEntryObject)->m_Selection = 0;
+        KeyboardEntryObject->KeyboardStart(DC, ViewZoom);
+        KeyboardEntryObject->m_Selection = 0;
         pMainView->ReleaseDC(DC);
         return 1;
     }
@@ -1660,7 +1659,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
         p[5].y = p[0].y + n2;
         p[6].x = p[0].x - n2;
         p[6].y = p[0].y + n2;
-        DC->SelectObject(GetPenFromPool(1, 1));
+        DC->SelectObject(GetPenFromPool(1, true));
         HBRUSH brush = CreateSolidBrush(BLUE_COLOR);
         DC->SelectObject(brush);
         DC->Polygon(p, 7);
@@ -1685,7 +1684,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
         p[3].y = p[0].y + n2;
         p[4].x = p[0].x - n2;
         p[4].y = p[0].y + n2;
-        DC->SelectObject(GetPenFromPool(1, 1));
+        DC->SelectObject(GetPenFromPool(1, true));
         HBRUSH brush = CreateSolidBrush(BLUE_COLOR);
         DC->SelectObject(brush);
 
@@ -1721,7 +1720,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
         p[5].y = p[0].y - n1;
         p[6].x = p[0].x - n2;
         p[6].y = p[0].y - n2;
-        DC->SelectObject(GetPenFromPool(1, 1));
+        DC->SelectObject(GetPenFromPool(1, true));
         HBRUSH brush = CreateSolidBrush(BLUE_COLOR);
         DC->SelectObject(brush);
         DC->Polygon(p, 7);
@@ -1746,7 +1745,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
         p[3].y = p[0].y + n1;
         p[4].x = p[0].x - n3;
         p[4].y = p[0].y;
-        DC->SelectObject(GetPenFromPool(1, 1));
+        DC->SelectObject(GetPenFromPool(1, true));
         HBRUSH brush = CreateSolidBrush(BLUE_COLOR);
         DC->SelectObject(brush);
         DC->Polygon(p, 5);
@@ -2221,7 +2220,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
                                         mDC.FillSolidRect(X - 2, zed - 2, 4, 4,RGB(255, 0, special_point==3?255:0));
 
                                     int fontsz = 7 + MX * ViewZoom / 1000;
-                                    mDC.SelectObject(GetFontFromPool(4, 0, 0, fontsz));
+                                    mDC.SelectObject(GetFontFromPool(4, false, false, fontsz));
 
                                     char txt[64];
                                     txt[0] = 0;
@@ -2300,7 +2299,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
                 if (ok)
                 {
                     int fontsz = 7 + MX * ViewZoom / 1000;
-                    mDC.SelectObject(GetFontFromPool(4, 0, 0, fontsz));
+                    mDC.SelectObject(GetFontFromPool(4, false, false, fontsz));
                     mDC.SetTextAlign(TA_RIGHT);
                     mDC.SetBkMode(TRANSPARENT);
                     mDC.SetTextColor(0);

@@ -379,7 +379,7 @@ CExpression::CExpression(CElement* PaternalElement, CExpression* PaternalExpress
 }
 
 //must be very fast
-CExpression::~CExpression(void)
+CExpression::~CExpression()
 {
     //special handling - if clipboard is deleted, send command to other windows that it must be deleted
     if (this == ClipboardExpression)
@@ -398,7 +398,7 @@ CExpression::~CExpression(void)
             }
     }
 
-    if (KeyboardEntryObject == (CObject*)this)
+    if (KeyboardEntryObject == this)
     {
         KeyboardEntryObject = nullptr;
         KeyboardEntryBaseObject = nullptr;
@@ -1405,7 +1405,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
             color = RGB(0, 128, 128);
 
         //painting yellow shadow (for autocomplete-soruce objects) or blue shadow (when typing indexes or exponents
-        if (AutocompleteSource == this || (KeyboardEntryObject == (CObject*)this && (KeyboardIndexMode || KeyboardExponentMode)))
+        if (AutocompleteSource == this || (KeyboardEntryObject == this && (KeyboardIndexMode || KeyboardExponentMode)))
             if (KeyboardEntryObject && KeyboardEntryBaseObject)
             {
                 int l, a, b;
@@ -1631,7 +1631,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                     if (m_StartAsText && i == 0 && m_MaxNumRows == 1 && m_MaxNumColumns == 1 &&
                         (this->m_pPaternalElement == nullptr || this->m_pPaternalElement->m_Type == 5))
                     {
-                        DC->SelectObject(GetFontFromPool(1, 0, 1, ActualSize));
+                        DC->SelectObject(GetFontFromPool(1, false, true, ActualSize));
                         DC->SetTextColor(theElement->IsSelected ? BLUE_COLOR : color);
                         DC->TextOut(X + theElement->X_pos, Y + theElement->Y_pos + ActualSize / 3, "T");
                     }
@@ -1643,7 +1643,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                             theElement->IsSelected == 0 && this->m_Selection == 0 &&
                             this->m_pPaternalElement->Expression2 == this &&
                             this->m_pElementList->Type == 0 && this->m_NumElements == 1 &&
-                            (CObject*)this->m_pPaternalElement->Expression3 != KeyboardEntryObject &&
+                            this->m_pPaternalElement->Expression3 != KeyboardEntryObject &&
                             this->m_pPaternalElement->Expression3->m_pElementList->Type)
                             paint = 0; //for signa or integral signs, no upper limit will be desplayed if empty
                         if (paint)
@@ -1922,7 +1922,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                     int lenx = i < m_MaxNumColumns ? Xpositions[i + 1] - xx : 0;
                     int leny = j < m_MaxNumRows ? Ypositions[j + 1] - yy : 0;
                     int alternate_data = 0;
-                    if (this->m_IsPointerHover || this == (CExpression*)KeyboardEntryObject)
+                    if (this->m_IsPointerHover || this == KeyboardEntryObject)
                     {
                         DC->FillSolidRect(xx, yy, lenx,max(1, ActualSize/24),RGB(240, 240, 240)); //painting tiny lines
                         DC->FillSolidRect(xx, yy,max(1, ActualSize/24), leny,RGB(240, 240, 240));
@@ -2537,7 +2537,7 @@ void CExpression::SelectExpression(char Select)
 }
 
 //this is a redundant function - for speed
-void CExpression::DeselectExpressionExceptKeyboardSelection(void)
+void CExpression::DeselectExpressionExceptKeyboardSelection()
 {
     if (!KeyboardEntryObject) DeselectExpression();
     m_ParenthesesSelected = 0;
@@ -2550,8 +2550,7 @@ void CExpression::DeselectExpressionExceptKeyboardSelection(void)
     tElementStruct* theElement = m_pElementList;
     for (int i = m_NumElements - 1; i >= 0; i--, theElement++)
         if (theElement->IsSelected != 2 || /*(!KeyboardEntryObject) ||*/
-            (this != (CExpression*)KeyboardEntryObject && this != ((CExpression*)KeyboardEntryObject)->
-                m_pPaternalExpression))
+            (this != KeyboardEntryObject && this != KeyboardEntryObject->m_pPaternalExpression))
         {
             theElement->IsSelected = 0;
             if (theElement->Type > 0)
@@ -3380,9 +3379,9 @@ int CExpression::CopyExpression(const CExpression* Original, const char OnlySele
 
 //this function deletes all exprssion contents (including its subelements)
 //it then creates one single dummy element of the expression (empty frame)
-void CExpression::Delete(void)
+void CExpression::Delete()
 {
-    if (KeyboardEntryObject == (CObject*)this)
+    if (KeyboardEntryObject == this)
     {
         KeyboardEntryObject = nullptr;
         KeyboardEntryBaseObject = nullptr;
@@ -4004,7 +4003,7 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
 
 int CExpression::ContainsBlinkingCursor()
 {
-    if (this->m_IsKeyboardEntry && KeyboardEntryObject == (CObject*)this) return m_IsKeyboardEntry;
+    if (this->m_IsKeyboardEntry && KeyboardEntryObject == this) return m_IsKeyboardEntry;
 
     for (int i = 0; i < m_NumElements; i++)
     {
@@ -4310,7 +4309,7 @@ int CExpression::KeyboardStart(CDC* DC, short zoom)
     if (UseToolbar && Toolbox->Toolbar) Toolbox->Toolbar->ConfigureToolbar();
 
     AutocompleteSource = nullptr;
-    Autocomplete(0);
+    Autocomplete(false);
 
     return 1;
 }
@@ -4374,7 +4373,7 @@ int CExpression::KeyboardStop()
         return 0;
     }
 
-    if (this == (CExpression*)KeyboardEntryObject)
+    if (this == KeyboardEntryObject)
     {
         //we cannot call DeselectExpression because we only need to deselect the keyboard selections
         for (int i = 0; i < m_NumElements; i++)
@@ -4382,8 +4381,7 @@ int CExpression::KeyboardStop()
                 (m_pElementList + i)->IsSelected = 0;
     }
 
-    tElementStruct* theElement;
-    theElement = m_pElementList + m_IsKeyboardEntry - 1;
+    tElementStruct* theElement = m_pElementList + m_IsKeyboardEntry - 1;
 
     if (theElement->pElementObject == nullptr)
     {
@@ -4408,7 +4406,7 @@ int CExpression::KeyboardStop()
                 this->ResolveKnownFunctions(DC, ViewZoom, ' ', 0, 0, 0, theElement);
                 pMainView->ReleaseDC(DC);
                 is_inside = 1;
-                int rval = ((CExpression*)KeyboardEntryObject)->KeyboardStop();
+                int rval = KeyboardEntryObject->KeyboardStop();
                 is_inside = 0;
                 return rval;
             }
@@ -4888,7 +4886,7 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
                 arg->m_ParenthesesFlags = 1;
             }
         KeyboardRefocus(arg, 0);
-        arg->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+        arg->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
         return 2;
     }
 
@@ -4917,7 +4915,7 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
         InsertEmptyElement(i, 1, 0, fcolor);
         this->m_IsKeyboardEntry = i + 1;
         this->m_KeyboardCursorPos = 0;
-        this->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+        this->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
         return 2;
     }
 
@@ -5107,11 +5105,10 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
                         NextObject->m_IsKeyboardEntry=1;
                         NextObject->m_KeyboardCursorPos=0;
                         KeyboardEntryObject=(CObject*)NextObject;*/
-                        ((CExpression*)KeyboardEntryObject)->
-                            KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+                        KeyboardEntryObject->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
                         return 2;
                     }
-                    KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+                    KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
                     return 2;
                 }
                 ii++;
@@ -5152,7 +5149,7 @@ resolve_known_functions_nounit:
                 }
             }
 
-            ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+            KeyboardEntryObject->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
             return 2;
         }
     }
@@ -5182,7 +5179,7 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
     new_focus->InsertEmptyElement(position, 1, 0, Toolbox->GetFormattingColor());
     new_focus->m_IsKeyboardEntry = position + 1;
     new_focus->m_KeyboardCursorPos = 0;
-    KeyboardEntryObject = (CObject*)new_focus;
+    KeyboardEntryObject = new_focus;
     CDC* mdc = Toolbox->GetDC();
     if (!IsDrawingMode && KeyboardEntryBaseObject) Toolbox->PaintTextcontrolbox(mdc);
     Toolbox->ReleaseDC(mdc);
@@ -5306,7 +5303,7 @@ char IsDoubleStrokeConversionUsed;
 //this function receives messages when a key is hit (handling of keyboard)
 #pragma optimize("s",on)
 int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, UINT nFlags, int fcolor,
-                                char is_external)
+    bool is_external)
 {
     //******************************************************************************
     //this function receives already prepared key codes (in 'nChar')
@@ -5387,15 +5384,15 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 IsSHIFTDown = 0;
                 int ia = IsALTDown;
                 IsALTDown = 0;
-                this->KeyboardKeyHit(DC, zoom, 0x0D, nRptCnt, 0, 0, 1);
+                this->KeyboardKeyHit(DC, zoom, 0x0D, nRptCnt, 0, 0, true);
                 IsSHIFTDown = is;
                 IsALTDown = ia;
                 //IndexAcceleratorUsed=1;
             }
         //IndexModeWasUsed=1;
 
-        ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 1);
-        ((CExpression*)KeyboardEntryObject)->Autocomplete(0);
+        KeyboardEntryObject->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, true);
+        KeyboardEntryObject->Autocomplete(false);
         return AutocompleteSource ? 2 : 1;
     }
 
@@ -5412,14 +5409,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 IsSHIFTDown = 0;
                 int ia = IsALTDown;
                 IsALTDown = 0;
-                this->KeyboardKeyHit(DC, zoom, 0x0D, nRptCnt, 0, 0, 1);
+                this->KeyboardKeyHit(DC, zoom, 0x0D, nRptCnt, 0, 0, true);
                 IsSHIFTDown = is;
                 IsALTDown = ia;
                 //ExponentAcceleratorUsed=1;
             }
         //ExponentModeWasUsed=1;
-        ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 1);
-        ((CExpression*)KeyboardEntryObject)->Autocomplete(0);
+        KeyboardEntryObject->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, true);
+        KeyboardEntryObject->Autocomplete(false);
         return AutocompleteSource ? 2 : 1;
     }
 
@@ -5458,7 +5455,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("insert into", 20303);
 
             theElement = KeyboardSplitVariable();
-            if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = 1;
+            if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
 
             //special handling for tekst mode
             if (this->m_pPaternalExpression == nullptr && this->m_NumElements == 1 &&
@@ -5588,7 +5585,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             if (m_IsKeyboardEntry <= m_NumElements)
                 (m_pElementList + m_IsKeyboardEntry - 1)->pElementObject->m_Text = IsText;
             m_KeyboardCursorPos = 0;
-            IsEditedVariableEmpty = 1;
+            IsEditedVariableEmpty = true;
 
             //clears clipboard
             delete ClipboardExpression;
@@ -5769,7 +5766,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     exp->m_KeyboardCursorPos = (int)strlen(
                         (exp->m_pElementList + exp->m_NumElements - 1)->pElementObject->Data1);
                     KeyboardEntryStringLen = -1;
-                    KeyboardEntryObject = (CObject*)exp;
+                    KeyboardEntryObject = exp;
 
                     IsText = 1;
                     m_StartAsText = 1;
@@ -5874,10 +5871,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     lastkeystrokes[1] = '_';
                 }
 
-                this->KeyboardKeyHit(DC, zoom, '_', nRptCnt, 0, 0, 0);
+                this->KeyboardKeyHit(DC, zoom, '_', nRptCnt, 0, 0, false);
                 nFlags = Toolbox->KeyboardHit(nChar, nFlags);
-                previouslyEditedExpression = (CExpression*)KeyboardEntryObject;
-                return ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+                previouslyEditedExpression = KeyboardEntryObject;
+                return KeyboardEntryObject->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
             }
         }
     }
@@ -5906,9 +5903,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             theElement->pElementObject->Data2[0] = 0x22;
         }
 
-        this->KeyboardKeyHit(DC, zoom, '^', nRptCnt, 0, 0, 0);
-        previouslyEditedExpression = (CExpression*)KeyboardEntryObject;
-        return ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+        this->KeyboardKeyHit(DC, zoom, '^', nRptCnt, 0, 0, false);
+        previouslyEditedExpression = KeyboardEntryObject;
+        return KeyboardEntryObject->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
     }
 
     /*
@@ -6036,7 +6033,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         LastCursorPositionExpression->m_IsKeyboardEntry = LastCursorPositionPosition;
                         LastCursorPositionExpression->m_KeyboardCursorPos = 0;
                     }
-                    KeyboardEntryObject = (CObject*)LastCursorPositionExpression;
+                    KeyboardEntryObject = LastCursorPositionExpression;
                     KeyboardEntryBaseObject = LastCursorPositionBaseObject;
                     LastCursorPositionExpression = nullptr;
                     CDC* mdc = Toolbox->GetDC();
@@ -6078,7 +6075,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 {
                     InsertEmptyElement(m_IsKeyboardEntry++, 1, 0, fcolor);
                     m_KeyboardCursorPos = 0;
-                    IsEditedVariableEmpty = 1;
+                    IsEditedVariableEmpty = true;
                 }
                 theElement = KeyboardSplitVariable();
 
@@ -6346,7 +6343,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             1;
                         m_pPaternalExpression->m_KeyboardCursorPos = (int)strlen(m_pPaternalElement->Data1);
                         m_IsKeyboardEntry = 0;
-                        KeyboardEntryObject = (CObject*)m_pPaternalExpression;
+                        KeyboardEntryObject = m_pPaternalExpression;
                         return 2;
                     }
                 }
@@ -6491,7 +6488,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     if (m_KeyboardCursorPos == (int)strlen(theElement->pElementObject->Data1)) m_IsKeyboardEntry++;
                     InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
                     m_KeyboardCursorPos = 0;
-                    IsEditedVariableEmpty = 1;
+                    IsEditedVariableEmpty = true;
                 }
                 theElement = KeyboardSplitVariable();
 
@@ -6964,7 +6961,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (m_KeyboardCursorPos == (int)strlen(theElement->pElementObject->Data1)) m_IsKeyboardEntry++;
                 InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
                 m_KeyboardCursorPos = 0;
-                IsEditedVariableEmpty = 1;
+                IsEditedVariableEmpty = true;
             }
             theElement = KeyboardSplitVariable();
 
@@ -7334,7 +7331,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("Enter key", 20307);
                     //text checked in the backspace handling
                     theElement = KeyboardSplitVariable();
-                    if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = 1;
+                    if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
                     if (KeyboardEntryBaseObject == nullptr) return 2;
                     if (KeyboardEntryBaseObject->Type == DRAWING) return 2;
 
@@ -7697,8 +7694,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     pelement->Expression2 = nullptr;
                 }
             }
-            if (jump_one_step_further) ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+            if (jump_one_step_further)
+                KeyboardEntryObject->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
 
             return 1;
         }
@@ -7716,7 +7713,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             {
                 InsertEmptyElement(m_IsKeyboardEntry++, 1, 0, fcolor);
                 m_KeyboardCursorPos = 0;
-                IsEditedVariableEmpty = 1;
+                IsEditedVariableEmpty = true;
             }
             this->DeselectExpression();
             int ii;
@@ -7778,7 +7775,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             {
                 InsertEmptyElement(m_IsKeyboardEntry++, 1, 0, fcolor);
                 m_KeyboardCursorPos = 0;
-                IsEditedVariableEmpty = 1;
+                IsEditedVariableEmpty = true;
             }
             this->DeselectExpression();
             int ii;
@@ -7990,7 +7987,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     NextEditedObject->InsertEmptyElement(i + 1, 1, 0, fcolor);
                     NextEditedObject->m_KeyboardCursorPos = 0;
                 }
-                KeyboardEntryObject = (CObject*)NextEditedObject;
+                KeyboardEntryObject = NextEditedObject;
                 CExpression* tmp;
                 if (type == 1)
                 {
@@ -8006,7 +8003,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (lastkeystrokes[0] == '_')
                 {
                     memmove(lastkeystrokes, lastkeystrokes + 1, 10);
-                    previouslyEditedExpression = (CExpression*)KeyboardEntryObject;
+                    previouslyEditedExpression = KeyboardEntryObject;
                 }
                 return 1;
             }
@@ -8048,7 +8045,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     NextEditedObject->m_IsKeyboardEntry = i + jj + 1;
                 }
                 NextEditedObject->m_KeyboardCursorPos = 0;
-                KeyboardEntryObject = (CObject*)NextEditedObject;
+                KeyboardEntryObject = NextEditedObject;
                 KeyboardEntryBaseObject = tmp;
                 return 2; //this will repaint
             }
@@ -8325,7 +8322,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                                 {
                                     ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("del key", 20304);
                                     m_IsKeyboardEntry = 0;
-                                    KeyboardEntryObject = (CObject*)parent;
+                                    KeyboardEntryObject = parent;
                                     parent->InsertEmptyElement(i, 1, 0, fcolor);
                                     parent->m_IsKeyboardEntry = i + 1;
                                     parent->m_KeyboardCursorPos = 0;
@@ -8379,7 +8376,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             }
             ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("del key", 20304);
             m_KeyboardCursorPos = 0;
-            return KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+            return KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
         }
         else
         {
@@ -8501,17 +8498,17 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                                                 CExpression* arg = this->m_pPaternalElement->
                                                                          Expression1;
                                                 KeyboardRefocus(arg, 0);
-                                                ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                                    DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+                                                KeyboardEntryObject->KeyboardKeyHit(
+                                                    DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
                                                 return 1;
                                             }
                                             this->m_pPaternalExpression->InsertEmptyElement(
                                                 iii, 1, 0, fcolor);
                                             this->m_pPaternalExpression->m_IsKeyboardEntry = iii + 1;
                                             this->m_pPaternalExpression->m_KeyboardCursorPos = 0;
-                                            KeyboardEntryObject = (CObject*)this->m_pPaternalExpression;
-                                            ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                                DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+                                            KeyboardEntryObject = this->m_pPaternalExpression;
+                                            KeyboardEntryObject->KeyboardKeyHit(
+                                                DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
 
                                             return 1;
                                         }
@@ -8535,7 +8532,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         {
             theElement = KeyboardSplitVariable();
             if (m_KeyboardCursorPos == 0)
-                IsEditedVariableEmpty = 1;
+                IsEditedVariableEmpty = true;
             else if (m_KeyboardCursorPos == 1 && theElement->pElementObject->Data1[0] == '\\')
             {
                 if (m_KeyboardCursorPos == 1)
@@ -8548,7 +8545,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 m_IsKeyboardEntry++;
                 InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
                 m_KeyboardCursorPos = 0;
-                IsEditedVariableEmpty = 1;
+                IsEditedVariableEmpty = true;
                 goto toggle_keymode;
 
                 IsText = IsText ? 0 : 1;
@@ -8567,7 +8564,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 m_KeyboardCursorPos = 0;
                 InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
                 theElement = m_pElementList + m_IsKeyboardEntry - 1;
-                IsEditedVariableEmpty = 1;
+                IsEditedVariableEmpty = true;
             }
         }
         if (/*(IsText==0) &&*/ m_KeyboardCursorPos == 1 && theElement->pElementObject->Data1[0] == '\\' &&
@@ -8739,9 +8736,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             m_KeyboardCursorPos = 0;
                             return 1;
                         }
-                        if (((CExpression*)KeyboardEntryObject)->m_pPaternalElement)
+                        if (KeyboardEntryObject->m_pPaternalElement)
                         {
-                            CElement* elm = ((CExpression*)KeyboardEntryObject)->m_pPaternalElement;
+                            CElement* elm = KeyboardEntryObject->m_pPaternalElement;
                             if (elm->m_Type == 6 && this == elm->Expression1)
                             {
                                 //we are in the argument of function
@@ -8782,11 +8779,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     }
 
                     if (single_side)
-                        IsEditedVariableEmpty = 1;
+                        IsEditedVariableEmpty = true;
                     else
                     {
                         theElement = KeyboardSplitVariable();
-                        if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = 1;
+                        if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
                     }
 
                     if (IsEditedVariableEmpty)
@@ -9097,7 +9094,7 @@ keyboardkeyhit_addtoexponent:
                                     lastkeystrokes[0] = 0;
                                     int rv = Toolbox->KeyboardHit(nChar, IsSHIFTDown ? 0x02 : 0x00);
                                     theElement->pElementObject->Data2[0] = rv & 0xFF;
-                                    theElement->pElementObject->m_VMods = rv >> 16 && 0xFF;
+                                    theElement->pElementObject->m_VMods = rv >> 16 && true;
                                     //continuing
                                 }
                         }
@@ -9168,7 +9165,7 @@ keyboardkeyhit_addtoexponent:
         }
 
         if (ch == ',' && (KeyboardExponentMode || KeyboardIndexMode))
-            Autocomplete(0);
+            Autocomplete(false);
 
         if (AutocompleteSource && ch == ',' && m_KeyboardCursorPos == 0)
         {
@@ -9185,7 +9182,7 @@ keyboardkeyhit_addtoexponent:
             this->m_KeyboardCursorPos = 0;
 
             IsSHIFTDown = 0;
-            return KeyboardKeyHit(DC, zoom, 0x0D, 0, 0, 0, 0);
+            return KeyboardKeyHit(DC, zoom, 0x0D, 0, 0, 0, false);
         }
 
 
@@ -9249,11 +9246,11 @@ keyboardkeyhit_addtoexponent:
                     int sa = IsSHIFTALTDown;
                     int al = IsALTDown;
                     IsSHIFTDown = IsSHIFTALTDown = IsALTDown = 0;
-                    KeyboardKeyHit(DC, zoom, 0x0D, nRptCnt, 0, 0, 0);
+                    KeyboardKeyHit(DC, zoom, 0x0D, nRptCnt, 0, 0, false);
                     IsSHIFTDown = sh;
                     IsALTDown = al;
                     IsSHIFTALTDown = sa;
-                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(DC, zoom, ch, nRptCnt, nFlags, fcolor, 0);
+                    KeyboardEntryObject->KeyboardKeyHit(DC, zoom, ch, nRptCnt, nFlags, fcolor, false);
                     return 1;
                 }
             }
@@ -9400,11 +9397,11 @@ keyboardkeyhit_addtoexponent:
                                     IsSHIFTDown = 0;
                                     int preval = IsALTDown;
                                     IsALTDown = 0;
-                                    KeyboardKeyHit(DC, zoom, 0x0D, 0, 0, 0, 0);
+                                    KeyboardKeyHit(DC, zoom, 0x0D, 0, 0, 0, false);
                                     IsSHIFTDown = prevsh;
                                     IsALTDown = preval;
-                                    ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                        DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+                                    KeyboardEntryObject->KeyboardKeyHit(
+                                        DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
                                     return 1;
                                 }
                     }
@@ -9422,8 +9419,8 @@ keyboardkeyhit_addtoexponent:
                                 ((CExpression*)KeyboardEntryObject)->InsertEmptyElement(0,1,0,fcolor);
                                 ((CExpression*)KeyboardEntryObject)->m_IsKeyboardEntry=1;
                                 ((CExpression*)KeyboardEntryObject)->m_KeyboardCursorPos=0;*/
-                                return ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                    DC, zoom, nChar, nRptCnt, nFlags, fcolor, 0);
+                                return KeyboardEntryObject->KeyboardKeyHit(
+                                    DC, zoom, nChar, nRptCnt, nFlags, fcolor, false);
                             }
                     }
 
@@ -9450,7 +9447,7 @@ keyboardkeyhit_addtoexponent:
 
 
                     theElement = KeyboardSplitVariable();
-                    if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = 1;
+                    if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
 
                     if (IsEditedVariableEmpty)
                         DeleteElement(m_IsKeyboardEntry - 1);
@@ -10171,7 +10168,7 @@ keyboardkeyhit_addtoexponent:
             {
                 //special handling for variable indexes - moving the cursor at the end of the variable
                 //KeyboardRefocus((CExpression*)this->m_pPaternalExpression,this->m_pPaternalElement->GetPaternalPosition());
-                KeyboardEntryObject = (CObject*)this->m_pPaternalExpression;
+                KeyboardEntryObject = this->m_pPaternalExpression;
                 this->m_pPaternalExpression->m_IsKeyboardEntry = this->m_pPaternalElement->GetPaternalPosition() + 1;
                 this->m_pPaternalExpression->m_KeyboardCursorPos = (short)strlen(this->m_pPaternalElement->Data1);
                 m_IsKeyboardEntry = 0;
@@ -10444,7 +10441,7 @@ keyboardkeyhit_addtoexponent:
                     return 1;
 
                 theElement = KeyboardSplitVariable();
-                if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = 1;
+                if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
                 if (IsEditedVariableEmpty)
                 {
                     DeleteElement(m_IsKeyboardEntry - 1);
@@ -10600,13 +10597,13 @@ keyboardkeyhit_addtoexponent:
                             strcat_s(ts->pElementObject->Data1, "_");
                             if (ts->pElementObject->Expression1)
                             {
-                                KeyboardEntryObject = (CObject*)exp;
+                                KeyboardEntryObject = exp;
                                 exp->m_IsKeyboardEntry = j + 1;
                                 exp->m_KeyboardCursorPos = len + 1;
                                 m_IsKeyboardEntry = 0;
                                 m_KeyboardCursorPos = 0;
                                 delete ts->pElementObject->Expression1;
-                                ts->pElementObject->Expression1 = 0;
+                                ts->pElementObject->Expression1 = nullptr;
 
                                 return 2;
                             }
@@ -10617,7 +10614,7 @@ keyboardkeyhit_addtoexponent:
                     return 1;
 
                 theElement = KeyboardSplitVariable();
-                if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = 1;
+                if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
                 if (IsEditedVariableEmpty)
                 {
                     DeleteElement(m_IsKeyboardEntry - 1);
@@ -10721,7 +10718,7 @@ keyboardkeyhit_addtoexponent:
         //add new column to the matrix by inserting the column spacer
         ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("column spacer", 20300);
         theElement = KeyboardSplitVariable();
-        if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = 1;
+        if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
 
         if (IsEditedVariableEmpty)
             if (RemoveEmptyVariable(DC, theElement)) m_IsKeyboardEntry--;
@@ -10764,7 +10761,7 @@ keyboardkeyhit_addtoexponent:
         ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("row spacer", 20301);
 
         theElement = KeyboardSplitVariable();
-        if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = 1;
+        if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
         if (IsEditedVariableEmpty)
             if (RemoveEmptyVariable(DC, theElement)) m_IsKeyboardEntry--;
 
@@ -10894,12 +10891,11 @@ keyboardkeyhit_addtoexponent:
                             IsSHIFTDown = 0;
                             char palt = IsALTDown;
                             IsALTDown = 0;
-                            KeyboardKeyHit(DC, zoom, ' ', nRptCnt, nFlags, fcolor, 0);
+                            KeyboardKeyHit(DC, zoom, ' ', nRptCnt, nFlags, fcolor, false);
                             IsSHIFTDown = pshft;
                             IsALTDown = palt;
-                            return ((CExpression*)KeyboardEntryObject)->KeyboardKeyHit(
-                                DC, zoom, nChar, nRptCnt, nFlags, fcolor,
-                                0); //napravljeno da se omoguci umetanje toèke u 'char * broj' (12.05.2011)
+                            return KeyboardEntryObject->KeyboardKeyHit(DC, zoom, nChar, nRptCnt, nFlags, fcolor,
+                                false); //napravljeno da se omoguci umetanje toèke u 'char * broj' (12.05.2011)
                         }
                     }
                     else
@@ -10912,7 +10908,7 @@ keyboardkeyhit_addtoexponent:
                             IsSHIFTDown = 0;
                             char palt = IsALTDown;
                             IsALTDown = 0;
-                            KeyboardKeyHit(DC, zoom, ' ', nRptCnt, nFlags, fcolor, 0);
+                            KeyboardKeyHit(DC, zoom, ' ', nRptCnt, nFlags, fcolor, false);
                             IsSHIFTDown = pshft;
                             IsALTDown = palt;
                             theElement = m_pElementList + m_IsKeyboardEntry - 1;
@@ -11368,7 +11364,7 @@ int CExpression::KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt
     ClipboardExpression = nullptr;
 
     KeyboardStart(DC, ViewZoom); //starts the keyboard entry at the m_Selection position
-    KeyboardEntryObject = (CObject*)this;
+    KeyboardEntryObject = this;
 
     KeyboardExponentMode = KeyboardIndexMode = 0;
     if (m_IsKeyboardEntry >= 2)
@@ -11384,21 +11380,20 @@ int CExpression::KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt
     }
 
     //adds the character
-    CExpression* newFocus;
-    if (KeyboardKeyHit(DC, ViewZoom, nChar, nRepCnt, nFlags, fcolor, 2) == 0)
+    if (KeyboardKeyHit(DC, ViewZoom, nChar, nRepCnt, nFlags, fcolor, true) == 0)
     {
         this->m_Selection = 0;
         this->m_IsKeyboardEntry = 0;
         goto keyboardquicktype_end;
     }
-    newFocus = (CExpression*)KeyboardEntryObject; //the keyboard focus my change;
+    CExpression* newFocus = KeyboardEntryObject; //the keyboard focus my change;
     if (newFocus == nullptr) goto keyboardquicktype_end;
     if (newFocus->m_IsKeyboardEntry < 1) goto keyboardquicktype_end;
 
     if (KeyboardExponentMode || KeyboardIndexMode)
     {
-        if (newFocus->KeyboardKeyHit(DC, ViewZoom, 0x0D, nRepCnt, nFlags, fcolor, 1) == 0) goto keyboardquicktype_end;
-        newFocus = (CExpression*)KeyboardEntryObject; //the keyboard focus my change;
+        if (newFocus->KeyboardKeyHit(DC, ViewZoom, 0x0D, nRepCnt, nFlags, fcolor, true) == 0) goto keyboardquicktype_end;
+        newFocus = KeyboardEntryObject; //the keyboard focus my change;
         if (newFocus == nullptr) goto keyboardquicktype_end;
         if (newFocus->m_IsKeyboardEntry < 1) goto keyboardquicktype_end;
     }
@@ -11653,14 +11648,14 @@ int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, sho
                 if (IsBlue)
                 {
                     brush = new CBrush(BLUE_COLOR);
-                    DC->SelectObject(GetPenFromPool(1, 1, 0));
+                    DC->SelectObject(GetPenFromPool(1, true, 0));
                     DC->SelectObject(brush);
                 }
                 else
                 {
                     brush = new CBrush(color);
                     DC->SelectObject(brush);
-                    DC->SelectObject(GetPenFromPool(1, 0, color));
+                    DC->SelectObject(GetPenFromPool(1, false, color));
                 }
 
                 for (int ii = prev_j; ii < j; ii++)
@@ -11815,7 +11810,7 @@ int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, sho
         }
         else
         {
-            DC->SelectObject(GetPenFromPool(max(TheFontSize/24, 1), 0, col));
+            DC->SelectObject(GetPenFromPool(max(TheFontSize/24, 1), false, col));
             int X2 = (X1 + X3) / 2;
             int Y4 = Y3 + TheFontSize / 48;
             int Y5 = Y3; //-TheFontSize/132;
@@ -12011,7 +12006,7 @@ int CExpression::Autocomplete(bool is_internal)
         if (this->m_NumElements == 1 && this->m_pElementList->Type == 2 || this->m_pElementList->Type == 0)
             return 1; //some pointless math line (single operator - this happens sometimes with exponents or indexes)
 
-        CExpression* org = (CExpression*)KeyboardEntryObject;
+        CExpression* org = KeyboardEntryObject;
 
         if (org == this) return 1;
 
@@ -12241,9 +12236,9 @@ int CExpression::Autocomplete(bool is_internal)
             tElementStruct* ts = m_pElementList + i;
             if (ts->pElementObject)
             {
-                if (ts->pElementObject->Expression1) ts->pElementObject->Expression1->Autocomplete(1);
-                if (ts->pElementObject->Expression2) ts->pElementObject->Expression2->Autocomplete(1);
-                if (ts->pElementObject->Expression3) ts->pElementObject->Expression3->Autocomplete(1);
+                if (ts->pElementObject->Expression1) ts->pElementObject->Expression1->Autocomplete(true);
+                if (ts->pElementObject->Expression2) ts->pElementObject->Expression2->Autocomplete(true);
+                if (ts->pElementObject->Expression3) ts->pElementObject->Expression3->Autocomplete(true);
             }
         }
         return 1;
@@ -12271,7 +12266,7 @@ int CExpression::Autocomplete(bool is_internal)
         if (ds->Type == EXPRESSION && ds->absolute_X + ds->Length > X - 100 && ds->absolute_X < X + L + 100 &&
             ds->absolute_Y <= Y + 20 && ds->absolute_Y > Y - 200)
         {
-            ds->Object.exp->Autocomplete(1);
+            ds->Object.exp->Autocomplete(true);
         }
     }
 
@@ -13721,7 +13716,7 @@ int CExpression::DetermineInsertionPointType(int position)
     if (position < 0) position = 0;
     if (KeyboardEntryBaseObject == nullptr)
         m_ModeDefinedAt = 0;
-    if (position < m_NumElements && this == (CExpression*)KeyboardEntryObject && position == m_IsKeyboardEntry - 1
+    if (position < m_NumElements && this == KeyboardEntryObject && position == m_IsKeyboardEntry - 1
         &&
         (this->m_pElementList + position)->Type == 1 && (this->m_pElementList + position)->pElementObject->Data1[0]
         == '\\')
@@ -13794,26 +13789,25 @@ int CExpression::DetermineInsertionPointType(int position)
     return m_StartAsText;
 }
 
-CObject* CExpression::KeyboardFindEntryPos()
+CExpression* CExpression::KeyboardFindEntryPos()
 {
     //searches for an expression that has m_IsKeyboardEntry flag set
 
-    if (m_IsKeyboardEntry) return (CObject*)this;
-    int i;
-    for (i = 0; i < m_NumElements; i++)
+    if (m_IsKeyboardEntry) return this;
+    for (int i = 0; i < m_NumElements; i++)
     {
         tElementStruct* ts = m_pElementList + i;
         if (ts->pElementObject)
         {
-            CObject* ret = nullptr;
-            if (ts->pElementObject->Expression1) ret = ts->pElementObject->Expression1->
-                                                           KeyboardFindEntryPos();
+            CExpression* ret = nullptr;
+            if (ts->pElementObject->Expression1)
+                ret = ts->pElementObject->Expression1->KeyboardFindEntryPos();
             if (ret) return ret;
-            if (ts->pElementObject->Expression2) ret = ts->pElementObject->Expression2->
-                                                           KeyboardFindEntryPos();
+            if (ts->pElementObject->Expression2)
+                ret = ts->pElementObject->Expression2->KeyboardFindEntryPos();
             if (ret) return ret;
-            if (ts->pElementObject->Expression3) ret = ts->pElementObject->Expression3->
-                                                           KeyboardFindEntryPos();
+            if (ts->pElementObject->Expression3)
+                ret = ts->pElementObject->Expression3->KeyboardFindEntryPos();
             if (ret) return ret;
         }
     }
@@ -13924,7 +13918,7 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExp
     ds->Length = (short)((int)l * 100 / (int)ViewZoom);
     ds->Below = 0x7FFF; //this will force recalcuation and repainting
 
-    KeyboardEntryObject = (CObject*)ds->Object.exp;
+    KeyboardEntryObject = ds->Object.exp;
     KeyboardEntryBaseObject = ds;
     ds->Object.exp->m_IsKeyboardEntry = 1;
     ds->Object.exp->m_KeyboardCursorPos = 0;
@@ -13948,7 +13942,7 @@ int CExpression::CopyToWindowsClipboard(void)
     if (theApp.m_pMainWnd->OpenClipboard())
     {
         char tmp[64];
-        int len = XML_output(tmp, 0, 1);
+        int len = XML_output(tmp, 0, true);
         if (len > 0 && len < 1000000)
         {
             EmptyClipboard();
@@ -13960,7 +13954,7 @@ int CExpression::CopyToWindowsClipboard(void)
             *control = 0xAABBCC11;
             LastTakenChecksum = *checksum = CalcChecksum() + rand();
 
-            XML_output(data, 0, 0);
+            XML_output(data, 0, false);
             GlobalUnlock(hmem);
             UINT format = RegisterClipboardFormat("MATHOMIR_EXPR");
             HANDLE ret = SetClipboardData(format, hmem);
@@ -14438,7 +14432,7 @@ int CExpression::PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short
 
     if (Type == 'x') //crossed
     {
-        if (1/*!IsHighQualityRendering*/)
+        if (true/*!IsHighQualityRendering*/)
         //only non-high-quality is proveded because lot of memory is consumet for large pictures
         {
             if (PaintTop)
@@ -14487,7 +14481,7 @@ int CExpression::IsTextContained(int position, char unmark_at_line_start)
     {
         //if the 'unmark_at_line_start' flag is set then we don't mark the object as text if the
         //cursor is at the beginning of the line
-        if ((CObject*)this == KeyboardEntryObject && KeyboardEntryBaseObject)
+        if (this == KeyboardEntryObject && KeyboardEntryBaseObject)
         {
             if (m_IsKeyboardEntry >= 1 && m_IsKeyboardEntry <= m_NumElements)
             {
@@ -15547,7 +15541,7 @@ int CExpression::KeyboardStartAt(int X, int Y, char direction, char between)
                 KSAoriginal->m_IsKeyboardEntry = 0;
             }
 
-            KeyboardEntryObject = (CObject*)KSAfexpr;
+            KeyboardEntryObject = KSAfexpr;
             if (between && KSAcurpos >= 0)
             {
                 KSAfexpr->m_IsKeyboardEntry = KSAfselection + 1;
@@ -15799,7 +15793,7 @@ int CExpression::GetElementLen(const unsigned int StartPos, const unsigned int E
 //if it cannot determine operator level (for example if only one variable is contained)
 //then the level of the 'default_oper' is returned (or -1 if 'default_oper'==0)
 int CExpression::FindLowestOperatorLevel(const unsigned int StartPos, const unsigned int EndPos,
-                                         const char default_oper)
+                                         const char default_oper) const
 {
     //if (EndPos==-1) EndPos=m_NumElements-1;
     if (StartPos == EndPos)

@@ -2817,10 +2817,10 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
     if (IsSpecialDrawing == 52)
         datalen = ((CBitmapImage*)SpecialData)->XML_output(output, num_tabs, only_calculate);
 
-    if (IsSpecialDrawing == 51)
+    else if (IsSpecialDrawing == 51)
         datalen = ((CFunctionPlotter*)SpecialData)->XML_output(output, num_tabs, only_calculate);
 
-    if (IsSpecialDrawing == 50)
+    else if (IsSpecialDrawing == 50)
         datalen = ((CDrawingBox*)SpecialData)->XML_output(output, num_tabs, only_calculate);
 
     len += datalen;
@@ -3675,7 +3675,7 @@ break_apart_again:
     if (has_others)
     {
         CDrawing* temp = new CDrawing();
-        temp->IsSelected = 0;
+        temp->IsSelected = false;
         temp->OriginalForm = 0;
         temp->m_Color = m_Color;
         int jj = 0;

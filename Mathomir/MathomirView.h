@@ -172,8 +172,8 @@ public:
     afx_msg void OnFontfacesFont4();
     afx_msg void OnFontfacesSetfontstodefaullts();
 
-    void KeyboardSelectionCut(int no_copy = 0);
-    void KeyboardSelectionCopy(int no_deselect = 0);
+    void KeyboardSelectionCut(bool no_copy = false);
+    void KeyboardSelectionCopy(bool no_deselect = false);
     void KeyboardSelectionPaste();
     afx_msg void OnEditCopylatexcode();
     afx_msg void OnKeyboardF1setszoomlevelto100();

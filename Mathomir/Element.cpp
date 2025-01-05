@@ -1425,9 +1425,9 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         if (Data1[0] == 'O') Data1[1] = 'a'; //circular integral
         if (Data1[0] == '|' || Data1[0] == '/') Data1[1] = 'a'; //bar (left or right)
         if (Data1[0] == 'S' || Data1[0] == 'P')
-            hfont = GetFontFromPool(3, 0, 0, max(2*HalfSymbolHeight, 1)); //always greek alphabet
+            hfont = GetFontFromPool(3, false, false, max(2*HalfSymbolHeight, 1)); //always greek alphabet
         else
-            hfont = GetFontFromPool(3, 0, 0, max(ActualSize/2+HalfSymbolHeight/3, 1));
+            hfont = GetFontFromPool(3, false, false, max(ActualSize/2+HalfSymbolHeight/3, 1));
         DC.SelectObject(hfont);
         cs = DC.GetTextExtent(&Data1[1]);
         if (cs.cx == 0) cs.cx = ActualSize / 10;
@@ -1780,7 +1780,7 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
         int ok = 0;
         int l = (int)strlen(Data1);
 
-        if (m_pPaternalExpression != (CExpression*)KeyboardEntryObject || this->m_Text)
+        if (m_pPaternalExpression != KeyboardEntryObject || this->m_Text)
             if (l > 0)
             {
                 //re-calculate text again for better rendering
@@ -1926,7 +1926,7 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
 //it is painting the Element into device context
 //the element must be already prepared for painting (by calling 'CalculateSize' earlier)
 //this function should be fast!
-void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlue, int ActualSize, RECT* ClipReg,
+void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlue, int ActualSize, RECT* ClipReg,
                                COLORREF color)
 {
     CMainFrame* mf;
@@ -1947,7 +1947,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             if ((this->m_pPaternalExpression->m_pElementList + paternal_pos)->IsSelected != 2)
                 if (Data3[strlen(Data1)] >= kk)
                 {
-                    IsBlue = 0;
+                    IsBlue = false;
                     if (m_pPaternalExpression->m_IsKeyboardEntry != paternal_pos + 1 ||
                         Data3[m_pPaternalExpression->m_KeyboardCursorPos] != kk)
                     {
@@ -2128,7 +2128,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
                 if (sel > 1 && (p->m_pElementList + sel - 2)->pElementObject == this)
                     ok = 1;
             }
-            if (KeyboardEntryObject == (CObject*)p)
+            if (KeyboardEntryObject == p)
             {
                 if (p->m_IsKeyboardEntry > 0 && p->m_IsKeyboardEntry <= p->m_NumElements)
                 {
@@ -2147,7 +2147,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             }
             if (ok)
             {
-                DC->SelectObject(GetPenFromPool(1, 1, 0));
+                DC->SelectObject(GetPenFromPool(1, true, 0));
                 if (Data1[3] == 1)
                 {
                     DC->MoveTo(X - Data3[1] / 16, Y - Data3[1] / 20);
@@ -2264,7 +2264,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
         if (Data1[0] == '/')
         {
-            DC->SelectObject(GetPenFromPool(max(ActualSize/12, 1), IsBlue ? 1 : 0, color));
+            DC->SelectObject(GetPenFromPool(max(ActualSize/12, 1), IsBlue, color));
             DC->MoveTo(X + E1_posX + E1_length + (E2_posX - E1_posX - E1_length) / 2 + ActualSize / 24 - Data3[0],
                        Y + Data3[1]);
             DC->LineTo(X + E1_posX + E1_length + (E2_posX - E1_posX - E1_length) / 2 - ActualSize / 24 + Data3[2],
@@ -2349,7 +2349,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
         DC->SetTextColor(IsBlue ? BLUE_COLOR : color);
         if (Data1[0] == 'S' || Data1[0] == 'P')
         {
-            hfont = GetFontFromPool(3, 0, 0, max(Data3[0]*20/10, 1));
+            hfont = GetFontFromPool(3, false, false, max(Data3[0]*20/10, 1));
             DC->SelectObject(hfont);
             DC->TextOut(X + Data3[2], Y + Data3[0] * 20 / 30 - Data3[0] / 7, &Data1[1]);
         }
@@ -2508,7 +2508,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
             Expression2->PaintExpression(
                 DC, zoom, X + E2_posX, Y + E2_posY, ClipReg, color);
 
-        if (1) //!IsHighQualityRendering)
+        if (true) //!IsHighQualityRendering)
         {
             int h = ActualSize;
             if (Expression1) h = this->E1_above + this->E1_below;
@@ -2637,7 +2637,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
         if (IsBlue)
         {
             POINT p[5];
-            DC->SelectObject(GetPenFromPool(1, 1));
+            DC->SelectObject(GetPenFromPool(1, true));
             p[0].x = X;
             p[0].y = Y - ActualSize / 5;
             p[1].x = X + ActualSize / 6;
@@ -2654,7 +2654,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
         if (IsBlue)
         {
             POINT p[5];
-            DC->SelectObject(GetPenFromPool(1, 1));
+            DC->SelectObject(GetPenFromPool(1, true));
             p[0].x = X;
             p[0].y = Y - ActualSize / 5;
             p[1].x = X + ActualSize / 5;
@@ -2670,8 +2670,8 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, char IsBlu
 
 int CElement::ContainsBlinkingCursor() const
 {
-    if (this->m_pPaternalExpression == (CExpression*)KeyboardEntryObject && this->m_pPaternalExpression->
-                                                                    m_IsKeyboardEntry == this->GetPaternalPosition() + 1)
+    if (this->m_pPaternalExpression == KeyboardEntryObject && this->m_pPaternalExpression->
+                                                                        m_IsKeyboardEntry == this->GetPaternalPosition() + 1)
         return 1;
     int t = 0;
     if (this->Expression1)
@@ -3490,11 +3490,10 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 {
     int len = 0;
     int tmp;
-    std::string* E1 = nullptr;
-    std::string* E2 = nullptr;
-    std::string* E3 = nullptr;
+    std::string E1;
+    std::string E2;
+    std::string E3;
 
-    static char tmpstr[136]; //we are using this functin recursivley, so take care not to use too much memory
     //static char tabs[17];
 
     if (num_tabs > 16) num_tabs = 16;
@@ -3509,6 +3508,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 
     if (XMLFileVersion == 1 || m_Type >= 7)
     {
+        char tmpstr[136];
         sprintf_s(tmpstr, "<elm tp=\"%d\" ", m_Type);
         tmp = (int)strlen(tmpstr);
         len += tmp;
@@ -3535,6 +3535,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 
     if (m_Color != -1)
     {
+        char tmpstr[136];
         strcpy_s(tmpstr, " color=\"");
         tmp = (short)strlen(tmpstr);
         len += tmp;
@@ -3570,6 +3571,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             {
                 if (ts->Decoration)
                 {
+                    char tmpstr[136];
                     sprintf_s(tmpstr, "decor=\"%d\" ", ts->Decoration);
                     tmp = (short)strlen(tmpstr);
                     len += tmp;
@@ -3584,7 +3586,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         }
     }
 
-    tmpstr[0] = 0;
+    char tmpstr[136];
     if (m_Type == 1 || //variable
         m_Type == 6) //function
     {
@@ -3682,21 +3684,22 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
                 strcat_s(tmpstr, "\"");
             }
 
-            if (Expression1) *E1 = "i";
+            if (Expression1) E1 = "i";
         }
         else
         {
-            if (Expression1) *E1 = "";
-            if (Expression2) *E2 = "i";
+            if (Expression1) E1 = "";
+            if (Expression2) E2 = "i";
         }
     }
 
-    if (m_Type == 2) //operator
+    else if (m_Type == 2) //operator
     {
-        if (Data1[0] < ' ' || Data1[0] > 0x7E || Data1[0] == '\\' || Data1[0] == '\'' || Data1[0] == '\"' || Data1[0] == '<' || Data1[0] == '>')
+        if (Data1[0] < ' ' || Data1[0] > 0x7E || Data1[0] == '\\' || Data1[0] == '\'' || Data1[0] == '\"' || Data1[0] ==
+            '<' || Data1[0] == '>')
         {
-            if (XMLFileVersion == 1) sprintf_s(tmpstr, "stp=\"\\%02X\"", (unsigned char)Data1[0]);
-            else sprintf_s(tmpstr, "s=\"\\%02X\"", (unsigned char)Data1[0]);
+            if (XMLFileVersion == 1) sprintf_s(tmpstr, "stp=\"\\%02X\"", (byte)Data1[0]);
+            else sprintf_s(tmpstr, "s=\"\\%02X\"", (byte)Data1[0]);
         }
         else
         {
@@ -3709,33 +3712,33 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             sprintf_s(tmps, " tablen=\"%d\"", Data1[3]);
             strcat_s(tmpstr, tmps);
         }
-        if (Expression1) *E1 = "upp";
+        if (Expression1) E1 = "upp";
     }
 
-    if (m_Type == 3) //exponent (power)
+    else if (m_Type == 3) //exponent (power)
     {
         strcpy_s(tmpstr, "");
-        if (Expression1) *E1 = "";
-        if (Expression2) *E2 = "e";
+        if (Expression1) E1 = "";
+        if (Expression2) E2 = "e";
     }
 
-    if (m_Type == 4) //fraction (rational number), a over b
+    else if (m_Type == 4) //fraction (rational number), a over b
     {
         if (Data1[0] == '/') strcpy_s(tmpstr, "stp=\"semi-fraction\"");
         else if (Data1[0] == ' ') strcpy_s(tmpstr, "stp=\"a-over-b\"");
         else if (Data1[0] == 'd') strcpy_s(tmpstr, "stp=\"dfrac\"");
         else strcpy_s(tmpstr, "stp=\"\"");
-        if (Expression1) *E1 = "n";
-        if (Expression2) *E2 = "d";
+        if (Expression1) E1 = "n";
+        if (Expression2) E2 = "d";
     }
 
-    if (m_Type == 5) //parentheses
+    else if (m_Type == 5) //parentheses
     {
-        if (Expression1) *E1 = "";
-        if (Expression2) *E2 = "i";
+        if (Expression1) E1 = "";
+        if (Expression2) E2 = "i";
     }
 
-    if (m_Type == 7) //sigma, pi, integral
+    else if (m_Type == 7) //sigma, pi, integral
     {
         if (Data1[0] == 'S') strcpy_s(tmpstr, "stp=\"Sigma\"");
         else if (Data1[0] == 'P') strcpy_s(tmpstr, "stp=\"Pi\"");
@@ -3750,7 +3753,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         if (XMLFileVersion == 1) strcat_s(tmpstr, " symbol_height=\"");
         else strcat_s(tmpstr, " sze=\"");
         char h[10];
-        itoa(Data2[0], h, 10);
+        _itoa_s(Data2[0], h, 10);
         strcat_s(tmpstr, h);
         strcat_s(tmpstr, "\"");
 
@@ -3758,7 +3761,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         if (XMLFileVersion == 1 || Data2[1])
         {
             strcat_s(tmpstr, " limits_aside=\"");
-            itoa(Data2[1], h, 10);
+            _itoa_s(Data2[1], h, 10);
             strcat_s(tmpstr, h);
             strcat_s(tmpstr, "\"");
         }
@@ -3769,26 +3772,26 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             if (XMLFileVersion == 1 || Data2[2] != 1)
             {
                 strcat_s(tmpstr, " dimension=\"");
-                itoa(Data2[2], h, 10);
+                _itoa_s(Data2[2], h, 10);
                 strcat_s(tmpstr, h);
                 strcat_s(tmpstr, "\"");
             }
         }
 
-        if (Expression1) *E1 = "";
-        if (Expression2) *E2 = "h";
-        if (Expression3) *E3 = "l";
+        if (Expression1) E1 = "";
+        if (Expression2) E2 = "h";
+        if (Expression3) E3 = "l";
     }
-    if (m_Type == 8) //root
+    else if (m_Type == 8) //root
     {
-        if (Expression1) *E1 = "";
-        if (Expression2) *E2 = "ndx";
+        if (Expression1) E1 = "";
+        if (Expression2) E2 = "ndx";
     }
-    if (m_Type == 9) //condition list
+    else if (m_Type == 9) //condition list
     {
-        if (Expression1) *E1 = "";
-        if (Expression2) *E2 = "h";
-        if (Expression3) *E3 = "l";
+        if (Expression1) E1 = "";
+        if (Expression2) E2 = "h";
+        if (Expression3) E3 = "l";
         if (Expression3 == 0 && Expression2 == 0 && Data1[0] == 'L')
             strcat_s(tmpstr, "label=\"1\"");
         if (Expression3 == 0 && Expression2 == 0 && Data1[0] == 'H')
@@ -3818,7 +3821,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             }
         }
     }
-    if (m_Type == 10) //condition list, as element
+    else if (m_Type == 10) //condition list, as element
     {
         strcpy_s(tmpstr, "");
         if (Data1[0] & 0x01) strcat_s(tmpstr, "left_bar=\"1\"");
@@ -3828,53 +3831,53 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         if (Data2[0] < 0 || Data2[0] > 2) Data2[0] = 0;
         strcat_s(tmpstr, " align=\"");
         char tmp[10];
-        itoa(Data2[0], tmp, 10);
+        _itoa_s(Data2[0], tmp, 10);
         strcat_s(tmpstr, tmp);
         strcat_s(tmpstr, "\"");
-        if (Expression1) *E1 = "h";
-        if (Expression2) *E2 = "m";
-        if (Expression3) *E3 = "l";
+        if (Expression1) E1 = "h";
+        if (Expression2) E2 = "m";
+        if (Expression3) E3 = "l";
     }
 
     if (XMLFileVersion == 1)
     {
-        if (E1)
+        if (!E1.empty())
         {
             strcat_s(tmpstr, " Exp1=\"");
-            strcat_s(tmpstr, E1->c_str());
+            strcat_s(tmpstr, E1.c_str());
             strcat_s(tmpstr, "\"");
         }
-        if (E2)
+        if (!E2.empty())
         {
             strcat_s(tmpstr, " Exp2=\"");
-            strcat_s(tmpstr, E2->c_str());
+            strcat_s(tmpstr, E2.c_str());
             strcat_s(tmpstr, "\"");
         }
-        if (E3)
+        if (!E3.empty())
         {
             strcat_s(tmpstr, " Exp3=\"");
-            strcat_s(tmpstr, E3->c_str());
+            strcat_s(tmpstr, E3.c_str());
             strcat_s(tmpstr, "\"");
         }
     }
     else
     {
-        if (E1)
+        if (!E1.empty())
         {
             strcat_s(tmpstr, " E1=\"");
-            strcat_s(tmpstr, E1->c_str());
+            strcat_s(tmpstr, E1.c_str());
             strcat_s(tmpstr, "\"");
         }
-        if (E2)
+        if (!E2.empty())
         {
             strcat_s(tmpstr, " E2=\"");
-            strcat_s(tmpstr, E2->c_str());
+            strcat_s(tmpstr, E2.c_str());
             strcat_s(tmpstr, "\"");
         }
-        if (E3)
+        if (!E3.empty())
         {
             strcat_s(tmpstr, " E3=\"");
-            strcat_s(tmpstr, E3->c_str());
+            strcat_s(tmpstr, E3.c_str());
             strcat_s(tmpstr, "\"");
         }
     }
@@ -3950,9 +3953,9 @@ char* CElement::XML_input(char* file, void* element_struct)
 {
     CMainFrame* mf = (CMainFrame*)theApp.m_pMainWnd;
 
-    char hasE1 = 0;
-    char hasE2 = 0;
-    char hasE3 = 0;
+    bool hasE1 = false;
+    bool hasE2 = false;
+    bool hasE3 = false;
 
     static char attribute[48];
     static char value[300];
@@ -3966,9 +3969,9 @@ char* CElement::XML_input(char* file, void* element_struct)
             tElementStruct* ts = (tElementStruct*)element_struct;
             ts->Decoration = atoi(value);
         }
-        if (strcmp(attribute, "Exp1") == 0 || strcmp(attribute, "E1") == 0) hasE1 = 1;
-        if (strcmp(attribute, "Exp2") == 0 || strcmp(attribute, "E2") == 0) hasE2 = 1;
-        if (strcmp(attribute, "Exp3") == 0 || strcmp(attribute, "E3") == 0) hasE3 = 1;
+        if (strcmp(attribute, "Exp1") == 0 || strcmp(attribute, "E1") == 0) hasE1 = true;
+        if (strcmp(attribute, "Exp2") == 0 || strcmp(attribute, "E2") == 0) hasE2 = true;
+        if (strcmp(attribute, "Exp3") == 0 || strcmp(attribute, "E3") == 0) hasE3 = true;
 
         if (m_Type == 1 || //variable
             m_Type == 6) //function
