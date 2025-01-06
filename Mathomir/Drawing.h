@@ -44,7 +44,7 @@ public:
     int CalcChecksum(void) const;
     int CopyDrawing(CDrawing* Original);
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, int* NodeEdit, int internal_call = 0);
-    int XML_output(char* output, int num_tabs, char only_calculate) const;
+    void XML_output(std::ostream &output, int num_tabs) const;
     char* XML_input(char* file);
 
     // Erases the square drawing part

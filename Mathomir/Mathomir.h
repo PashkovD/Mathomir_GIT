@@ -39,7 +39,7 @@ extern HANDLE ProcessHeap;
 enum doc_type:byte
 {
     EXPRESSION=1,
-    DRAWING=1
+    DRAWING=2
 };
 
 //The main document strcture (the main document is stored as an array of these structures)

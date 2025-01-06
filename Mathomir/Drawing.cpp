@@ -2469,11 +2469,13 @@ int CDrawing::CopyToWindowsClipboard() const
     if (theApp.m_pMainWnd->OpenClipboard())
     {
         char tmp[64];
-        int len = XML_output(tmp, 0, 1);
-        if (len > 0 && len < 1000 * DRWZOOM)
+        std::ostringstream ostr;
+        this->XML_output(ostr, 0);
+        std::string str = ostr.str();
+        if (str.size() > 0 && str.size() < 1000 * DRWZOOM)
         {
             EmptyClipboard();
-            HANDLE hmem = GlobalAlloc(GMEM_ZEROINIT, len + 256);
+            HANDLE hmem = GlobalAlloc(GMEM_ZEROINIT, str.size() + 256);
             LPVOID pntr = GlobalLock(hmem);
             int* control = (int*)pntr;
             int* checksum = control + 1;
@@ -2485,7 +2487,7 @@ int CDrawing::CopyToWindowsClipboard() const
             *X = MovingStartX;
             *Y = MovingStartY;
 
-            XML_output(data, 0, 0);
+            strcpy(data, str.c_str());
             GlobalUnlock(hmem);
             UINT format = RegisterClipboardFormat("MATHOMIR_EXPR");
             HANDLE ret = SetClipboardData(format, hmem);
@@ -2660,25 +2662,23 @@ CObject* CDrawing::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, in
 }
 
 #pragma optimize("s",on)
-int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
+void CDrawing::XML_output(std::ostream &output, int num_tabs) const
 {
-    int len = 0;
-    static char tmpstr[256];
+    char tmpstr[256];
 
-    if (num_tabs > 16) num_tabs = 16;
+    if (num_tabs > 16)
+        num_tabs = 16;
+
+    std::string tabs(num_tabs, '\t');
 
     tDrawingItem* di = Items;
     for (int i = 0; i < NumItems; i++, di++)
     {
-        if (!only_calculate)
-        {
-            memset(output, 9, num_tabs);
-            output += num_tabs;
-        }
-        len += num_tabs;
+        output << tabs;
 
         if (di->Type == 0) //subdrawing
         {
+            tmpstr[0] = '\0';
             if (XMLFileVersion == 1)
                 sprintf_s(tmpstr, "<group X1=\"%d\" Y1=\"%d\" X2=\"%d\" Y2=\"%d\">\r\n",
                         //instead of 'gr' it was 'group' in old version
@@ -2687,28 +2687,17 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
             else
                 sprintf_s(tmpstr, "<gr d=\"%d,%d;%d,%d\">\r\n", //instead of 'gr' it was 'group' in old version
                         di->X1, di->Y1, di->X2, di->Y2);
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
-            int tt = ((CDrawing*)di->pSubdrawing)->XML_output(output, num_tabs + 1, only_calculate);
-            len += tt;
-            if (!only_calculate) output += tt;
-            memset(tmpstr, 9, num_tabs);
-            tmpstr[num_tabs] = 0;
-            if (XMLFileVersion == 1) strcat_s(tmpstr, "</group>\r\n");
-            else strcat_s(tmpstr, "</gr>\r\n"); //instead of /gr it was /group in old version
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
+            output << tmpstr;
+            ((CDrawing*)di->pSubdrawing)->XML_output(output, num_tabs + 1);
+            output << tabs;
+            if (XMLFileVersion == 1)
+                output << "</group>\r\n";
+            else
+                output << "</gr>\r\n"; //instead of /gr it was /group in old version
         }
         else if (di->Type == 2) //subexpression
         {
+            tmpstr[0] = '\0';
             if (XMLFileVersion == 1)
                 sprintf_s(tmpstr, "<subexp X1=\"%d\" Y1=\"%d\" X2=\"%d\" Y2=\"%d\">\r\n",
                         di->X1 * 1000 / DRWZOOM, di->Y1 * 1000 / DRWZOOM, di->X2 * 1000 / DRWZOOM,
@@ -2716,74 +2705,45 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
             else
                 sprintf_s(tmpstr, "<subexp d=\"%d,%d;%d,%d\">\r\n",
                         di->X1, di->Y1, di->X2, di->Y2);
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
-            std::ostringstream ostr;
+            output << tmpstr;
             
-            ((CExpression*)di->pSubdrawing)->XML_output(ostr, num_tabs + 1);
-            len += ostr.str().size();
-            if (!only_calculate)
-            {
-                strcpy(output, ostr.str().c_str());
-                output += ostr.str().size();
-            }
-            memset(tmpstr, 9, num_tabs);
-            tmpstr[num_tabs] = 0;
-            strcat_s(tmpstr, "</subexp>\r\n");
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
+            ((CExpression*)di->pSubdrawing)->XML_output(output, num_tabs + 1);
+            
+            output << "</subexp>\r\n";
         }
         else if (di->Type == 1) //line segment
         {
             int typecode = di->Type + 10 * (m_Color + 1);
             if (XMLFileVersion == 1)
-                sprintf_s(tmpstr, "<draw type=\"%d\" ", typecode);
+                output <<  "<draw type=\"" << typecode <<"\" ";
             else
             {
+                output << "<dw ";
                 if (typecode != 11 && typecode != 1) //black color (m_Color=-1 or m_Color=0) line segment
-                    sprintf_s(tmpstr, "<dw t=\"%d\" ", typecode);
-                else
-                    strcpy_s(tmpstr, "<dw ");
-            }
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
+                    output << "t=\"" << typecode <<"\" ";
             }
 
             if (IsSpecialDrawing && i == 0)
-            {
-                sprintf_s(tmpstr, "spec=\"%d\" ", IsSpecialDrawing);
-                len += (int)strlen(tmpstr);
-                if (!only_calculate)
-                {
-                    strcpy(output, tmpstr);
-                    output += strlen(tmpstr);
-                }
-            }
+                output << "spec=\"" << (int) IsSpecialDrawing <<"\" ";
 
 
             if (XMLFileVersion == 1)
             {
+                tmpstr[0] = '\0';
                 sprintf_s(tmpstr, "width=\"%d\" X1=\"%ld\" Y1=\"%ld\" X2=\"%ld\" Y2=\"%ld\" ",
                         //instead of 'w=' it was 'width=' in older version
                         di->LineWidth * 1000 / DRWZOOM, di->X1 * 1000 / DRWZOOM, di->Y1 * 1000 / DRWZOOM,
                         di->X2 * 1000 / DRWZOOM, di->Y2 * 1000 / DRWZOOM);
+                output << tmpstr;
             }
             else
             {
+                tmpstr[0] = '\0';
                 sprintf_s(tmpstr, "d=\"%d|%ld,%ld;%ld,%ld", di->LineWidth, di->X1, di->Y1, di->X2, di->Y2);
+                output << tmpstr;
             }
 
+            tmpstr[0] = '\0';
             int jj = 3;
             while (i < NumItems - 1 && di->LineWidth == (di + 1)->LineWidth &&
                 di->Type == (di + 1)->Type &&
@@ -2797,25 +2757,21 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
                     sprintf_s(fstr, "X%d=\"%d\" Y%d=\"%d\" ", jj, di->X2 * 1000 / DRWZOOM, jj, di->Y2 * 1000 / DRWZOOM);
                 else
                 {
-                    if (di->X2 == (di - 1)->X2) sprintf_s(fstr, ";:,%d", di->Y2);
-                    else if (di->Y2 == (di - 1)->Y2) sprintf_s(fstr, ";%d,:", di->X2);
-                    else sprintf_s(fstr, ";%d,%d", di->X2, di->Y2);
+                    if (di->X2 == (di - 1)->X2)
+                        sprintf_s(fstr, ";:,%d", di->Y2);
+                    else if (di->Y2 == (di - 1)->Y2)
+                        sprintf_s(fstr, ";%d,:", di->X2);
+                    else
+                        sprintf_s(fstr, ";%d,%d", di->X2, di->Y2);
                 }
-                strcat_s(tmpstr, fstr);
+                output << fstr;
                 jj++;
                 if (jj > 18) break;
                 if (XMLFileVersion == 1 && jj > 9) break;
             }
-            if (XMLFileVersion == 1) strcat_s(tmpstr, "/>\r\n");
-            else strcat_s(tmpstr, "\" />\r\n");
-
-
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
+            if (XMLFileVersion != 1)
+                output << "\"";
+            output << " />\r\n";
         }
     }
 
@@ -2824,18 +2780,21 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
     int datalen = 0;
 
     if (IsSpecialDrawing == 52)
-        datalen = ((CBitmapImage*)SpecialData)->XML_output(output, num_tabs, only_calculate);
-
+        datalen = ((CBitmapImage*)SpecialData)->XML_output(nullptr, num_tabs, true);
     else if (IsSpecialDrawing == 51)
-        datalen = ((CFunctionPlotter*)SpecialData)->XML_output(output, num_tabs, only_calculate);
-
+        datalen = ((CFunctionPlotter*)SpecialData)->XML_output(nullptr, num_tabs, true);
     else if (IsSpecialDrawing == 50)
-        datalen = ((CDrawingBox*)SpecialData)->XML_output(output, num_tabs, only_calculate);
+        datalen = ((CDrawingBox*)SpecialData)->XML_output(nullptr, num_tabs, true);
 
-    len += datalen;
-    if (!only_calculate) output += datalen;
-
-    return len;
+    char* data = new char[datalen + 10];
+    data[0]='\0';
+    if (IsSpecialDrawing == 52)
+        ((CBitmapImage*)SpecialData)->XML_output(data, num_tabs, false);
+    else if (IsSpecialDrawing == 51)
+        ((CFunctionPlotter*)SpecialData)->XML_output(data, num_tabs, false);
+    else if (IsSpecialDrawing == 50)
+        ((CDrawingBox*)SpecialData)->XML_output(data, num_tabs, false);
+    output << data;
 }
 
 #pragma optimize("s",on)

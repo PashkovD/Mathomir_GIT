@@ -586,9 +586,6 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
 {
     if (filetype == '2' || filename == nullptr) XMLFileVersion = 2;
     else XMLFileVersion = 1;
-    char dummy[128];
-    int len = 0;
-    int i;
     char save_keyboard_clipboard = 0;
     if (filename == (char*)TheKeyboardClipboard &&
         TheKeyboardClipboard)
@@ -633,184 +630,100 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     }
 #endif
 
-
-    //first, calculate briefly the length of the output data
+    
+    //start outputing data into output buffer
+    std::ostringstream ostr;
+    ostr << "<?xml version=\"1.0\"?>\r\n<mathomir>\r\n";
 
     if (save_keyboard_clipboard)
     {
-        std::ostringstream ostr;
-        TheKeyboardClipboard->XML_output(ostr, 1);
-        len += ostr.str().size();
+        ostr << "<obj type=\"1\" X=\"0\" Y=\"0\">\r\n";
+        TheKeyboardClipboard->XML_output(ostr,  1);
+        ostr << "</obj>\r\n";
     }
     else
     {
         tDocumentStruct* ds = TheDocument;
-        for (i = 0; i < NumDocumentElements; i++, ds++)
+        doc_type type = (doc_type)0;
+        int x = 0;
+        int y = 0;
+        for (int i = 0; i < NumDocumentElements; i++, ds++)
         {
             try
             {
-                if (filename || ds->MovingDotState == 3)
+                if (!filename && ds->MovingDotState != 3 || ds->absolute_Y >= 2000000 || ds->absolute_Y <= - 10000)
+                    continue;
+                
+                if (XMLFileVersion == 1)
                 {
-                    if (ds->Type == EXPRESSION)
-                    {
-                        std::ostringstream ostr;
-                        ds->Object.exp->XML_output(ostr, 0);
-                        len += ostr.str().size();
-                    }
-                    else if (ds->Type == DRAWING)
-                        len += ds->Object.draw->XML_output(dummy, 0, 1);
+                    type = (doc_type)0;
+                    x = 0;
+                    y = 0;
+                    ostr << "<obj type=\"" << static_cast<int>(ds->Type) <<"\"";
                 }
+                else
+                {
+                    ostr << "<o";
+                    if (type != ds->Type)
+                    {
+                        type = ds->Type;
+                        ostr << " t=\"" << static_cast<int>(type) << "\"";
+                    }
+                }
+                    
+                if (x != ds->absolute_X)
+                {
+                    x = ds->absolute_X;
+                    ostr << " X=\"" << x << "\"";
+                }
+                if (y != ds->absolute_Y)
+                {
+                    y = ds->absolute_Y;
+                    ostr << " Y=\"" << y << "\"";
+                }
+                    
+                if (ds->MovingDotState == 5)
+                    ostr << " lock=\"1\"";
+
+                if (i == 0)
+                {
+                    //only the first object has some global attributs
+                    ostr << " page_w=\"" << PaperWidth << "\"";
+                    ostr << " page_h=\"" << PaperHeight << "\"";
+                    ostr << " numbering=\"" << PageNumeration << "\"";
+                    ostr << " ver=\"" << XMLFileVersion << "\"";
+                }
+                ostr << ">\r\n";
+                    
+                if (ds->Type == EXPRESSION)
+                    ds->Object.exp->XML_output(ostr, 0);
+                else
+                    ds->Object.draw->XML_output(ostr, 0);
+
+                if (XMLFileVersion == 1)
+                    ostr << "</obj>\r\n";
+                else
+                    ostr << "</o>\r\n";
             }
             catch (...)
             {
             }
         }
     }
-
+    ostr << "</mathomir>\r\n";
+    
+    size_t len = ostr.str().size();
 
     //reserve memory for output buffer
-    char* file_buffer;
-    char* file_pointer;
-    int alloc_len = len + 1024 + NumDocumentElements * 256;
-    file_buffer = (char*)malloc(alloc_len);
+    size_t alloc_len = len + 1024 + NumDocumentElements * 256;
+    char* file_buffer = new char[alloc_len];
     if (file_buffer == nullptr)
     {
         if (filename) AfxMessageBox("Cannot reserve memory for file saving!",MB_OK | MB_ICONWARNING,NULL);
         return 0;
     }
-    file_pointer = file_buffer;
+    strcpy_s(file_buffer, alloc_len, ostr.str().c_str());
 
-
-    //start outputing data into output buffer
-    len = 0;
-    strcpy(file_buffer, "<?xml version=\"1.0\"?>\r\n<mathomir>\r\n");
-    file_pointer += strlen(file_buffer);
-    len += (int)strlen(file_buffer);
-
-
-    if (save_keyboard_clipboard)
-    {
-        std::ostringstream ostr;
-        ostr << "<obj type=\"1\" X=\"0\" Y=\"0\">\r\n";
-        TheKeyboardClipboard->XML_output(ostr,  1);
-        ostr << "</obj>\r\n";
-        
-        len += ostr.str().size();
-        strcpy(file_pointer, ostr.str().c_str());
-        file_pointer += ostr.str().size();
-    }
-    else
-    {
-        tDocumentStruct* ds = TheDocument;
-        int type = 0, x = 0, y = 0;
-        for (i = 0; i < NumDocumentElements; i++, ds++)
-        {
-            try
-            {
-                if ((filename || ds->MovingDotState == 3) && ds->absolute_Y < 2000000 && ds->absolute_Y > -
-                    10000)
-                {
-                    if (XMLFileVersion == 1)
-                    {
-                        type = 0;
-                        x = 0;
-                        y = 0;
-                        strcpy(file_pointer, "<obj");
-                        file_pointer += 4;
-                        len += 4;
-                        strcpy(file_pointer, " type=\"1\"");
-                        file_pointer[7] = ds->Type + '0';
-                        file_pointer += 9;
-                        len += 9;
-                    }
-                    else
-                    {
-                        strcpy(file_pointer, "<o");
-                        file_pointer += 2;
-                        len += 2;
-                        if (type != ds->Type)
-                        {
-                            type = ds->Type;
-                            strcpy(file_pointer, " t=\"1\"");
-                            file_pointer[4] = type + '0';
-                            file_pointer += 6;
-                            len += 6;
-                        }
-                    }
-                    if (x != ds->absolute_X)
-                    {
-                        x = ds->absolute_X;
-                        sprintf_s(dummy, " X=\"%d\"", x);
-                        int ll = (int)strlen(dummy);
-                        memcpy(file_pointer, dummy, ll + 1);
-                        file_pointer += ll;
-                        len += ll;
-                    }
-                    if (y != ds->absolute_Y)
-                    {
-                        y = ds->absolute_Y;
-                        sprintf_s(dummy, " Y=\"%d\"", y);
-                        int ll = (int)strlen(dummy);
-                        memcpy(file_pointer, dummy, ll + 1);
-                        file_pointer += ll;
-                        len += ll;
-                    }
-                    if (ds->MovingDotState == 5)
-                    {
-                        strcpy(file_pointer, " lock=\"1\"");
-                        file_pointer += 9;
-                        len += 9;
-                    }
-                    if (i == 0)
-                    {
-                        //only the first object has some global attributs
-                        sprintf_s(dummy, " page_w=\"%d\" page_h=\"%d\" numbering=\"%d\" ver=\"%d\"", PaperWidth,
-                                PaperHeight, PageNumeration, XMLFileVersion);
-                        int ll = (int)strlen(dummy);
-                        memcpy(file_pointer, dummy, ll + 1);
-                        file_pointer += ll;
-                        len += ll;
-                    }
-                    strcpy(file_pointer, ">\r\n");
-                    file_pointer += 3;
-                    len += 3;
-
-                    int tmp = 0;
-                    if (ds->Type == EXPRESSION)
-                    {
-                        std::ostringstream ostr;
-                        ds->Object.exp->XML_output(ostr, 0);
-                        strcpy(file_pointer, ostr.str().c_str());
-                        tmp = ostr.str().size();
-                    }
-                    else
-                        tmp = ds->Object.draw->XML_output(file_pointer, 0, 0);
-                    len += tmp;
-                    file_pointer += tmp;
-
-                    if (XMLFileVersion == 1)
-                    {
-                        strcpy(file_pointer, "</obj>\r\n");
-                        file_pointer += 8;
-                        len += 8;
-                    }
-                    else
-                    {
-                        strcpy(file_pointer, "</o>\r\n");
-                        file_pointer += 6;
-                        len += 6;
-                    }
-                }
-            }
-            catch (...)
-            {
-            }
-        }
-    }
-
-    strcpy(file_pointer, "</mathomir>\r\n");
-    file_pointer += 13;
-    len += 13;
 
 #ifdef TEACHER_VERSION
     if (TheFileType == 'r' && filename)
@@ -825,13 +738,12 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         len = ScrambleMOMFile(&file_buffer, len, filetype);
         if (len == 0)
         {
-            free(file_buffer);
+            delete[] file_buffer;
             return 0;
         }
         //save to file
         FILE* fil;
-        fil = fopen(filename, "w+b");
-        if (fil)
+        if (!fopen_s(&fil, filename, "w+b"))
         {
             fwrite(file_buffer, len, 1, fil);
             fclose(fil);
@@ -870,7 +782,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
             CloseClipboard();
         }
     }
-    free(file_buffer);
+    delete[] file_buffer;
     return 1;
 }
 
@@ -1136,9 +1048,8 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         return len;
     } //not a compressed MOM file
 
-    char passw[24];
-    passw[0] = 0;
-    char type = *(*buffer + 3);
+    char passw[24] = "\0";
+    const char type = *(*buffer + 3);
 
 #ifdef TEACHER_VERSION
     TheTimeLimit = 0;
@@ -1200,8 +1111,8 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         {
             for (int i = 0; i < 64; i++)
             {
-                PublicKey[i].N = *(__int64*)(*buffer + 16 * i);
-                PublicKey[i].X = *(__int64*)(*buffer + 16 * i + 8);
+                PublicKey[i].N = *(int64_t*)(*buffer + 16 * i);
+                PublicKey[i].X = *(int64_t*)(*buffer + 16 * i + 8);
             }
             TheTimeLimit = *(byte*)(*buffer + 1024);
             TheMathFlags = *(byte*)(*buffer + 1025);
@@ -1215,14 +1126,13 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
     if (passw && strlen(passw) >= 1)
     {
         //if password is defined, then we unscramble this file
-        char* buf2;
-        buf2 = (char*)malloc(len + 1);
+        char* buf2 = (char*)malloc(len + 1);
 
         int passlen = (int)strlen(passw);
         for (int j = passlen - 1; j >= 0; j--)
         {
             char d;
-            unsigned char x = (unsigned char)passw[j];
+            const unsigned char x = (unsigned char)passw[j];
             for (int i = 0; i < len; i++)
             {
                 int startpointer = 0;

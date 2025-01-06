@@ -5661,9 +5661,9 @@ int CToolbox::SaveSettings(char* filename) const
 {
     //saves toolbox setings and menu options
 
-    char DefaultFilename[512];
     if (filename == nullptr)
     {
+        char DefaultFilename[512];
         int j;
         strcpy_s(DefaultFilename,GetCommandLine());
         DefaultFilename[511] = 0;
@@ -5695,20 +5695,18 @@ int CToolbox::SaveSettings(char* filename) const
         strcat(DefaultFilename + find_quot, "Mathomir.set");
         filename = DefaultFilename + find_quot;
     }
-    FILE* fil;
-    fil = fopen(filename, "w+b");
+    FILE* fil = fopen(filename, "w+b");
     if (fil)
     {
-        char dummy[32 * 9];
-        memset(dummy, 0, 32 * 9);
+        char dummy[32 * 9] = {};
 
-        int i;
-        for (i = 0; i < 24; i++)
+
+        for (auto& ToolboxMember : ToolboxMembers)
         {
-            fwrite(&ToolboxMembers[i].AcceleratorKey[0], sizeof(short), 32, fil);
-            fwrite(&ToolboxMembers[i].SelectedSubmember, sizeof(short), 1, fil);
+            fwrite(&ToolboxMember.AcceleratorKey[0], sizeof(short), 32, fil);
+            fwrite(&ToolboxMember.SelectedSubmember, sizeof(short), 1, fil);
         }
-        for (i = 0; i < 6; i++) //for compatibility with earilier versions
+        for (int i = 0; i < 6; i++) //for compatibility with earilier versions
         {
             fwrite(dummy, sizeof(short), 32, fil);
             fwrite(dummy, sizeof(short), 1, fil);
@@ -5719,7 +5717,7 @@ int CToolbox::SaveSettings(char* filename) const
         fwrite(&ToolboxFontFormating.MixedAccKey, sizeof(short), 1, fil);
         fwrite(&ToolboxFontFormating.SelectedUniform, sizeof(short), 1, fil);
         fwrite(dummy, sizeof(short), 1, fil);
-        for (i = 0; i < 32; i++)
+        for (int i = 0; i < 32; i++)
         {
             if (i < ToolboxFontFormating.NumFormats)
             {
@@ -5802,34 +5800,20 @@ int CToolbox::SaveSettings(char* filename) const
                 if (ToolboxMembers[i].userdef_mask & 1 << j)
                 {
                     //we found a user-defined toolbox item
-                    int len;
+                    std::ostringstream ostr;
                     if (ToolboxMembers[i].Above[j] != -1)
-                    {
-                        std::ostringstream ostr;
                         ToolboxMembers[i].Submembers[j]->XML_output(ostr, 0);
-                        len = ostr.str().size();
-                    }
                     else
-                        len = ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(nullptr, 0, 1);
-                    char* data = new char[len + 256];
-
-                    if (ToolboxMembers[i].Above[j] != -1)
-                    {
-                        std::ostringstream ostr;
-                        ToolboxMembers[i].Submembers[j]->XML_output(ostr, 0);
-                        strcpy(data, ostr.str().c_str());
-                    }
-                    else
-                        ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(data, 0, 0);
+                        ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(ostr, 0);
 
                     int pos_data = i;
                     if (ToolboxMembers[i].userdef_mask & 0x01) //the completely user defined submenu
                         pos_data = j == 0 ? 256 : 257;
                     if (ToolboxMembers[i].Above[j] == -1) pos_data += 1024;
                     fwrite(&pos_data, sizeof(int), 1, fil);
+                    int len = ostr.str().size();
                     fwrite(&len, sizeof(int), 1, fil);
-                    fwrite(data, len, 1, fil);
-                    delete[] data;
+                    fwrite(ostr.str().c_str(), len, 1, fil);
                 }
             }
         {
@@ -5837,11 +5821,11 @@ int CToolbox::SaveSettings(char* filename) const
             fwrite(&pos_data, sizeof(int), 1, fil); //mark end of the user-defined items region
         }
         //storing all keycode sequences (easycasts)
-        for (i = 0; i < 24; i++)
+        for (auto& ToolboxMember : ToolboxMembers)
         {
-            fwrite(&ToolboxMembers[i].Keycodes[0], sizeof(char), 32 * 9, fil);
+            fwrite(&ToolboxMember.Keycodes[0], sizeof(char), 32 * 9, fil);
         }
-        for (i = 0; i < 6; i++) //reserved for future use
+        for (int i = 0; i < 6; i++) //reserved for future use
         {
             fwrite(dummy, sizeof(char), 32 * 9, fil);
         }
@@ -6048,11 +6032,11 @@ int CToolbox::LoadSettings(char* filename)
     if (fil)
     {
         short dummy[16 * 9];
-        for (int i = 0; i < 24; i++)
+        for (auto& ToolboxMember : ToolboxMembers)
         {
-            fread(&ToolboxMembers[i].AcceleratorKey[0], sizeof(short), 28, fil);
+            fread(&ToolboxMember.AcceleratorKey[0], sizeof(short), 28, fil);
             fread(dummy, sizeof(short), 4, fil); //for compatibility with earlier version
-            fread(&ToolboxMembers[i].SelectedSubmember, sizeof(short), 1, fil);
+            fread(&ToolboxMember.SelectedSubmember, sizeof(short), 1, fil);
         }
         for (int i = 0; i < 6; i++)
         {
