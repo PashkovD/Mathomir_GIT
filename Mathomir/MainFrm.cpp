@@ -915,7 +915,7 @@ int CMainFrame::ClearDocument()
         free(TheDocument);
     }
     NumDocumentElements = 0;
-    NumDocumentElementsReserved = 10;
+    NumDocumentElementsReserved = 0;
     ViewX = ViewY = 0;
     if (DefaultZoom != 150 && DefaultZoom != 120 && DefaultZoom != 100 && DefaultZoom != 80) DefaultZoom = 100;
     ViewZoom = DefaultZoom;
@@ -938,7 +938,7 @@ int AddDocumentObject(doc_type type, int X, int Y)
         if (NumDocumentElementsReserved == 0)
         {
             NumDocumentElementsReserved += 20;
-            TheDocument = new tDocumentStruct[NumDocumentElementsReserved];
+            TheDocument = (tDocumentStruct*)malloc(NumDocumentElementsReserved * sizeof(tDocumentStruct));
         }
         else
         {
@@ -1660,7 +1660,7 @@ int CMainFrame::UndoRestore()
     tDocumentStruct* oldDoc = TheDocument;
     int oldDocNumElements = NumDocumentElements;
 
-    TheDocument = new tDocumentStruct[UndoStruct[UndoNumLevels - 1].NumElements];
+    TheDocument = (tDocumentStruct*)malloc(UndoStruct[UndoNumLevels - 1].NumElements * sizeof(tDocumentStruct));
     if (TheDocument == nullptr)
     {
         NumDocumentElementsReserved = NumDocumentElements = 0;

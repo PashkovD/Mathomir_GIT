@@ -660,7 +660,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     //reserve memory for output buffer
     char* file_buffer;
     char* file_pointer;
-    int alloc_len = len + 1024 + NumDocumentElements * 64;
+    int alloc_len = len + 1024 + NumDocumentElements * 256;
     file_buffer = (char*)malloc(alloc_len);
     if (file_buffer == 0)
     {

@@ -1932,7 +1932,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
     CMainFrame* mf;
     HFONT hfont;
 
-    if (m_Color != -1)
+    if (m_Color != 255)
         color = ColorTable[m_Color];
     if (m_Type == 1) //variable / constant
     {
@@ -3433,9 +3433,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                 if (GetOperatorLevel(ch) == PlusLevel)
                 {
                     //select all elements until another operator
-                    (m_pPaternalExpression->m_pElementList + paternal_position)->IsSelected = 1;
-                    for (int jj = paternal_position + 1; jj < m_pPaternalExpression->m_NumElements; jj
-                         ++)
+                    m_pPaternalExpression->m_pElementList[paternal_position].IsSelected = 1;
+                    for (int jj = paternal_position + 1; jj < m_pPaternalExpression->m_NumElements; jj++)
                     {
                         tElementStruct* ts = m_pPaternalExpression->m_pElementList + jj;
                         if (ts->Type == 1 && ts->pElementObject->m_Text) break;
@@ -3533,10 +3532,10 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         len += 5;
     }
 
-    if (m_Color != -1)
+    if (m_Color != 255)
     {
-        char tmpstr[136];
-        strcpy_s(tmpstr, " color=\"");
+        char tmpstr[136] = "\0" ;
+        strcpy_s(tmpstr, "color=\"");
         tmp = (short)strlen(tmpstr);
         len += tmp;
         if (!only_calculate)
@@ -3571,7 +3570,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             {
                 if (ts->Decoration)
                 {
-                    char tmpstr[136];
+                    char tmpstr[136] = "\0";
                     sprintf_s(tmpstr, "decor=\"%d\" ", ts->Decoration);
                     tmp = (short)strlen(tmpstr);
                     len += tmp;
@@ -3586,7 +3585,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         }
     }
 
-    char tmpstr[136];
+    char tmpstr[136] = "\0";
     if (m_Type == 1 || //variable
         m_Type == 6) //function
     {

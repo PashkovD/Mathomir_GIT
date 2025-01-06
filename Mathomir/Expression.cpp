@@ -618,7 +618,7 @@ void CExpression::CalculateSize(CDC& DC, short int zoom, short int& length, shor
                     char found_one_already = 0;
                     for (ii = 0; ii < m_NumElements; ii++)
                     {
-                        int Type = (m_pElementList + ii)->Type;
+                        int Type = m_pElementList[ii].Type;
                         if (Type == 2 /*&& ((m_pElementList+ii)->pElementObject->Data1[0]!=(char)0xD7)*/) break;
                         if (Type >= 6) break;
                         if (Type > 2) //no two or more other elements
@@ -641,8 +641,8 @@ void CExpression::CalculateSize(CDC& DC, short int zoom, short int& length, shor
                 int ii;
                 for (ii = 0; ii < m_NumElements; ii++)
                 {
-                    int Type = (m_pElementList + ii)->Type;
-                    if (Type == 2 && (m_pElementList + ii)->pElementObject->Data1[0] != (char)0xD7) break;
+                    int Type = m_pElementList[ii].Type;
+                    if (Type == 2 && m_pElementList[ii].pElementObject->Data1[0] != (char)0xD7) break;
                     if (Type >= 9) break;
                 }
                 if (ii < m_NumElements)
@@ -5537,7 +5537,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
                 theElement = m_pElementList + trt;
 
-                if (theElement->pElementObject && theElement->pElementObject->m_Color == -1)
+                if (theElement->pElementObject && theElement->pElementObject->m_Color == 255)
                     theElement->pElementObject->m_Color = fcolor;
 
                 if ((ClipboardExpression->m_pElementList + oo)->Type != 1)
@@ -7156,7 +7156,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         }
                         if (ch == 'R') ts->pElementObject->m_Color = 1;
                         if (ch == 'G') ts->pElementObject->m_Color = 2;
-                        if (ch == 'N') ts->pElementObject->m_Color = -1;
+                        if (ch == 'N') ts->pElementObject->m_Color = 255;
                     }
                     if (ch == 'O') ts->Decoration = 4;
                     if (ch == 'U') ts->Decoration = 3;
@@ -12586,10 +12586,8 @@ int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
     int len = 0;
     static char tmpstr[136];
     static char tabs[17];
-
     if (num_tabs > 16) num_tabs = 16;
 
-    int i;
     memset(tabs, 9, num_tabs);
     tabs[num_tabs] = 0; //generating the tablist string
 
@@ -12689,15 +12687,14 @@ int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
     if (XMLFileVersion == 1 && (m_MaxNumRows > 1 || m_MaxNumColumns > 1) && (m_pElementList + m_NumElements - 1)
         ->Type == 12)
     {
-        char top, right, bottom, left, align;
-        top = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[0];
-        right = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[1];
-        bottom = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[2];
-        left = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[3];
-        align = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[10];
+        const char top = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[0];
+        const char right = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[1];
+        const char bottom = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[2];
+        const char left = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[3];
+        const char align = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[10];
         for (int jj = m_NumElements - 2; jj >= 0; jj--)
         {
-            tElementStruct* ts = m_pElementList + jj;
+            const tElementStruct* ts = m_pElementList + jj;
             if (ts->Type == 11)
             {
                 ts->pElementObject->Data1[4] = top;
@@ -12719,7 +12716,7 @@ int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
         }
     }
 
-    for (i = 0; i < m_NumElements; i++)
+    for (int i = 0; i < m_NumElements; i++)
     {
         tElementStruct* ts = m_pElementList + i;
         if (ts->Type == 11)
@@ -12811,7 +12808,7 @@ char* CExpression::XML_input(char* file)
     if (file == nullptr) return nullptr;
     if (strncmp(file, "expr", 4) == 0) file += 4;
     else if (strncmp(file, "ex", 2) == 0) file += 2;
-    else return 0;
+    else return nullptr;
 
     int realStartAsText = 0;
     int old_version_text_decode = 0;
@@ -13934,7 +13931,7 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExp
 #pragma optimize("",on)
 //copies expression data into windows clipboard
 //should be fast
-int CExpression::CopyToWindowsClipboard(void)
+int CExpression::CopyToWindowsClipboard()
 {
 #ifdef TEACHER_VERSION
     if (TheFileType == 'r') return 0;
@@ -27957,9 +27954,9 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
 
 
     //We proceed by extracting the variable 'var' from 'Substitute' onto the left side
-    int cnt = 0;
     try
     {
+        int cnt = 0;
         int retval = 0;
         int ret = 1;
         int prev_ret = 1;

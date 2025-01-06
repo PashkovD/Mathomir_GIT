@@ -300,7 +300,7 @@ BOOL CMathomirApp::InitInstance()
     if (Toolbox)
     {
         Toolbox->CreateEx(0, AfxRegisterWndClass(CS_OWNDC), "Toolbox",WS_CHILD, 5, 5, 10, 10, m_pMainWnd->m_hWnd,nullptr,
-                          0);
+                          nullptr);
         NoImageAutogeneration = 2;
         Toolbox->ShowWindow(SW_SHOWNA);
     }

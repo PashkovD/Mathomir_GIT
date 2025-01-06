@@ -152,7 +152,7 @@ public:
 
 public:
     CExpression(CElement* PaternalElement, CExpression* PaternalExpression, short int FontSize);
-    ~CExpression(void);
+    ~CExpression();
     void CalculateSize(CDC& DC, short int zoom, short int& length, short int* above, short int* below, char HQR = -1,
                        char optimize_for_readability = 0);
     void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg = nullptr, COLORREF color = 0);
@@ -160,7 +160,7 @@ public:
     int InsertEmptyElement(short position, short Type, char Operator, int color = -1);
     void SelectExpression(char Select);
     void DeselectExpressionExceptKeyboardSelection(void/*char preserve_keyboard_selection*/);
-    void DeselectExpression(void);
+    void DeselectExpression();
 
     void SelectElement(char Select, int position);
 
@@ -185,21 +185,21 @@ public:
 
     int KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, UINT nFlags, int fcolor, bool extern_call);
     // only to be called from KeyboardHit function!!
-    tElementStruct* KeyboardSplitVariable(void);
+    tElementStruct* KeyboardSplitVariable();
     int PaintParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth, char Type,
                          short data, char IsBlue, int color = 0);
     int PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth,
                                    char Type, short data, char IsBlue, int color = 0) const;
 
-    int KeyboardStop(void);
+    int KeyboardStop();
     int XML_output(char* output, int num_tabs, bool only_calculate);
     char* XML_input(char* file);
     //int MathML_output(char * output, int num_tabs, char only_calculate,char output_type);
     int LaTeX_output(char* output, char only_calculate) const;
 
-    int CalcChecksum(void) const;
+    int CalcChecksum() const;
     CExpression* KeyboardFindEntryPos();
-    int CopyToWindowsClipboard(void);
+    int CopyToWindowsClipboard();
     // select element of the matris at (row,column)
     int SelectMatrixElement(int row, int column, char select_type = 1);
     // returns the postion of the first element at (row,column), also expands matrix if neccessary

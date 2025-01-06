@@ -371,7 +371,7 @@ CToolbox::CToolbox(int IsSubtoolbox)
     Subtoolbox = nullptr;
     ContextMenu = nullptr;
     Keyboard = nullptr;
-    Toolbar = 0;
+    Toolbar = nullptr;
     m_IsSubtoolbox = 0;
     m_IsKeyboard = 0;
     m_IsContextMenu = 0;
