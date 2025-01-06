@@ -19,6 +19,10 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 *********************************************************************************************************/
 #include "StdAfx.h"
+
+#include <sstream>
+#include <optional>
+
 #include ".\element.h"
 #include "expression.h"
 #include "Mathomir.h"
@@ -3487,108 +3491,57 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
 #pragma optimize("s",on)
 int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 {
-    int len = 0;
-    int tmp;
-    std::string E1;
-    std::string E2;
-    std::string E3;
+    std::ostringstream ostr;
+    std::optional<std::string> E1(std::nullopt);
+    std::optional<std::string> E2(std::nullopt);
+    std::optional<std::string> E3(std::nullopt);
 
     //static char tabs[17];
 
     if (num_tabs > 16) num_tabs = 16;
     //memset(tabs,9,num_tabs);tabs[num_tabs]=0; //generating the tablist string
-
-    if (!only_calculate)
-    {
-        memset(output, 9, num_tabs);
-        output += num_tabs;
-    }
-    len += num_tabs;
+    ostr << std::string(num_tabs, '\t');
 
     if (XMLFileVersion == 1 || m_Type >= 7)
     {
-        char tmpstr[136];
-        sprintf_s(tmpstr, "<elm tp=\"%d\" ", m_Type);
-        tmp = (int)strlen(tmpstr);
-        len += tmp;
-        if (!only_calculate)
-        {
-            strcpy(output, tmpstr);
-            output += tmp;
-        }
+        ostr << "<elm tp=\"" << (unsigned int)m_Type <<"\" ";
     }
     else
     {
-        if (!only_calculate)
-        {
-            if (m_Type == 1) strcpy(output, "<var ");
-            if (m_Type == 2) strcpy(output, "<opr ");
-            if (m_Type == 3) strcpy(output, "<pwr ");
-            if (m_Type == 4) strcpy(output, "<fra ");
-            if (m_Type == 5) strcpy(output, "<bra ");
-            if (m_Type == 6) strcpy(output, "<fun ");
-            output += 5;
-        }
-        len += 5;
+        if (m_Type == 1) ostr << "<var ";
+        else if (m_Type == 2) ostr << "<opr ";
+        else if (m_Type == 3) ostr << "<pwr ";
+        else if (m_Type == 4) ostr << "<fra ";
+        else if (m_Type == 5) ostr << "<bra ";
+        else if (m_Type == 6) ostr << "<fun ";
     }
 
     if (m_Color != 255)
     {
-        char tmpstr[136] = "\0" ;
-        strcpy_s(tmpstr, "color=\"");
-        tmp = (short)strlen(tmpstr);
-        len += tmp;
-        if (!only_calculate)
-        {
-            strcpy(output, tmpstr);
-            output += tmp;
-        }
-
-        itoa(m_Color, tmpstr, 10);
-        strcat_s(tmpstr, "\" ");
-        tmp = (short)strlen(tmpstr);
-        len += tmp;
-        if (!only_calculate)
-        {
-            strcpy(output, tmpstr);
-            output += tmp;
-        }
+        ostr << "color=\"" << (unsigned int)m_Color << "\" ";
     }
-
-    static CElement* d_this = this;
-    static CExpression* d_parent = m_pPaternalExpression;
-    static int d_cnt;
 
     //addidng decoration description (encircled, strikeout, underlined, overlined...)
     if (m_pPaternalExpression)
     {
         for (int i = 0; i < m_pPaternalExpression->m_NumElements; i++)
         {
-            d_cnt = i;
-            tElementStruct* ts = m_pPaternalExpression->m_pElementList + i;
+            tElementStruct* ts = &m_pPaternalExpression->m_pElementList[i];
             if (ts->pElementObject == this)
             {
                 if (ts->Decoration)
                 {
-                    char tmpstr[136] = "\0";
-                    sprintf_s(tmpstr, "decor=\"%d\" ", ts->Decoration);
-                    tmp = (short)strlen(tmpstr);
-                    len += tmp;
-                    if (!only_calculate)
-                    {
-                        strcpy(output, tmpstr);
-                        output += tmp;
-                    }
+                    ostr << "decor=\"" << (unsigned int)ts->Decoration << "\" ";
                 }
                 break;
             }
         }
     }
-
-    char tmpstr[136] = "\0";
+    
     if (m_Type == 1 || //variable
         m_Type == 6) //function
     {
+        char tmpstr[136] = "\0";
         short j;
         if (XMLFileVersion == 1)
         {
@@ -3600,13 +3553,13 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             strcpy_s(tmpstr, "t=\"");
             j = 3;
         }
-        tmp = (short)strlen(Data1);
-        for (int i = 0; i < tmp; i++)
+        size_t tmp = strlen(Data1);
+        for (unsigned int i = 0; i < tmp; i++)
         {
             if (Data1[i] < ' ' || Data1[i] > 0x7E || Data1[i] == '\\' || Data1[i] == '"')
             {
                 char ppp[4];
-                sprintf_s(ppp, "\\%02X", (unsigned char)Data1[i]);
+                sprintf_s(ppp, "\\%02X", (byte)Data1[i]);
                 memcpy(tmpstr + j, ppp, 3);
                 j += 3;
             }
@@ -3635,18 +3588,18 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         {
             memcpy(tmpstr + j, "\" f=\"", 5);
             j += 5;
-            for (int i = 1; i < tmp; i++)
+            for (unsigned int i = 1; i < tmp; i++)
                 if (Data2[i] != Data2[0])
                 {
                     all_chars_same_font = 0;
                     break;
                 } //we check if all characters are of the same font type
         }
-        for (int i = 0; i < tmp; i++)
+        for (unsigned int i = 0; i < tmp; i++)
         {
             char ppp[4];
             unsigned char dd = (unsigned char)Data2[i];
-            if (XMLFileVersion == 1) dd = dd & 0xE3 | m_VMods & 0x1C;
+            if (XMLFileVersion == 1) dd = (dd & 0xE3) | (m_VMods & 0x1C);
             sprintf_s(ppp, "%02X", dd);
             tmpstr[j++] = ppp[0];
             tmpstr[j++] = ppp[1];
@@ -3682,7 +3635,6 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
                 else strcat_s(tmpstr, " ");
                 strcat_s(tmpstr, "\"");
             }
-
             if (Expression1) E1 = "i";
         }
         else
@@ -3690,10 +3642,12 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             if (Expression1) E1 = "";
             if (Expression2) E2 = "i";
         }
+        ostr << tmpstr;
     }
 
     else if (m_Type == 2) //operator
     {
+        char tmpstr[136] = "\0";
         if (Data1[0] < ' ' || Data1[0] > 0x7E || Data1[0] == '\\' || Data1[0] == '\'' || Data1[0] == '\"' || Data1[0] ==
             '<' || Data1[0] == '>')
         {
@@ -3712,21 +3666,21 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             strcat_s(tmpstr, tmps);
         }
         if (Expression1) E1 = "upp";
+        ostr << tmpstr;
     }
 
     else if (m_Type == 3) //exponent (power)
     {
-        strcpy_s(tmpstr, "");
         if (Expression1) E1 = "";
         if (Expression2) E2 = "e";
     }
 
     else if (m_Type == 4) //fraction (rational number), a over b
     {
-        if (Data1[0] == '/') strcpy_s(tmpstr, "stp=\"semi-fraction\"");
-        else if (Data1[0] == ' ') strcpy_s(tmpstr, "stp=\"a-over-b\"");
-        else if (Data1[0] == 'd') strcpy_s(tmpstr, "stp=\"dfrac\"");
-        else strcpy_s(tmpstr, "stp=\"\"");
+        if (Data1[0] == '/') ostr << "stp=\"semi-fraction\"";
+        else if (Data1[0] == ' ') ostr << "stp=\"a-over-b\"";
+        else if (Data1[0] == 'd') ostr << "stp=\"dfrac\"";
+        else ostr << "stp=\"\"";
         if (Expression1) E1 = "n";
         if (Expression2) E2 = "d";
     }
@@ -3739,30 +3693,30 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
 
     else if (m_Type == 7) //sigma, pi, integral
     {
-        if (Data1[0] == 'S') strcpy_s(tmpstr, "stp=\"Sigma\"");
-        else if (Data1[0] == 'P') strcpy_s(tmpstr, "stp=\"Pi\"");
+        if (Data1[0] == 'S')
+            ostr << "stp=\"Sigma\"";
+        else if (Data1[0] == 'P')
+            ostr << "stp=\"Pi\"";
         else if (Data1[0] == 'I')
         {
-            if (XMLFileVersion == 1) strcpy_s(tmpstr, "stp=\"Integral\"");
-            else strcpy_s(tmpstr, "stp=\"Int\"");
+            if (XMLFileVersion == 1)
+                ostr << "stp=\"Integral\"";
+            else
+                ostr << "stp=\"Int\"";
         }
-        else if (Data1[0] == 'O') strcpy_s(tmpstr, "stp=\"Circular-integral\"");
-        else sprintf_s(tmpstr, "stp=\"%c\"", Data1[0]);
+        else if (Data1[0] == 'O')
+            ostr << "stp=\"Circular-integral\"";
+        else
+            ostr << "stp=\"" << Data1[0] << "\"";
 
-        if (XMLFileVersion == 1) strcat_s(tmpstr, " symbol_height=\"");
-        else strcat_s(tmpstr, " sze=\"");
-        char h[10];
-        _itoa_s(Data2[0], h, 10);
-        strcat_s(tmpstr, h);
-        strcat_s(tmpstr, "\"");
+        if (XMLFileVersion == 1) ostr << " symbol_height=\"";
+        else ostr << " sze=\"";
+        ostr << (unsigned int)Data2[0] << "\"";
 
         if (Data2[1] != 1) Data2[1] = 0;
         if (XMLFileVersion == 1 || Data2[1])
         {
-            strcat_s(tmpstr, " limits_aside=\"");
-            _itoa_s(Data2[1], h, 10);
-            strcat_s(tmpstr, h);
-            strcat_s(tmpstr, "\"");
+            ostr << " limits_aside=\"" << (unsigned int)Data2[1] << "\"";
         }
 
         if (Data1[0] == 'I' || Data1[0] == 'O')
@@ -3770,10 +3724,7 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             if (Data2[2] != 2 && Data2[2] != 3) Data2[2] = 1;
             if (XMLFileVersion == 1 || Data2[2] != 1)
             {
-                strcat_s(tmpstr, " dimension=\"");
-                _itoa_s(Data2[2], h, 10);
-                strcat_s(tmpstr, h);
-                strcat_s(tmpstr, "\"");
+                ostr << " dimension=\"" << (unsigned int)Data2[2] << "\"";
             }
         }
 
@@ -3791,18 +3742,20 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
         if (Expression1) E1 = "";
         if (Expression2) E2 = "h";
         if (Expression3) E3 = "l";
-        if (Expression3 == 0 && Expression2 == 0 && Data1[0] == 'L')
-            strcat_s(tmpstr, "label=\"1\"");
-        if (Expression3 == 0 && Expression2 == 0 && Data1[0] == 'H')
+        if (Expression3 == nullptr && Expression2 == nullptr && Data1[0] == 'L')
+            ostr << "label=\"1\"";
+        else if (Expression3 == nullptr && Expression2 == nullptr && Data1[0] == 'H')
         {
+            ostr <<" URL=\"";
             if (*(char**)this->Data3 == nullptr)
-                strcat_s(tmpstr, " URL=\"\"");
+            {
+            }
             else
             {
+                char tmpstr[136] = "\0";
                 char* url = *(char**)this->Data3;
                 int tmp = (int)strlen(url);
-                strcat_s(tmpstr, " URL=\"");
-                int j = (int)strlen(tmpstr);
+                int j = 0;
                 for (int i = 0; i < tmp; i++)
                     if (url[i] < ' ' || url[i] > 0x7E || url[i] == '\\' || url[i] == '"')
                     {
@@ -3816,98 +3769,80 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
                 tmpstr[j] = 0;
 
                 //strcat_s(tmpstr,*(char**)this->Data3);
-                strcat_s(tmpstr, "\"");
+                ostr << tmpstr;
             }
+            ostr << "\"";
         }
     }
     else if (m_Type == 10) //condition list, as element
     {
-        strcpy_s(tmpstr, "");
-        if (Data1[0] & 0x01) strcat_s(tmpstr, "left_bar=\"1\"");
-        else strcat_s(tmpstr, "left_bar=\"0\"");
-        if (Data1[0] & 0x02) strcat_s(tmpstr, " right_bar=\"1\"");
-        else strcat_s(tmpstr, " right_bar=\"0\"");
-        if (Data2[0] < 0 || Data2[0] > 2) Data2[0] = 0;
-        strcat_s(tmpstr, " align=\"");
-        char tmp[10];
-        _itoa_s(Data2[0], tmp, 10);
-        strcat_s(tmpstr, tmp);
-        strcat_s(tmpstr, "\"");
+        ostr << "left_bar=\"" << (unsigned int)(Data1[0] & 0x01) << "\"";
+        ostr << " right_bar=\"" << (unsigned int)((Data1[0] & 0x02)>>1) << "\"";
+        if (Data2[0] < 0 || Data2[0] > 2)
+            Data2[0] = 0;
+        ostr << " align=\"" << (unsigned int)Data2[0] << "\"";
         if (Expression1) E1 = "h";
         if (Expression2) E2 = "m";
         if (Expression3) E3 = "l";
     }
-
+    
     if (XMLFileVersion == 1)
     {
-        if (!E1.empty())
+        if (E1.has_value())
         {
-            strcat_s(tmpstr, " Exp1=\"");
-            strcat_s(tmpstr, E1.c_str());
-            strcat_s(tmpstr, "\"");
+            ostr << " Exp1=\"" << E1.value() << "\"";
         }
-        if (!E2.empty())
+        if (E2.has_value())
         {
-            strcat_s(tmpstr, " Exp2=\"");
-            strcat_s(tmpstr, E2.c_str());
-            strcat_s(tmpstr, "\"");
+            ostr << " Exp2=\"" << E2.value() << "\"";
         }
-        if (!E3.empty())
+        if (E3.has_value())
         {
-            strcat_s(tmpstr, " Exp3=\"");
-            strcat_s(tmpstr, E3.c_str());
-            strcat_s(tmpstr, "\"");
+            ostr << " Exp3=\"" << E3.value() << "\"";
         }
     }
     else
     {
-        if (!E1.empty())
+        if (E1.has_value())
         {
-            strcat_s(tmpstr, " E1=\"");
-            strcat_s(tmpstr, E1.c_str());
-            strcat_s(tmpstr, "\"");
+            ostr << " E1=\"" << E1.value() << "\"";
         }
-        if (!E2.empty())
+        if (E2.has_value())
         {
-            strcat_s(tmpstr, " E2=\"");
-            strcat_s(tmpstr, E2.c_str());
-            strcat_s(tmpstr, "\"");
+            ostr << " E2=\"" << E2.value() << "\"";
         }
-        if (!E3.empty())
+        if (E3.has_value())
         {
-            strcat_s(tmpstr, " E3=\"");
-            strcat_s(tmpstr, E3.c_str());
-            strcat_s(tmpstr, "\"");
+            ostr << " E3=\"" << E3.value() << "\"";
         }
     }
-
+    
     if (Expression1 == nullptr && Expression2 == nullptr && Expression3 == nullptr)
-        strcat_s(tmpstr, " />\r\n");
+        ostr << " />\r\n";
     else
-        strcat_s(tmpstr, ">\r\n");
-    tmp = (short)strlen(tmpstr);
-    len += tmp;
+        ostr << ">\r\n";
     if (!only_calculate)
     {
-        strcpy(output, tmpstr);
-        output += tmp;
+        strcpy(output, ostr.str().c_str());
+        output += ostr.str().size();
     }
+    size_t len = ostr.str().size();
 
     if (Expression1)
     {
-        tmp = Expression1->XML_output(output, num_tabs, only_calculate);
+        size_t tmp = Expression1->XML_output(output, num_tabs, only_calculate);
         len += tmp;
         if (!only_calculate) output += tmp;
     }
     if (Expression2)
     {
-        tmp = Expression2->XML_output(output, num_tabs, only_calculate);
+        size_t tmp = Expression2->XML_output(output, num_tabs, only_calculate);
         len += tmp;
         if (!only_calculate) output += tmp;
     }
     if (Expression3)
     {
-        tmp = Expression3->XML_output(output, num_tabs, only_calculate);
+        size_t tmp = Expression3->XML_output(output, num_tabs, only_calculate);
         len += tmp;
         if (!only_calculate) output += tmp;
     }
@@ -3935,11 +3870,6 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
             }
         }
         len += 8 + num_tabs;
-        if (!only_calculate)
-        {
-            strcpy(output, tmpstr);
-            output += tmp;
-        }
     }
     return len;
 }
