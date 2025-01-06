@@ -12581,36 +12581,20 @@ autowraptext_start:
     return 1;
 }
 
+
 #pragma optimize("s",on)
 void CExpression::XML_output(std::ostream& output, int num_tabs)
 {
-    size_t tmp = this->XML_output(nullptr, num_tabs, true);
-    auto output2 = new char[tmp + 1];
-    output2[tmp] = 0;
-    this->XML_output(output2, num_tabs, false);
-    output << output2;
-    delete[] output2;
-}
-
-#pragma optimize("s",on)
-int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
-{
-    int len = 0;
-    static char tmpstr[136];
-    static char tabs[17];
+    const std::string tabs(num_tabs, '\t');
     if (num_tabs > 16) num_tabs = 16;
 
-    memset(tabs, 9, num_tabs);
-    tabs[num_tabs] = 0; //generating the tablist string
-
-    strcpy_s(tmpstr, tabs);
-    if (XMLFileVersion == 1) strcat_s(tmpstr, "<expr fnt_h=\"");
-    else strcat_s(tmpstr, "<ex fh=\"");
-
-
-    char tmp[8];
-    _itoa_s(m_FontSize, tmp, 10);
-    strcat_s(tmpstr, tmp);
+    output << tabs;
+    if (XMLFileVersion == 1)
+        output << "<expr fnt_h=\"";
+    else
+        output << "<ex fh=\"";
+    
+    output << m_FontSize;
     //if (m_FontSize!=m_FontSizeHQ)
     //{
     //	strcat_s(tmpstr,"\" fnthq_h=\"");
@@ -12629,75 +12613,57 @@ int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
                 {
                     old_version_text_decode = 1;
                     m_StartAsText = 1;
-                    strcat_s(tmpstr, "\" txt=\"1");
+                    output << "\" txt=\"1";
                     break;
                 }
         }
     }
 
     if (m_StartAsText)
-    {
-        strcat_s(tmpstr, "\" stxt=\"");
-        _itoa_s(prevStartAsText, tmp, 10);
-        strcat_s(tmpstr, tmp);
-    }
+        output << "\" stxt=\"" << (int)prevStartAsText;
     if (m_IsHeadline)
-    {
-        strcat_s(tmpstr, "\" hed=\"");
-        _itoa_s(m_IsHeadline, tmp, 10);
-        strcat_s(tmpstr, tmp);
-    }
+        output << "\" hed=\"" << (int) m_IsHeadline;
     if (m_IsVertical)
-    {
-        strcat_s(tmpstr, "\" vert=\"");
-        _itoa_s(m_IsVertical, tmp, 10);
-        strcat_s(tmpstr, tmp);
-    }
+        output << "\" vert=\"" << (int) m_IsVertical;
     if (m_Color != -1)
     {
-        if (XMLFileVersion == 1) strcat_s(tmpstr, "\" color=\"");
-        else strcat_s(tmpstr, "\" clr=\"");
-        _itoa_s(m_Color, tmp, 10);
-        strcat_s(tmpstr, tmp);
+        if (XMLFileVersion == 1) output << "\" color=\"";
+        else output << "\" clr=\"";
+        output << (int)(byte) m_Color;
     }
 
     if (m_Alignment != 0)
     {
-        strcat_s(tmpstr, "\" alig=\"");
-        _itoa_s(m_Alignment, tmp, 10);
-        strcat_s(tmpstr, tmp);
+        output << "\" alig=\"" << (int) m_Alignment;
     }
     if ((m_ParenthesesFlags & 0x1F) != 0)
     {
-        if (XMLFileVersion == 1) strcat_s(tmpstr, "\" brack=\"");
-        else strcat_s(tmpstr, "\" br=\"");
-        _itoa_s(m_ParenthesesFlags & 0x1F, tmp, 10);
-        strcat_s(tmpstr, tmp);
+        if (XMLFileVersion == 1)
+            output << "\" brack=\"";
+        else
+            output << "\" br=\"";
+        output << (m_ParenthesesFlags & 0x1F);
     }
-    strcat_s(tmpstr, "\"");
+    output << "\"";
 
     if (m_DrawParentheses && m_ParentheseShape != '(')
     {
-        if (XMLFileVersion == 1) strcat_s(tmpstr, " b_shape=\"");
-        else strcat_s(tmpstr, " shp=\"");
-        if (m_ParentheseShape == '\\')
-            sprintf_s(tmp, "\\5C");
+        if (XMLFileVersion == 1)
+            output << " b_shape=\"";
         else
-            sprintf_s(tmp, "%c", m_ParentheseShape);
-        strcat_s(tmpstr, tmp);
-        strcat_s(tmpstr, "\"");
+            output << " shp=\"";
+        if (m_ParentheseShape == '\\')
+            output << "\\5C";
+        else
+            output << m_ParentheseShape;
+        output <<  "\"";
     }
-    strcat_s(tmpstr, ">\r\n");
-    len += (int)strlen(tmpstr);
-    if (!only_calculate)
-    {
-        strcpy(output, tmpstr);
-        output += strlen(tmpstr);
-    }
+    output << ">\r\n";
+    
 
     //special handling for backward compatibility with file format 1.x (matrices/tables do not have the last row separator)
-    if (XMLFileVersion == 1 && (m_MaxNumRows > 1 || m_MaxNumColumns > 1) && (m_pElementList + m_NumElements - 1)
-        ->Type == 12)
+    if (XMLFileVersion == 1 && (m_MaxNumRows > 1 || m_MaxNumColumns > 1) &&
+        m_pElementList[m_NumElements - 1].Type == 12)
     {
         const char top = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[0];
         const char right = (m_pElementList + m_NumElements - 1)->pElementObject->Data1[1];
@@ -12735,15 +12701,10 @@ int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
         {
             ts->pElementObject->Data1[20] = 0;
             if (strcmp(ts->pElementObject->Data1, "                    "))
-                sprintf_s(tmpstr, "%s<col_sep data=\"%s\" />\r\n", tabs, ts->pElementObject->Data1);
+                output << tabs << "<col_sep data=\"" << ts->pElementObject->Data1 << "\" />\r\n";
             else
-                sprintf_s(tmpstr, "%s<col_sep />\r\n", tabs);
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
+                output << tabs << "<col_sep />\r\n";
+            
         }
         else if (ts->Type == 12)
         {
@@ -12752,68 +12713,36 @@ int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
             {
                 ts->pElementObject->Data1[20] = 0;
                 if (strcmp(ts->pElementObject->Data1, "                    "))
-                    sprintf_s(tmpstr, "%s<row_sep data=\"%s\" />\r\n", tabs, ts->pElementObject->Data1);
+                    output << tabs << "<row_sep data=\"" << ts->pElementObject->Data1 << "\" />\r\n";
                 else
-                    sprintf_s(tmpstr, "%s<row_sep />\r\n", tabs);
-                len += (int)strlen(tmpstr);
-                if (!only_calculate)
-                {
-                    strcpy(output, tmpstr);
-                    output += strlen(tmpstr);
-                }
+                    output << tabs << "<row_sep />\r\n";
             }
         }
         else if (old_version_text_decode && ts->Type == 2 && ts->pElementObject->Data1[0] == (char)0xFF)
         {
             //for backward compatibility - we are storing simple text boxes this way
-            strcpy_s(tmpstr, tabs);
-            if (XMLFileVersion == 1) strcat_s(tmpstr, "<row_sep />\r\n");
-            else strcat_s(tmpstr, "<wrap />\r\n");
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
+            if (XMLFileVersion == 1)
+                output << tabs << "<row_sep />\r\n";
+            else
+                output << tabs << "<wrap />\r\n";
         }
         else if (ts->Type == 2 && ts->pElementObject->Data1[0] == (char)0xFF && XMLFileVersion > 1)
         {
-            strcpy_s(tmpstr, tabs);
-            strcat_s(tmpstr, "<wrap />\r\n");
-            len += (int)strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
+            output << tabs << "<wrap />\r\n";
         }
         else if (ts->pElementObject)
         {
-            std::ostringstream ostr;
-            ts->pElementObject->XML_output(ostr, num_tabs + 1);
-            if (!only_calculate)
-            {
-                strcpy(output, ostr.str().c_str());
-                output += ostr.str().size();
-            }
-            len += ostr.str().size();
+            ts->pElementObject->XML_output(output, num_tabs + 1);
         }
     }
 
-    memset(tabs, 9, num_tabs);
-    tabs[num_tabs] = 0; //generating the tablist string
-    strcpy_s(tmpstr, tabs);
-    if (XMLFileVersion == 1) strcat_s(tmpstr, "</expr>\r\n");
-    else strcat_s(tmpstr, "</ex>\r\n");
-    len += (int)strlen(tmpstr);
-    if (!only_calculate)
-    {
-        strcpy(output, tmpstr);
-        output += strlen(tmpstr);
-    }
+    output << tabs;
+    if (XMLFileVersion == 1)
+        output << "</expr>\r\n";
+    else
+        output <<"</ex>\r\n";
 
     m_StartAsText = prevStartAsText;
-    return len;
 }
 
 #pragma optimize("s",on)

@@ -193,7 +193,6 @@ public:
 
     int KeyboardStop();
     void XML_output(std::ostream &output, int num_tabs);
-    int XML_output(char* output, int num_tabs, bool only_calculate);
     char* XML_input(char* file);
     //int MathML_output(char * output, int num_tabs, char only_calculate,char output_type);
     int LaTeX_output(char* output, char only_calculate) const;
