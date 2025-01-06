@@ -21,6 +21,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "StdAfx.h"
 
 #include <assert.h>
+#include <sstream>
 
 #include "Mathomir.h"
 #include "mainfrm.h"
@@ -12581,6 +12582,17 @@ autowraptext_start:
 }
 
 #pragma optimize("s",on)
+void CExpression::XML_output(std::ostream& output, int num_tabs)
+{
+    size_t tmp = this->XML_output(nullptr, num_tabs, true);
+    auto output2 = new char[tmp + 1];
+    output2[tmp] = 0;
+    this->XML_output(output2, num_tabs, false);
+    output << output2;
+    delete[] output2;
+}
+
+#pragma optimize("s",on)
 int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
 {
     int len = 0;
@@ -12777,9 +12789,14 @@ int CExpression::XML_output(char* output, int num_tabs, bool only_calculate)
         }
         else if (ts->pElementObject)
         {
-            int tt = ts->pElementObject->XML_output(output, num_tabs + 1, only_calculate);
-            len += tt;
-            if (!only_calculate) output += tt;
+            std::ostringstream ostr;
+            ts->pElementObject->XML_output(ostr, num_tabs + 1);
+            if (!only_calculate)
+            {
+                strcpy(output, ostr.str().c_str());
+                output += ostr.str().size();
+            }
+            len += ostr.str().size();
         }
     }
 
@@ -13936,28 +13953,32 @@ int CExpression::CopyToWindowsClipboard()
 #ifdef TEACHER_VERSION
     if (TheFileType == 'r') return 0;
 #endif
-    if (theApp.m_pMainWnd->OpenClipboard())
+    if (!theApp.m_pMainWnd->OpenClipboard())
     {
-        char tmp[64];
-        int len = XML_output(tmp, 0, true);
-        if (len > 0 && len < 1000000)
-        {
-            EmptyClipboard();
-            HANDLE hmem = GlobalAlloc(GMEM_ZEROINIT, len + 256);
-            LPVOID pntr = GlobalLock(hmem);
-            int* control = (int*)pntr;
-            int* checksum = control + 1;
-            char* data = (char*)(checksum + 1);
-            *control = 0xAABBCC11;
-            LastTakenChecksum = *checksum = CalcChecksum() + rand();
-
-            XML_output(data, 0, false);
-            GlobalUnlock(hmem);
-            UINT format = RegisterClipboardFormat("MATHOMIR_EXPR");
-            HANDLE ret = SetClipboardData(format, hmem);
-            CloseClipboard();
-        }
+        return 0;
     }
+    char tmp[64];
+    std::ostringstream ostr;
+    XML_output(ostr, 0);
+    const std::string str = ostr.str();
+    if (str.size() <= 0 || str.size() >= 1000000)
+    {
+        return 0;
+    }
+    EmptyClipboard();
+    HANDLE hmem = GlobalAlloc(GMEM_ZEROINIT, str.size() + 256);
+    LPVOID pntr = GlobalLock(hmem);
+    int* control = (int*)pntr;
+    int* checksum = control + 1;
+    char* data = (char*)(checksum + 1);
+    *control = 0xAABBCC11;
+    LastTakenChecksum = *checksum = CalcChecksum() + rand();
+
+    strcpy(data, str.c_str());
+    GlobalUnlock(hmem);
+    UINT format = RegisterClipboardFormat("MATHOMIR_EXPR");
+    HANDLE ret = SetClipboardData(format, hmem);
+    CloseClipboard();
     return 0;
 }
 

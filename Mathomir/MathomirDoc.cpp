@@ -24,6 +24,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "expression.h"
 #include "MathomirDoc.h"
 #include ".\MathomirDoc.h"
+
+#include <sstream>
+
 #include "toolbox.h"
 #include "mainfrm.h"
 #include "drawing.h"
@@ -634,7 +637,11 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     //first, calculate briefly the length of the output data
 
     if (save_keyboard_clipboard)
-        len += TheKeyboardClipboard->XML_output(dummy, 1, true);
+    {
+        std::ostringstream ostr;
+        TheKeyboardClipboard->XML_output(ostr, 1);
+        len += ostr.str().size();
+    }
     else
     {
         tDocumentStruct* ds = TheDocument;
@@ -645,7 +652,11 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
                 if (filename || ds->MovingDotState == 3)
                 {
                     if (ds->Type == EXPRESSION)
-                        len += ds->Object.exp->XML_output(dummy, 0, true);
+                    {
+                        std::ostringstream ostr;
+                        ds->Object.exp->XML_output(ostr, 0);
+                        len += ostr.str().size();
+                    }
                     else if (ds->Type == DRAWING)
                         len += ds->Object.draw->XML_output(dummy, 0, 1);
                 }
@@ -662,7 +673,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
     char* file_pointer;
     int alloc_len = len + 1024 + NumDocumentElements * 256;
     file_buffer = (char*)malloc(alloc_len);
-    if (file_buffer == 0)
+    if (file_buffer == nullptr)
     {
         if (filename) AfxMessageBox("Cannot reserve memory for file saving!",MB_OK | MB_ICONWARNING,NULL);
         return 0;
@@ -679,20 +690,14 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
 
     if (save_keyboard_clipboard)
     {
-        int tmp;
-        sprintf(file_pointer, "<obj type=\"1\" X=\"0\" Y=\"0\">\r\n");
-        tmp = (int)strlen(file_pointer);
-        file_pointer += tmp;
-        len += tmp;
-
-        tmp = 0;
-        tmp = TheKeyboardClipboard->XML_output(file_pointer, 1, false);
-        len += tmp;
-        file_pointer += tmp;
-
-        strcpy(file_pointer, "</obj>\r\n");
-        file_pointer += 8;
-        len += 8;
+        std::ostringstream ostr;
+        ostr << "<obj type=\"1\" X=\"0\" Y=\"0\">\r\n";
+        TheKeyboardClipboard->XML_output(ostr,  1);
+        ostr << "</obj>\r\n";
+        
+        len += ostr.str().size();
+        strcpy(file_pointer, ostr.str().c_str());
+        file_pointer += ostr.str().size();
     }
     else
     {
@@ -772,7 +777,12 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
 
                     int tmp = 0;
                     if (ds->Type == EXPRESSION)
-                        tmp = ds->Object.exp->XML_output(file_pointer, 0, false);
+                    {
+                        std::ostringstream ostr;
+                        ds->Object.exp->XML_output(ostr, 0);
+                        strcpy(file_pointer, ostr.str().c_str());
+                        tmp = ostr.str().size();
+                    }
                     else
                         tmp = ds->Object.draw->XML_output(file_pointer, 0, 0);
                     len += tmp;

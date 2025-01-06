@@ -19,6 +19,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 *********************************************************************************************************/
 #include "StdAfx.h"
+
+#include <sstream>
+
 #include ".\drawing.h"
 #include "Mathomir.h"
 #include "mainfrm.h"
@@ -2719,9 +2722,15 @@ int CDrawing::XML_output(char* output, int num_tabs, char only_calculate) const
                 strcpy(output, tmpstr);
                 output += strlen(tmpstr);
             }
-            int tt = ((CExpression*)di->pSubdrawing)->XML_output(output, num_tabs + 1, only_calculate);
-            len += tt;
-            if (!only_calculate) output += tt;
+            std::ostringstream ostr;
+            
+            ((CExpression*)di->pSubdrawing)->XML_output(ostr, num_tabs + 1);
+            len += ostr.str().size();
+            if (!only_calculate)
+            {
+                strcpy(output, ostr.str().c_str());
+                output += ostr.str().size();
+            }
             memset(tmpstr, 9, num_tabs);
             tmpstr[num_tabs] = 0;
             strcat_s(tmpstr, "</subexp>\r\n");

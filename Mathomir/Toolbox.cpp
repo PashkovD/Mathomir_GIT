@@ -21,6 +21,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "stdafx.h"
 #include "Mathomir.h"
 #include "Toolbox.h"
+
+#include <sstream>
+
 #include ".\toolbox.h"
 #include "Mainfrm.h"
 #include "popupmenu.h"
@@ -5801,13 +5804,21 @@ int CToolbox::SaveSettings(char* filename) const
                     //we found a user-defined toolbox item
                     int len;
                     if (ToolboxMembers[i].Above[j] != -1)
-                        len = ToolboxMembers[i].Submembers[j]->XML_output(nullptr, 0, true);
+                    {
+                        std::ostringstream ostr;
+                        ToolboxMembers[i].Submembers[j]->XML_output(ostr, 0);
+                        len = ostr.str().size();
+                    }
                     else
                         len = ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(nullptr, 0, 1);
-                    char* data = (char*)malloc(len + 256);
+                    char* data = new char[len + 256];
 
                     if (ToolboxMembers[i].Above[j] != -1)
-                        ToolboxMembers[i].Submembers[j]->XML_output(data, 0, false);
+                    {
+                        std::ostringstream ostr;
+                        ToolboxMembers[i].Submembers[j]->XML_output(ostr, 0);
+                        strcpy(data, ostr.str().c_str());
+                    }
                     else
                         ((CDrawing*)ToolboxMembers[i].Submembers[j])->XML_output(data, 0, 0);
 
@@ -5818,7 +5829,7 @@ int CToolbox::SaveSettings(char* filename) const
                     fwrite(&pos_data, sizeof(int), 1, fil);
                     fwrite(&len, sizeof(int), 1, fil);
                     fwrite(data, len, 1, fil);
-                    free(data);
+                    delete[] data;
                 }
             }
         {

@@ -3485,13 +3485,14 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
     return (CObject*)this;
 }
 
+
+
 //XML_output, trasforms all relevant element data into XML string
 //used for save (to disk) and copy (to clipboard)
 //should not be too slow (copy/paste)
 #pragma optimize("s",on)
-int CElement::XML_output(char* output, int num_tabs, char only_calculate)
+void CElement::XML_output(std::ostream &ostr, int num_tabs)
 {
-    std::ostringstream ostr;
     std::optional<std::string> E1(std::nullopt);
     std::optional<std::string> E2(std::nullopt);
     std::optional<std::string> E3(std::nullopt);
@@ -3818,60 +3819,36 @@ int CElement::XML_output(char* output, int num_tabs, char only_calculate)
     }
     
     if (Expression1 == nullptr && Expression2 == nullptr && Expression3 == nullptr)
+    {
         ostr << " />\r\n";
-    else
-        ostr << ">\r\n";
-    if (!only_calculate)
-    {
-        strcpy(output, ostr.str().c_str());
-        output += ostr.str().size();
+        return;
     }
-    size_t len = ostr.str().size();
-
+    ostr << ">\r\n";
+    
     if (Expression1)
-    {
-        size_t tmp = Expression1->XML_output(output, num_tabs, only_calculate);
-        len += tmp;
-        if (!only_calculate) output += tmp;
-    }
+        Expression1->XML_output(ostr, num_tabs + 1);
     if (Expression2)
-    {
-        size_t tmp = Expression2->XML_output(output, num_tabs, only_calculate);
-        len += tmp;
-        if (!only_calculate) output += tmp;
-    }
+        Expression2->XML_output(ostr, num_tabs + 1);
     if (Expression3)
-    {
-        size_t tmp = Expression3->XML_output(output, num_tabs, only_calculate);
-        len += tmp;
-        if (!only_calculate) output += tmp;
-    }
+        Expression3->XML_output(ostr, num_tabs + 1);
 
     if (Expression1 != nullptr || Expression2 != nullptr || Expression3 != nullptr)
     {
-        if (!only_calculate)
+        ostr << std::string(num_tabs, '\t');
+        if (XMLFileVersion == 1 || m_Type >= 7)
         {
-            memset(output, 9, num_tabs);
-            output += num_tabs;
-            if (XMLFileVersion == 1 || m_Type >= 7)
-            {
-                strcpy(output, "</elm>\r\n");
-                output += 8;
-            }
-            else
-            {
-                if (m_Type == 1) strcpy(output, "</var>\r\n");
-                if (m_Type == 2) strcpy(output, "</opr>\r\n");
-                if (m_Type == 3) strcpy(output, "</pwr>\r\n");
-                if (m_Type == 4) strcpy(output, "</fra>\r\n");
-                if (m_Type == 5) strcpy(output, "</bra>\r\n");
-                if (m_Type == 6) strcpy(output, "</fun>\r\n");
-                output += 8;
-            }
+            ostr << "</elm>\r\n";
         }
-        len += 8 + num_tabs;
+        else
+        {
+            if (m_Type == 1) ostr << "</var>\r\n";
+            if (m_Type == 2) ostr << "</opr>\r\n";
+            if (m_Type == 3) ostr << "</pwr>\r\n";
+            if (m_Type == 4) ostr << "</fra>\r\n";
+            if (m_Type == 5) ostr << "</bra>\r\n";
+            if (m_Type == 6) ostr << "</fun>\r\n";
+        }
     }
-    return len;
 }
 
 //loads element data from the XML string (used in load from disk and paste from clipboard)
