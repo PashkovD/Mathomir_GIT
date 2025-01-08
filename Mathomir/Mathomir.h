@@ -189,12 +189,12 @@ extern unsigned char WarningDisplayed;
 
 typedef struct PASSWORD_DLG_STRUCT
 {
-    char is_exam;
+    bool is_exam;
     char password[24];
     int time_limit;
-    char disable_symbolic_math;
-    char disable_math;
-    char canceled;
+    bool disable_symbolic_math;
+    bool disable_math;
+    bool canceled;
 } tPasswordDlgStruct;
 
 extern tPasswordDlgStruct* PasswordDlgStruct;

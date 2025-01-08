@@ -833,8 +833,7 @@ int CMainFrame::EndMyPainting(CDC* DC, int X, int Y, int force_black, int flip_i
 
 int CMainFrame::MyPolyline(CDC* DC, LPPOINT points, int count, int LineWidth, char IsBlue)
 {
-    int i;
-    for (i = 0; i < count; i++)
+    for (int i = 0; i < count; i++)
         points[i].y += MyBitmapAbove;
     MyDC->SelectObject(GetPenFromPool(LineWidth, IsBlue, MyColor));
     MyDC->Polyline(points, count);
@@ -1788,19 +1787,19 @@ int CMainFrame::UndoRelease(int exit_app)
 //function must be fast!
 char* CMainFrame::XML_search(const std::string& text, char* file)
 {
-    char is_quotation = 0;
-    char is_inside = 0;
+    bool is_quotation = false;
+    bool is_inside = false;
     size_t text_len = strlen(text.c_str());
     while (*file != 0)
     {
-        char ch = *file;
-        if (ch == '<' && !is_inside) is_inside = 1;
-        if (ch == '>' && is_inside && !is_quotation) is_inside = 0;
-        if (ch == '"' && is_inside && is_quotation) is_quotation = 0;
-        else if (ch == '"' && is_inside && !is_quotation) is_quotation = 1;
+        const char ch = *file;
+        if (ch == '<' && !is_inside) is_inside = true;
+        if (ch == '>' && is_inside && !is_quotation) is_inside = false;
+        if (ch == '"' && is_inside && is_quotation) is_quotation = false;
+        else if (ch == '"' && is_inside && !is_quotation) is_quotation = true;
         if (strncmp(file, text.c_str(), text_len) == 0 && is_inside && !is_quotation && ch > ' ' && ch != '<')
         {
-            return file + text_len;
+            return file;
         }
         file++;
     }
@@ -1818,9 +1817,7 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
     char started_value = 0;
     while (*file != 0)
     {
-        char ch = *file;
-
-        if (ch > ' ' || started_value == 1)
+        if (char ch = *file; ch > ' ' || started_value == 1)
         {
             if (started_value == 0 && ch == '>') //no atribute-value pair found
             {
@@ -1874,32 +1871,30 @@ int CMainFrame::RearangeObjects(int delta)
     int mx = 0;
     for (int i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
-        if ((ds->MovingDotState & 0xC0) == 0x80)
-        {
-            int minx = ds->absolute_X;
-            int maxx = ds->absolute_X + ds->Length;
-            int miny = ds->absolute_Y - delta;
-            int maxy = ds->absolute_Y + ds->Below;
+        const tDocumentStruct& ds = TheDocument[i];
+        if ((ds.MovingDotState & 0xC0) != 0x80)
+            continue;
+        int minx = ds.absolute_X;
+        int maxx = ds.absolute_X + ds.Length;
+        int miny = ds.absolute_Y - delta;
+        int maxy = ds.absolute_Y + ds.Below;
 
-            for (int j = 0; j < NumDocumentElements; j++)
+        for (int j = 0; j < NumDocumentElements; j++)
+        {
+            const tDocumentStruct& ds2 = TheDocument[j];
+            if ((ds2.MovingDotState & 0xC0) != 0 || ds2.MovingDotState == 5)
+                continue;
+            int minx2 = ds2.absolute_X;
+            int maxx2 = ds2.absolute_X + ds2.Length;
+            int miny2 = ds2.absolute_Y - ds2.Above;
+            if (maxx2 > minx && minx2 < maxx &&
+                miny2 > miny && miny2 < maxy)
             {
-                tDocumentStruct* ds2 = TheDocument + j;
-                if ((ds2->MovingDotState & 0xC0) == 0 && ds2->MovingDotState != 5)
-                {
-                    int minx2 = ds2->absolute_X;
-                    int maxx2 = ds2->absolute_X + ds2->Length;
-                    int miny2 = ds2->absolute_Y - ds2->Above;
-                    if (maxx2 > minx && minx2 < maxx &&
-                        miny2 > miny && miny2 < maxy)
-                    {
-                        int d = maxy - miny2;
-                        if (d > mx) mx = d;
-                    }
-                }
+                int d = maxy - miny2;
+                if (d > mx) mx = d;
             }
-            break;
         }
+        break;
     }
 
     if (mx == 0) goto rearange_end;
@@ -1912,43 +1907,41 @@ int CMainFrame::RearangeObjects(int delta)
         fnd = false;
         for (int i = 0; i < NumDocumentElements; i++)
         {
-            tDocumentStruct* ds = TheDocument + i;
-            if ((ds->MovingDotState & 0xC0) == 0x80)
-            {
-                //we found an object that is marked with high bit - we must 
-                //rearange other objects around it not to touch them (by moving them down)
-                int minx = ds->absolute_X;
-                int maxx = ds->absolute_X + ds->Length;
-                int miny = ds->absolute_Y - delta;
-                int maxy = ds->absolute_Y + ds->Below;
-                ds->MovingDotState |= 0x40;
-                //if (ds->Type==1)
-                //	if (delta==0) maxy+=((CExpression*)(ds->Object))->m_FontSize/5;
+            tDocumentStruct& ds = TheDocument[i];
+            if ((ds.MovingDotState & 0xC0) != 0x80)
+                continue;
+            //we found an object that is marked with high bit - we must 
+            //rearange other objects around it not to touch them (by moving them down)
+            int minx = ds.absolute_X;
+            int maxx = ds.absolute_X + ds.Length;
+            int miny = ds.absolute_Y - delta;
+            int maxy = ds.absolute_Y + ds.Below;
+            ds.MovingDotState |= 0x40;
+            //if (ds->Type==1)
+            //	if (delta==0) maxy+=((CExpression*)(ds->Object))->m_FontSize/5;
 
-                for (int j = 0; j < NumDocumentElements; j++)
+            for (int j = 0; j < NumDocumentElements; j++)
+            {
+                tDocumentStruct& ds2 = TheDocument[j];
+                if ((ds2.MovingDotState & 0xC0) != 0 || ds2.MovingDotState == 5)
+                    continue;
+                int minx2 = ds2.absolute_X;
+                int maxx2 = ds2.absolute_X + ds2.Length;
+                int miny2 = ds2.absolute_Y - ds2.Above;
+                int maxy2 = ds2.absolute_Y + (ds2.Type == EXPRESSION ? 0 : ds2.Below);
+                if (maxx2 > minx && minx2 < maxx &&
+                    maxy2 > miny && miny2 < maxy)
                 {
-                    tDocumentStruct* ds2 = TheDocument + j;
-                    if ((ds2->MovingDotState & 0xC0) == 0 && ds2->MovingDotState != 5)
-                    {
-                        int minx2 = ds2->absolute_X;
-                        int maxx2 = ds2->absolute_X + ds2->Length;
-                        int miny2 = ds2->absolute_Y - ds2->Above;
-                        int maxy2 = ds2->absolute_Y + (ds2->Type == EXPRESSION ? 0 : ds2->Below);
-                        if (maxx2 > minx && minx2 < maxx &&
-                            maxy2 > miny && miny2 < maxy)
-                        {
-                            ds2->absolute_Y += delta;
-                            ds2->MovingDotState |= 0x80;
-                            fnd = true;
-                        }
-                    }
+                    ds2.absolute_Y += delta;
+                    ds2.MovingDotState |= 0x80;
+                    fnd = true;
                 }
             }
         }
     }
 rearange_end:
     for (int i = 0; i < NumDocumentElements; i++)
-        (TheDocument + i)->MovingDotState &= 0x3F;
+        TheDocument[i].MovingDotState &= 0x3F;
 
     return 1;
 }

@@ -135,7 +135,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
         CBrush br2(BLUE_COLOR);
         if (TheState == 1) DC->SelectObject(br2);
         else DC->SelectObject(br);
-        DC->SelectObject(GetPenFromPool(1, TheState == 1 ? 1 : 0, RGB(176, 176, 176)));
+        DC->SelectObject(GetPenFromPool(1, TheState == 1, RGB(176, 176, 176)));
         DC->Ellipse(X + sx - 3, Y + sy - 3, X + sx + 3, Y + sy + 3);
 
         int tmp1 = sx + ux / 100;
@@ -349,22 +349,22 @@ int CDrawingBox::MouseClick(int X, int Y)
         GetDrawingBoxGrid(&unit_size_x, &unit_size_y, &startx, &starty);
         float posx = (float)(-X - startx) / (float)unit_size_x;
         float posy = (float)(-Y - starty) / (float)unit_size_y;
-        tElementStruct* ts = CommandLine->m_pElementList + CommandLine->m_IsKeyboardEntry - 1;
-        if (ts->pElementObject->Data1[0] == 0) CommandLine->DeleteElement(CommandLine->m_IsKeyboardEntry - 1);
-        ts = CommandLine->m_pElementList + CommandLine->m_NumElements - 1;
-        if (ts->Type == 1)
+        tElementStruct& ts = CommandLine->m_pElementList[CommandLine->m_IsKeyboardEntry - 1];
+        if (ts.pElementObject->Data1[0] == 0) CommandLine->DeleteElement(CommandLine->m_IsKeyboardEntry - 1);
+        ts = CommandLine->m_pElementList[CommandLine->m_NumElements - 1];
+        if (ts.Type == 1)
         {
-            char ch = ts->pElementObject->Data1[0];
+            char ch = ts.pElementObject->Data1[0];
             if ((ch >= 0 && ch <= '9') || ch == '.') CommandLine->InsertEmptyElement(
                 CommandLine->m_NumElements, 2, ',');
         }
-        if (ts->Type == 5) CommandLine->InsertEmptyElement(CommandLine->m_NumElements, 2, ',');
+        if (ts.Type == 5) CommandLine->InsertEmptyElement(CommandLine->m_NumElements, 2, ',');
         CommandLine->GenerateASCIINumber(posx, (long long)(posx + (posx >= 0) ? 0.01 : -0.01),
-                                         posx - (long long)(posx + (posx >= 0) ? 0.01 : -0.01) < 1e-100 ? 1 : 0, 2,
-                                         ts->Type == 0 ? 0 : CommandLine->m_NumElements);
+                                         posx - (long long)(posx + (posx >= 0) ? 0.01 : -0.01) < 1e-100, 2,
+                                         ts.Type == 0 ? false : CommandLine->m_NumElements);
         CommandLine->InsertEmptyElement(CommandLine->m_NumElements, 2, ',');
         CommandLine->GenerateASCIINumber(posy, (long long)(posy + (posy >= 0) ? 0.01 : -0.01),
-                                         posy - (long long)(posy + (posy >= 0) ? 0.01 : -0.01) < 1e-100 ? 1 : 0, 2,
+                                         posy - (long long)(posy + (posy >= 0) ? 0.01 : -0.01) < 1e-100, 2,
                                          CommandLine->m_NumElements);
         CommandLine->InsertEmptyElement(CommandLine->m_NumElements, 1, 0);
         CommandLine->m_IsKeyboardEntry = CommandLine->m_NumElements;
@@ -394,7 +394,7 @@ int CDrawingBox::MouseClick(int X, int Y)
             KeyboardEntryObject->KeyboardStop();
             if (KeyboardEntryBaseObject &&
                 KeyboardEntryBaseObject->Object.exp->m_NumElements == 1 &&
-                KeyboardEntryBaseObject->Object.exp->m_pElementList->Type == 0)
+                KeyboardEntryBaseObject->Object.exp->m_pElementList[0].Type == 0)
                 pMainView->DeleteDocumentObject(KeyboardEntryBaseObject);
         }
         KeyboardEntryObject = CommandLine;
@@ -402,7 +402,7 @@ int CDrawingBox::MouseClick(int X, int Y)
         KeyboardEntryObject->m_Selection = 1;
 
         for (int i = 0; i < NumDocumentElements; i++)
-            if ((TheDocument + i)->Object.draw == Base)
+            if (TheDocument[i].Object.draw == Base)
             {
                 *KeyboardEntryBaseObject = TheDocument[i];
                 break;
@@ -778,21 +778,21 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
                 (Base->Items + Base->NumItems - 1)->pSubdrawing = new CExpression(nullptr,nullptr, 100);
             }
             tDrawingItem* di = Base->Items + 4;
-            while (((CExpression*)di->pSubdrawing)->m_pElementList->Type) ((CExpression*)di->pSubdrawing)->
+            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type) ((CExpression*)di->pSubdrawing)->
                 DeleteElement(0);
-            ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(startx, startx, 1, 0, 0);
+            ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(startx, startx, true, 0, 0);
             di++;
-            while (((CExpression*)di->pSubdrawing)->m_pElementList->Type) ((CExpression*)di->pSubdrawing)->
+            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type) ((CExpression*)di->pSubdrawing)->
                 DeleteElement(0);
-            ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(starty, starty, 1, 0, 0);
+            ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(starty, starty, true, 0, 0);
             di++;
-            while (((CExpression*)di->pSubdrawing)->m_pElementList->Type) ((CExpression*)di->pSubdrawing)->
+            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type) ((CExpression*)di->pSubdrawing)->
                 DeleteElement(0);
-            ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(unit_size_x, unit_size_x, 1, 0, 0);
+            ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(unit_size_x, unit_size_x, true, 0, 0);
             di++;
-            while (((CExpression*)di->pSubdrawing)->m_pElementList->Type) ((CExpression*)di->pSubdrawing)->
+            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type) ((CExpression*)di->pSubdrawing)->
                 DeleteElement(0);
-            ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(unit_size_y, unit_size_y, 1, 0, 0);
+            ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(unit_size_y, unit_size_y, true, 0, 0);
             pMainView->RepaintTheView();
         }
     }
@@ -899,30 +899,30 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
     int kk = 0;
     while (kk < CommandLine->m_NumElements)
     {
-        tElementStruct* ts = CommandLine->m_pElementList + kk;
-        if (ts->Type == 1)
+        const tElementStruct& ts = CommandLine->m_pElementList[kk];
+        if (ts.Type == 1)
         {
             int cmd = 0;
             float p1[10];
-            if (_strnicmp(ts->pElementObject->Data1, "line", 4) == 0) cmd = 1;
-            if (_strnicmp(ts->pElementObject->Data1, "vline", 5) == 0) cmd = 2;
-            if (_strnicmp(ts->pElementObject->Data1, "rect", 4) == 0) cmd = 3;
-            if (_strnicmp(ts->pElementObject->Data1, "square", 6) == 0) cmd = 3;
-            if (_strnicmp(ts->pElementObject->Data1, "ellip", 5) == 0) cmd = 4;
-            if (_strnicmp(ts->pElementObject->Data1, "circ", 4) == 0) cmd = 7;
-            if (_strnicmp(ts->pElementObject->Data1, "rot", 3) == 0) cmd = 5;
-            if (_strnicmp(ts->pElementObject->Data1, "move", 4) == 0) cmd = 6;
-            if (_strnicmp(ts->pElementObject->Data1, "dashdot", 7) == 0) cmd = 9;
-            else if (_strnicmp(ts->pElementObject->Data1, "dash", 4) == 0) cmd = 8;
-            if (_strnicmp(ts->pElementObject->Data1, "hair", 4) == 0) cmd = 10;
-            if (_strnicmp(ts->pElementObject->Data1, "thin", 4) == 0) cmd = 11;
-            if (_strnicmp(ts->pElementObject->Data1, "thick", 5) == 0) cmd = 13;
-            if (_strnicmp(ts->pElementObject->Data1, "medium", 6) == 0) cmd = 12;
-            if (_strnicmp(ts->pElementObject->Data1, "black", 4) == 0) cmd = 14;
-            if (_strnicmp(ts->pElementObject->Data1, "gray", 4) == 0) cmd = 15;
-            if (_strnicmp(ts->pElementObject->Data1, "red", 4) == 0) cmd = 16;
-            if (_strnicmp(ts->pElementObject->Data1, "blue", 5) == 0) cmd = 17;
-            if (_strnicmp(ts->pElementObject->Data1, "green", 6) == 0) cmd = 18;
+            if (_strnicmp(ts.pElementObject->Data1, "line", 4) == 0) cmd = 1;
+            if (_strnicmp(ts.pElementObject->Data1, "vline", 5) == 0) cmd = 2;
+            if (_strnicmp(ts.pElementObject->Data1, "rect", 4) == 0) cmd = 3;
+            if (_strnicmp(ts.pElementObject->Data1, "square", 6) == 0) cmd = 3;
+            if (_strnicmp(ts.pElementObject->Data1, "ellip", 5) == 0) cmd = 4;
+            if (_strnicmp(ts.pElementObject->Data1, "circ", 4) == 0) cmd = 7;
+            if (_strnicmp(ts.pElementObject->Data1, "rot", 3) == 0) cmd = 5;
+            if (_strnicmp(ts.pElementObject->Data1, "move", 4) == 0) cmd = 6;
+            if (_strnicmp(ts.pElementObject->Data1, "dashdot", 7) == 0) cmd = 9;
+            else if (_strnicmp(ts.pElementObject->Data1, "dash", 4) == 0) cmd = 8;
+            if (_strnicmp(ts.pElementObject->Data1, "hair", 4) == 0) cmd = 10;
+            if (_strnicmp(ts.pElementObject->Data1, "thin", 4) == 0) cmd = 11;
+            if (_strnicmp(ts.pElementObject->Data1, "thick", 5) == 0) cmd = 13;
+            if (_strnicmp(ts.pElementObject->Data1, "medium", 6) == 0) cmd = 12;
+            if (_strnicmp(ts.pElementObject->Data1, "black", 4) == 0) cmd = 14;
+            if (_strnicmp(ts.pElementObject->Data1, "gray", 4) == 0) cmd = 15;
+            if (_strnicmp(ts.pElementObject->Data1, "red", 4) == 0) cmd = 16;
+            if (_strnicmp(ts.pElementObject->Data1, "blue", 5) == 0) cmd = 17;
+            if (_strnicmp(ts.pElementObject->Data1, "green", 6) == 0) cmd = 18;
 
             kk++;
             int opos = kk;
@@ -932,14 +932,14 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                 int okk = 2;
                 double N;
                 int p;
-                ts = CommandLine->m_pElementList + kk;
+                const tElementStruct& ts = CommandLine->m_pElementList[kk];
                 char chh = 0;
-                if (ts->pElementObject) chh = ts->pElementObject->Data1[0];
-                if (ts->Type == 1 && ((chh < '0' || chh > '9') && chh != '.')) break;
+                if (ts.pElementObject) chh = ts.pElementObject->Data1[0];
+                if (ts.Type == 1 && ((chh < '0' || chh > '9') && chh != '.')) break;
                 if (kk == CommandLine->m_NumElements - 1) okk = 0;
-                if (ts->Type == 2 && (ts->pElementObject->Data1[0] == ',' || ts->pElementObject->Data1[0] == ';'))
+                if (ts.Type == 2 && (ts.pElementObject->Data1[0] == ',' || ts.pElementObject->Data1[0] == ';'))
                     okk = 1;
-                if (ts->Type == 11 || ts->Type == 12) okk = 1;
+                if (ts.Type == 11 || ts.Type == 12) okk = 1;
                 if (okk != 2)
                 {
                     if (CommandLine->IsPureNumber(opos, kk - opos - okk + 1, &N, &p))

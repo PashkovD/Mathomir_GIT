@@ -237,7 +237,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
 {
     XMLFileVersion = filename ? 1 : 2;
     int OrigNumElements;
-    char* file_buffer = nullptr;
+    char* file_buffer;
     FILE* fil = nullptr;
     HANDLE clipb_data = nullptr;
     int len;
@@ -377,110 +377,107 @@ int CMathomirDoc::OpenMOMFile(char* filename)
         while (true)
         {
             file_pointer = ((CMainFrame*)theApp.m_pMainWnd)->XML_search("", file_pointer);
-            if (file_pointer == 0) goto openMOMfile_end; //no more objects, we finished
+            if (file_pointer == nullptr) goto openMOMfile_end; //no more objects, we finished
 
-            if (*file_pointer == 'o')
+            if (*file_pointer != 'o')
+                continue;
+            try
             {
-                try
+                file_pointer++;
+                while (*file_pointer != ' ' && *file_pointer != '>') file_pointer++;
+                //jumps over 'obj' or 'o' tags
+
+                int lock = 0;
+                char attribute[128];
+                do
                 {
-                    file_pointer++;
-                    while (*file_pointer != ' ' && *file_pointer != '>') file_pointer++;
-                    //jumps over 'obj' or 'o' tags
+                    char value[128];
+                    file_pointer = ((CMainFrame*)theApp.m_pMainWnd)->XML_read_attribute(
+                        attribute, value, file_pointer, 128);
+                    if (file_pointer == nullptr) goto openMOMfile_end; //unexpected end of file
 
-                    int lock = 0;
-                    char attribute[128];
-                    do
+                    if (strcmp(attribute, "type") == 0 || strcmp(attribute, "t") == 0)
+                        type = (doc_type)atoi(value);
+                    else if (strcmp(attribute, "ver") == 0)
                     {
-                        char value[128];
-                        file_pointer = ((CMainFrame*)theApp.m_pMainWnd)->XML_read_attribute(
-                            attribute, value, file_pointer, 128);
-                        if (file_pointer == 0) goto openMOMfile_end; //unexpected end of file
-
-                        if (strcmp(attribute, "type") == 0 || strcmp(attribute, "t") == 0)
-                            type = (doc_type)atoi(value);
-                        if (strcmp(attribute, "ver") == 0)
-                        {
-                            XMLFileVersion = atoi(value);
-                            if (filename) if (XMLFileVersion > 1) TheFileType = '2';
-                        }
-                        if (strcmp(attribute, "X") == 0) x = atoi(value);
-                        if (strcmp(attribute, "Y") == 0) y = atoi(value);
-                        if (strcmp(attribute, "lock") == 0) lock = atoi(value);
-                        if (filename && strcmp(attribute, "page_w") == 0) PaperWidth = atoi(value);
-                        if (filename && strcmp(attribute, "page_h") == 0) PaperHeight = atoi(value);
-                        if (filename && strcmp(attribute, "numbering") == 0) PageNumeration = atoi(value);
+                        XMLFileVersion = atoi(value);
+                        if (filename) if (XMLFileVersion > 1) TheFileType = '2';
                     }
-                    while (attribute[0]);
-
-                    if (type)
-                    {
-                        if (AddDocumentObject(type, x, y) == 0) goto openMOMfile_end; //irregular end!
-                        tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
-                        ds->MovingDotState = lock ? 5 : 1;
-
-                        if (type == 1) //object of type==1 - the expression
-                        {
-                            CExpression* exp = new CExpression(nullptr,nullptr, 100);
-                            if (!exp)
-                            {
-                                NumDocumentElements--;
-                                goto openMOMfile_end;
-                            } //irregular end!
-                            ds->Object.exp = exp;
-
-                            //calling the CExpression for parsing the object
-                            file_pointer = exp->XML_input(file_pointer);
-                            if (file_pointer == nullptr)
-                            {
-                                NumDocumentElements--;
-                                delete exp;
-                                goto openMOMfile_end;
-                            } //irregular end!
-                        }
-
-                        if (type == 2) //object of type==2 - the drawing
-                        {
-                            CDrawing* drw = new CDrawing();
-                            if (!drw)
-                            {
-                                NumDocumentElements--;
-                                goto openMOMfile_end;
-                            } //irregular end!
-                            ds->Object.draw = drw;
-
-                            //calling the CExpression for parsing the object
-                            file_pointer = drw->XML_input(file_pointer);
-                            if (file_pointer == nullptr)
-                            {
-                                NumDocumentElements--;
-                                delete drw;
-                                goto openMOMfile_end;
-                            } //irregular end!
-                        }
-
-                        //calculate size of the drawing
-                        //(when started with given filename in command line, the main window will not be yet created
-                        // so it is not possible to call GetDC)
-                        if (theApp.m_pMainWnd)
-                        {
-                            CDC* DC = theApp.m_pMainWnd->GetDC();
-                            short l = 0, a = 0, b = 0;
-                            if (type == 1)
-                                ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
-                            else
-                                ds->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
-                            ds->Length = l * 100 / ViewZoom;
-                            ds->Above = a * 100 / ViewZoom;
-                            ds->Below = b * 100 / ViewZoom;
-                            if (ds->MovingDotState != 5) ds->MovingDotState = filename == nullptr ? 3 : 0;
-                            //automaticaly select object pasted from clipboard
-                            theApp.m_pMainWnd->ReleaseDC(DC);
-                        }
-                    }
+                    else if (strcmp(attribute, "X") == 0) x = atoi(value);
+                    else if (strcmp(attribute, "Y") == 0) y = atoi(value);
+                    else if (strcmp(attribute, "lock") == 0) lock = atoi(value);
+                    else if (filename && strcmp(attribute, "page_w") == 0) PaperWidth = atoi(value);
+                    else if (filename && strcmp(attribute, "page_h") == 0) PaperHeight = atoi(value);
+                    else if (filename && strcmp(attribute, "numbering") == 0) PageNumeration = atoi(value);
                 }
-                catch (...)
+                while (attribute[0]);
+
+                if (!type)
+                    continue;
+                if (AddDocumentObject(type, x, y) == 0) goto openMOMfile_end; //irregular end!
+                tDocumentStruct& ds = TheDocument[NumDocumentElements - 1];
+                ds.MovingDotState = lock ? 5 : 1;
+
+                if (type == EXPRESSION) //object of type==1 - the expression
                 {
+                    CExpression* exp = new CExpression(nullptr,nullptr, 100);
+                    if (!exp)
+                    {
+                        NumDocumentElements--;
+                        goto openMOMfile_end;
+                    } //irregular end!
+                    ds.Object.exp = exp;
+
+                    //calling the CExpression for parsing the object
+                    file_pointer = exp->XML_input(file_pointer);
+                    if (file_pointer == nullptr)
+                    {
+                        NumDocumentElements--;
+                        delete exp;
+                        goto openMOMfile_end;
+                    } //irregular end!
                 }
+                else if (type == DRAWING) //object of type==2 - the drawing
+                {
+                    CDrawing* drw = new CDrawing();
+                    if (!drw)
+                    {
+                        NumDocumentElements--;
+                        goto openMOMfile_end;
+                    } //irregular end!
+                    ds.Object.draw = drw;
+
+                    //calling the CExpression for parsing the object
+                    file_pointer = drw->XML_input(file_pointer);
+                    if (file_pointer == nullptr)
+                    {
+                        NumDocumentElements--;
+                        delete drw;
+                        goto openMOMfile_end;
+                    } //irregular end!
+                }
+
+                //calculate size of the drawing
+                //(when started with given filename in command line, the main window will not be yet created
+                // so it is not possible to call GetDC)
+                if (theApp.m_pMainWnd)
+                {
+                    CDC* DC = theApp.m_pMainWnd->GetDC();
+                    short l = 0, a = 0, b = 0;
+                    if (type == EXPRESSION)
+                        ds.Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                    else
+                        ds.Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
+                    ds.Length = l * 100 / ViewZoom;
+                    ds.Above = a * 100 / ViewZoom;
+                    ds.Below = b * 100 / ViewZoom;
+                    if (ds.MovingDotState != 5) ds.MovingDotState = filename == nullptr ? 3 : 0;
+                    //automaticaly select object pasted from clipboard
+                    theApp.m_pMainWnd->ReleaseDC(DC);
+                }
+            }
+            catch (...)
+            {
             }
         }
     }
@@ -545,7 +542,7 @@ openMOMfile_end:
 
     if (filename)
     {
-        SetModifiedFlag(0);
+        SetModifiedFlag(false);
 #ifdef TEACHER_VERSION
         if (TheFileType == 'r')
         {
@@ -691,7 +688,7 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
                     ostr << " page_w=\"" << PaperWidth << "\"";
                     ostr << " page_h=\"" << PaperHeight << "\"";
                     ostr << " numbering=\"" << PageNumeration << "\"";
-                    ostr << " ver=\"" << XMLFileVersion << "\"";
+                    ostr << " ver=\"" << (int)XMLFileVersion << "\"";
                 }
                 ostr << ">\r\n";
                     
@@ -814,16 +811,15 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
     {
         //encrypted MOM file or exam file - ask for password
         PasswordDlgStruct = new tPasswordDlgStruct;
-        PasswordDlgStruct->is_exam = 0;
+        PasswordDlgStruct->is_exam = false;
         if (type == 'e')
         {
-            PasswordDlgStruct->is_exam = 1;
-            PasswordDlgStruct->disable_math = 0;
-            PasswordDlgStruct->disable_symbolic_math = 1;
+            PasswordDlgStruct->is_exam = true;
+            PasswordDlgStruct->disable_math = false;
+            PasswordDlgStruct->disable_symbolic_math = true;
             PasswordDlgStruct->time_limit = 30;
         }
-        CPasswordDlg* psw;
-        psw = new CPasswordDlg(theApp.m_pMainWnd);
+        CPasswordDlg* psw = new CPasswordDlg(theApp.m_pMainWnd);
         psw->DoModal();
         delete psw;
         if (PasswordDlgStruct->canceled)
@@ -1064,7 +1060,7 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
     {
         //exam result file or scrambled (encrypted) file - ask for password
         PasswordDlgStruct = new tPasswordDlgStruct;
-        PasswordDlgStruct->is_exam = 0;
+        PasswordDlgStruct->is_exam = false;
         CPasswordDlg* psw;
         psw = new CPasswordDlg(theApp.m_pMainWnd);
         psw->DoModal();

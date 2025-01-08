@@ -34,9 +34,7 @@ CPasswordDlg::CPasswordDlg(CWnd* pParent /*=nullptr*/)
 {
 }
 
-CPasswordDlg::~CPasswordDlg()
-{
-}
+CPasswordDlg::~CPasswordDlg() = default;
 
 void CPasswordDlg::DoDataExchange(CDataExchange* pDX)
 {
@@ -65,7 +63,7 @@ BOOL CPasswordDlg::OnInitDialog()
 
     if (PasswordDlgStruct)
     {
-        PasswordDlgStruct->canceled = 1;
+        PasswordDlgStruct->canceled = true;
         PasswordBox.SendMessage(EM_SETPASSWORDCHAR, '*', 0);
         
         this->SetWindowText(GetTranslatedString("Password entry", 5500).c_str());
@@ -75,7 +73,7 @@ BOOL CPasswordDlg::OnInitDialog()
         this->GetDlgItem(IDC_CHECK3)->SetWindowText(GetTranslatedString("Disable symbolic computation", 5504).c_str());
 
 
-        if (PasswordDlgStruct->is_exam == 0)
+        if (!PasswordDlgStruct->is_exam)
         {
             RECT wr, cr;
             this->GetWindowRect(&wr);
@@ -117,13 +115,13 @@ void CPasswordDlg::OnBnClickedOk()
     // TODO: Add your control notification handler code here
     if (PasswordDlgStruct)
     {
-        PasswordDlgStruct->canceled = 0;
+        PasswordDlgStruct->canceled = false;
         PasswordBox.GetWindowText(PasswordDlgStruct->password, 23);
         char buf[15];
         TimeLimitBox.GetWindowText(buf, 15);
         PasswordDlgStruct->time_limit = atoi(buf);
-        PasswordDlgStruct->disable_math = this->IsDlgButtonChecked(IDC_CHECK1) ? 1 : 0;
-        PasswordDlgStruct->disable_symbolic_math = this->IsDlgButtonChecked(IDC_CHECK3) ? 1 : 0;
+        PasswordDlgStruct->disable_math = this->IsDlgButtonChecked(IDC_CHECK1) ? true : false;
+        PasswordDlgStruct->disable_symbolic_math = this->IsDlgButtonChecked(IDC_CHECK3) ? true : false;
     }
     OnOK();
 }

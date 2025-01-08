@@ -2,6 +2,16 @@
 
 #include "Element.h"
 
+
+enum tDecoration: int
+{
+    NONE = 0,
+    STRIKEOUT = 1,
+    ENCIRCLED = 2,
+    UNDERLINE = 3,
+    OVERLINE = 4,
+    UNDERBRACE = 5,
+};
 //#pragma pack(1)
 typedef struct ELEMENT_STRUCT
 {
@@ -27,7 +37,7 @@ typedef struct ELEMENT_STRUCT
     short int Above;
     short int Below;
     char IsSelected;
-    char Decoration; //0-none, 1-crossline, 2-encircled, 3-overline, 4-underline
+    tDecoration Decoration;
     char Type;
 } tElementStruct;
 
@@ -234,7 +244,7 @@ public:
     int ExecuteComputation(int StartPos, int EndPos, char element_type, int StartPos2, int EndPos2, char element_type2,
                            int ComputationType);
     int IsPureNumber(int StartPos, int len, double* number, int* precision);
-    int GenerateASCIINumber(double number_dbl, long long number_int, char is_integer, int precision, int position);
+    int GenerateASCIINumber(double number_dbl, long long number_int, bool is_integer, int precision, int position);
     int CompareElement(const tElementStruct* ts1, const tElementStruct* ts2);
     //int GetOperatorLevel(char op);
     // multiplies this expression with the multiplier
@@ -248,7 +258,7 @@ public:
     int ComputeFraction(int Position, char element_type, int ComputationType);
     int MultiplyElements(int StartPos, int EndPos, int inv, CExpression* Other, int StartPos22, int EndPos2, int inv2,
                          int ComputationType);
-    int ReduceTwoNumbers(double* N1, double* N2);
+    static int ReduceTwoNumbers(double& N1, double& N2);
     int RemoveSequence(int Level, int StartPos, int EndPos = -1);
     int InsertSequence(char element_type, int Position, CExpression* Source, int StartPos, int EndPos);
     int PROFILERClear(void);

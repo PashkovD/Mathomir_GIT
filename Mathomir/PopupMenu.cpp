@@ -99,7 +99,7 @@ PopupMenu::PopupMenu()
 int PopupOption_Y;
 
 #pragma optimize("s",on)
-int PopupMenu::AddMenuOption(int X, int Cx, const std::string& text, int Data, int new_line)
+int PopupMenu::AddMenuOption(int X, int Cx, const std::string& text, int Data, bool new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
@@ -107,7 +107,7 @@ int PopupMenu::AddMenuOption(int X, int Cx, const std::string& text, int Data, i
     Options[m_NumOptions].Cy = TSize / 4;
     Options[m_NumOptions].Text = GetTranslatedString(text, Data);
     Options[m_NumOptions].IsChecked = 0;
-    Options[m_NumOptions].IsEnabled = Data >= 0 ? 1 : 0;
+    Options[m_NumOptions].IsEnabled = Data >= 0;
     Options[m_NumOptions].Data = Data;
     if (new_line) PopupOption_Y += Options[m_NumOptions].Cy;
     m_NumOptions++;
@@ -115,7 +115,7 @@ int PopupMenu::AddMenuOption(int X, int Cx, const std::string& text, int Data, i
 }
 
 #pragma optimize("s",on)
-int PopupMenu::AddMenuOptionButton(int X, const std::string& text, int Data, int button_ndx, int new_line)
+int PopupMenu::AddMenuOptionButton(int X, const std::string& text, int Data, int button_ndx, bool new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
@@ -123,7 +123,7 @@ int PopupMenu::AddMenuOptionButton(int X, const std::string& text, int Data, int
     Options[m_NumOptions].Cy = Options[m_NumOptions].Cx;
     Options[m_NumOptions].Text = GetTranslatedString(text, Data);
     Options[m_NumOptions].IsChecked = 0;
-    Options[m_NumOptions].IsEnabled = Data >= 0 ? 1 : 0;
+    Options[m_NumOptions].IsEnabled = Data >= 0;
     Options[m_NumOptions].Data = Data;
     Options[m_NumOptions].IsButton = button_ndx;
     if (new_line) PopupOption_Y += Options[m_NumOptions].Cy + TSize_1p25;
@@ -132,16 +132,16 @@ int PopupMenu::AddMenuOptionButton(int X, const std::string& text, int Data, int
 }
 
 #pragma optimize("s",on)
-int PopupMenu::AddCheckedMenuOptionButton(int X, const std::string& text, int is_checked, int Data, int button_ndx,
-                                          int new_line)
+int PopupMenu::AddCheckedMenuOptionButton(int X, const std::string& text, bool is_checked, int Data, int button_ndx,
+                                          bool new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = TSize < 70 ? 17 : TSize < 80 ? 19 : 25;
     Options[m_NumOptions].Cy = Options[m_NumOptions].Cx;
     Options[m_NumOptions].Text = GetTranslatedString(text, Data);
-    Options[m_NumOptions].IsChecked = 2 + (is_checked ? 1 : 0);
-    Options[m_NumOptions].IsEnabled = Data >= 0 ? 1 : 0;
+    Options[m_NumOptions].IsChecked = 2 + is_checked;
+    Options[m_NumOptions].IsEnabled = Data >= 0;
     Options[m_NumOptions].Data = Data;
     Options[m_NumOptions].IsButton = button_ndx;
     if (new_line) PopupOption_Y += Options[m_NumOptions].Cy + TSize / 15;
@@ -150,15 +150,15 @@ int PopupMenu::AddCheckedMenuOptionButton(int X, const std::string& text, int is
 }
 
 #pragma optimize("s",on)
-int PopupMenu::AddCheckedMenuOption(int X, int Cx, const std::string& text, int is_checked, int Data, int new_line)
+int PopupMenu::AddCheckedMenuOption(int X, int Cx, const std::string& text, bool is_checked, int Data, bool new_line)
 {
     Options[m_NumOptions].Y = PopupOption_Y;
     Options[m_NumOptions].X = X;
     Options[m_NumOptions].Cx = Cx;
     Options[m_NumOptions].Cy = TSize / 4;
     Options[m_NumOptions].Text = GetTranslatedString(text, Data);
-    Options[m_NumOptions].IsChecked = 2 + (is_checked ? 1 : 0);
-    Options[m_NumOptions].IsEnabled = Data >= 0 ? 1 : 0;
+    Options[m_NumOptions].IsChecked = is_checked + 2;
+    Options[m_NumOptions].IsEnabled = Data >= 0;
     Options[m_NumOptions].Data = Data;
     if (new_line) PopupOption_Y += Options[m_NumOptions].Cy;
     m_NumOptions++;
@@ -276,9 +276,9 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         PopupOption_Y = TSize_1p20;
 
         SearchStartPosition = -1;
-        AddMenuOption(TSize_1p3, 2 * TSize + TSize / 2, "String search:", -801, 1);
+        AddMenuOption(TSize_1p3, 2 * TSize + TSize / 2, "String search:", -801, true);
         PopupOption_Y += 30;
-        AddMenuOption(TSize_1p3, TSize, "down", 801, 0);
+        AddMenuOption(TSize_1p3, TSize, "down", 801, false);
 
         ValueEntryBox = new CEdit();
         ValueEntryBox->Create(ES_AUTOVSCROLL | ES_MULTILINE | ES_WANTRETURN | WS_VISIBLE | WS_CHILD | WS_BORDER,
@@ -289,7 +289,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         ValueEntryBox->SetFocus();
         ValueEntryBoxData = 1;
         //CWnd::OnLButtonDown(nFlags, point);
-        AddMenuOption(TSize + TSize / 2 + TSize_1p3, TSize, "up", 802, 1);
+        AddMenuOption(TSize + TSize / 2 + TSize_1p3, TSize, "up", 802, true);
         PopupOption_Y += 10;
 
         goto popupmenu_end_showpopup;
@@ -301,10 +301,10 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         memset(&Options, 0, sizeof(Options));
 
         //check if we clicked at already defined position
-        int i;
+
         int deletable = 0;
         int NumRullerGuidelines = 0;
-        for (i = 0; i < NumDocumentElements; i++)
+        for (int i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* dsx = TheDocument + i;
             if (dsx->absolute_Y < -1000)
@@ -326,12 +326,12 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
         PopupOption_Y = TSize_1p20;
         if (deletable)
-            AddMenuOption(TSize_1p3, 3 * TSize, "Delete guideline", 823, 1);
+            AddMenuOption(TSize_1p3, 3 * TSize, "Delete guideline", 823, true);
         else if (NumRullerGuidelines < 12)
         {
-            AddMenuOption(TSize_1p3, 3 * TSize, "Normal guideline", 820, 1);
-            AddMenuOption(TSize_1p3, 3 * TSize, "Text guideline", 821, 1);
-            AddMenuOption(TSize_1p3, 3 * TSize, "Text autowrap guideline", 822, 1);
+            AddMenuOption(TSize_1p3, 3 * TSize, "Normal guideline", 820, true);
+            AddMenuOption(TSize_1p3, 3 * TSize, "Text guideline", 821, true);
+            AddMenuOption(TSize_1p3, 3 * TSize, "Text autowrap guideline", 822, true);
         }
         //PopupOption_Y+=10;
         goto popupmenu_end_showpopup;
@@ -343,11 +343,11 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         memset(&Options, 0, sizeof(Options));
 
         PopupOption_Y = 3 * TSize_1p20;
-        AddMenuOption(0, 3 * TSize, "Line type:", -601, 1);
+        AddMenuOption(0, 3 * TSize, "Line type:", -601, true);
 
-        AddMenuOption(TSize_1p3, 3 * TSize, "No line", 601, 1);
-        AddMenuOption(TSize_1p3, 3 * TSize, "Single line", 602, 1);
-        AddMenuOption(TSize_1p3, 3 * TSize, "Double line", 603, 1);
+        AddMenuOption(TSize_1p3, 3 * TSize, "No line", 601, true);
+        AddMenuOption(TSize_1p3, 3 * TSize, "Single line", 602, true);
+        AddMenuOption(TSize_1p3, 3 * TSize, "Double line", 603, true);
 
         goto popupmenu_end_showpopup;
     }
@@ -357,9 +357,9 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         m_NumOptions = 0;
         memset(&Options, 0, sizeof(Options));
         PopupOption_Y = 3 * TSize_1p20;
-        AddMenuOption(0, 2 * TSize + TSize / 2, "Easycast string:", -831, 1);
+        AddMenuOption(0, 2 * TSize + TSize / 2, "Easycast string:", -831, true);
         PopupOption_Y += 1 * TSize_1p20;
-        AddMenuOption(TSize_1p3 + TSize, 1 * TSize, "Accept", 830, 1);
+        AddMenuOption(TSize_1p3 + TSize, 1 * TSize, "Accept", 830, true);
 
         ValueEntryBox = new CEdit();
         ValueEntryBox->Create(ES_AUTOVSCROLL | ES_MULTILINE | ES_WANTRETURN | WS_VISIBLE | WS_CHILD | WS_BORDER,
@@ -372,7 +372,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         ValueEntryBoxData = 1;
 
         PopupOption_Y += TSize_1p3;
-        AddMenuOption(0, 2 * TSize + TSize / 2, "All defined Easycasts:", -832, 1);
+        AddMenuOption(0, 2 * TSize + TSize / 2, "All defined Easycasts:", -832, true);
 
 
         int k = 0;
@@ -381,7 +381,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             char* keycode;
             CExpression* graphics = Toolbox->ReturnKeycode(EasycastListStart, &keycode);
             if (graphics == nullptr) break;
-            AddMenuOption(TSize_1p3, TSize, keycode, -802 - k, 0);
+            AddMenuOption(TSize_1p3, TSize, keycode, -802 - k, false);
 
             CExpression* image = new CExpression(0, 0, 100);
             image->CopyExpression(graphics, 0);
@@ -399,7 +399,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             Options[m_NumOptions].IsButton = 0;
             Options[m_NumOptions].Graphics = image;
             Options[m_NumOptions].IsChecked = 0;
-            Options[m_NumOptions].IsEnabled = 0;
+            Options[m_NumOptions].IsEnabled = false;
             Options[m_NumOptions].IsGraphicsSensitive = 0;
             Options[m_NumOptions].Data = -902 - k; //
             Options[m_NumOptions].DataArray[0] = l;
@@ -419,7 +419,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 if (Toolbox->ReturnKeycode(EasycastListStart, &keycode))
                 {
                     PopupOption_Y += 1 * TSize_1p20;
-                    AddMenuOption(TSize_1p3, TSize, "more...", 831, 1);
+                    AddMenuOption(TSize_1p3, TSize, "more...", 831, true);
                 }
                 break;
             }
@@ -447,8 +447,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         //the drawing popup menu
         //options: delete, line size, group, ungroup, node edit?, sizing, rotating, mirroring, 
         //         lock, unlock, arrange (left,center,right, top, center, ..)
-
-        CDrawing* drw;
+        
         tDocumentStruct* dss = nullptr;
         int NumDrawings = 0;
         int NumExpressions = 0;
@@ -459,73 +458,73 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         int common_color = 100;
         for (int ii = 0; ii < NumDocumentElements; ii++)
         {
-            tDocumentStruct* ds = TheDocument + ii;
-            if (ds->Object.v)
+            tDocumentStruct& ds = TheDocument[ii];
+            if (!ds.Object.v)
+                continue;
+            if (ds.Type == DRAWING)
             {
-                if (ds->Type == DRAWING)
-                    if (ds->Object.draw->IsSelected || ds->MovingDotState == 3)
+                if (ds.Object.draw->IsSelected || ds.MovingDotState == 3)
+                {
+                    NumDrawings++;
+                    if (ds.MovingDotState != 3) Any_nonselected = 1;
+                    if (ds.MovingDotState == 5) Any_locked++;
+                    else Any_unlocked++;
+                    if (CDrawing* drw = ds.Object.draw)
                     {
-                        NumDrawings++;
-                        if (ds->MovingDotState != 3) Any_nonselected = 1;
-                        if (ds->MovingDotState == 5) Any_locked++;
-                        else Any_unlocked++;
-                        drw = ds->Object.draw;
-                        if (drw)
-                        {
-                            if (common_color == 100) common_color = drw->m_Color;
-                            if (drw->m_Color != common_color) common_color = -100;
-                            if (drw->IsSpecialDrawing) Any_uncombineable = 1;
-                            if (drw->Items && drw->Items->Type != 1) Any_uncombineable = 1;
-                        }
-                        dss = ds;
+                        if (common_color == 100) common_color = drw->m_Color;
+                        if (drw->m_Color != common_color) common_color = -100;
+                        if (drw->IsSpecialDrawing) Any_uncombineable = 1;
+                        if (drw->Items && drw->Items->Type != 1) Any_uncombineable = 1;
                     }
-                if (ds->Type == EXPRESSION)
-                    if (ds->Object.exp->m_Selection == 0x7FFF || ds->MovingDotState == 3)
-                    {
-                        if (ds->MovingDotState == 3) force_calculator = 1;
-                        NumExpressions++;
-                        if (ds->MovingDotState != 3) Any_nonselected = 1;
-                        if (ds->MovingDotState == 5) Any_locked++;
-                        else Any_unlocked++;
-                        if (ds->Object.v)
-                        {
-                            if (common_color == 100) common_color = ds->Object.exp->m_Color;
-                            if (ds->Object.exp->m_Color != common_color) common_color = -100;
-                        }
-                        dss = ds;
-                    }
+                    dss = &ds;
+                }
             }
+            else if (ds.Type == EXPRESSION)
+                if (ds.Object.exp->m_Selection == 0x7FFF || ds.MovingDotState == 3)
+                {
+                    if (ds.MovingDotState == 3) force_calculator = 1;
+                    NumExpressions++;
+                    if (ds.MovingDotState != 3) Any_nonselected = 1;
+                    if (ds.MovingDotState == 5) Any_locked++;
+                    else Any_unlocked++;
+                    if (ds.Object.v)
+                    {
+                        if (common_color == 100) common_color = ds.Object.exp->m_Color;
+                        if (ds.Object.exp->m_Color != common_color) common_color = -100;
+                    }
+                    dss = &ds;
+                }
         }
 
         m_NumOptions = 0;
         memset(&Options, 0, sizeof(Options));
 
         //the 'delete' option
-        AddMenuOption(TSize / 3, TSize, "Delete ", 501, 0);
+        AddMenuOption(TSize / 3, TSize, "Delete ", 501, false);
         if (common_color != -1) common_color = common_color & 0xF7;
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ", common_color == -1 ? 1 : 0,
-                             580, 0);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1 ? 1 : 0, 582,
-                             0);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize_1p2, "Blu ", common_color == 3 ? 1 : 0, 584,
-                             1);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ", common_color == -1,
+                             580, false);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1, 582,
+                             false);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize_1p2, "Blu ", common_color == 3, 584,
+                             true);
 
 
         if (Any_nonselected)
-            AddMenuOption(TSize / 3, TSize, "Select ", 570, 0);
+            AddMenuOption(TSize / 3, TSize, "Select ", 570, false);
         else
         {
             if (NumExpressions + NumDrawings == 1)
-                AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, TSize, "Lock ", Any_locked, 567, 0);
+                AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, TSize, "Lock ", Any_locked, 567, false);
             else
-                if (Any_unlocked) AddMenuOption(TSize / 3, TSize, "Lock all  ", 568, 0);
+                if (Any_unlocked) AddMenuOption(TSize / 3, TSize, "Lock all  ", 568, false);
         }
 
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0 ? 1 : 0, 581, 0);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2 ? 1 : 0, 583,
-                             0);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4 ? 1 : 0, 585,
-                             1);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0, 581, false);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2, 583,
+                             false);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4, 585,
+                             true);
 
         if (Any_nonselected)
         {
@@ -539,38 +538,37 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                     if (is_closed) fill_option = 1;
                 }
                 AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 2 * TSize_1p2, "Lock ", Any_locked, 567,
-                                     fill_option == 1 ? 0 : 1);
+                                     fill_option == 1 ? false : true);
                 if (fill_option)
                     AddCheckedMenuOption(5 * TSize / 3 + TSize / 6, 1 * TSize_1p2, "Fill ",
-                                         (dss->Object.draw->m_Color & 0xF8) == 8 ? 1 : 0, 589,
-                                         1);
+                                         (dss->Object.draw->m_Color & 0xF8) == 8, 589,
+                                         true);
             }
             else
-                if (Any_unlocked) AddMenuOption(TSize / 3, 3 * TSize_1p2, "Lock all  ", 568, 1);
+                if (Any_unlocked) AddMenuOption(TSize / 3, 3 * TSize_1p2, "Lock all  ", 568, true);
         }
         if (Any_locked && NumExpressions + NumDrawings > 1)
-            AddMenuOption(TSize / 3, 3 * TSize_1p2, "Unlock all  ", 569, 1);
+            AddMenuOption(TSize / 3, 3 * TSize_1p2, "Unlock all  ", 569, true);
 
 
         if (NumDrawings)
         {
             PopupOption_Y += TSize / 10;
-            AddMenuOption(0, 5 * TSize_1p2, "Line width:", -502, 1);
-            AddMenuOptionButton(1 * TSize / 3, "Hair ", 576, 66, 0);
-            AddMenuOptionButton(TSize_2p3, "Thin ", 502, 67, 0);
-            AddMenuOptionButton(TSize, "3/2 ", 577, 77, 0);
-            AddMenuOptionButton(4 * TSize / 3, "Medium ", 503, 68, 0);
-            AddMenuOptionButton(5 * TSize / 3, "Thick ", 504, 69, 0);
-            AddMenuOptionButton(2 * TSize, "Fat ", 566, 70, 1);
-            if (NumDrawings == 1 && NumExpressions == 0 && dss && dss->Object.draw->IsSpecialDrawing ==
-                0)
+            AddMenuOption(0, 5 * TSize_1p2, "Line width:", -502, true);
+            AddMenuOptionButton(1 * TSize / 3, "Hair ", 576, 66, false);
+            AddMenuOptionButton(TSize_2p3, "Thin ", 502, 67, false);
+            AddMenuOptionButton(TSize, "3/2 ", 577, 77, false);
+            AddMenuOptionButton(4 * TSize / 3, "Medium ", 503, 68, false);
+            AddMenuOptionButton(5 * TSize / 3, "Thick ", 504, 69, false);
+            AddMenuOptionButton(2 * TSize, "Fat ", 566, 70, true);
+            if (NumDrawings == 1 && NumExpressions == 0 && dss && dss->Object.draw->IsSpecialDrawing == 0)
             {
                 char is_closed = 0;
                 int is_open = dss->Object.draw->IsOpenPath(0, &is_closed, nullptr);
                 if (is_open || is_closed || dss->Object.draw->NumItems == 1)
                 {
-                    AddMenuOption(TSize / 3, TSize_2p3 + TSize / 3, "dash-dash ", 591, 0);
-                    AddMenuOption(TSize + TSize / 2 - 2, TSize_2p3 + 6, "dash-dot ", 592, 1);
+                    AddMenuOption(TSize / 3, TSize_2p3 + TSize / 3, "dash-dash ", 591, false);
+                    AddMenuOption(TSize + TSize / 2 - 2, TSize_2p3 + 6, "dash-dot ", 592, true);
                 }
             }
         }
@@ -579,92 +577,92 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         if (NumDrawings + NumExpressions > 1)
         {
             PopupOption_Y += TSize / 10;
-            AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, 1);
+            AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, true);
 
-            AddMenuOptionButton(1 * TSize / 3, "Left align", 560, 71, 0);
-            AddMenuOptionButton(TSize_2p3, "H. center align", 562, 72, 0);
-            AddMenuOptionButton(TSize, "Right align", 564, 73, 0);
-            AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "Top align", 561, 74, 0);
-            AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "V. center align", 563, 75, 0);
-            AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "Bottom align", 565, 76, 1);
+            AddMenuOptionButton(1 * TSize / 3, "Left align", 560, 71, false);
+            AddMenuOptionButton(TSize_2p3, "H. center align", 562, 72, false);
+            AddMenuOptionButton(TSize, "Right align", 564, 73, false);
+            AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "Top align", 561, 74, false);
+            AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "V. center align", 563, 75, false);
+            AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "Bottom align", 565, 76, true);
 
             PopupOption_Y += TSize_1p20;
-            AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "Vertical distribute", 578, 82, 0);
+            AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "Vertical distribute", 578, 82, false);
             if (NumExpressions > 1 && NumDrawings == 0)
-                AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "Align to equal sign", 579, 80, 0);
-            AddMenuOption(TSize / 3, TSize, "Group ", 505, 1);
+                AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "Align to equal sign", 579, 80, false);
+            AddMenuOption(TSize / 3, TSize, "Group ", 505, true);
 
 
             if (NumExpressions == 0 && NumDrawings > 1 && Any_uncombineable == 0)
-                AddMenuOption(TSize / 3, TSize, "Combine ", 514, 1);
+                AddMenuOption(TSize / 3, TSize, "Combine ", 514, true);
         }
         else if (dss->Type == DRAWING && dss->Object.draw && dss->Object.draw->Items &&
             dss->Object.draw->Items->Type != 1)
         {
             PopupOption_Y += TSize / 10;
-            AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, 1);
-            AddMenuOption(TSize / 3, TSize, "Ungroup ", 506, 1);
+            AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, true);
+            AddMenuOption(TSize / 3, TSize, "Ungroup ", 506, true);
         }
         else if (NumDrawings == 1 && NumExpressions == 0 && Any_uncombineable == 0 && dss->Type == DRAWING &&
             dss->Object.draw &&
             dss->Object.draw->NumItems > 1)
         {
             PopupOption_Y += TSize / 10;
-            AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, 1);
-            AddMenuOption(TSize / 3, TSize, "Break apart ", 513, 1);
+            AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, true);
+            AddMenuOption(TSize / 3, TSize, "Break apart ", 513, true);
         }
 
 
         PopupOption_Y += TSize / 10;
-        AddMenuOption(0, 4 * TSize_1p2 - TSize / 5, "Size:", -507, 0);
-        AddMenuOption(6 * TSize / 3 - TSize / 5, TSize * 2 / 3, "??", 515, 1);
-        AddMenuOptionButton(TSize / 3, "-50% ", 507, 33, 0);
-        AddMenuOptionButton(TSize_2p3, "-15% ", 508, 34, 0);
-        AddMenuOptionButton(TSize, "-5% ", 509, 35, 0);
-        AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "+5% ", 510, 36, 0);
-        AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "+15% ", 511, 37, 0);
-        AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "+50% ", 512, 38, 1);
+        AddMenuOption(0, 4 * TSize_1p2 - TSize / 5, "Size:", -507, false);
+        AddMenuOption(6 * TSize / 3 - TSize / 5, TSize * 2 / 3, "??", 515, true);
+        AddMenuOptionButton(TSize / 3, "-50% ", 507, 33, false);
+        AddMenuOptionButton(TSize_2p3, "-15% ", 508, 34, false);
+        AddMenuOptionButton(TSize, "-5% ", 509, 35, false);
+        AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "+5% ", 510, 36, false);
+        AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "+15% ", 511, 37, false);
+        AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "+50% ", 512, 38, true);
 
 
         if (NumDrawings > 0)
         {
             PopupOption_Y += TSize_1p20;
-            AddMenuOptionButton(TSize / 3, "H. stretch -50% ", 517, 42, 0);
-            AddMenuOptionButton(TSize_2p3, "H. stretch -15% ", 518, 43, 0);
-            AddMenuOptionButton(TSize, "H. stretch -5% ", 519, 44, 0);
-            AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "H. stretch +5% ", 520, 45, 0);
-            AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "H. stretch +15% ", 521, 46, 0);
-            AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "H. stretch +50% ", 522, 47, 1);
+            AddMenuOptionButton(TSize / 3, "H. stretch -50% ", 517, 42, false);
+            AddMenuOptionButton(TSize_2p3, "H. stretch -15% ", 518, 43, false);
+            AddMenuOptionButton(TSize, "H. stretch -5% ", 519, 44, false);
+            AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "H. stretch +5% ", 520, 45, false);
+            AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "H. stretch +15% ", 521, 46, false);
+            AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "H. stretch +50% ", 522, 47, true);
 
             PopupOption_Y += TSize_1p20;
 
-            AddMenuOptionButton(TSize / 3, "V. stretch -50% ", 527, 48, 0);
-            AddMenuOptionButton(TSize_2p3, "V. stretch -15% ", 528, 49, 0);
-            AddMenuOptionButton(TSize, "V. stretch -5% ", 529, 50, 0);
-            AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "V. stretch +5% ", 530, 51, 0);
-            AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "V. stretch +15% ", 531, 52, 0);
-            AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "V. stretch +50% ", 532, 53, 1);
+            AddMenuOptionButton(TSize / 3, "V. stretch -50% ", 527, 48, false);
+            AddMenuOptionButton(TSize_2p3, "V. stretch -15% ", 528, 49, false);
+            AddMenuOptionButton(TSize, "V. stretch -5% ", 529, 50, false);
+            AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "V. stretch +5% ", 530, 51, false);
+            AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "V. stretch +15% ", 531, 52, false);
+            AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "V. stretch +50% ", 532, 53, true);
 
             if (NumDrawings > 1 || dss == nullptr || dss->Object.draw->IsSpecialDrawing == 0)
             {
                 PopupOption_Y += TSize_1p20;
-                AddMenuOptionButton(1 * TSize / 3, "Horizontal mirror ", 535, 54, 0);
-                AddMenuOptionButton(TSize_2p3, "Vertical mirror ", 536, 55, 1);
+                AddMenuOptionButton(1 * TSize / 3, "Horizontal mirror ", 535, 54, false);
+                AddMenuOptionButton(TSize_2p3, "Vertical mirror ", 536, 55, true);
 
                 PopupOption_Y += TSize / 10;
-                AddMenuOption(0, 3 * TSize_1p2, "Rotate:", -536, 0);
-                AddMenuOption(5 * TSize / 3, TSize * 2 / 3, "??", 573, 1);
+                AddMenuOption(0, 3 * TSize_1p2, "Rotate:", -536, false);
+                AddMenuOption(5 * TSize / 3, TSize * 2 / 3, "??", 573, true);
 
-                AddMenuOptionButton(1 * TSize / 3, "+5° ", 540, 56, 0);
-                AddMenuOptionButton(TSize_2p3, "+15° ", 541, 57, 0);
-                AddMenuOptionButton(TSize, "+45° ", 542, 58, 0);
-                AddMenuOptionButton(4 * TSize / 3, "+60° ", 574, 59, 0);
-                AddMenuOptionButton(5 * TSize / 3, "+90° ", 571, 60, 1);
-                AddMenuOptionButton(1 * TSize / 3, "-5° ", 543, 61, 0);
-                AddMenuOptionButton(TSize_2p3, "-15° ", 544, 62, 0);
-                AddMenuOptionButton(TSize, "-45° ", 545, 63, 0);
-                AddMenuOptionButton(4 * TSize / 3, "-60° ", 575, 64, 0);
-                AddMenuOptionButton(5 * TSize / 3, "-90° ", 572, 65, 1);
+                AddMenuOptionButton(1 * TSize / 3, "+5° ", 540, 56, false);
+                AddMenuOptionButton(TSize_2p3, "+15° ", 541, 57, false);
+                AddMenuOptionButton(TSize, "+45° ", 542, 58, false);
+                AddMenuOptionButton(4 * TSize / 3, "+60° ", 574, 59, false);
+                AddMenuOptionButton(5 * TSize / 3, "+90° ", 571, 60, true);
+                AddMenuOptionButton(1 * TSize / 3, "-5° ", 543, 61, false);
+                AddMenuOptionButton(TSize_2p3, "-15° ", 544, 62, false);
+                AddMenuOptionButton(TSize, "-45° ", 545, 63, false);
+                AddMenuOptionButton(4 * TSize / 3, "-60° ", 575, 64, false);
+                AddMenuOptionButton(5 * TSize / 3, "-90° ", 572, 65, true);
             }
         }
 
@@ -681,20 +679,20 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 int is_open = dss->Object.draw->IsOpenPath(0);
                 if (is_open)
                 {
-                    AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Close path ", 593, 1);
+                    AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Close path ", 593, true);
                 }
                 if (dss->Object.draw->OriginalForm == 4 || //circle
                     dss->Object.draw->OriginalForm == 16 || //6-polygon
                     dss->Object.draw->OriginalForm == 17) //center drawn circle
                 {
-                    AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Add center point ", 590, 1);
+                    AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Add center point ", 590, true);
                     //AddMenuOption(TSize/3,TSize*2,"Add radius line ",591,1);
                     //AddMenuOption(TSize/3,TSize*2,"Add diameter line ",592,1);
                 }
                 if (dss->Object.draw->OriginalForm == 9 || //xy graph
                     dss->Object.draw->OriginalForm == 8) //xy graph
                 {
-                    AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Add grid lines ", 594, 1);
+                    AddMenuOption(TSize / 3, TSize * 2 + TSize_1p2, "Add grid lines ", 594, true);
                 }
 
 
@@ -705,10 +703,10 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 {
                     //AddMenuOption(TSize/3,TSize*2+TSize_1p2,"Add arrows ",595,1);
                     PopupOption_Y += TSize / 10;
-                    AddMenuOption(0, 3 * TSize_1p2, "Ending(s):", -595, 1);
-                    AddMenuOptionButton(1 * TSize / 3, "arrow ", 595, 91, 0);
-                    AddMenuOptionButton(2 * TSize / 3, "arrow (narrow) ", 596, 92, 0);
-                    AddMenuOptionButton(3 * TSize / 3, "dot", 597, 93, 1);
+                    AddMenuOption(0, 3 * TSize_1p2, "Ending(s):", -595, true);
+                    AddMenuOptionButton(1 * TSize / 3, "arrow ", 595, 91, false);
+                    AddMenuOptionButton(2 * TSize / 3, "arrow (narrow) ", 596, 92, false);
+                    AddMenuOptionButton(3 * TSize / 3, "dot", 597, 93, true);
                 }
             }
 
@@ -717,7 +715,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 //AddCheckedMenuOption(TSize/3-TSize/5,2*TSize+TSize_1p2,"Edit nodes  ",drw->IsNodeEdit,550,1);
                 //if (drw->IsNodeEdit)
                 if (ToolbarEditNodes || GetKeyState(VK_CONTROL) & 0xfffe)
-                    AddMenuOption(TSize / 3, 2 * TSize + TSize_1p2, "Add node (Spacebar)  ", 551, 1);
+                    AddMenuOption(TSize / 3, 2 * TSize + TSize_1p2, "Add node (Spacebar)  ", 551, true);
             }
         }
 
@@ -752,26 +750,24 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         int No = 0;
 
         //check how many elements is selected int the expression
-        int i;
+
         StartExtendedSelection = 0x7FFF;
         EndExtendedSelection = 0;
-        for (i = 0; i < m_Expression->m_NumElements; i++)
+        for (int i = 0; i < m_Expression->m_NumElements; i++)
         {
-            tElementStruct* theElement = m_Expression->m_pElementList + i;
-            if (theElement->IsSelected)
+            tElementStruct& theElement = m_Expression->m_pElementList[i];
+            if (!theElement.IsSelected)
+                continue;
+            if (theElement.Type == 1) at_least_one_variable = 1;
+            if (i < StartExtendedSelection) StartExtendedSelection = i;
+            if (i > EndExtendedSelection) EndExtendedSelection = i;
+            if (m_theSelectedElement == nullptr) m_theSelectedElement = &theElement;
+            if (theElement.Type > 0 && theElement.Type != 11 && theElement.Type != 12 && theElement.pElementObject)
             {
-                if (theElement->Type == 1) at_least_one_variable = 1;
-                if (i < StartExtendedSelection) StartExtendedSelection = i;
-                if (i > EndExtendedSelection) EndExtendedSelection = i;
-                if (m_theSelectedElement == nullptr) m_theSelectedElement = theElement;
-                if (theElement->Type > 0 && theElement->Type != 11 && theElement->Type != 12 && theElement->
-                    pElementObject)
-                {
-                    if (common_color == -100) common_color = theElement->pElementObject->m_Color;
-                    if (theElement->pElementObject->m_Color != common_color) common_color = 100;
-                }
-                No++;
+                if (common_color == -100) common_color = theElement.pElementObject->m_Color;
+                if (theElement.pElementObject->m_Color != common_color) common_color = 100;
             }
+            No++;
         }
 
         LevelExtendedSelection = ExtractSelection(0, m_Expression->m_NumElements - 1, &StartExtendedSelection,
@@ -841,20 +837,20 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         if (m_OwnerType != 3)
         {
             if (m_MenuType == 1) common_color = m_Expression->m_Color;
-            AddMenuOption(TSize / 3, TSize + TSize / 8, "Pick up ", 1, 0);
+            AddMenuOption(TSize / 3, TSize + TSize / 8, "Pick up ", 1, false);
             AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ",
-                                 common_color == -1 ? 1 : 0, 80, 0);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1 ? 1 : 0,
-                                 82, 0);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 2, "Blu ", common_color == 3 ? 1 : 0,
-                                 84, 1);
+                                 common_color == -1, 80, false);
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1,
+                                 82, false);
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 2, "Blu ", common_color == 3,
+                                 84, true);
 
-            AddMenuOption(TSize / 3, TSize + TSize / 8, "Delete ", 2, 0);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0 ? 1 : 0, 81, 0);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2 ? 1 : 0,
-                                 83, 0);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4 ? 1 : 0,
-                                 85, 1);
+            AddMenuOption(TSize / 3, TSize + TSize / 8, "Delete ", 2, false);
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0, 81, false);
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2,
+                                 83, false);
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4,
+                                 85, true);
 
             if (m_MenuType == 1)
             {
@@ -864,15 +860,15 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                         TheDocument[ii].Object.exp == m_Expression &&
                         TheDocument[ii].MovingDotState == 5)
                         is_sel = 1;
-                AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 3 * TSize_1p2, "Lock ", is_sel, 8, 1);
+                AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 3 * TSize_1p2, "Lock ", is_sel, 8, true);
             }
 
             if (QuickSelectActive)
             {
                 PopupOption_Y += TSize / 10; //separator
-                AddMenuOption(0, 3 * TSize_1p2, "Qick multitouch:", -411, 1);
-                AddMenuOption(TSize / 3, TSize, "Copy ", 9, 1);
-                if (ClipboardExpression) AddMenuOption(TSize / 3, TSize, "Paste ", 29, 1);
+                AddMenuOption(0, 3 * TSize_1p2, "Qick multitouch:", -411, true);
+                AddMenuOption(TSize / 3, TSize, "Copy ", 9, true);
+                if (ClipboardExpression) AddMenuOption(TSize / 3, TSize, "Paste ", 29, true);
             }
         }
 
@@ -881,17 +877,17 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         {
             PopupOption_Y += TSize / 10;
 
-            AddMenuOption(0, 2 * TSize, "Decoration:", -44, 1);
+            AddMenuOption(0, 2 * TSize, "Decoration:", -44, true);
 
-            AddMenuOptionButton(TSize / 3, "None ", 3, 1, 0);
-            AddMenuOptionButton(TSize_2p3, "Strikeout ", 4, 2, 0);
-            AddMenuOptionButton(TSize, "Encircle ", 5, 3, 0);
-            AddMenuOptionButton(4 * TSize / 3, "Underline ", 6, 4, 0);
-            AddMenuOptionButton(5 * TSize / 3, "Overline ", 7, 5, 0);
-            AddMenuOptionButton(2 * TSize, "Underbrace", 130, 79, 1);
+            AddMenuOptionButton(TSize / 3, "None ", 3, 1, false);
+            AddMenuOptionButton(TSize_2p3, "Strikeout ", 4, 2, false);
+            AddMenuOptionButton(TSize, "Encircle ", 5, 3, false);
+            AddMenuOptionButton(4 * TSize / 3, "Underline ", 6, 4, false);
+            AddMenuOptionButton(5 * TSize / 3, "Overline ", 7, 5, false);
+            AddMenuOptionButton(2 * TSize, "Underbrace", 130, 79, true);
             if (m_theSelectedElement && (m_theSelectedElement->Type != 9 || m_theSelectedElement->pElementObject->
                 Data1[0] != 'H'))
-                AddMenuOption(TSize / 3, 2 * TSize + TSize / 4, "Convert to hyperlink", 78, 1);
+                AddMenuOption(TSize / 3, 2 * TSize + TSize / 4, "Convert to hyperlink", 78, true);
         }
     }
 
@@ -900,17 +896,17 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     {
         //adding color options for font formatting menu (right clicked at the toolbox header 'U' option)
         int common_color = m_Expression->m_pElementList->pElementObject->m_Color;
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ", common_color == -1 ? 1 : 0,
-                             80, 0);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1 ? 1 : 0, 82,
-                             0);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 2, "Blu ", common_color == 3 ? 1 : 0, 84,
-                             1);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0 ? 1 : 0, 81, 0);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2 ? 1 : 0, 83,
-                             0);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4 ? 1 : 0, 85,
-                             1);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ", common_color == -1,
+                             80, false);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1, 82,
+                             false);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 2, "Blu ", common_color == 3, 84,
+                             true);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0, 81, false);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2, 83,
+                             false);
+        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4, 85,
+                             true);
     }
 
     if ((m_MenuType == 2 || m_MenuType == 6 || add_even_chars) && m_theSelectedElement != nullptr) //the font menu
@@ -932,9 +928,9 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     if (m_MenuType == 7 && m_theSelectedElement != nullptr)
     {
         PopupOption_Y += TSize / 5; //separator
-        AddMenuOption(0, 4 * TSize, "Hyperlink", 77, 1);
+        AddMenuOption(0, 4 * TSize, "Hyperlink", 77, true);
         if (*(char**)m_theSelectedElement->pElementObject->Data3 != nullptr)
-            AddMenuOption(0, 4 * TSize, *(char**)m_theSelectedElement->pElementObject->Data3, -77, 1);
+            AddMenuOption(0, 4 * TSize, *(char**)m_theSelectedElement->pElementObject->Data3, -77, true);
 
         //add list of all availabe internal links
 
@@ -942,17 +938,17 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         tDocumentStruct** list = (tDocumentStruct**)malloc(sizeof(tDocumentStruct*) * 256);
         for (int i = 0; i < NumDocumentElements; i++)
         {
-            tDocumentStruct* ds = TheDocument + i;
-            if (ds->Type == EXPRESSION)
+            tDocumentStruct& ds = TheDocument[i];
+            if (ds.Type == EXPRESSION)
             {
-                if (ds->Object.exp->m_IsHeadline)
+                if (ds.Object.exp->m_IsHeadline)
                 {
-                    *(list + kkk) = ds;
+                    list[kkk] = &ds;
                     kkk++;
                 }
-                if (ds->Object.exp->GetLabel())
+                if (ds.Object.exp->GetLabel())
                 {
-                    *(list + kkk) = ds;
+                    list[kkk] = &ds;
                     kkk++;
                 }
             }
@@ -961,14 +957,14 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         if (kkk)
         {
             PopupOption_Y += TSize / 4;
-            AddMenuOption(0, 2 * TSize, "Internal links:", -78, 1);
+            AddMenuOption(0, 2 * TSize, "Internal links:", -78, true);
             qsort(list, kkk, sizeof(tDocumentStruct*), YorderQSort);
 
             //list now contains pointers to document objects sorted by Y coordinate
-            int i;
+
             CDC* DC = GetDC();
             DC->SelectObject(GetFontFromPool(4, false, false, TSize / 4));
-            for (i = 0; i < 25; i++, EasycastListStart++)
+            for (int i = 0; i < 25; i++, EasycastListStart++)
             {
                 if (EasycastListStart >= kkk) break;
                 tDocumentStruct* ds = *(list + EasycastListStart);
@@ -990,14 +986,14 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 CSize sz = DC->GetTextExtent(buff);
                 int tmp = 0;
                 if (e->m_IsHeadline >= 3 || e->m_IsHeadline == 0) tmp = 10;
-                AddMenuOption(TSize / 2 + (is_label ? 5 : 0), max(sz.cx-tmp, 1), buff, 850 + i, 1);
+                AddMenuOption(TSize / 2 + (is_label ? 5 : 0), max(sz.cx-tmp, 1), buff, 850 + i, true);
                 LocalLinks[i] = (unsigned int)(ds - TheDocument) + (is_label ? 0x80000000 : 0);
                 if (tmp) PopupOption_Y -= TSize / 22;
             }
             ReleaseDC(DC);
             if (EasycastListStart < kkk)
             {
-                AddMenuOption(0, TSize, "more...", 849, 1);
+                AddMenuOption(0, TSize, "more...", 849, true);
             }
         }
         free(list);
@@ -1022,15 +1018,15 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 break;
             }
         }
-        AddMenuOption(0, TSize * 2, "Table lines:", -650, 1);
-        AddMenuOptionButton(TSize / 3, "No border", 650, 83, 0);
-        AddMenuOptionButton(TSize_2p3, "Single line border", 651, 84, 0);
-        AddMenuOptionButton(TSize, "Double line border", 652, 85, has_internallines ? 0 : 1);
+        AddMenuOption(0, TSize * 2, "Table lines:", -650, true);
+        AddMenuOptionButton(TSize / 3, "No border", 650, 83, false);
+        AddMenuOptionButton(TSize_2p3, "Single line border", 651, 84, false);
+        AddMenuOptionButton(TSize, "Double line border", 652, 85, has_internallines ? false : true);
         if (has_internallines)
         {
-            AddMenuOptionButton(TSize / 3 + TSize + TSize / 8, "No lines", 653, 86, 0);
-            AddMenuOptionButton(TSize_2p3 + TSize + TSize / 8, "Single lines", 654, 87, 0);
-            AddMenuOptionButton(TSize + TSize + TSize / 8, "Double lines", 655, 88, 1);
+            AddMenuOptionButton(TSize / 3 + TSize + TSize / 8, "No lines", 653, 86, false);
+            AddMenuOptionButton(TSize_2p3 + TSize + TSize / 8, "Single lines", 654, 87, false);
+            AddMenuOptionButton(TSize + TSize + TSize / 8, "Double lines", 655, 88, true);
         }
 
         if (m_MenuType != 1 && m_MenuType != 4)
@@ -1042,11 +1038,11 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 {isMultiline=1;break;}
             if (isMultiline)*/
             {
-                AddMenuOption(0, TSize * 2, "Cell alignment:", -630, 1);
+                AddMenuOption(0, TSize * 2, "Cell alignment:", -630, true);
                 PopupOption_Y += TSize_1p20;
-                AddMenuOptionButton(TSize / 3, "Align left ", 630, 39, 0);
-                AddMenuOptionButton(TSize_2p3, "Align center ", 631, 40, 0);
-                AddMenuOptionButton(TSize, "Align right ", 632, 41, 1);
+                AddMenuOptionButton(TSize / 3, "Align left ", 630, 39, false);
+                AddMenuOptionButton(TSize_2p3, "Align center ", 631, 40, false);
+                AddMenuOptionButton(TSize, "Align right ", 632, 41, true);
             }
         }
     }
@@ -1057,7 +1053,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         //ExtractedSelection->Delete(); //no math options when doing implanting
 
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize, "Implanting:", -4, 1);
+        AddMenuOption(0, TSize, "Implanting:", -4, true);
 
         //option: Graphics representation of clipboard expression (sensitive)
         short l, a, b;
@@ -1088,7 +1084,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         Options[m_NumOptions].IsButton = 0;
         Options[m_NumOptions].Graphics = ClipboardExpression;
         Options[m_NumOptions].IsChecked = 0;
-        Options[m_NumOptions].IsEnabled = 1;
+        Options[m_NumOptions].IsEnabled = true;
         Options[m_NumOptions].IsGraphicsSensitive = 1;
         Options[m_NumOptions].Data = 60; //
         Options[m_NumOptions].DataArray[0] = l;
@@ -1108,7 +1104,7 @@ popupmenu_end_showpopup:
         PopupOption_Y += TSize / 10;
         if (m_OwnerType == 3) PopupOption_Y += TSize / 10;
 
-        AddMenuOption(0, TSize + TSize / 8, "Exit ", 0, 1);
+        AddMenuOption(0, TSize + TSize / 8, "Exit ", 0, true);
     }
 
     entry_box_first_call = 1;
@@ -1139,7 +1135,7 @@ popupmenu_end_showpopup:
     if (m_OwnerType == 3 && m_UserParam)
     {
         m_SelectedOption = 0;
-        while (Options[m_SelectedOption].IsEnabled == 0) m_SelectedOption++;
+        while (!Options[m_SelectedOption].IsEnabled) m_SelectedOption++;
     }
 
     //m_IsFirstPass=1;
@@ -1160,19 +1156,19 @@ popupmenu_end_showpopup:
 int PopupMenu::PrepareConditionListMenu()
 {
     PopupOption_Y += TSize / 10; //separator
-    AddMenuOption(0, TSize_1p2, "Condition List:", -5, 1);
+    AddMenuOption(0, TSize_1p2, "Condition List:", -5, true);
     AddCheckedMenuOption(TSize_1p2, 3 * TSize_1p2, "Left bar ", m_theSelectedElement->pElementObject->Data1[0] & 0x01,
-                         70, 1);
+                         70, true);
     AddCheckedMenuOption(TSize_1p2, 3 * TSize_1p2, "Right bar ",
-                         m_theSelectedElement->pElementObject->Data1[0] & 0x02, 71, 1);
+                         m_theSelectedElement->pElementObject->Data1[0] & 0x02, 71, true);
 
     PopupOption_Y += TSize / 10; //separator
     AddCheckedMenuOption(TSize_1p2, 3 * TSize_1p2, "Left align ", m_theSelectedElement->pElementObject->Data2[0] == 0,
-                         72, 1);
+                         72, true);
     AddCheckedMenuOption(TSize_1p2, 3 * TSize_1p2, "Center align ",
-                         m_theSelectedElement->pElementObject->Data2[0] == 1, 73, 1);
+                         m_theSelectedElement->pElementObject->Data2[0] == 1, 73, true);
     AddCheckedMenuOption(TSize_1p2, 3 * TSize_1p2, "Right align ",
-                         m_theSelectedElement->pElementObject->Data2[0] == 2, 74, 1);
+                         m_theSelectedElement->pElementObject->Data2[0] == 2, 74, true);
 
     return 1;
 }
@@ -1181,15 +1177,15 @@ int PopupMenu::PrepareConditionListMenu()
 int PopupMenu::PrepareSymbolMenu(int y)
 {
     PopupOption_Y += TSize / 10; //separator
-    AddMenuOption(0, 5 * TSize_1p2, "Symbol:", -3, 1);
-    AddCheckedMenuOptionButton(TSize / 3, "Small ", m_theSelectedElement->pElementObject->Data2[0] == 2, 52, 15, 0);
-    AddCheckedMenuOptionButton(TSize_2p3, "Medium ", m_theSelectedElement->pElementObject->Data2[0] == 1, 51, 16, 0);
-    AddCheckedMenuOptionButton(TSize, "Large ", m_theSelectedElement->pElementObject->Data2[0] == 0, 50, 17, 1);
+    AddMenuOption(0, 5 * TSize_1p2, "Symbol:", -3, true);
+    AddCheckedMenuOptionButton(TSize / 3, "Small ", m_theSelectedElement->pElementObject->Data2[0] == 2, 52, 15, false);
+    AddCheckedMenuOptionButton(TSize_2p3, "Medium ", m_theSelectedElement->pElementObject->Data2[0] == 1, 51, 16, false);
+    AddCheckedMenuOptionButton(TSize, "Large ", m_theSelectedElement->pElementObject->Data2[0] == 0, 50, 17, true);
 
 
     //PopupOption_Y+=TSize/15; //separator
     AddCheckedMenuOption(TSize / 3 - TSize / 5, 2 * TSize, "Limits inline ",
-                         m_theSelectedElement->pElementObject->Data2[1] == 1, 53, 1);
+                         m_theSelectedElement->pElementObject->Data2[1] == 1, 53, true);
 
     return y;
 }
@@ -1218,35 +1214,35 @@ int PopupMenu::PrepareParenthesesMenu(int y)
 
 
     PopupOption_Y += TSize / 10; //separator
-    AddMenuOption(0, 5 * TSize_1p2, "Brackets:", -2, 1);
+    AddMenuOption(0, 5 * TSize_1p2, "Brackets:", -2, true);
     int tt = TSize_1p3 - 1 - ToolboxSize / 64;
     if ((haveParentheses & 0x80) == 0)
-        AddCheckedMenuOptionButton(TSize_1p3, "None ", haveParentheses == 0, 30, 21, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + tt, "Curved ", haveParentheses && Shape == '(', 32, 22, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 2 * tt, "Square ", haveParentheses && Shape == '[', 33, 23, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 3 * tt, "Curly ", haveParentheses && Shape == '{', 34, 24, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 4 * tt, "Bars ", haveParentheses && Shape == '|', 35, 25, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 5 * tt, "Open left ", haveParentheses && Shape == 'l', 56, 32, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 6 * tt, "Open right ", haveParentheses && Shape == 'r', 57, 31, 1);
+        AddCheckedMenuOptionButton(TSize_1p3, "None ", haveParentheses == 0, 30, 21, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + tt, "Curved ", haveParentheses && Shape == '(', 32, 22, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 2 * tt, "Square ", haveParentheses && Shape == '[', 33, 23, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 3 * tt, "Curly ", haveParentheses && Shape == '{', 34, 24, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 4 * tt, "Bars ", haveParentheses && Shape == '|', 35, 25, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 5 * tt, "Open left ", haveParentheses && Shape == 'l', 56, 32, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 6 * tt, "Open right ", haveParentheses && Shape == 'r', 57, 31, true);
 
-    AddCheckedMenuOptionButton(TSize_1p3, "Slash ", haveParentheses && Shape == '/', 36, 26, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + tt, "Doble-bar ", haveParentheses && Shape == '\\', 37, 27, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 2 * tt, "Angled ", haveParentheses && Shape == '<', 38, 28, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 3 * tt, "Bra ", haveParentheses && Shape == 'a', 58, 89, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 4 * tt, "Ket ", haveParentheses && Shape == 'k', 59, 90, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 5 * tt, "Box ", haveParentheses && Shape == 'b', 39, 29, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + 6 * tt, "Cross ", haveParentheses && Shape == 'x', 49, 30, 1);
+    AddCheckedMenuOptionButton(TSize_1p3, "Slash ", haveParentheses && Shape == '/', 36, 26, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + tt, "Doble-bar ", haveParentheses && Shape == '\\', 37, 27, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 2 * tt, "Angled ", haveParentheses && Shape == '<', 38, 28, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 3 * tt, "Bra ", haveParentheses && Shape == 'a', 58, 89, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 4 * tt, "Ket ", haveParentheses && Shape == 'k', 59, 90, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 5 * tt, "Box ", haveParentheses && Shape == 'b', 39, 29, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + 6 * tt, "Cross ", haveParentheses && Shape == 'x', 49, 30, true);
 
     PopupOption_Y += TSize_1p20; //separator
-    AddCheckedMenuOptionButton(TSize_1p3, "Ceiling ", haveParentheses && Shape == 'c', 40, 97, 0);
-    AddCheckedMenuOptionButton(TSize_1p3 + tt, "Floor ", haveParentheses && Shape == 'f', 41, 98, 0);
+    AddCheckedMenuOptionButton(TSize_1p3, "Ceiling ", haveParentheses && Shape == 'c', 40, 97, false);
+    AddCheckedMenuOptionButton(TSize_1p3 + tt, "Floor ", haveParentheses && Shape == 'f', 41, 98, false);
 
     AddCheckedMenuOptionButton(TSize_1p3 + 4 * tt, "Exclude left/top ", m_Expression->m_ParenthesesFlags & 0x08, 151,
-                               20, 0);
+                               20, false);
     AddCheckedMenuOptionButton(TSize_1p3 + 5 * tt, "Exclude right/bottom ", m_Expression->m_ParenthesesFlags & 0x10,
-                               152, 19, 0);
+                               152, 19, false);
     AddCheckedMenuOptionButton(TSize_1p3 + 6 * tt, "Horizontal layout ", m_Expression->m_ParenthesesFlags & 0x04, 150,
-                               18, 1);
+                               18, true);
 
 
     /*AddCheckedMenuOptionButton(4*TSize/3+TSize/6,"Small ",(Height==2),42,15,0);
@@ -1257,47 +1253,47 @@ int PopupMenu::PrepareParenthesesMenu(int y)
         m_ParenthesesSelected && theexp->m_pPaternalElement->m_Type == 5)
     {
         AddCheckedMenuOption(TSize / 3 - TSize / 6, TSize * 2, "Have index ",
-                             theexp->m_pPaternalElement->Expression2 != nullptr, 21, 1);
+                             theexp->m_pPaternalElement->Expression2 != nullptr, 21, true);
     }
 
     if (m_MenuType == 4) return y;
 
     PopupOption_Y += TSize / 10;
-    AddMenuOption(0, 5 * TSize_1p2, "B. contents:", -42, 1);
-    AddMenuOptionButton(TSize / 3, "Size -50% ", 54, 33, 0);
-    AddMenuOptionButton(TSize_2p3, "Size -15% ", 47, 34, 0);
-    AddMenuOptionButton(TSize, "Size -5% ", 45, 35, 0);
-    AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "Size +5% ", 46, 36, 0);
-    AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "Size +15% ", 48, 37, 0);
-    AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "Size +50% ", 55, 38, 1);
+    AddMenuOption(0, 5 * TSize_1p2, "B. contents:", -42, true);
+    AddMenuOptionButton(TSize / 3, "Size -50% ", 54, 33, false);
+    AddMenuOptionButton(TSize_2p3, "Size -15% ", 47, 34, false);
+    AddMenuOptionButton(TSize, "Size -5% ", 45, 35, false);
+    AddMenuOptionButton(4 * TSize / 3 + TSize / 8, "Size +5% ", 46, 36, false);
+    AddMenuOptionButton(5 * TSize / 3 + TSize / 8, "Size +15% ", 48, 37, false);
+    AddMenuOptionButton(6 * TSize / 3 + TSize / 8, "Size +50% ", 55, 38, true);
 
     if (isMultiline)
     {
         PopupOption_Y += TSize_1p20;
-        AddCheckedMenuOptionButton(TSize / 3, "Align left ", m_Expression->m_Alignment == 1, 90, 39, 0);
+        AddCheckedMenuOptionButton(TSize / 3, "Align left ", m_Expression->m_Alignment == 1, 90, 39, false);
         AddCheckedMenuOptionButton(TSize_2p3, "Align center ",
-                                   m_Expression->m_Alignment != 1 && m_Expression->m_Alignment != 2, 91, 40, 0);
-        AddCheckedMenuOptionButton(TSize, "Align right ", m_Expression->m_Alignment == 2, 92, 41, 1);
+                                   m_Expression->m_Alignment != 1 && m_Expression->m_Alignment != 2, 91, 40, false);
+        AddCheckedMenuOptionButton(TSize, "Align right ", m_Expression->m_Alignment == 2, 92, 41, true);
         //if (m_Expression->m_MaxNumColumns==1) AddMenuOptionButton(6*TSize/3+TSize/8,"Inline spacing ",96,83,1);
     }
 
     if (m_Expression->m_pPaternalExpression == nullptr)
     {
         AddCheckedMenuOption(TSize / 3 - TSize / 5, 2 * TSize, "Vertical orientation",
-                             m_Expression->m_IsVertical == 1, 93, 1);
+                             m_Expression->m_IsVertical == 1, 93, true);
     }
 
     if (haveParentheses)
         if ((m_Expression->m_pPaternalElement && m_Expression->m_pPaternalElement->m_Type != 5) ||
             m_Expression->m_pPaternalExpression == nullptr)
         {
-            AddMenuOption(TSize / 3, 2 * TSize, "Expand outside", 94, 1);
+            AddMenuOption(TSize / 3, 2 * TSize, "Expand outside", 94, true);
         }
     if (haveParentheses)
         if (m_Expression->m_pPaternalElement && m_Expression->m_pPaternalElement->m_Type == 5 && m_Expression->
             m_pPaternalExpression->m_NumElements == 1)
         {
-            AddMenuOption(TSize / 3, 2 * TSize, "Condense outside", 95, 1);
+            AddMenuOption(TSize / 3, 2 * TSize, "Condense outside", 95, true);
         }
 
     return y;
@@ -1314,29 +1310,29 @@ int PopupMenu::PrepareFontMenu(int y)
     if (m_theSelectedElement->Type == 1)
         vmods = m_theSelectedElement->pElementObject->m_VMods;
     PopupOption_Y += TSize / 10; //separator
-    AddMenuOption(0, 2 * TSize, "Font:", -1, 1);
-    AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "ABCDEFG abcdefgh ", font >> 5 == 0, 10, 1);
-    AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "ABCDEFG abcdefgh ", font >> 5 == 1, 11, 1);
-    AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "ABCDEFG abcdefgh ", font >> 5 == 2, 12, 1);
-    AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "ABCDEFG abcdefgh ", font >> 5 == 3, 13, 1);
+    AddMenuOption(0, 2 * TSize, "Font:", -1, true);
+    AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "ABCDEFG abcdefgh ", font >> 5 == 0, 10, true);
+    AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "ABCDEFG abcdefgh ", font >> 5 == 1, 11, true);
+    AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "ABCDEFG abcdefgh ", font >> 5 == 2, 12, true);
+    AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "ABCDEFG abcdefgh ", font >> 5 == 3, 13, true);
 
     PopupOption_Y += TSize / 10; //separator
-    AddCheckedMenuOptionButton(TSize / 3, "Italic ", font & 0x02, 14, 6, 0);
-    AddCheckedMenuOptionButton(TSize_2p3, "Bold ", font & 0x01, 15, 7, 0);
-    AddCheckedMenuOptionButton(TSize + TSize / 6, "Dash ", vmods == 0x04, 16, 8, 0);
-    AddCheckedMenuOptionButton(4 * TSize / 3 + TSize / 6, "Arrow ", vmods == 0x08, 17, 9, 0);
-    AddCheckedMenuOptionButton(5 * TSize / 3 + TSize / 6, "Hat ", vmods == 0x0C, 18, 10, 0);
-    AddCheckedMenuOptionButton(6 * TSize / 3 + TSize / 6, "Hacek ", vmods == 0x1C, 67, 94, 1);
-    AddCheckedMenuOptionButton(TSize + TSize / 6, "Dot ", vmods == 0x14, 24, 78, 0);
-    AddCheckedMenuOptionButton(4 * TSize / 3 + TSize / 6, "Double dot ", vmods == 0x18, 25, 81, 0);
-    AddCheckedMenuOptionButton(5 * TSize / 3 + TSize / 6, "Triple dot ", vmods == 0x20, 68, 96, 0);
-    AddCheckedMenuOptionButton(6 * TSize / 3 + TSize / 6, "Tilde ", vmods == 0x24, 69, 95, 1);
+    AddCheckedMenuOptionButton(TSize / 3, "Italic ", font & 0x02, 14, 6, false);
+    AddCheckedMenuOptionButton(TSize_2p3, "Bold ", font & 0x01, 15, 7, false);
+    AddCheckedMenuOptionButton(TSize + TSize / 6, "Dash ", vmods == 0x04, 16, 8, false);
+    AddCheckedMenuOptionButton(4 * TSize / 3 + TSize / 6, "Arrow ", vmods == 0x08, 17, 9, false);
+    AddCheckedMenuOptionButton(5 * TSize / 3 + TSize / 6, "Hat ", vmods == 0x0C, 18, 10, false);
+    AddCheckedMenuOptionButton(6 * TSize / 3 + TSize / 6, "Hacek ", vmods == 0x1C, 67, 94, true);
+    AddCheckedMenuOptionButton(TSize + TSize / 6, "Dot ", vmods == 0x14, 24, 78, false);
+    AddCheckedMenuOptionButton(4 * TSize / 3 + TSize / 6, "Double dot ", vmods == 0x18, 25, 81, false);
+    AddCheckedMenuOptionButton(5 * TSize / 3 + TSize / 6, "Triple dot ", vmods == 0x20, 68, 96, false);
+    AddCheckedMenuOptionButton(6 * TSize / 3 + TSize / 6, "Tilde ", vmods == 0x24, 69, 95, true);
 
     if (FontAdditionalData & 0x80 && (m_Owner == Toolbox || m_Owner == Toolbox->Subtoolbox))
     {
         PopupOption_Y += TSize / 10; //separator
         AddCheckedMenuOption(TSize / 3 - TSize / 5, 5 * TSize / 2, "Use as singleshot ", FontAdditionalData & 0x01, 26,
-                             1);
+                             true);
     }
 
 
@@ -1346,31 +1342,31 @@ int PopupMenu::PrepareFontMenu(int y)
             ->pElementObject->m_Text == 0)) //variable
         {
             PopupOption_Y += TSize_1p20; //separator
-            AddMenuOption(0, 5 * TSize_1p2, "Variable:", -17, 1);
+            AddMenuOption(0, 5 * TSize_1p2, "Variable:", -17, true);
             char ch = m_theSelectedElement->pElementObject->Data1[0];
 
             AddCheckedMenuOptionButton(TSize / 3, "Has index ",
                                        m_theSelectedElement->pElementObject->Expression1 != nullptr, 19, 11,
-                                       ch < 'A' ? 1 : 0);
+                                       ch < 'A');
             if (ch >= 'A')
                 if (m_theSelectedElement->pElementObject->m_VMods != 0x10) //test if this is a measurement unit
                 {
-                    AddMenuOptionButton(TSize_2p3 + TSize / 6, "Convert to unit", 23, 14, 0);
-                    AddMenuOptionButton(TSize + TSize / 6, "Convert to function", 20, 12, 1);
+                    AddMenuOptionButton(TSize_2p3 + TSize / 6, "Convert to unit", 23, 14, false);
+                    AddMenuOptionButton(TSize + TSize / 6, "Convert to function", 20, 12, true);
                 }
                 else
                 {
-                    AddMenuOptionButton(TSize_2p3 + TSize / 6, "Convert to variable", 27, 13, 1);
+                    AddMenuOptionButton(TSize_2p3 + TSize / 6, "Convert to variable", 27, 13, true);
                 }
         }
 
         if (m_theSelectedElement->Type == 6) //function
         {
             PopupOption_Y += TSize_1p20; //separator
-            AddMenuOption(0, 5 * TSize_1p2, "Function:", -18, 1);
+            AddMenuOption(0, 5 * TSize_1p2, "Function:", -18, true);
             AddCheckedMenuOptionButton(TSize / 3, "Has index ",
-                                       m_theSelectedElement->pElementObject->Expression2 != nullptr, 21, 11, 0);
-            AddMenuOptionButton(TSize_2p3 + TSize / 6, "Convert to variable ", 22, 13, 1);
+                                       m_theSelectedElement->pElementObject->Expression2 != nullptr, 21, 11, false);
+            AddMenuOptionButton(TSize_2p3 + TSize / 6, "Convert to variable ", 22, 13, true);
         }
     }
     return y;
@@ -1378,9 +1374,7 @@ int PopupMenu::PrepareFontMenu(int y)
 
 #pragma optimize("",on)
 
-PopupMenu::~PopupMenu()
-{
-}
+PopupMenu::~PopupMenu() = default;
 
 
 BEGIN_MESSAGE_MAP(PopupMenu, CWnd)
@@ -1405,8 +1399,7 @@ void PopupMenu::OnPaint()
         {
             m_SizeY = PopupOption_Y + TSize / 10;
             m_SizeX = 0;
-            int i;
-            for (i = 0; i < m_NumOptions; i++)
+            for (int i = 0; i < m_NumOptions; i++)
                 if (Options[i].X + Options[i].Cx > m_SizeX) m_SizeX = Options[i].X + Options[i].Cx;
         }
 
@@ -1634,8 +1627,7 @@ void PopupMenu::OnMouseMove(UINT nFlags, CPoint point)
     }
 
     //deselect any other graphics object (ones that are not selected)
-    int j;
-    for (j = 0; j < m_NumOptions; j++)
+    for (int j = 0; j < m_NumOptions; j++)
         if (j != m_SelectedOption)
             if (Options[j].Graphics)
                 Options[j].Graphics->DeselectExpression();
@@ -1739,7 +1731,7 @@ int PopupMenu::PaintThePopupMenu()
                                        MenuButtonsDC.GetPixel(5, 5)); //transparent color can be found at this pixel
                     //display the helper text
                     for (int jj = i; jj >= 0; jj--)
-                        if (Options[jj].IsEnabled == 0)
+                        if (!Options[jj].IsEnabled)
                         {
                             dc->SelectObject(GetFontFromPool(4, false, false, TSize / 5 + 2));
                             dc->SetTextColor(SHADOW_BLUE_COLOR3);
@@ -3408,40 +3400,38 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             {
                 ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("decoration", 20200);
                 int data = Options[m_SelectedOption].Data;
-                int ii;
-                for (ii = 0; ii < m_Expression->m_NumElements; ii++)
+
+                for (int ii = 0; ii < m_Expression->m_NumElements; ii++)
                 {
-                    tElementStruct* ts = m_Expression->m_pElementList + ii;
-                    if (ts->IsSelected)
+                    tElementStruct& ts = m_Expression->m_pElementList[ii];
+                    if (!ts.IsSelected)
+                        continue;
+                    if (ts.Type == 11 || ts.Type == 12) //vertical and horizontal separators cannot be decorated
                     {
-                        if (ts->Type != 11 && ts->Type != 12)
-                        //vertical and horizontal separators cannot be decorated
-                        {
-                            if (data == 3) ts->Decoration = 0; //no-decoration
-                            if (data == 4) ts->Decoration = 1; //strikeout
-                            if (data == 5) ts->Decoration = 2; //encircled
-                            if (data == 6) ts->Decoration = 3; //underline
-                            if (data == 7) ts->Decoration = 4; //overline
-                            if (data == 130) ts->Decoration = 5; //underbrace
-                        }
-                        else
-                            ts->Decoration = 0;
+                        ts.Decoration = NONE;
+                        continue;
                     }
+                    if (data == 3) ts.Decoration = NONE; //no-decoration
+                    else if (data == 4) ts.Decoration = STRIKEOUT; //strikeout
+                    else if (data == 5) ts.Decoration = ENCIRCLED; //encircled
+                    else if (data == 6) ts.Decoration = UNDERLINE; //underline
+                    else if (data == 7) ts.Decoration = OVERLINE; //overline
+                    else if (data == 130) ts.Decoration = UNDERBRACE; //underbrace
                 }
             }
             if (Options[m_SelectedOption].Data == 8) //then "lock" option
             {
                 for (int ii = 0; ii < NumDocumentElements; ii++)
                 {
-                    tDocumentStruct* ds = TheDocument + ii;
-                    if (ds->Type == EXPRESSION && ds->Object.exp && ds->Object.exp == m_Expression)
+                    tDocumentStruct& ds = TheDocument[ii];
+                    if (ds.Type == EXPRESSION && ds.Object.exp && ds.Object.exp == m_Expression)
                     {
-                        if (ds->MovingDotState == 5)
-                            ds->MovingDotState = 0;
+                        if (ds.MovingDotState == 5)
+                            ds.MovingDotState = 0;
                         else
                         {
                             m_Expression->DeselectExpression();
-                            ds->MovingDotState = 5;
+                            ds.MovingDotState = 5;
                         }
                     }
                 }
@@ -3475,7 +3465,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             //mark the element where the keyboard entry is active
                             is_keyboard_entry = 1;
-                            (m_Expression->m_pElementList + m_Expression->m_IsKeyboardEntry - 1)->Decoration |= 0x40;
+                            (int&)m_Expression->m_pElementList[m_Expression->m_IsKeyboardEntry - 1].Decoration |= 0x40;
                         }
 
                         ((CMainFrame*)theApp.m_pMainWnd)->UndoSave(
@@ -3496,9 +3486,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             //change the keyboard entry focus point to the element that is marked
                             for (int kk = 0; kk < m_Expression->m_NumElements; kk++)
-                                if ((m_Expression->m_pElementList + kk)->Decoration & 0x40)
+                                if (m_Expression->m_pElementList[kk].Decoration & 0x40)
                                 {
-                                    (m_Expression->m_pElementList + kk)->Decoration &= 0x3F;
+                                    (int&)m_Expression->m_pElementList[kk].Decoration &= 0x3F;
                                     m_Expression->m_IsKeyboardEntry = kk + 1;
                                     break;
                                 }
@@ -3588,13 +3578,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else if (m_theSelectedElement)
                 {
-                    int ii;
-                    for (ii = 0; ii < m_Expression->m_NumElements; ii++)
+                    for (int ii = 0; ii < m_Expression->m_NumElements; ii++)
                     {
-                        tElementStruct* ts = m_Expression->m_pElementList + ii;
-                        if (ts->IsSelected &&
-                            ts->pElementObject) //types 0,12,11 don't have objects
-                            ts->pElementObject->SetColor(data - 81);
+                        tElementStruct& ts = m_Expression->m_pElementList[ii];
+                        if (ts.IsSelected && ts.pElementObject) //types 0,12,11 don't have objects
+                            ts.pElementObject->SetColor(data - 81);
                     }
                 }
             }
@@ -5017,7 +5005,7 @@ int PopupMenu::SymbolicComputation()
             {
                 CExpression* E1 = new CExpression(nullptr, nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
-                                        fabs(N - (long long)N) < 1e-100 ? 1 : 0, prec + prec_increase, 0);
+                                        fabs(N - (long long)N) < 1e-100, prec + prec_increase, 0);
                 int last = E1->m_NumElements - 1;
                 tElementStruct* ts = E1->m_pElementList + last;
                 int ln = (int)strlen(ts->pElementObject->Data1);
@@ -5047,7 +5035,7 @@ int PopupMenu::SymbolicComputation()
             {
                 CExpression* E1 = new CExpression(nullptr, nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
-                                        fabs(N - (long long)N) < 1e-100 ? 1 : 0, prec - 1, 0);
+                                        fabs(N - (long long)N) < 1e-100, prec - 1, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
                 else rounding_done = 1;
             }
@@ -5055,7 +5043,7 @@ int PopupMenu::SymbolicComputation()
             {
                 CExpression* E1 = new CExpression(nullptr, nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
-                                        fabs(N - (long long)N) < 1e-100 ? 1 : 0, prec - 2, 0);
+                                        fabs(N - (long long)N) < 1e-100, prec - 2, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
                 else rounding_done = 1;
             }
@@ -5067,7 +5055,7 @@ int PopupMenu::SymbolicComputation()
                 if (fabs(N) < 1.0) exp--;
                 double re = N / pow(10, exp);
                 E1->GenerateASCIINumber(re, (long long)(re + (re > 0) ? 0.01 : -0.01),
-                                        fabs(re - (long long)re) < 1e-100 ? 1 : 0,min(prec+abs(exp), 8), 0);
+                                        fabs(re - (long long)re) < 1e-100, min(prec+abs(exp), 8), 0);
                 tElementStruct* ts = E1->m_pElementList;
                 int ln = (int)strlen(ts->pElementObject->Data1);
                 while (ln)
@@ -5086,14 +5074,14 @@ int PopupMenu::SymbolicComputation()
                                                                                Expression1;
                 CExpression* e = (E1->m_pElementList + E1->m_NumElements - 1)->pElementObject->
                                                                                Expression2;
-                a->GenerateASCIINumber(10.0, 10, 1, 0, 0);
+                a->GenerateASCIINumber(10.0, 10, true, 0, 0);
                 if (exp < 0)
                 {
                     e->InsertEmptyElement(0, 2, '-');
-                    e->GenerateASCIINumber(-exp, -exp, 1, 0, 1);
+                    e->GenerateASCIINumber(-exp, -exp, true, 0, 1);
                 }
                 else
-                    e->GenerateASCIINumber(exp, exp, 1, 0, 0);
+                    e->GenerateASCIINumber(exp, exp, true, 0, 0);
                 if (E1->m_pElementList->Type == 2 && E1->m_pElementList->pElementObject->Data1[0] == '-' &&
                     (E1->m_pElementList + 1)->Type == 1 && strcmp((E1->m_pElementList + 1)->pElementObject->Data1,
                                                                   "1") == 0)
@@ -5141,7 +5129,7 @@ int PopupMenu::SymbolicComputation()
                                 result->InsertEmptyElement(result->m_NumElements, 2, (char)0xD7);
                             int pos = result->m_NumElements;
                             if (result->m_pElementList->Type == 0) pos = 0;
-                            result->GenerateASCIINumber((double)z, z, 1, 0, pos);
+                            result->GenerateASCIINumber((double)z, z, true, 0, pos);
                         }
                         else if (cnt > 1)
                         {
@@ -5152,8 +5140,8 @@ int PopupMenu::SymbolicComputation()
                                              pElementObject->Expression1;
                             CExpression* e = (result->m_pElementList + result->m_NumElements - 1)->
                                              pElementObject->Expression2;
-                            a->GenerateASCIINumber((double)z, z, 1, 0, 0);
-                            e->GenerateASCIINumber(cnt, cnt, 1, 0, 0);
+                            a->GenerateASCIINumber((double)z, z, true, 0, 0);
+                            e->GenerateASCIINumber(cnt, cnt, true, 0, 0);
                         }
                         if (z == 2) z++;
                         else z += 2;
@@ -5163,7 +5151,7 @@ int PopupMenu::SymbolicComputation()
                     if (n > 1 && result->m_pElementList->Type)
                     {
                         result->InsertEmptyElement(result->m_NumElements, 2, (char)0xD7);
-                        result->GenerateASCIINumber((double)n, n, 1, 0, result->m_NumElements);
+                        result->GenerateASCIINumber((double)n, n, true, 0, result->m_NumElements);
                     }
                     if (minus && result->m_pElementList->Type)
                         result->InsertEmptyElement(0, 2, '-');
@@ -5394,13 +5382,13 @@ int PopupMenu::SymbolicComputation()
             {
                 PopupMenu_AddMathHeader = 7;
                 CExpression* E1 = new CExpression(nullptr, nullptr, 100);
-                E1->GenerateASCIINumber(sum, (long long)sum, 0, precision, 0);
+                E1->GenerateASCIINumber(sum, (long long)sum, false, precision, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
 
                 PopupMenu_AddMathHeader = 8;
                 E1 = new CExpression(nullptr, nullptr, 100);
                 sum = sum / (double)number;
-                E1->GenerateASCIINumber(sum, (long long)sum, 0, precision, 0);
+                E1->GenerateASCIINumber(sum, (long long)sum, false, precision, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
             }
         }
@@ -5464,43 +5452,43 @@ int PopupMenu::AddMathMenuOption(CExpression* E1, CExpression* original)
     if (PopupMenu_AddMathHeader == 1)
     {
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize, "Equals to:", -1000, 1);
+        AddMenuOption(0, TSize, "Equals to:", -1000, true);
     }
 
     if (PopupMenu_AddMathHeader == 2)
     {
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize, "Rounding:", -1001, 1);
+        AddMenuOption(0, TSize, "Rounding:", -1001, true);
     }
     if (PopupMenu_AddMathHeader == 3)
     {
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize, "Extracted:", -1002, 1);
+        AddMenuOption(0, TSize, "Extracted:", -1002, true);
     }
     if (PopupMenu_AddMathHeader == 4)
     {
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize * 3 / 2, "Polynome-like:", -1003, 1);
+        AddMenuOption(0, TSize * 3 / 2, "Polynome-like:", -1003, true);
     }
     if (PopupMenu_AddMathHeader == 5)
     {
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize * 3 / 2, "Corrected:", -1004, 1);
+        AddMenuOption(0, TSize * 3 / 2, "Corrected:", -1004, true);
     }
     if (PopupMenu_AddMathHeader == 6)
     {
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize * 3 / 2, "Substituted:", -1005, 1);
+        AddMenuOption(0, TSize * 3 / 2, "Substituted:", -1005, true);
     }
     if (PopupMenu_AddMathHeader == 7)
     {
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize * 3 / 2, "Sum of array:", -1006, 1);
+        AddMenuOption(0, TSize * 3 / 2, "Sum of array:", -1006, true);
     }
     if (PopupMenu_AddMathHeader == 8)
     {
         PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize * 3 / 2, "Average:", -1007, 1);
+        AddMenuOption(0, TSize * 3 / 2, "Average:", -1007, true);
     }
     PopupMenu_AddMathHeader = 0;
 
@@ -5535,7 +5523,7 @@ int PopupMenu::AddMathMenuOption(CExpression* E1, CExpression* original)
     Options[m_NumOptions].IsButton = 0;
     Options[m_NumOptions].Graphics = E1;
     Options[m_NumOptions].IsChecked = 0;
-    Options[m_NumOptions].IsEnabled = 1;
+    Options[m_NumOptions].IsEnabled = true;
     Options[m_NumOptions].IsGraphicsSensitive = 0;
     Options[m_NumOptions].Data = original != ExtractedSelection ? 62 : 61; //
     Options[m_NumOptions].DataArray[0] = l + TSize_1p2;

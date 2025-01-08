@@ -229,16 +229,16 @@ int CDrawing::StartCreatingItem(int ItemForm)
     if (ItemForm == 51)
     {
         CExpression* tmp = new CExpression(nullptr, nullptr, 100);
-        tmp->GenerateASCIINumber(0, 0, 1, 0, 0);
+        tmp->GenerateASCIINumber(0, 0, true, 0, 0);
         CopyExpressionIntoSubgroup(tmp, 0, 0, 0, 0);
         tmp->Delete();
-        tmp->GenerateASCIINumber(100.0, 100, 1, 0, 0);
+        tmp->GenerateASCIINumber(100.0, 100, true, 0, 0);
         CopyExpressionIntoSubgroup(tmp, 0, 0, 0, 0);
         tmp->Delete();
-        tmp->GenerateASCIINumber(0, 0, 1, 0, 0);
+        tmp->GenerateASCIINumber(0, 0, true, 0, 0);
         CopyExpressionIntoSubgroup(tmp, 0, 0, 0, 0);
         tmp->Delete();
-        tmp->GenerateASCIINumber(100.0, 100, 1, 0, 0);
+        tmp->GenerateASCIINumber(100.0, 100, true, 0, 0);
         CopyExpressionIntoSubgroup(tmp, 0, 0, 0, 0);
         tmp->Delete();
         CopyExpressionIntoSubgroup(tmp, 0, 0, 0, 0); //function 1

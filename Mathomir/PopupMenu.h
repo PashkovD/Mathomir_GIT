@@ -45,7 +45,7 @@ char ValueEntryBoxString[300];
 		int Y;
 		int Cx;
 		int Cy;
-		char IsEnabled;
+		bool IsEnabled;
 		char IsChecked;  //can be checked / unchecked
 		short IsButton;  //Button option
 		CExpression *Graphics; //non-null if has graphics representation (an equation)
@@ -72,10 +72,10 @@ public:
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 
-	int AddMenuOption(int X, int Cx, const std::string& text, int Data, int new_line);
-	int AddMenuOptionButton(int X, const std::string& text, int Data, int button_ndx, int new_line);
-	int AddCheckedMenuOption(int X, int Cx, const std::string& text, int is_checked, int Data, int new_line);
-	int AddCheckedMenuOptionButton(int X, const std::string& text, int is_checked, int Data, int button_ndx, int new_line);
+	int AddMenuOption(int X, int Cx, const std::string& text, int Data, bool new_line);
+	int AddMenuOptionButton(int X, const std::string& text, int Data, int button_ndx, bool new_line);
+	int AddCheckedMenuOption(int X, int Cx, const std::string& text, bool is_checked, int Data, bool new_line);
+	int AddCheckedMenuOptionButton(int X, const std::string& text, bool is_checked, int Data, int button_ndx, bool new_line);
 	int UncheckOptions(int from, int to);
 
 protected:

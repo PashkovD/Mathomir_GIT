@@ -1978,10 +1978,8 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
             }
             else if (m_KeyboardElement >= 0 && m_KeyboardElement < ToolboxKeyboardElements.NumKeys)
             {
-                if (ClipboardExpression)
-                {
-                    delete ClipboardExpression;
-                }
+                delete ClipboardExpression;
+
                 ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                 ClipboardExpression->CopyExpression(ToolboxKeyboardElements.Key[m_KeyboardElement], 0);
                 short l, a, b;
@@ -2062,7 +2060,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     CExpression* parent = KeyboardEntryBaseObject
                                               ? KeyboardEntryBaseObject->Object.exp
                                               : nullptr;
-                    if (parent == 0 || exp == 0)
+                    if (parent == nullptr || exp != nullptr)
                     {
                         tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
                         for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
@@ -2121,24 +2119,26 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             for (int i = 0; i < exp->m_NumElements; i++)
                             {
-                                tElementStruct* ts = exp->m_pElementList + i;
-                                if (ts->IsSelected == 2)
+                                tElementStruct& ts = exp->m_pElementList[i];
+                                if (ts.IsSelected == 2)
                                 {
-                                    if (ts->Type == 1 && ts->pElementObject)
-                                        if (icon == 28 || icon == 29)
+                                    if (icon == 28 || icon == 29)
+                                    {
+                                        if (ts.Type == 1 && ts.pElementObject)
                                         {
                                             yes = 1;
-                                            for (int j = 0; j < (int)strlen(ts->pElementObject->Data1); j++)
-                                                ts->pElementObject->Data2[j] |= icon == 28 ? 0x01 : 0x02;
+                                            for (unsigned int j = 0; j < strlen(ts.pElementObject->Data1); j++)
+                                                ts.pElementObject->Data2[j] |= icon == 28 ? 0x01 : 0x02;
                                         }
-                                    if (icon == 30)
+                                    }
+                                    else if (icon == 30)
                                     {
-                                        ts->Decoration = 3;
+                                        ts.Decoration = UNDERLINE;
                                         yes = 1;
                                     }
-                                    if (icon == 31)
+                                    else if (icon == 31)
                                     {
-                                        ts->Decoration = 5;
+                                        ts.Decoration = UNDERBRACE;
                                         yes = 2;
                                     }
                                 }
@@ -2167,16 +2167,16 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                                     }
                                 if (a.alignment)
                                 {
-                                    if (icon == 25) *a.alignment = 'l';
-                                    if (icon == 26) *a.alignment = 'c';
-                                    if (icon == 27) *a.alignment = 'r';
+                                    if (icon == 25) a.alignment[0] = 'l';
+                                    if (icon == 26) a.alignment[0] = 'c';
+                                    if (icon == 27) a.alignment[0] = 'r';
                                 }
                             }
                             else
                             {
                                 if (icon == 25) exp->m_Alignment = 1;
-                                if (icon == 26) exp->m_Alignment = 0;
-                                if (icon == 27) exp->m_Alignment = 2;
+                                else if (icon == 26) exp->m_Alignment = 0;
+                                else if (icon == 27) exp->m_Alignment = 2;
                             }
                         }
                         if (yes)
@@ -2196,7 +2196,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 if (NumSelectedObjects)
                 {
-                    pMainView->m_PopupMenuObject = 0;
+                    pMainView->m_PopupMenuObject = nullptr;
                     if (icon == 11) Popup->OnLButtonDown(560, CPoint(-10000, -10001));
                     if (icon == 12) Popup->OnLButtonDown(562, CPoint(-10000, -10001));
                     if (icon == 13) Popup->OnLButtonDown(564, CPoint(-10000, -10001));

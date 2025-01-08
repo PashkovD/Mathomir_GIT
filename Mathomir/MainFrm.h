@@ -53,7 +53,7 @@ public:
     int MySetPixel(CDC* DC, int X, int Y, char IsBlue);
     int MyBitBlt(CDC* DC, int X, int Y, int width, int height, int Xsrc, int Ysrc, char IsXInvers);
     char* XML_search(const std::string& text, char* file);
-    int ClearDocument(void);
+    int ClearDocument();
     char* XML_read_attribute(char* attribute, char* value, char* file, int value_buffer_size);
     afx_msg void OnWindowPosChanged(WINDOWPOS* lpwndpos);
     int AdjustMenu(int adjust_undo_only = 0);
