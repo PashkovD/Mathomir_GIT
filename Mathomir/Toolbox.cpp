@@ -729,7 +729,7 @@ CToolbox::CToolbox(int IsSubtoolbox)
 
         ToolboxFontFormating.MixedFormat = new CExpression(nullptr,nullptr, 100);
         ToolboxFontFormating.MixedFormat->InsertEmptyElement(0, 1, 'M');
-        ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0] = 0x22; //Italic, serif (by default)
+        ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0] = 0x22; //Italic, serif (by default)
         ToolboxFontFormating.SelectedUniform = 0;
         m_FontModeElement = -1;
         m_FontModeSelection = 1;
@@ -816,7 +816,7 @@ int CToolbox::AddKeyboardKey(int x, int y, char key)
     int i = ToolboxKeyboardElements.NumKeys;
     ToolboxKeyboardElements.Key[i] = new CExpression(nullptr,nullptr, 100);
     ToolboxKeyboardElements.Key[i]->InsertEmptyElement(0, 1, key);
-    //ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data2[0]=0x02;
+    //ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data2[0]=0x02;
     ToolboxKeyboardElements.code[i] = (short)key;
     ToolboxKeyboardElements.X[i] = x;
     ToolboxKeyboardElements.Y[i] = y;
@@ -839,9 +839,9 @@ int CToolbox::AddFontFormating(int FaceType, int IsBold, int IsItalic, int Modif
     ToolboxFontFormating.UniformFormats2[i] = (char)0x80;
     ToolboxFontFormating.UniformFormats[i] = new CExpression(nullptr,nullptr, 100);
     ToolboxFontFormating.UniformFormats[i]->InsertEmptyElement(0, 1, 'U');
-    ToolboxFontFormating.UniformFormats[i]->m_pElementList->pElementObject->Data2[0] =
+    ToolboxFontFormating.UniformFormats[i]->m_pElementList[0].pElementObject->Data2[0] =
         (FaceType << 5) + (IsItalic << 1) + IsBold;
-    ToolboxFontFormating.UniformFormats[i]->m_pElementList->pElementObject->m_VMods = Modificator << 2;
+    ToolboxFontFormating.UniformFormats[i]->m_pElementList[0].pElementObject->m_VMods = Modificator << 2;
 
     if (Modificator || FaceType == 3)
         ToolboxFontFormating.UniformFormats2[i] = (char)0x81;
@@ -873,13 +873,13 @@ int CToolbox::AddSubmember(short Type, char data)
     {
         //forces parentheses in expression1 of the element;
         CExpression* e1 = ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers]->
-                          m_pElementList->pElementObject->Expression1;
+                          m_pElementList[0].pElementObject->Expression1;
         if (e1)
             e1->m_ParenthesesFlags |= 1;
     }
     if (greek)
     {
-        ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers]->m_pElementList->pElementObject->Data2[
+        ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers]->m_pElementList[0].pElementObject->Data2[
             0] |= 0x60;
     }
     ToolboxMembers[member].NumSubmembers++;
@@ -1306,9 +1306,9 @@ void CToolbox::ToolboxChangeIndividualKeyFont()
     unsigned char fdata = 0;
     unsigned char vmods = 0;
     char symbol = 0;
-    char prevsymbol = ToolboxKeyboardElements.Key[key]->m_pElementList->pElementObject->Data1[0];
-    fdata = ToolboxKeyboardElements.Key[key]->m_pElementList->pElementObject->Data2[0];
-    vmods = ToolboxKeyboardElements.Key[key]->m_pElementList->pElementObject->m_VMods;
+    char prevsymbol = ToolboxKeyboardElements.Key[key]->m_pElementList[0].pElementObject->Data1[0];
+    fdata = ToolboxKeyboardElements.Key[key]->m_pElementList[0].pElementObject->Data2[0];
+    vmods = ToolboxKeyboardElements.Key[key]->m_pElementList[0].pElementObject->m_VMods;
     if (row == 0)
     {
         fdata = ToolboxKeyboardElements.FormatingBigCaps[key];
@@ -1340,8 +1340,8 @@ void CToolbox::ToolboxChangeIndividualKeyFont()
     if (ToolboxCharacter) delete ToolboxCharacter;
     ToolboxCharacter = new CExpression(nullptr,nullptr, 100);
     ToolboxCharacter->InsertEmptyElement(0, 1, symbol);
-    ToolboxCharacter->m_pElementList->pElementObject->Data2[0] = fdata;
-    ToolboxCharacter->m_pElementList->pElementObject->m_VMods = vmods;
+    ToolboxCharacter->m_pElementList[0].pElementObject->Data2[0] = fdata;
+    ToolboxCharacter->m_pElementList[0].pElementObject->m_VMods = vmods;
 
 
     Toolbox->m_FontModeSelection = 1;
@@ -1700,7 +1700,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         if (exp->m_IsKeyboardEntry > 0 && exp->m_IsKeyboardEntry <= exp->m_NumElements)
                         {
-                            tElementStruct* e = exp->m_pElementList + exp->m_IsKeyboardEntry - 1;
+                            tElementStruct* e = &exp->m_pElementList[exp->m_IsKeyboardEntry - 1];
                             if (exp->m_IsKeyboardEntry > 1 && exp->m_KeyboardCursorPos == 0) e--;
                             if (e->Type == 1)
                             {
@@ -2246,13 +2246,13 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
 		{
 			ToolboxMembers[i].Submembers[j]->m_ParentheseHeightFactor=1;//DefaultParentheseType;
 			if (ToolboxMembers[i].Submembers[j]->m_pElementList==nullptr) break;
-			if (ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject==nullptr) break;
-			if (ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression1)
-				((CExpression*)(ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression1))->m_ParentheseHeightFactor=1;//DefaultParentheseType;
-			if (ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression2)
-				((CExpression*)(ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression2))->m_ParentheseHeightFactor=1;//DefaultParentheseType;
-			if (ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression3)
-				((CExpression*)(ToolboxMembers[i].Submembers[j]->m_pElementList->pElementObject->Expression3))->m_ParentheseHeightFactor=1;//DefaultParentheseType;
+			if (ToolboxMembers[i].Submembers[j]->m_pElementList[0].pElementObject==nullptr) break;
+			if (ToolboxMembers[i].Submembers[j]->m_pElementList[0].pElementObject->Expression1)
+				((CExpression*)(ToolboxMembers[i].Submembers[j]->m_pElementList[0].pElementObject->Expression1))->m_ParentheseHeightFactor=1;//DefaultParentheseType;
+			if (ToolboxMembers[i].Submembers[j]->m_pElementList[0].pElementObject->Expression2)
+				((CExpression*)(ToolboxMembers[i].Submembers[j]->m_pElementList[0].pElementObject->Expression2))->m_ParentheseHeightFactor=1;//DefaultParentheseType;
+			if (ToolboxMembers[i].Submembers[j]->m_pElementList[0].pElementObject->Expression3)
+				((CExpression*)(ToolboxMembers[i].Submembers[j]->m_pElementList[0].pElementObject->Expression3))->m_ParentheseHeightFactor=1;//DefaultParentheseType;
 		}
 	}
 
@@ -2595,15 +2595,15 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
         exp->CalculateSize(&pdc, zoom, l, &a, &b, 0, 1);
         int ccc = 0;
 
-        exp->m_pElementList->pElementObject->m_VMods = 0x08;
+        exp->m_pElementList[0].pElementObject->m_VMods = 0x08;
         exp->PaintExpression(&pdc, zoom, ccc, yyy + zoom / 8, 0);
-        exp->m_pElementList->pElementObject->m_VMods = 0x04;
+        exp->m_pElementList[0].pElementObject->m_VMods = 0x04;
         exp->PaintExpression(&pdc, zoom, ccc + mmm, yyy + zoom / 8, 0);
-        exp->m_pElementList->pElementObject->m_VMods = 0x0C;
+        exp->m_pElementList[0].pElementObject->m_VMods = 0x0C;
         exp->PaintExpression(&pdc, zoom, ccc + 2 * mmm, yyy + zoom / 8, 0);
-        exp->m_pElementList->pElementObject->m_VMods = 0x14;
+        exp->m_pElementList[0].pElementObject->m_VMods = 0x14;
         exp->PaintExpression(&pdc, zoom, ccc + 3 * mmm, yyy + zoom / 8, 0);
-        exp->m_pElementList->pElementObject->m_VMods = 0x18;
+        exp->m_pElementList[0].pElementObject->m_VMods = 0x18;
         exp->PaintExpression(&pdc, zoom, ccc + 4 * mmm, yyy + zoom / 8, 0);
 
         delete exp;
@@ -2755,9 +2755,9 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
                 xdc.LineTo(xx + rr, yy + rr);
             }
             CExpression* exp = new CExpression(nullptr,nullptr, 105);
-            unsigned char fnt = ToolboxFontFormating.UniformFormats[member]->m_pElementList->pElementObject->Data2[0];
-            unsigned char vmods = ToolboxFontFormating.UniformFormats[member]->m_pElementList->pElementObject->m_VMods;
-            int clr = ToolboxFontFormating.UniformFormats[member]->m_pElementList->pElementObject->m_Color;
+            unsigned char fnt = ToolboxFontFormating.UniformFormats[member]->m_pElementList[0].pElementObject->Data2[0];
+            unsigned char vmods = ToolboxFontFormating.UniformFormats[member]->m_pElementList[0].pElementObject->m_VMods;
+            int clr = ToolboxFontFormating.UniformFormats[member]->m_pElementList[0].pElementObject->m_Color;
             for (int i = 0; i < 12; i += 2)
             {
                 exp->InsertEmptyElement(i, 1, 'A' + i / 2);
@@ -2907,7 +2907,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
         unsigned char vmods = 0;
         char symbol = 0;
 
-        char prevsymbol = ToolboxKeyboardElements.Key[key]->m_pElementList->pElementObject->Data1[0];
+        char prevsymbol = ToolboxKeyboardElements.Key[key]->m_pElementList[0].pElementObject->Data1[0];
         if (row == 0)
         {
             fdata = ToolboxKeyboardElements.FormatingBigCaps[key];
@@ -2939,8 +2939,8 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
 
         CExpression* exp = new CExpression(nullptr,nullptr, 100);
         exp->InsertEmptyElement(0, 1, symbol);
-        exp->m_pElementList->pElementObject->Data2[0] = fdata;
-        exp->m_pElementList->pElementObject->m_VMods = vmods;
+        exp->m_pElementList[0].pElementObject->Data2[0] = fdata;
+        exp->m_pElementList[0].pElementObject->m_VMods = vmods;
         exp->CalculateSize(&xdc, 100 * ToolboxSize / 80, l, &a, &b);
         exp->PaintExpression(&xdc, 100 * ToolboxSize / 73, ToolboxSize / 8 - l / 2 - 1, ToolboxSize / 6);;
         delete exp;
@@ -3119,7 +3119,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
             ToolboxMembers[j].Submembers[i]->CalculateSize(&xdc, ToolboxMembers[j].zoom[i],
                                                            ToolboxMembers[j].Length[i], &ToolboxMembers[j].Above[i],
                                                            &ToolboxMembers[j].Below[i], 1, 1);
-            if (ToolboxMembers[j].Submembers[i]->m_pElementList->Type == 5) corr = ToolboxSize / 8;
+            if (ToolboxMembers[j].Submembers[i]->m_pElementList[0].Type == 5) corr = ToolboxSize / 8;
             lly = 27 * m_ItemHeight / 32 - corr;
             llx = ToolboxSize / 2 + 8 - zm / 10 - corr;
         }
@@ -4454,10 +4454,10 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
 
                         if (command[0] == 0 && e && e->m_NumElements == 1 && (ToolboxMembers[help_element].
                                 userdef_mask & 1 << help_subelement) == 0 &&
-                            e->m_pElementList->Type == 6 && e->m_pElementList->pElementObject->Data2[0] == 0x20 &&
-                            e->m_pElementList->pElementObject->Expression2 == nullptr)
+                            e->m_pElementList[0].Type == 6 && e->m_pElementList[0].pElementObject->Data2[0] == 0x20 &&
+                            e->m_pElementList[0].pElementObject->Expression2 == nullptr)
                         {
-                            command = e->m_pElementList->pElementObject->Data1;
+                            command = e->m_pElementList[0].pElementObject->Data1;
                         }
                     }
                 }
@@ -4641,7 +4641,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                     if ((KeyboardEntryBaseObject) && (KeyboardEntryBaseObject->Type==1))
                     {
                         CExpression *expr=((CExpression*)(KeyboardEntryBaseObject->Object));
-                        if (((expr->m_NumElements==1) && (expr->m_pElementList->Type==0)) || (expr->m_NumElements==0))
+                        if (((expr->m_NumElements==1) && (expr->m_pElementList[0].Type==0)) || (expr->m_NumElements==0))
                         {
                             pMainView->DeleteDocumentObject(KeyboardEntryBaseObject);
                         }
@@ -4792,9 +4792,9 @@ UINT CToolbox::GetUppercaseFormatting(int key_code, UINT formatting) const
                 }
             }
 
-        UINT rv = ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->m_VMods;
+        UINT rv = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->m_VMods;
         rv = rv << 16;
-        rv |= ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0];
+        rv |= ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0];
         return rv;
     }
 }
@@ -4804,17 +4804,17 @@ int prevAltData = 0;
 
 UINT CToolbox::GetUniformFormatting(void)
 {
-    UINT rv = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->pElementObject
+    UINT rv = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject
         ->m_VMods;
     rv = rv << 16;
-    rv |= ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->pElementObject->
+    rv |= ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject->
         Data2[0];
     return rv;
 }
 
 int CToolbox::GetUniformFormattingColor(void)
 {
-    return ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->pElementObject->
+    return ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject->
         m_Color;
 }
 
@@ -4862,9 +4862,9 @@ UINT CToolbox::GetMixedFormatting(char key, char is_greek)
                 }
             }
         }
-    UINT retval = ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->m_VMods;
+    UINT retval = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->m_VMods;
     retval = retval << 16;
-    retval |= ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0];
+    retval |= ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0];
     if (key == '?' || key == '$' || key == '%') retval &= ~0x02; //some characters are never cast italic
     return retval;
 }
@@ -4940,8 +4940,8 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
             if (m_FontModeSelection == 1 && !textmodeactivated)
             {
                 greeksymbolsactivated = 2;
-                prevAltData = ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0];
-                ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0] = prevAltData & 0x1F |
+                prevAltData = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0];
+                ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0] = prevAltData & 0x1F |
                     0x60;
             }
             else
@@ -4949,7 +4949,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                 greeksymbolsactivated = 1;
                 prevAltData = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList
                     ->pElementObject->Data2[0];
-                ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->
+                ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                     pElementObject->Data2[0] = prevAltData & 0x1F | 0x60;
             }
             //PaintToolboxHeader(DC);
@@ -4958,9 +4958,9 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
     else if (greeksymbolsactivated)
     {
         if (greeksymbolsactivated == 2)
-            ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0] = prevAltData;
+            ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0] = prevAltData;
         else
-            ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->pElementObject->
+            ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject->
                 Data2[0] = prevAltData;
         greeksymbolsactivated = 0;
         if (m_FontModeSelection < 0) m_FontModeSelection = 1;
@@ -5091,10 +5091,10 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
             if (m_FontModeSelection == 0 || textmodeactivated)
             {
                 //permanent keyboard mode or text entry box
-                retval = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->
+                retval = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                     pElementObject->m_VMods;
                 retval = retval << 16;
-                retval |= ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->
+                retval |= ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                     pElementObject->Data2[0];
 
                 if (ToolboxFontFormating.UniformFormats2[ToolboxFontFormating.SelectedUniform] & 0x01)
@@ -5132,12 +5132,12 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                                 if (ToolboxKeyboardElements.code[i]==toupper(code))
                                 {
                                     //we found the key code
-                                    retval=ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data2[0];
+                                    retval=ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data2[0];
                                     break;
                                 }
                             if ((i==ToolboxKeyboardElements.NumKeys))//not found key code - we will use the basic level mode
                             {
-                                retval=ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0];
+                                retval=ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0];
                                 if ((code=='?') || (code=='$') || (code=='%')) retval&=~0x02; //never return italic for some symbols
                             }
                             */
@@ -5164,14 +5164,14 @@ void CToolbox::ReformatKeyboardSelection()
         char format;
         if (Toolbox->m_FontModeSelection == 0) //permanent font mode
         {
-            format = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->
+            format = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                 pElementObject->Data2[0];
-            fcolor = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->
+            fcolor = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                 pElementObject->m_Color;
         }
         else if (Toolbox->m_FontModeSelection == 1) //mixed font mode
         {
-            format = ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0];
+            format = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0];
         }
         else return;
 
@@ -5213,7 +5213,7 @@ void CToolbox::ReformatKeyboardSelection()
 int CToolbox::GetFormattingColor() const
 {
     if (m_FontModeSelection == 1 && textmodeactivated == 0) return -1;
-    return ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->pElementObject->
+    return ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject->
         m_Color;
 }
 
@@ -5365,11 +5365,11 @@ int CToolbox::AdjustKeyboardFont() const
         {
             if (m_FontModeSelection == 0 || textmodeactivated) //permanent font mode
             {
-                data = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->
+                data = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                     pElementObject->Data2[0];
-                vmods = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->
+                vmods = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                     pElementObject->m_VMods;
-                color = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList->
+                color = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                     pElementObject->m_Color;
             }
             else if (m_FontModeSelection == 1) //mixed font mode
@@ -5503,8 +5503,8 @@ int CToolbox::PopupCloses(int UserParameter, int ExitCode)
     {
         for (i = 0; i < ToolboxKeyboardElements.NumKeys; i++)
         {
-            char ccc = ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0];
-            unsigned char vmods = ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->m_VMods;
+            char ccc = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0];
+            unsigned char vmods = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->m_VMods;
             ToolboxKeyboardElements.FormatingBigCaps[i] = ccc;
             ToolboxKeyboardElements.FormatingSmallCaps[i] = ccc;
             ToolboxKeyboardElements.FormatingBigGreek[i] = ccc;
@@ -5513,8 +5513,8 @@ int CToolbox::PopupCloses(int UserParameter, int ExitCode)
             ToolboxKeyboardElements.FormatingSmallCaps2[i] = vmods;
             ToolboxKeyboardElements.FormatingBigGreek2[i] = vmods;
             ToolboxKeyboardElements.FormatingSmallGreek2[i] = vmods;
-            ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data2[0] = ccc;
-            ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->m_VMods = vmods;
+            ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data2[0] = ccc;
+            ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->m_VMods = vmods;
             ToolboxKeyboardElements.Key[i]->DeselectExpression();
         }
         ToolboxFontFormating.MixedFormat->DeselectExpression();
@@ -5528,8 +5528,8 @@ int CToolbox::PopupCloses(int UserParameter, int ExitCode)
         if (key < ToolboxKeyboardElements.NumKeys && ToolboxCharacter)
         {
             //in case the individual key setting was changed, store it.
-            char ccc = ToolboxCharacter->m_pElementList->pElementObject->Data2[0];
-            unsigned char vmods = ToolboxCharacter->m_pElementList->pElementObject->m_VMods;
+            char ccc = ToolboxCharacter->m_pElementList[0].pElementObject->Data2[0];
+            unsigned char vmods = ToolboxCharacter->m_pElementList[0].pElementObject->m_VMods;
             if (row == 0) ToolboxKeyboardElements.FormatingBigCaps[key] = ccc;
             if (row == 1) ToolboxKeyboardElements.FormatingSmallCaps[key] = ccc;
             if (row == 2)ToolboxKeyboardElements.FormatingBigGreek[key] = ccc;
@@ -5720,14 +5720,14 @@ int CToolbox::SaveSettings(char* filename) const
             {
                 char ch;
                 ch = ToolboxFontFormating.UniformFormats2[i] & 0x01; //the singleshot settings
-                int clr = ToolboxFontFormating.UniformFormats[i]->m_pElementList->pElementObject->m_Color;
+                int clr = ToolboxFontFormating.UniformFormats[i]->m_pElementList[0].pElementObject->m_Color;
                 clr += 1;
                 clr = clr & 0x07;
                 clr *= 2;
                 ch |= clr; //lowest bit = singleshoot settings; next three bits = color settings
                 ch |= 0x80; //highest bit always set
                 fwrite(&ch, 1, 1, fil);
-                ch = ToolboxFontFormating.UniformFormats[i]->m_pElementList->pElementObject->Data2[0];
+                ch = ToolboxFontFormating.UniformFormats[i]->m_pElementList[0].pElementObject->Data2[0];
                 fwrite(&ch, 1, 1, fil);
             }
             else
@@ -5784,7 +5784,7 @@ int CToolbox::SaveSettings(char* filename) const
         fwrite(&UseCTRLForZoom, sizeof(int), 1, fil);
 
         //store mixed font formating
-        fwrite(ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2, sizeof(char), 1, fil);
+        fwrite(ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2, sizeof(char), 1, fil);
         fwrite(&m_FontModeSelection, sizeof(int), 1, fil);
 
         fwrite(&ToolboxKeyboardElements.FormatingBigGreek[0], sizeof(char), 32, fil);
@@ -6066,11 +6066,11 @@ int CToolbox::LoadSettings(char* filename)
                         tmp |= 0x80; //always set the high bit if the configuration is vaild
                     }
                     ToolboxFontFormating.UniformFormats2[i] = tmp; //always turn on the highest bit
-                    ToolboxFontFormating.UniformFormats[i]->m_pElementList->pElementObject->m_Color = clr;
+                    ToolboxFontFormating.UniformFormats[i]->m_pElementList[0].pElementObject->m_Color = clr;
                 }
                 if (fread(&ch, 1, 1, fil))
                 {
-                    ToolboxFontFormating.UniformFormats[i]->m_pElementList->pElementObject->Data2[0] = ch;
+                    ToolboxFontFormating.UniformFormats[i]->m_pElementList[0].pElementObject->Data2[0] = ch;
                     if (ToolboxFontFormating.UniformFormats2[i] == 0)
                     //unknown configuration for color and singleshot - initialize (compatibility)
                     {
@@ -6142,8 +6142,8 @@ int CToolbox::LoadSettings(char* filename)
         fread(&UseCTRLForZoom, sizeof(int), 1, fil);
 
         //read mixed font format
-        if (!fread(ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2, sizeof(char), 1, fil))
-            ToolboxFontFormating.MixedFormat->m_pElementList->pElementObject->Data2[0] = ToolboxKeyboardElements.
+        if (!fread(ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2, sizeof(char), 1, fil))
+            ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0] = ToolboxKeyboardElements.
                 FormatingSmallCaps[0];
         fread(&m_FontModeSelection, sizeof(int), 1, fil);
         if (m_FontModeSelection > 2 || m_FontModeSelection < 1) m_FontModeSelection = 1;

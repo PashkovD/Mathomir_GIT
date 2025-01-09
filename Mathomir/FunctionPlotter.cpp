@@ -898,7 +898,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                 if (Base->NumItems > 8 + kk)
                 {
                     CExpression* func = (CExpression*)(Base->Items + 8 + kk)->pSubdrawing;
-                    if (func && func->m_pElementList->Type && Plot)
+                    if (func && func->m_pElementList[0].Type && Plot)
                     {
                         int position;
                         int start_point;
@@ -909,14 +909,14 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                             if (start_point > 1)
                             {
                                 for (int i = 0; i < start_point - 1; i++)
-                                    tmp->InsertElement(&func->m_pElementList[i], tmp->m_NumElements);
+                                    tmp->InsertElement(func->m_pElementList[i], tmp->m_NumElements);
                                 short l, a, b;
                                 tmp->CalculateSize(DC, zoom * 3 / 4 * MX / 50, l, &a, &b);
                                 DC->FillSolidRect(X + 1, Y + 1, l, a + b + 2,RGB(200, 200, 200));
                                 tmp->PaintExpression(DC, zoom * 3 / 4 * MX / 50, X + 1, Y + a + 1, ClipReg);
                                 tmp->Delete();
                             }
-                            tmp->InsertElement(&var->m_pElementList[position], 0);
+                            tmp->InsertElement(var->m_pElementList[position], 0);
                             short l, a, b;
                             tmp->CalculateSize(DC, zoom * 3 / 4 * MX / 50, l, &a, &b);
                             DC->FillSolidRect(X + Xlen - l - 3, Y + Ylen - b - a - 2, l, a + b + 1,RGB(200, 200, 200));
@@ -1479,7 +1479,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         KeyboardEntryObject = (CExpression*)Base->Items[edit_at_position].pSubdrawing;
         KeyboardEntryObject->m_FontSize = 100;
         KeyboardEntryObject->DeselectExpression();
-        KeyboardEntryObject->m_Selection = KeyboardEntryObject->m_pElementList->Type
+        KeyboardEntryObject->m_Selection = KeyboardEntryObject->m_pElementList[0].Type
                                                    ? KeyboardEntryObject->m_NumElements + 1 : 1;
 
         for (int i = 0; i < NumDocumentElements; i++)
@@ -1952,7 +1952,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
         {
             if (pItem->pSubdrawing &&
                 ((CExpression*)pItem->pSubdrawing)->IsSuitableForComputation() &&
-                ((CExpression*)pItem->pSubdrawing)->m_pElementList->Type != 0)
+                ((CExpression*)pItem->pSubdrawing)->m_pElementList[0].Type != 0)
             {
                 Func[kk] = new CExpression(nullptr,nullptr, 100);
                 Func[kk]->CopyExpression((CExpression*)pItem->pSubdrawing, 0);
@@ -2346,7 +2346,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
     {
         int prec2;
         CExpression* x = (CExpression*)(Base->Items + 5)->pSubdrawing;
-        if (x->m_pElementList->Type)
+        if (x->m_pElementList[0].Type)
             if (!x->IsPureNumber(0, x->m_NumElements, Xmax, &prec2))
             {
                 tPureFactors PF;
@@ -2363,7 +2363,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
     {
         int prec2;
         CExpression* x = (CExpression*)(Base->Items + 4)->pSubdrawing;
-        if (x->m_pElementList->Type)
+        if (x->m_pElementList[0].Type)
             if (!x->IsPureNumber(0, x->m_NumElements, Xmin, &prec2))
             {
                 tPureFactors PF;
@@ -2380,7 +2380,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
     {
         int prec2;
         CExpression* x = (CExpression*)(Base->Items + 7)->pSubdrawing;
-        if (x->m_pElementList->Type)
+        if (x->m_pElementList[0].Type)
             if (!x->IsPureNumber(0, x->m_NumElements, Ymax, &prec2))
             {
                 tPureFactors PF;
@@ -2397,7 +2397,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
     {
         int prec2;
         CExpression* x = (CExpression*)(Base->Items + 6)->pSubdrawing;
-        if (x->m_pElementList->Type)
+        if (x->m_pElementList[0].Type)
             if (!x->IsPureNumber(0, x->m_NumElements, Ymin, &prec2))
             {
                 tPureFactors PF;

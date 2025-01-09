@@ -180,7 +180,7 @@ public:
     int CopyExpression(const CExpression* Original, const char OnlySelected, const char selection_type = 1,
                        const char update_clipboard = 1);
     void Delete(void);
-    int InsertElement(const tElementStruct* Element, int position);
+    int InsertElement(const tElementStruct& Element, int position);
     int MoveElementInto(const tElementStruct* Element, int position);
     //int MovePortionInto(int destination_pos, CExpression *Original, int source_pos, int num_elements);
     CExpression* CopyAtPoint(CDC* DC, short zoom, short X, short Y, CExpression* Original, int keyboard_select = 1);
@@ -191,13 +191,13 @@ public:
     int KeyboardPopupClosed(int user_param, int exit_code);
     int RemoveEmptyVariable(CDC* DC, tElementStruct* theElement, char no_recomutation = 0);
     int ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, UINT nFlags, int fcolor,
-                              tElementStruct* theElement);
+                              const tElementStruct* theElement);
 
     int KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, UINT nFlags, int fcolor, bool extern_call);
     // only to be called from KeyboardHit function!!
     tElementStruct* KeyboardSplitVariable();
     int PaintParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth, char Type,
-                         short data, char IsBlue, int color = 0);
+                         short data, char IsBlue, int color = 0) const;
     int PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth,
                                    char Type, short data, char IsBlue, int color = 0) const;
 
@@ -232,11 +232,11 @@ public:
     int FindLowestOperatorLevel(char default_oper = 0);
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position
     int Autocomplete(bool is_internal);
-    tElementStruct* GetElementStruct(CElement* element) const;
+    tElementStruct* GetElementStruct(const CElement* element) const;
     CElement* DecodeInternalInsertionPoint();
     //returns nullptr if no insertion point found, otherwise the element (type=1) with the insertion point
-    int ContainsBlinkingCursor();
-    CExpression* GetLabel();
+    int ContainsBlinkingCursor() const;
+    CExpression* GetLabel() const;
 
 
     int CompareExpressions(int StartPos, int EndPos, CExpression* Other, int StartPos2, int EndPos2);
@@ -245,7 +245,7 @@ public:
                            int ComputationType);
     int IsPureNumber(int StartPos, int len, double* number, int* precision);
     int GenerateASCIINumber(double number_dbl, long long number_int, bool is_integer, int precision, int position);
-    int CompareElement(const tElementStruct* ts1, const tElementStruct* ts2);
+    static int CompareElement(const tElementStruct& ts1, const tElementStruct& ts2);
     //int GetOperatorLevel(char op);
     // multiplies this expression with the multiplier
     int ComputeExponent(int Position, char element_type, int ComputationType);
@@ -306,7 +306,7 @@ public:
     int SearchForString(char* str);
     int ConvertToPlainText(int buffer_size, char* str, bool force_parentheses = false) const;
     int AutowrapText(CDC* DC, int width, int rewrap_all);
-    int IsTextContained(int position, char unmark_at_line_start = 0);
+    int IsTextContained(int position, char unmark_at_line_start = 0) const;
     int GetCellAttributes(int row, int column, tCellAttributes* attributes);
     //int GetCellAttributes(int row, int column,char *align, char *top, char *bottom, char *left, char *right);
     int SetCellAttributes(int row, int column, char align, char top, char bottom, char left, char right);

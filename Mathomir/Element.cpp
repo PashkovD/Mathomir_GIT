@@ -40,7 +40,7 @@ extern int MulLevel;
 extern int EqLevel;
 extern unsigned char OperatorLevelTable[256];
 #define GetOperatorLevel(x) ((int)OperatorLevelTable[(unsigned char)(x)])
-int CalculateText(CDC* DC, char* text, char* font, short* spacing, short TheFontSize, bool& IsHigh, bool& IsLow,
+int CalculateText(CDC* DC, const char* text, char* font, short* spacing, short TheFontSize, bool& IsHigh, bool& IsLow,
                   bool IsText, bool IsFirst, char VMods);
 int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, short TheFontSize, int IsBlue, int color,
               char isText, char VMods);
@@ -769,25 +769,25 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 {
                     E2_posX += -ActualSize / 20;
                     length += -ActualSize / 20;
-                    //ParentheseType=((CExpression*)(Base->m_pElementList->pElementObject->Expression1))->m_ParentheseHeightFactor;
+                    //ParentheseType=((CExpression*)(Base->m_pElementList[0].pElementObject->Expression1))->m_ParentheseHeightFactor;
                     DrawsParentheses = 1;
-                    if (Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '['
+                    if (Base->m_pElementList[0].pElementObject->Expression1->m_ParentheseShape == '['
                         ||
-                        Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '/')
+                        Base->m_pElementList[0].pElementObject->Expression1->m_ParentheseShape == '/')
                     {
                         E2_posX += ActualSize / 15;
                         length += ActualSize / 15;
                     }
-                    if (Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape == '{'
+                    if (Base->m_pElementList[0].pElementObject->Expression1->m_ParentheseShape == '{'
                         ||
-                        Base->m_pElementList->pElementObject->Expression1->m_ParentheseShape ==
+                        Base->m_pElementList[0].pElementObject->Expression1->m_ParentheseShape ==
                         '\\')
                     {
                         E2_posX -= ActualSize / 20;
                         length -= ActualSize / 20;
                     }
                 }
-                if (Base->m_pElementList->Type == 4 && Base->m_pElementList->pElementObject->Data1[0] == ' ')
+                if (Base->m_pElementList[0].Type == 4 && Base->m_pElementList[0].pElementObject->Data1[0] == ' ')
                 {
                     // a over b handling
                     ExponentPosYCorrection += ActualSize / 6;
@@ -809,14 +809,14 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             //take care about these special cases
             if (Expression1)
             {
-                short bt = Base->m_pElementList->Type;
+                short bt = Base->m_pElementList[0].Type;
                 if (Base->m_NumElements == 1 && Base->m_DrawParentheses == 0 &&
                     (bt == 1 || bt == 5))
                 {
                     //we found that there is only one element in the power base 
                     // and that this element is a variable or parenthese
                     // and that no parentheses are drawn at the base level
-                    CElement* BaseElement = Base->m_pElementList->pElementObject;
+                    CElement* BaseElement = Base->m_pElementList[0].pElementObject;
                     if ((BaseElement->Expression1 && bt == 1) ||
                         (BaseElement->Expression2 && bt == 5))
                     {
@@ -826,16 +826,16 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                         if (bt == 1)
                         {
                             int skew = 0;
-                            if (Base->m_pElementList->pElementObject->Data2[0] & 0x02) skew = ActualSize / 12;
-                            E2_posX = BaseElement->E1_posX + Base->m_pElementList->X_pos + skew + BaseElement->Expression1->m_pElementList->X_pos - Expression2->
-                                m_pElementList->X_pos;
+                            if (Base->m_pElementList[0].pElementObject->Data2[0] & 0x02) skew = ActualSize / 12;
+                            E2_posX = BaseElement->E1_posX + Base->m_pElementList[0].X_pos + skew + BaseElement->Expression1->m_pElementList[0].X_pos - Expression2->
+                                m_pElementList[0].X_pos;
                             MoveToRight = BaseElement->E1_length - E2_length - skew;
                             //
                         }
                         else
                         {
-                            E2_posX = BaseElement->E2_posX + Base->m_pElementList->X_pos;
-                            MoveToRight = BaseElement->E2_length + Base->m_pElementList->X_pos - E2_length;
+                            E2_posX = BaseElement->E2_posX + Base->m_pElementList[0].X_pos;
+                            MoveToRight = BaseElement->E2_length + Base->m_pElementList[0].X_pos - E2_length;
                             if (!HQR) MoveToRight -= Base->m_MarginX;
                         }
                         if (MoveToRight < 0) MoveToRight = 0;
@@ -875,7 +875,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                             Base->m_pElementList[0].pElementObject->Data1[0] == 0))
                     {
                         int elpos = 0;
-                        CElement* BaseElement = Base->m_pElementList->pElementObject;
+                        CElement* BaseElement = Base->m_pElementList[0].pElementObject;
                         if (Base->m_NumElements == 2 && Base->m_pElementList[0].Type == 1)
                         {
                             elpos = 1;
@@ -942,10 +942,10 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             //special handling - check if this is a d/d() operator
             CExpression *num=(CExpression*)Expression1;
             CExpression *denom=(CExpression*)Expression2;
-            if ((num) && (denom) && (num->m_pElementList->pElementObject))  
+            if ((num) && (denom) && (num->m_pElementList[0].pElementObject))  
             if ((num->m_NumElements==1) ||
-                ((num->m_NumElements==2) && (num->m_pElementList->Type==1) && (num->m_pElementList->pElementObject->Data1[0]==0) && ((num->m_pElementList+1)->Type==6)) ||
-                ((num->m_NumElements==2) && ((num->m_pElementList+1)->Type==1) && ((num->m_pElementList+1)->pElementObject->Data1[0]==0) && (num->m_pElementList->Type==6)) )
+                ((num->m_NumElements==2) && (num->m_pElementList[0].Type==1) && (num->m_pElementList[0].pElementObject->Data1[0]==0) && ((num->m_pElementList+1)->Type==6)) ||
+                ((num->m_NumElements==2) && ((num->m_pElementList+1)->Type==1) && ((num->m_pElementList+1)->pElementObject->Data1[0]==0) && (num->m_pElementList[0].Type==6)) )
             {
                 int elpos=0;
                 if ((num->m_NumElements>1) && ((num->m_pElementList+1)->Type==6)) elpos=1;
@@ -1034,7 +1034,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             //special handling for d/d() operator
             CExpression* num = Expression1;
             CExpression* denom = Expression2;
-            if (num && denom && num->m_pElementList->pElementObject)
+            if (num && denom && num->m_pElementList[0].pElementObject)
                 if (num->m_NumElements == 1 ||
                     (num->m_NumElements == 2 && num->m_pElementList[0].Type == 1 &&
                         num->m_pElementList[0].pElementObject->Data1[0] == 0 &&
@@ -1321,7 +1321,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                                 if ((Expression1->m_ParenthesesFlags & 0xFD) == 0)
                                 {
                                     if (Expression1->m_NumElements > 1 ||
-                                        Expression1->m_pElementList->Type != 5)
+                                        Expression1->m_pElementList[0].Type != 5)
                                     {
                                         length += ActualSize / 12;
                                         //the space is added at the end to distinct function argument
@@ -1577,7 +1577,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         {
             //handling argument
             Expression1->CalculateSize(&DC, zoom, E1_length, &E1_above, &E1_below, HQR);
-            if (Expression1->m_NumElements == 1 && Expression1->m_pElementList->Type
+            if (Expression1->m_NumElements == 1 && Expression1->m_pElementList[0].Type
                 == 0)
             {
                 E1_above = ActualSize / 3 + ActualSize / 20;
@@ -2808,14 +2808,14 @@ void CElement::Empty(char oper)
             if (oper == 4) //e^x
             {
                 Expression1->InsertEmptyElement(0, 1, 'e');
-                Expression1->m_pElementList->pElementObject->Data2[0] = 0x22; //italic, serif
+                Expression1->m_pElementList[0].pElementObject->Data2[0] = 0x22; //italic, serif
             }
             else if (oper == 5) //10^x
             {
                 Expression1->InsertEmptyElement(0, 1, '1');
-                strcpy_s(Expression1->m_pElementList->pElementObject->Data1, "10");
-                Expression1->m_pElementList->pElementObject->Data2[0] = 0x00;
-                Expression1->m_pElementList->pElementObject->Data2[0] = 0x00;
+                strcpy_s(Expression1->m_pElementList[0].pElementObject->Data1, "10");
+                Expression1->m_pElementList[0].pElementObject->Data2[0] = 0x00;
+                Expression1->m_pElementList[0].pElementObject->Data2[0] = 0x00;
             }
             else
             {
@@ -2863,9 +2863,9 @@ void CElement::Empty(char oper)
         if (Data1[0] == 2 || Data1[0] == 'd') //  d() /dx
         {
             Expression1->InsertEmptyElement(0, 6, func);
-            if (Expression1->m_pElementList->pElementObject)
+            if (Expression1->m_pElementList[0].pElementObject)
             {
-                CExpression* E2 = Expression1->m_pElementList->pElementObject->
+                CExpression* E2 = Expression1->m_pElementList[0].pElementObject->
                                                Expression1;
                 E2->m_ParenthesesFlags |= 0x1;
                 E2->m_FontSize = E2->m_FontSize * 10 / 9;
@@ -2876,12 +2876,12 @@ void CElement::Empty(char oper)
         {
             Expression1->InsertEmptyElement(0, 3, '2');
             Expression2->InsertEmptyElement(0, 3, '2');
-            if (Expression1->m_pElementList->pElementObject)
+            if (Expression1->m_pElementList[0].pElementObject)
             {
-                CExpression* E3 = Expression1->m_pElementList->pElementObject->
+                CExpression* E3 = Expression1->m_pElementList[0].pElementObject->
                                                Expression1;
                 E3->InsertEmptyElement(0, 6, func);
-                CExpression* E4 = Expression2->m_pElementList->pElementObject->
+                CExpression* E4 = Expression2->m_pElementList[0].pElementObject->
                                                Expression1;
                 E4->InsertEmptyElement(0, 6, func);
                 E4->m_ParenthesesFlags |= 0x01;
@@ -2891,14 +2891,14 @@ void CElement::Empty(char oper)
         {
             Expression1->InsertEmptyElement(0, 3, '2');
             Expression2->InsertEmptyElement(0, 3, '2');
-            if (Expression1->m_pElementList->pElementObject)
+            if (Expression1->m_pElementList[0].pElementObject)
             {
-                CExpression* E3 = Expression1->m_pElementList->pElementObject->
+                CExpression* E3 = Expression1->m_pElementList[0].pElementObject->
                                                Expression1;
                 E3->InsertEmptyElement(0, 6, func);
-                CExpression* E5 = E3->m_pElementList->pElementObject->Expression1;
+                CExpression* E5 = E3->m_pElementList[0].pElementObject->Expression1;
                 E5->m_ParenthesesFlags |= 0x01;
-                CExpression* E4 = Expression2->m_pElementList->pElementObject->
+                CExpression* E4 = Expression2->m_pElementList[0].pElementObject->
                                                Expression1;
                 E4->InsertEmptyElement(0, 6, func);
                 E4->m_ParenthesesFlags |= 0x01;
@@ -2985,9 +2985,9 @@ void CElement::Empty(char oper)
             strcpy_s(Data1, "log");
             Expression2 = new CExpression(this, m_pPaternalExpression, FontSizeForType(2));
             Expression2->InsertEmptyElement(0, 1, ' ');
-            strcpy_s(Expression2->m_pElementList->pElementObject->Data1, "10");
-            Expression2->m_pElementList->pElementObject->Data2[0] = 0;
-            Expression2->m_pElementList->pElementObject->Data2[1] = 0;
+            strcpy_s(Expression2->m_pElementList[0].pElementObject->Data1, "10");
+            Expression2->m_pElementList[0].pElementObject->Data2[0] = 0;
+            Expression2->m_pElementList[0].pElementObject->Data2[1] = 0;
         }
         if (oper == 19) strcpy_s(Data1, "log");
         if (oper == 20) strcpy_s(Data1, "rot");
@@ -3268,7 +3268,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
 {
     //special handling for the HTML link element (we will select the whole element so it can be clicked on it)
     if (this->m_Type == 9 && this->Data1[0] == 'H' && Expression2 == nullptr && Expression3 == nullptr && Expression1 &&
-        Expression1->m_pElementList->Type)
+        Expression1->m_pElementList[0].Type)
     {
         *IsExpression = 0;
         if (Expression1) Expression1->SelectExpression(1);
@@ -4372,14 +4372,14 @@ int CElement::MathML_output(char * output, int num_tabs, char only_calculate, ch
 	if (m_Type==3) //exponent (power) or
 	{
 		if ((Expression1) && (((CExpression*)Expression1)->m_NumElements==1) && 
-			(((CExpression*)Expression1)->m_pElementList->Type==6))
+			(((CExpression*)Expression1)->m_pElementList[0].Type==6))
 		{
 			//will not print exponent (this will be done when printing the function)
 			OUTPUT_EXPRESSION(Expression1);
 		}
 		else if ((Expression1) && (((CExpression*)Expression1)->m_NumElements==1) && 
-			(((CExpression*)Expression1)->m_pElementList->Type==1) && 
-			(((CExpression*)Expression1)->m_pElementList->pElementObject->Expression1))
+			(((CExpression*)Expression1)->m_pElementList[0].Type==1) && 
+			(((CExpression*)Expression1)->m_pElementList[0].pElementObject->Expression1))
 		{
 			//will not print the exponent (this will be done when printing variable)
 			OUTPUT_EXPRESSION(Expression1);
@@ -4436,18 +4436,18 @@ int CElement::MathML_output(char * output, int num_tabs, char only_calculate, ch
 		{
 			OUTPUT_EXPRESSION(Expression1);
 		}
-		if ((Expression2) && (((CExpression*)Expression2)->m_pElementList->Type) && 
-			(Expression3) && (((CExpression*)Expression3)->m_pElementList->Type))
+		if ((Expression2) && (((CExpression*)Expression2)->m_pElementList[0].Type) && 
+			(Expression3) && (((CExpression*)Expression3)->m_pElementList[0].Type))
 		{
 			OUTPUT((Data2[1])?"<msubsup>\r\n":"<munderover>\r\n");
 			str=(Data2[1])?"</msubsup>\r\n":"</munderover>\r\n";
 		}
-		else if ((Expression3) && (((CExpression*)Expression3)->m_pElementList->Type)) 
+		else if ((Expression3) && (((CExpression*)Expression3)->m_pElementList[0].Type)) 
 		{
 			OUTPUT((Data2[1])?"<msub>\r\n":"<munder>\r\n");
 			str=(Data2[1])?"</msub>\r\n":"</munder>\r\n";
 		}
-		else if ((Expression2) && (((CExpression*)Expression2)->m_pElementList->Type)) 
+		else if ((Expression2) && (((CExpression*)Expression2)->m_pElementList[0].Type)) 
 		{
 			OUTPUT((Data2[1])?"<msup>\r\n":"<mover>\r\n");
 			str=(Data2[1])?"</msup>\r\n":"</mover>\r\n";
@@ -4493,9 +4493,9 @@ int CElement::MathML_output(char * output, int num_tabs, char only_calculate, ch
 
 	if (m_Type==10)
 	{
-		if (((Expression1) && (((CExpression*)(Expression1))->m_pElementList->Type)) || 
-			((Expression2) && (((CExpression*)(Expression2))->m_pElementList->Type)) || 
-			((Expression3) && (((CExpression*)(Expression3))->m_pElementList->Type)))
+		if (((Expression1) && (((CExpression*)(Expression1))->m_pElementList[0].Type)) || 
+			((Expression2) && (((CExpression*)(Expression2))->m_pElementList[0].Type)) || 
+			((Expression3) && (((CExpression*)(Expression3))->m_pElementList[0].Type)))
 		{
 			strcpy(tmpstr,"<mfenced open=\"");
 			if (Data1[0]&0x01) strcat_s(tmpstr,"|\" close=\""); else strcat_s(tmpstr," \" close=\"");
@@ -4728,7 +4728,7 @@ void CElement::LaTeX_output(std::ostream& output) const
                     output << "} ";
                 if (this->Expression1)
                     if (this->Expression2 == nullptr &&
-                        this->Expression1->m_pElementList->Type == 1 &&
+                        this->Expression1->m_pElementList[0].Type == 1 &&
                         this->Expression1->m_DrawParentheses == 0 &&
                         !is_squared_function)
                         output << "\\, ";
@@ -4850,7 +4850,7 @@ void CElement::LaTeX_output(std::ostream& output) const
     if (m_Type == 3) //exponent (power) or
     {
         CExpression* p = this->Expression1;
-        if (p->m_pElementList->Type == 6 && p->m_NumElements == 1)
+        if (p->m_pElementList[0].Type == 6 && p->m_NumElements == 1)
         {
             //this is form of: func^2(x)
             Expression1->LaTeX_output(output);
@@ -4909,13 +4909,13 @@ void CElement::LaTeX_output(std::ostream& output) const
             output << (Data2[2]==2?"\\oiint ":"\\oint ");
         if (Data1[0] == '|')
             output << "\\mid ";
-        if (Expression3 && Expression3->m_pElementList->Type)
+        if (Expression3 && Expression3->m_pElementList[0].Type)
         {
             output << "_{";
             Expression3->LaTeX_output(output);
             output << "}";
         }
-        if (Expression2 && Expression2->m_pElementList->Type)
+        if (Expression2 && Expression2->m_pElementList[0].Type)
         {
             output << "^{";
             Expression2->LaTeX_output(output);
@@ -4930,7 +4930,7 @@ void CElement::LaTeX_output(std::ostream& output) const
 
     if (m_Type == 8) //root
     {
-        if (Expression2 && Expression2->m_NumElements && Expression2->m_pElementList->Type)
+        if (Expression2 && Expression2->m_NumElements && Expression2->m_pElementList[0].Type)
         {
             output << "\\sqrt[";
             Expression2->LaTeX_output(output);
