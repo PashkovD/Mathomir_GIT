@@ -25,6 +25,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MathomirDoc.h"
 #include "MathomirView.h"
 #include ".\MathomirView.h"
+
+#include <sstream>
+
 #include "Expression.h"
 #include "toolbox.h"
 #include "popupmenu.h"
@@ -3720,26 +3723,26 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                         AbsoluteX >= ds->absolute_X + 3 - fntsz / 6 && AbsoluteX <= ds->absolute_X + 3 + fntsz / 3
                         && ds->MovingDotState == 0)
                     {
-                        int is_multiline = 0;
-                        int is_text = 0;
+                        bool is_multiline = false;
+                        bool is_text = false;
                         CExpression* e = ds->Object.exp;
                         for (int ii = 0; ii < e->m_NumElements; ii++)
                             if ((e->m_pElementList + ii)->Type == 2 && (e->m_pElementList + ii)->pElementObject->
                                 Data1[0] == (char)0xFF)
                             {
-                                is_multiline = 1;
+                                is_multiline = true;
                                 break;
                             }
 
                         if ((e->m_NumElements > 1 || (e->m_pElementList->Type == 1 &&
                             strlen(e->m_pElementList->pElementObject->Data1) > 2)) && e->m_IsHeadline == 0 && e->
                             IsTextContained(0))
-                            is_text = 1;
+                            is_text = true;
 
                         if (is_multiline && e->m_Alignment != 1)
                         {
-                            is_multiline = 0;
-                            is_text = 0;
+                            is_multiline = false;
+                            is_text = false;
                         }
                         if (is_multiline || is_text)
                         {
@@ -3756,8 +3759,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                     (ds->MovingDotState != 5 || AccessLockedObjects))
                 {
                     char is_fully_inside = 0;
-                    if (AbsoluteX >= ds->absolute_X && AbsoluteX <= ds->absolute_X + ds->Length) is_fully_inside =
-                        1;
+                    if (AbsoluteX >= ds->absolute_X && AbsoluteX <= ds->absolute_X + ds->Length) is_fully_inside = 1;
 
                     if (ds->MovingDotState == 3)
                     {
@@ -3771,8 +3773,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                     if (ds->Type == DRAWING && ds->Object.v && ds->Object.draw->IsSpecialDrawing)
                     {
                         int NodeEdit;
-                        TouchedSubelement = ds->Object.draw->SelectObjectAtPoint(
-                            DC, ViewZoom, X, Y, &NodeEdit);
+                        TouchedSubelement = ds->Object.draw->SelectObjectAtPoint(DC, ViewZoom, X, Y, &NodeEdit);
                         if (NodeEdit < 0)
                         {
                             SpecialDrawingHover = ds;
@@ -3820,7 +3821,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                             }
 
                         if (NoNewSelections)
-                            TouchedSubelement = 0;
+                            TouchedSubelement = nullptr;
                         else
                         {
                             if (ds->Type == EXPRESSION && ClipboardDrawing == nullptr && (is_fully_inside || (!
@@ -3837,7 +3838,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                 {
                                     ds->Object.exp->SelectExpression(1);
                                 }
-                                if (ds->MovingDotState >= 2) ds->Object.exp->m_IsColumnInsertion = ds->Object.exp->m_IsRowInsertion = 0;
+                                if (ds->MovingDotState >= 2) ds->Object.exp->m_IsColumnInsertion = ds->Object.exp->m_IsRowInsertion = false;
 
                                 if (IsDrawingMode && !isCTRL)
                                 {
@@ -10663,22 +10664,16 @@ int CMathomirView::CopyLaTeXCode(CObject* expr)
 
     char* head = "";
     char* foot = "";
-    int len = 0;
-    len += (int)strlen(head);
-    len += ((CExpression*)expr)->LaTeX_output(nullptr, 1);
-    len += (int)strlen(foot);
+    std::ostringstream out;
+    out << head;
+    ((CExpression*)expr)->LaTeX_output(out);
+    out << foot;
+    size_t len = out.str().size();
 
     HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, len + 256);
     char* pnt = (char*)GlobalLock(mem);
 
-    strcpy(pnt, head);
-    pnt += strlen(head);
-    int tt = ((CExpression*)expr)->LaTeX_output(pnt, 0);
-    pnt += tt;
-    strcpy(pnt, foot);
-    pnt += strlen(foot);
-
-    *pnt = 0;
+    strcpy_s(pnt, len, out.str().c_str());
     GlobalUnlock(mem);
 
 
@@ -11277,40 +11272,30 @@ void CMathomirView::KeyboardSelectionPaste()
 #pragma optimize("s",on)
 void CMathomirView::OnEditCopylatexcode()
 {
-    char* head = "\\begin{array}{l}\r\n";
-    char* foot = "\r\n\\end{array}";
-    int len = 0;
-    //len+=(int)strlen(head);
-    for (int i = 0; i < NumDocumentElements; i++)
-    {
-        if ((TheDocument + i)->MovingDotState == 3 && (TheDocument + i)->Type == EXPRESSION)
-        {
-            len += (TheDocument + i)->Object.exp->LaTeX_output(nullptr, 1);
-            len += 6;
-        }
-    }
-    //len+=(int)strlen(foot);
-
-    HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, len + 256);
-    char* pnt = (char*)GlobalLock(mem);
+    // char* head = "\\begin{array}{l}\r\n";
+    // char* foot = "\r\n\\end{array}";
     //strcpy(pnt,head);pnt+=strlen(head);
+    std::ostringstream out;
     int start = 0;
     for (int i = 0; i < NumDocumentElements; i++)
     {
-        if ((TheDocument + i)->MovingDotState == 3 && (TheDocument + i)->Type == EXPRESSION)
+        if (TheDocument[i].MovingDotState == 3 && TheDocument[i].Type == EXPRESSION)
         {
             if (start)
             {
-                strcpy(pnt, "\\qquad \\\\\r\n\r\n");
-                pnt += 6;
+                out << "\\qquad \\\\\r\n\r\n";
             }
             start++;
-            int tt = (TheDocument + i)->Object.exp->LaTeX_output(pnt, 0);
-            pnt += tt;
+            TheDocument[i].Object.exp->LaTeX_output(out);
         }
     }
     //strcpy(pnt,foot);pnt+=strlen(foot);
-    *pnt = 0;
+
+    size_t len = out.str().size();
+    HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, len + 256);
+    char* pnt = (char*)GlobalLock(mem);
+    strcpy_s(pnt, len, out.str().c_str());
+    
     GlobalUnlock(mem);
 
 

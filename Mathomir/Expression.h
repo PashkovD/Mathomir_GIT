@@ -142,9 +142,9 @@ public:
     short m_MaxNumRows, m_MaxNumColumns;
     short m_MarginX, m_MarginY;
     short m_RowSelection, m_ColumnSelection;
-    char m_IsColumnInsertion;
-    char m_IsRowInsertion;
-    short m_IsMatrixElementSelected;
+    bool m_IsColumnInsertion;
+    bool m_IsRowInsertion;
+    bool m_IsMatrixElementSelected;
     char m_Alignment;
     char m_StartAsText; // defines if the box is to be started in text typing mode
     char m_IsVertical;
@@ -205,7 +205,7 @@ public:
     void XML_output(std::ostream &output, int num_tabs);
     char* XML_input(char* file);
     //int MathML_output(char * output, int num_tabs, char only_calculate,char output_type);
-    int LaTeX_output(char* output, char only_calculate) const;
+    void LaTeX_output(std::ostream& output) const;
 
     int CalcChecksum() const;
     CExpression* KeyboardFindEntryPos();

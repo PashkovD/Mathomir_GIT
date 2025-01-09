@@ -2508,9 +2508,9 @@ void CExpression::SelectExpression(char Select)
     m_Selection = Select ? 0x7FFF : 0;
     if (Select == 0)
         m_IsPointerHover = 0;
-    m_IsRowInsertion = 0;
-    m_IsColumnInsertion = 0;
-    m_IsMatrixElementSelected = 0;
+    m_IsRowInsertion = false;
+    m_IsColumnInsertion = false;
+    m_IsMatrixElementSelected = false;
     m_InternalInsertionPoint = 0;
 
     tElementStruct* theElement = m_pElementList;
@@ -2536,9 +2536,9 @@ void CExpression::DeselectExpressionExceptKeyboardSelection()
     if (!KeyboardEntryObject) DeselectExpression();
     m_ParenthesesSelected = 0;
     m_Selection = 0;
-    m_IsRowInsertion = 0;
-    m_IsColumnInsertion = 0;
-    m_IsMatrixElementSelected = 0;
+    m_IsRowInsertion = false;
+    m_IsColumnInsertion = false;
+    m_IsMatrixElementSelected = false;
     m_IsPointerHover = 0;
 
     tElementStruct* theElement = m_pElementList;
@@ -2567,9 +2567,9 @@ void CExpression::DeselectExpression()
 {
     m_ParenthesesSelected = 0;
     m_Selection = 0;
-    m_IsRowInsertion = 0;
-    m_IsColumnInsertion = 0;
-    m_IsMatrixElementSelected = 0;
+    m_IsRowInsertion = false;
+    m_IsColumnInsertion = false;
+    m_IsMatrixElementSelected = false;
     m_IsPointerHover = 0;
 
     tElementStruct* theElement = m_pElementList;
@@ -2606,8 +2606,8 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
 
     m_RowSelection = 0;
     m_ColumnSelection = 0;
-    m_IsRowInsertion = 0;
-    m_IsColumnInsertion = 0;
+    m_IsRowInsertion = false;
+    m_IsColumnInsertion = false;
 
     if (zoom < 5) zoom = 5;
     if (zoom > 5000) zoom = 5000;
@@ -2688,8 +2688,8 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                             {
                                 m_RowSelection = row;
                                 m_ColumnSelection = column;
-                                m_IsColumnInsertion = 1;
-                                m_IsRowInsertion = 0;
+                                m_IsColumnInsertion = true;
+                                m_IsRowInsertion = false;
                                 m_Selection = 0;
                                 *IsExpression = i + 1;
                                 return (CObject*)this;
@@ -2700,8 +2700,8 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                                 {
                                     m_RowSelection = row;
                                     m_ColumnSelection = column + 1;
-                                    m_IsColumnInsertion = 1;
-                                    m_IsRowInsertion = 0;
+                                    m_IsColumnInsertion = true;
+                                    m_IsRowInsertion = false;
                                     m_Selection = 0;
                                     *IsExpression = i + 1;
                                     return (CObject*)this;
@@ -2720,8 +2720,8 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                             {
                                 m_RowSelection = row + 1;
                                 m_ColumnSelection = column;
-                                m_IsColumnInsertion = 0;
-                                m_IsRowInsertion = 1;
+                                m_IsColumnInsertion = false;
+                                m_IsRowInsertion = true;
                                 m_Selection = 0;
                                 *IsExpression = i + 1;
                                 return (CObject*)this;
@@ -2735,7 +2735,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                                 m_RowSelection = row;
                                 m_ColumnSelection = column;
                                 m_IsColumnInsertion = 0;
-                                m_IsRowInsertion = 1;
+                                m_IsRowInsertion = true;
                                 m_Selection = 0;
                                 *IsExpression = i + 1;
                                 return (CObject*)this;
@@ -3384,7 +3384,7 @@ void CExpression::Delete()
     m_Selection = 0;
     m_ModeDefinedAt = 0;
     m_IsPointerHover = 0;
-    m_IsMatrixElementSelected = 0;
+    m_IsMatrixElementSelected = false;
 
     if (m_MatrixRows)
     {
@@ -3429,8 +3429,8 @@ void CExpression::Delete()
     m_KeyboardCursorPos = 0;
     m_RowSelection = 0;
     m_ColumnSelection = 0;
-    m_IsColumnInsertion = 0;
-    m_IsRowInsertion = 0;
+    m_IsColumnInsertion = false;
+    m_IsRowInsertion = false;
     m_Alignment = 0;
     m_MaxNumRows = 1;
     m_MaxNumColumns = 1;
@@ -3879,9 +3879,9 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
             for (i = 0; i < Original->m_MaxNumColumns; i++)
                 InsertMatrixColumn(expr->m_ColumnSelection);
 
-            expr->m_IsMatrixElementSelected = 1;
+            expr->m_IsMatrixElementSelected = true;
             first_found = expr->FindMatrixElement(expr->m_RowSelection, expr->m_ColumnSelection, 1);
-            if (first_found == -1) return 0;
+            if (first_found == -1) return nullptr;
             first_found_row = expr->m_RowSelection;
             first_found_column = expr->m_ColumnSelection;
         }
@@ -3892,9 +3892,9 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
             for (i = 0; i < Original->m_MaxNumRows; i++)
                 InsertMatrixRow(expr->m_RowSelection);
 
-            expr->m_IsMatrixElementSelected = 1;
+            expr->m_IsMatrixElementSelected = true;
             first_found = expr->FindMatrixElement(expr->m_RowSelection, expr->m_ColumnSelection, 1);
-            if (first_found == -1) return 0;
+            if (first_found == -1) return nullptr;
             first_found_row = expr->m_RowSelection;
             first_found_column = expr->m_ColumnSelection;
         }
@@ -5511,8 +5511,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 KeyboardEntryBaseObject->Object.exp->DeselectExpression();
 
             m_Selection = m_IsKeyboardEntry;
-            m_IsRowInsertion = 0;
-            m_IsColumnInsertion = 0;
+            m_IsRowInsertion = false;
+            m_IsColumnInsertion = false;
 
             int tmp = m_NumElements;
             if (tmp == 1 && m_pElementList[0].Type == 0) tmp = 0;
@@ -7068,7 +7068,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 //the ENTER key opens pop-up menu
                 TempPopupExpression = new CExpression(nullptr,nullptr, 100);
                 TempPopupExpression->CopyExpression(this, 0);
-                TempPopupExpression->m_IsMatrixElementSelected = 0;
+                TempPopupExpression->m_IsMatrixElementSelected = false;
                 TempPopupExpression->m_Selection = 0;
 
                 for (int ii = mi; ii <= mx; ii++)
@@ -13185,18 +13185,8 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 */
 
 #pragma optimize("s",on)
-int CExpression::LaTeX_output(char* output, char only_calculate) const
+void CExpression::LaTeX_output(std::ostream& output) const
 {
-    int len = 0;
-    static char tmpstr[136];
-    char* tabs = "";
-    char output_type = 3;
-    int num_tabs = 0;
-    //static char tabs[17];
-    //if (num_tabs>16) num_tabs=16;
-
-    //memset(tabs,9,num_tabs);tabs[num_tabs]=0; //generating the tablist string
-
     /*if ((m_Color>-1) && (m_Color<=4))
     {
         //color of the expression - if m_Color==-1, then the color is inherited or default
@@ -13205,43 +13195,29 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
     if (m_DrawParentheses && (m_ParenthesesFlags & 0x04) == 0) //parentheses (not horizontal)
     {
         //handling parentheses (horizontal parentheses not currently supported)
-        char tmp1[48];
-        tmp1[0] = 0;
-
-        strcpy_s(tmpstr, tabs);
-        if (m_ParenthesesFlags & 0x08) strcpy_s(tmp1, "\\left. ");
+        if (m_ParenthesesFlags & 0x08) output << "\\left. ";
         else
         {
-            if (m_ParentheseShape == '(') { strcpy_s(tmp1, "\\left( "); }
-            if (m_ParentheseShape == '[') { strcpy_s(tmp1, "\\left[ "); }
-            if (m_ParentheseShape == '{') { strcpy_s(tmp1, "\\left\\{ "); }
-            if (m_ParentheseShape == '|') { strcpy_s(tmp1, "\\left| "); }
-            if (m_ParentheseShape == '/') { strcpy_s(tmp1, "\\left/ "); }
-            if (m_ParentheseShape == '\\') { strcpy_s(tmp1, "\\left| \\left| "); }
-            if (m_ParentheseShape == '<') { strcpy_s(tmp1, "\\left< "); }
-            if (m_ParentheseShape == 'r') { strcpy_s(tmp1, "\\left[ "); }
-            if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\left( "); }
-            if (m_ParentheseShape == 'a') { strcpy_s(tmp1, "\\left< "); }
-            if (m_ParentheseShape == 'k') { strcpy_s(tmp1, "\\left| "); }
-            if (m_ParentheseShape == 'b') { strcpy_s(tmp1, "\\left[ "); } //boxing???
-            if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\left[ "); } //strikeout???
-        }
-        strcat_s(tmpstr, tmp1);
-        {
-            int tt = (int)strlen(tmpstr);
-            len += tt;
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += tt;
-            }
+            if (m_ParentheseShape == '(') { output << "\\left( "; }
+            else if (m_ParentheseShape == '[') { output << "\\left[ "; }
+            else if (m_ParentheseShape == '{') { output << "\\left\\{ "; }
+            else if (m_ParentheseShape == '|') { output << "\\left| "; }
+            else if (m_ParentheseShape == '/') { output << "\\left/ "; }
+            else if (m_ParentheseShape == '\\') { output << "\\left| \\left| "; }
+            else if (m_ParentheseShape == '<') { output << "\\left< "; }
+            else if (m_ParentheseShape == 'r') { output << "\\left[ "; }
+            else if (m_ParentheseShape == 'l') { output << "\\left( "; }
+            else if (m_ParentheseShape == 'a') { output << "\\left< "; }
+            else if (m_ParentheseShape == 'k') { output << "\\left| "; }
+            else if (m_ParentheseShape == 'b') { output << "\\left[ "; } //boxing???
+            else if (m_ParentheseShape == 'l') { output << "\\left[ "; } //strikeout???
         }
     }
 
 
     //the main loop - parsing the expression at the level of matrix
     int pos = 0;
-    int is_table = 0;
+    bool is_table = false;
     while (true)
     {
         char et, p;
@@ -13252,7 +13228,8 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             //handling if there is matrix
             if (pos == 0)
             {
-                is_table = 1;
+                char tmpstr[136];
+                is_table = true;
                 strcpy_s(tmpstr, "\\begin{array}{");
 
                 for (int ii = 0; ii < this->m_MaxNumColumns; ii++)
@@ -13263,41 +13240,15 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
                 }
 
                 strcat_s(tmpstr, "}");
-                {
-                    int tt = (int)strlen(tmpstr);
-                    len += tt;
-                    if (!only_calculate)
-                    {
-                        strcpy(output, tmpstr);
-                        output += tt;
-                    }
-                }
+                output << tmpstr;
             }
             else if (et == 0xFE)
             {
-                strcpy_s(tmpstr, "\\\\\r\n");
-                {
-                    size_t tt = strlen(tmpstr);
-                    len += tt;
-                    if (!only_calculate)
-                    {
-                        strcpy(output, tmpstr);
-                        output += tt;
-                    }
-                }
+                output <<  "\\\\\r\n";
             }
             else
             {
-                strcpy_s(tmpstr, " & ");
-                {
-                    size_t tt = strlen(tmpstr);
-                    len += tt;
-                    if (!only_calculate)
-                    {
-                        strcpy(output, tmpstr);
-                        output += tt;
-                    }
-                }
+                output << " & ";
             }
         }
 
@@ -13315,62 +13266,25 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             {
                 if (last_decor / 1024)
                 {
-                    strcpy_s(tmpstr, "}");
-                    {
-                        size_t tt = strlen(tmpstr);
-                        len += tt;
-                        if (!only_calculate)
-                        {
-                            strcpy(output, tmpstr);
-                            output += tt;
-                        }
-                    }
+                    output << "}";
                 }
                 if ((last_decor & 0x3FF) / 32)
                 {
-                    strcpy_s(tmpstr, "}");
-                    {
-                        size_t tt = strlen(tmpstr);
-                        len += tt;
-                        if (!only_calculate)
-                        {
-                            strcpy(output, tmpstr);
-                            output += tt;
-                        }
-                    }
+                    output << "}";
                 }
                 if (last_decor % 32 && last_decor2 != (curd & 0x1F))
                 {
-                    strcpy_s(tmpstr, "}");
-                    {
-                        size_t tt = strlen(tmpstr);
-                        len += tt;
-                        if (!only_calculate)
-                        {
-                            strcpy(output, tmpstr);
-                            output += tt;
-                        }
-                    }
+                    output << "}";
                 }
 
                 if (curd % 32 && last_decor2 != (curd & 0x1F))
                 {
                     int mc = m_pElementList[k].Decoration;
-                    if (mc == 1) strcpy_s(tmpstr, "\\underline{"); //strikeout
-                    else if (mc == 2) strcpy_s(tmpstr, "\\underline{"); //encircled
-                    else if (mc == 3) strcpy_s(tmpstr, "\\underline{"); // underline
-                    else if (mc == 4) strcpy_s(tmpstr, "\\overline{"); //overline
-                    else if (mc == 5) strcpy_s(tmpstr, "\\underbrace{"); //overline
-
-                    {
-                        size_t tt = strlen(tmpstr);
-                        len += tt;
-                        if (!only_calculate)
-                        {
-                            strcpy(output, tmpstr);
-                            output += tt;
-                        }
-                    }
+                    if (mc == 1) output << "\\underline{"; //strikeout
+                    else if (mc == 2) output << "\\underline{"; //encircled
+                    else if (mc == 3) output << "\\underline{"; // underline
+                    else if (mc == 4) output << "\\overline{"; //overline
+                    else if (mc == 5) output << "\\underbrace{"; //overline
                 }
                 /*if ((curd&0x3FF)/32)
                 {
@@ -13386,16 +13300,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
 
                 if (curd / 1024)
                 {
-                    strcpy_s(tmpstr, "\\text{");
-                    {
-                        size_t tt = strlen(tmpstr);
-                        len += tt;
-                        if (!only_calculate)
-                        {
-                            strcpy(output, tmpstr);
-                            output += tt;
-                        }
-                    }
+                    output << "\\text{";
                 }
                 last_decor2 = curd & 0x1F;
                 last_decor = curd;
@@ -13404,65 +13309,24 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
             {
                 if (m_pElementList[k].Type == 1 && m_pElementList[k].pElementObject->m_Text)
                 {
-                    strcpy_s(tmpstr, m_pElementList[k].pElementObject->Data1);
-                    strcat_s(tmpstr, " ");
-                    {
-                        size_t tt = strlen(tmpstr);
-                        len += tt;
-                        if (!only_calculate)
-                        {
-                            strcpy(output, tmpstr);
-                            output += tt;
-                        }
-                    }
+                    output << m_pElementList[k].pElementObject->Data1 << " ";
                 }
                 else
-                {
-                    int tt = m_pElementList[k].pElementObject->LaTeX_output(output, only_calculate);
-                    len += tt;
-                    if (!only_calculate) output += tt;
-                }
+                    m_pElementList[k].pElementObject->LaTeX_output(output);
                 prev_type = m_pElementList[k].Type;
             }
         }
         if (last_decor / 1024)
         {
-            strcpy_s(tmpstr, "}");
-            {
-                size_t tt = strlen(tmpstr);
-                len += tt;
-                if (!only_calculate)
-                {
-                    strcpy(output, tmpstr);
-                    output += tt;
-                }
-            }
+            output << "}";
         }
         if ((last_decor & 0x3FF) / 32)
         {
-            strcpy_s(tmpstr, "}");
-            {
-                size_t tt = strlen(tmpstr);
-                len += tt;
-                if (!only_calculate)
-                {
-                    strcpy(output, tmpstr);
-                    output += tt;
-                }
-            }
+            output << "}";
         }
         if (last_decor % 32)
         {
-            strcpy_s(tmpstr, "}");
-            {
-                size_t tt = strlen(tmpstr);
-                len += tt;
-                if (!only_calculate)
-                {
-                    strcpy(output, tmpstr);
-                    output += tt;
-                }
-            }
+            output << "}";
         }
 
         pos += l;
@@ -13470,16 +13334,7 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
         {
             if (is_table)
             {
-                strcpy_s(tmpstr, "\\end{array} ");
-                {
-                    size_t tt = strlen(tmpstr);
-                    len += tt;
-                    if (!only_calculate)
-                    {
-                        strcpy(output, tmpstr);
-                        output += tt;
-                    }
-                }
+                output << "\\end{array} ";
             }
             break;
         }
@@ -13489,47 +13344,24 @@ int CExpression::LaTeX_output(char* output, char only_calculate) const
     if (m_DrawParentheses && (m_ParenthesesFlags & 0x04) == 0) //parentheses (not horizontal)
     {
         //handling parentheses (horizontal parentheses not currently supported)
-        char tmp1[48];
-        tmp1[0] = 0;
-
-        strcpy_s(tmpstr, tabs);
-        if (m_ParenthesesFlags & 0x10) strcpy_s(tmp1, "\\right. ");
+        if (m_ParenthesesFlags & 0x10) output << "\\right. ";
         else
         {
-            if (m_ParentheseShape == '(') { strcpy_s(tmp1, "\\right) "); }
-            if (m_ParentheseShape == '[') { strcpy_s(tmp1, "\\right] "); }
-            if (m_ParentheseShape == '{') { strcpy_s(tmp1, "\\right\\} "); }
-            if (m_ParentheseShape == '|') { strcpy_s(tmp1, "\\right| "); }
-            if (m_ParentheseShape == '/') { strcpy_s(tmp1, "\\right/ "); }
-            if (m_ParentheseShape == '\\') { strcpy_s(tmp1, "\\right| \\right| "); }
-            if (m_ParentheseShape == '<') { strcpy_s(tmp1, "\\right> "); }
-            if (m_ParentheseShape == 'r') { strcpy_s(tmp1, "\\right) "); }
-            if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\right] "); }
-            if (m_ParentheseShape == 'a') { strcpy_s(tmp1, "\\right| "); }
-            if (m_ParentheseShape == 'k') { strcpy_s(tmp1, "\\right> "); }
-            if (m_ParentheseShape == 'b') { strcpy_s(tmp1, "\\right] "); } //boxing???
-            if (m_ParentheseShape == 'l') { strcpy_s(tmp1, "\\right] "); } //strikeout???
-        }
-        strcat_s(tmpstr, tmp1);
-        {
-            size_t tt = strlen(tmpstr);
-            len += tt;
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += tt;
-            }
+            if (m_ParentheseShape == '(') { output << "\\right) "; }
+            if (m_ParentheseShape == '[') { output << "\\right] "; }
+            if (m_ParentheseShape == '{') { output << "\\right\\} "; }
+            if (m_ParentheseShape == '|') { output << "\\right| "; }
+            if (m_ParentheseShape == '/') { output << "\\right/ "; }
+            if (m_ParentheseShape == '\\'){ output << "\\right| \\right| "; }
+            if (m_ParentheseShape == '<') { output << "\\right> "; }
+            if (m_ParentheseShape == 'r') { output << "\\right) "; }
+            if (m_ParentheseShape == 'l') { output << "\\right] "; }
+            if (m_ParentheseShape == 'a') { output << "\\right| "; }
+            if (m_ParentheseShape == 'k') { output << "\\right> "; }
+            if (m_ParentheseShape == 'b') { output << "\\right] "; } //boxing???
+            if (m_ParentheseShape == 'l') { output << "\\right] "; } //strikeout???
         }
     }
-
-    /*if ((m_Color>-1) && (m_Color<=4))
-    {
-        strcpy(tmpstr,tabs);
-        strcat_s(tmpstr,"</mstyle>\r\n");
-        {int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
-    }*/
-
-    return len;
 }
 
 // tests if the given character is high or not (heght above baseline)
@@ -14482,7 +14314,7 @@ int CExpression::IsTextContained(int position, char unmark_at_line_start)
 int CExpression::SelectMatrixElement(int row, int column, char select_type)
 {
     int r = 0, c = 0;
-    int found_anything = 0;
+    bool found_anything = false;
     m_InternalInsertionPoint = 0;
     for (int i = 0; i < m_NumElements; i++)
     {
@@ -14496,8 +14328,8 @@ int CExpression::SelectMatrixElement(int row, int column, char select_type)
 
         if (r == row && c == column)
         {
-            found_anything = 1;
-            m_IsMatrixElementSelected = 1;
+            found_anything = true;
+            m_IsMatrixElementSelected = true;
             if (ts.Type != 12 && ts.Type != 11)
             {
                 SelectElement(select_type, i);

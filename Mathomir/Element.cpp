@@ -4122,43 +4122,6 @@ int CElement::CalcChecksum() const
 }
 
 
-//two helper functions and macros for mathml output
-#define OUTPUT(x) len+=MakeOutput(&output,tabs,only_calculate,x)
-#pragma optimize("s",on)
-int MakeOutput(char** output, char* tabs, char only_calculate, const char* text1)
-{
-    char tmpstr[136];
-    strcpy_s(tmpstr, tabs);
-    strcat_s(tmpstr, text1);
-    int tt = (int)strlen(tmpstr);
-    if (!only_calculate)
-    {
-        strcpy(*output, tmpstr);
-        *output += tt;
-    }
-    return tt;
-}
-
-
-#define OUTPUT_EXPRESSION(x) len+=MakeExpressionOutput(&output,&tabs,num_tabs,only_calculate,output_type,x)
-#pragma optimize("s",on)
-int MakeExpressionOutput(char** output, char** tabs, int num_tabs, char only_calculate, char output_type,
-                         const CExpression* expression)
-{
-    if (expression == nullptr) return 0;
-    if (expression->m_pElementList->Type == 0) return 0;
-    int tt;
-    if (output_type == 3)
-        tt = expression->LaTeX_output(*output, only_calculate);
-    else
-    {
-        //tt=((CExpression*)(expression))->MathML_output(*output,num_tabs+1,only_calculate,output_type);
-        //memset(*tabs,9,num_tabs);*(*tabs+num_tabs)=0; //generating the tablist string
-    }
-    if (!only_calculate) *output += tt;
-    return tt;
-}
-
 /*
 #pragma optimize("s",on)
 int CElement::MathML_output(char * output, int num_tabs, char only_calculate, char output_type)
@@ -4561,106 +4524,92 @@ int CElement::MathML_output(char * output, int num_tabs, char only_calculate, ch
 
 
 #pragma optimize("s",on)
-int CElement::LaTeX_output(char* output, char only_calculate) const
+void CElement::LaTeX_output(std::ostream& output) const
 {
-    char output_type = 3;
-    int num_tabs = 0;
-    int len = 0;
-    char* tabs = "";
-
-    static char tmpstr[136]; //we are using this functin recursivley, so take care not to use too much memory
-    /*static char tabs2[17];
-    char *tabs=&tabs2[0];
-    if (num_tabs>16) num_tabs=16;
-
-    memset(tabs,9,num_tabs);tabs[num_tabs]=0; //generating the tablist string
-    */
-
+    bool only_calculate = false;
     if (m_Type == 1 || m_Type == 6) //variable or function
     {
-        int is_squared_function = 0;
+        bool is_squared_function = false;
         if (m_Type == 6)
         {
             CExpression* p = this->m_pPaternalExpression;
             if (p->m_pPaternalElement && p->m_pPaternalElement->m_Type == 3 &&
                 p == p->m_pPaternalElement->Expression1 && p->m_NumElements == 1)
-                is_squared_function = 1;
+                is_squared_function = true;
         }
         if (m_VMods) //decorations (hat, dash, arrow, dot...)
         {
             //handling for over-decoration (arrow, dash,kappa)
             if (m_VMods == 0x04)
-                OUTPUT("\\bar{");
-            if (m_VMods == 0x08)
-                OUTPUT("\\vec{");
-            if (m_VMods == 0x0C)
-                OUTPUT("\\hat{");
-            if (m_VMods == 0x14)
-                OUTPUT("\\dot{");
-            if (m_VMods == 0x18)
-                OUTPUT("\\ddot{");
-            if (m_VMods == 0x1C)
-                OUTPUT("\\check{");
-            if (m_VMods == 0x20)
-                OUTPUT("\\dddot{");
-            if (m_VMods == 0x24)
-                OUTPUT("\\tilde{");
+                output << "\\bar{";
+            else if (m_VMods == 0x08)
+                output << "\\vec{";
+            else if (m_VMods == 0x0C)
+                output << "\\hat{";
+            else if (m_VMods == 0x14)
+                output << "\\dot{";
+            else if (m_VMods == 0x18)
+                output << "\\ddot{";
+            else if (m_VMods == 0x1C)
+                output << "\\check{";
+            else if (m_VMods == 0x20)
+                output << "\\dddot{";
+            else if (m_VMods == 0x24)
+                output << "\\tilde{";
         }
         char fnt = Data2[0] & 0xE0;
 
         if (Data2[0] != (char)0xE3 && fnt != 0x60)
             if ((Data2[0] & 0x03) == 1 || (Data2[0] & 0x03) == 3) //bold or bold-italic
-                OUTPUT("\\mathbf{");
+                output << "\\mathbf{";
 
         int function_def = 0;
 
         if (fnt == 0x40) //monospaced font - as script
-            OUTPUT("\\mathtt{");
+            output << "\\mathtt{";
         else if (m_Type == 6)
         {
             function_def = 1;
             if (strcmp(Data1, "sin") == 0)
-                OUTPUT("\\sin ");
+                output << "\\sin ";
             else if (strcmp(Data1, "cos") == 0)
-                OUTPUT("\\cos ");
+                output << "\\cos ";
             else if (strcmp(Data1, "arccos") == 0)
-                OUTPUT("\\arccos ");
+                output << "\\arccos ";
             else if (strcmp(Data1, "arcsin") == 0)
-                OUTPUT("\\arcsin ");
+                output << "\\arcsin ";
             else if (strcmp(Data1, "cot") == 0)
-                OUTPUT("\\cot ");
+                output << "\\cot ";
             else if (strcmp(Data1, "arctan") == 0)
-                OUTPUT("\\arctan ");
+                output << "\\arctan ";
             else if (strcmp(Data1, "arg") == 0)
-                OUTPUT("\\arg ");
+                output << "\\arg ";
             else if (strcmp(Data1, "exp") == 0)
-                OUTPUT("\\exp ");
+                output << "\\exp ";
             else if (strcmp(Data1, "sec") == 0)
-                OUTPUT("\\sec ");
+                output << "\\sec ";
             else if (strcmp(Data1, "csc") == 0)
-                OUTPUT("\\csc ");
+                output << "\\csc ";
             else if (strcmp(Data1, "lim") == 0)
-                OUTPUT("\\lim ");
+                output << "\\lim ";
             else if (strcmp(Data1, "ln") == 0)
-                OUTPUT("\\ln ");
+                output << "\\ln ";
             else if (strcmp(Data1, "log") == 0)
-                OUTPUT("\\log ");
+                output << "\\log ";
             else if (strcmp(Data1, "tan") == 0)
-                OUTPUT("\\tan ");
-            else if (strcmp(Data1, "log") == 0)
-                OUTPUT("\\log ");
+                output << "\\tan ";
             else if (strcmp(Data1, "min") == 0)
-                OUTPUT("\\min ");
+                output << "\\min ";
             else if (strcmp(Data1, "max") == 0)
-                OUTPUT("\\max ");
+                output << "\\max ";
             else if (Data1[0] == (char)0xB6 && fnt == 0x60)
-                OUTPUT("\\partial ");
+                output << "\\partial ";
             else
             {
                 if (fnt == 0x60)
-                    OUTPUT("\\, ");
+                    output << "\\, ";
                 else
-                    OUTPUT("\\, \\mathrm{");
+                    output << "\\, \\mathrm{";
                 function_def = 0;
             }
         }
@@ -4670,13 +4619,13 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
             if (fnt == (char)0xE0)
             {
                 if (Data1[0] == 'H')
-                    OUTPUT("\\cdots ");
+                    output << "\\cdots ";
                 if (Data1[0] == 'V')
-                    OUTPUT("\\vdots ");
+                    output << "\\vdots ";
                 if (Data1[0] == 'A')
-                    OUTPUT("\\ddots ");
+                    output << "\\ddots ";
                 if (Data1[0] == 'U')
-                    OUTPUT("\\ddots ");
+                    output << "\\ddots ";
             }
             else if (fnt == 0x60)
             {
@@ -4687,13 +4636,13 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
                     char c = Data1[ii];
                     if (c == '\'')
                     {
-                        OUTPUT("'");
+                        output << "'";
                         ii++;
                         continue;
                     }
                     if (c == '*')
                     {
-                        OUTPUT("^{*}");
+                        output << "^{*}";
                         ii++;
                         continue;
                     }
@@ -4702,7 +4651,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
                         char bf[8];
                         bf[0] = c;
                         bf[1] = 0;
-                        OUTPUT(bf);
+                        output << bf;
                         ii++;
                         continue;
                     }
@@ -4752,7 +4701,7 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
                     strcat_s(bff, str.c_str());
                     strcat_s(bff, " ");
                     if (!lower) bff[1] -= 32;
-                    OUTPUT(bff);
+                    output << bff;
                     ii++;
                 }
             }
@@ -4763,41 +4712,44 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
                     char bff[32];
                     strcpy_s(bff, Data1);
                     bff[strlen(bff) - 1] = 0;
-                    OUTPUT(bff);
-                    OUTPUT("^{*}");
+                    output << bff;
+                    output << "^{*}";
                 }
                 else
-                    OUTPUT(Data1);
-                OUTPUT(" ");
+                    output << Data1;
+                output << " ";
             }
 
             if (fnt == 0x40)
-                OUTPUT("}");
+                output << "}";
             else if (m_Type == 6)
             {
                 if (fnt != 0x60)
-                    OUTPUT("} ");
+                    output << "} ";
                 if (this->Expression1)
                     if (this->Expression2 == nullptr &&
                         this->Expression1->m_pElementList->Type == 1 &&
                         this->Expression1->m_DrawParentheses == 0 &&
                         !is_squared_function)
-                        OUTPUT("\\, ");
+                        output << "\\, ";
             }
         }
 
         if (Data2[0] != (char)0xE3 && fnt != 0x60)
             if ((Data2[0] & 0x03) == 1 || (Data2[0] & 0x03) == 3)
-                OUTPUT("}");
+                output << "}";
 
         if (m_VMods)
-            OUTPUT("}"); //close if there was some decorations
+            output << "}";
 
         if ((Expression1 && m_Type == 1) || (Expression2 && m_Type == 6))
         {
-            OUTPUT("_{");
-            OUTPUT_EXPRESSION(m_Type==1?Expression1:Expression2);
-            OUTPUT("}");
+            output << "_{";
+            if (m_Type == 1)
+                Expression1->LaTeX_output(output);
+            else
+                Expression2->LaTeX_output(output);
+            output << "}";
         }
 
         if (m_Type == 6)
@@ -4805,18 +4757,18 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
             if (is_squared_function)
             {
                 //this is form of: func^2(x)
-                OUTPUT("^{");
-                OUTPUT_EXPRESSION(this->m_pPaternalExpression->m_pPaternalElement->Expression2);
-                OUTPUT("} ");
+                output << "^{";
+                this->m_pPaternalExpression->m_pPaternalElement->Expression2->LaTeX_output(output);
+                output << "} ";
             }
-            OUTPUT_EXPRESSION(Expression1);
-            OUTPUT(" \\, ");
+            Expression1->LaTeX_output(output);
+            output << " \\, ";
         }
     }
 
     if (m_Type == 2) //operator
     {
-        std::string str = "";
+        std::string str;
         char fb = Data1[0];
         if (fb == (char)0xD7) str = "\\cdot";
         if (fb == (char)0xB1) str = "\\pm";
@@ -4887,12 +4839,11 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
             char bff[5];
             bff[0] = Data1[0];
             bff[1] = 0;
-            OUTPUT(bff);
+            output << bff;
         }
         else
         {
-            OUTPUT(str.c_str());
-            OUTPUT(" ");
+            output << str << " ";
         }
     }
 
@@ -4902,40 +4853,40 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
         if (p->m_pElementList->Type == 6 && p->m_NumElements == 1)
         {
             //this is form of: func^2(x)
-            OUTPUT_EXPRESSION(Expression1);
+            Expression1->LaTeX_output(output);
         }
         else
         {
-            OUTPUT("{");
-            OUTPUT_EXPRESSION(Expression1);
-            OUTPUT("}^{");
-            OUTPUT_EXPRESSION(Expression2);
-            OUTPUT("}");
+            output << "{";
+            Expression1->LaTeX_output(output);
+            output << "}^{";
+            Expression2->LaTeX_output(output);
+            output << "}";
         }
     }
 
     if (m_Type == 4) //fraction
     {
         if (Data1[0] == ' ')
-            OUTPUT("\\binom{");
+            output << "\\binom{";
         else
-            OUTPUT("\\frac{");
-        OUTPUT_EXPRESSION(Expression1);
-        OUTPUT("}{");
-        OUTPUT_EXPRESSION(Expression2);
-        OUTPUT("}");
+            output << "\\frac{";
+        Expression1->LaTeX_output(output);
+        output << "}{";
+        Expression2->LaTeX_output(output);
+        output << "}";
     }
 
     if (m_Type == 5) //parentheses
     {
-        OUTPUT("{");
-        OUTPUT_EXPRESSION(Expression1);
-        OUTPUT("}");
+        output << "{";
+        Expression1->LaTeX_output(output);
+        output << "}";
         if (Expression2)
         {
-            OUTPUT("_{");
-            OUTPUT_EXPRESSION(Expression2);
-            OUTPUT("}");
+            output << "_{";
+            Expression2->LaTeX_output(output);
+            output << "}";
         }
     }
 
@@ -4944,90 +4895,87 @@ int CElement::LaTeX_output(char* output, char only_calculate) const
         if (Data1[0] == '/')
         {
             //TODO provjeriti ovo - kako se radi right bar sa limitima
-            OUTPUT("\\ ");
-            OUTPUT_EXPRESSION(Expression1);
-            OUTPUT("\\mid ");
+            output << "\\ ";
+            Expression1->LaTeX_output(output);
+            output << "\\mid ";
         }
         if (Data1[0] == 'S')
-            OUTPUT("\\sum ");
+            output << "\\sum ";
         if (Data1[0] == 'P')
-            OUTPUT("\\prod ");
+            output << "\\prod ";
         if (Data1[0] == 'I')
-            OUTPUT(Data2[2]==3?"\\iiint ":Data2[2]==2?"\\iint ":"\\int ");
+            output << (Data2[2]==3?"\\iiint ":Data2[2]==2?"\\iint ":"\\int ");
         if (Data1[0] == 'O')
-            OUTPUT(Data2[2]==2?"\\oiint ":"\\oint ");
+            output << (Data2[2]==2?"\\oiint ":"\\oint ");
         if (Data1[0] == '|')
-            OUTPUT("\\mid "); //????? vertical line????
+            output << "\\mid ";
         if (Expression3 && Expression3->m_pElementList->Type)
         {
-            OUTPUT("_{");
-            OUTPUT_EXPRESSION(Expression3);
-            OUTPUT("}");
+            output << "_{";
+            Expression3->LaTeX_output(output);
+            output << "}";
         }
         if (Expression2 && Expression2->m_pElementList->Type)
         {
-            OUTPUT("^{");
-            OUTPUT_EXPRESSION(Expression2);
-            OUTPUT("}");
+            output << "^{";
+            Expression2->LaTeX_output(output);
+            output << "}";
         }
         if (Data1[0] != '/')
         {
-            OUTPUT_EXPRESSION(Expression1);
+            Expression1->LaTeX_output(output);
         }
-        OUTPUT("\\; ");
+        output << "\\; ";
     }
 
     if (m_Type == 8) //root
     {
-        CExpression* e = Expression2;
-        if (e && e->m_NumElements && e->m_pElementList->Type)
+        if (Expression2 && Expression2->m_NumElements && Expression2->m_pElementList->Type)
         {
-            OUTPUT("\\sqrt[");
-            OUTPUT_EXPRESSION(Expression2);
-            OUTPUT("]{");
-            OUTPUT_EXPRESSION(Expression1);
-            OUTPUT("}");
+            output << "\\sqrt[";
+            Expression2->LaTeX_output(output);
+            output << "]{";
+            Expression1->LaTeX_output(output);
+            output << "}";
         }
         else
         {
-            OUTPUT("\\sqrt{");
-            OUTPUT_EXPRESSION(Expression1);
-            OUTPUT("}");
+            output << "\\sqrt{";
+            Expression1->LaTeX_output(output);
+            output << "}";
         }
     }
 
 
     if (m_Type == 9) //condition list
     {
-        OUTPUT_EXPRESSION(Expression1);
-        OUTPUT("\\left| ");
-        OUTPUT("\\begin{array}{c}\r\n");
-        OUTPUT_EXPRESSION(Expression2);
-        OUTPUT("\\\\\r\n");
-        OUTPUT_EXPRESSION(Expression3);
-        OUTPUT("\\end{array} \\right. \r\n");
+        Expression1->LaTeX_output(output);
+        output << "\\left| ";
+        output << "\\begin{array}{c}\r\n";
+        Expression2->LaTeX_output(output);
+        output << "\\\\\r\n";
+        Expression3->LaTeX_output(output);
+        output << "\\end{array} \\right. \r\n";
     }
 
     if (m_Type == 10)
     {
         if (Data1[0] & 0x01)
-            OUTPUT("\\left| ");
+            output << "\\left| ";
         else
-            OUTPUT("\\left. ");
-        OUTPUT("\\begin{array}{c}\r\n");
-        OUTPUT_EXPRESSION(Expression1);
-        OUTPUT("\\\\\r\n");
-        OUTPUT_EXPRESSION(Expression2);
-        OUTPUT("\\\\\r\n");
-        OUTPUT_EXPRESSION(Expression3);
-        OUTPUT("\\end{array}\r\n");
+            output << "\\left. ";
+        output << "\\begin{array}{c}\r\n";
+        Expression1->LaTeX_output(output);
+        output << "\\\\\r\n";
+        Expression2->LaTeX_output(output);
+        output << "\\\\\r\n";
+        Expression3->LaTeX_output(output);
+        output << "\\end{array}\r\n";
         if (Data1[0] & 0x02)
-            OUTPUT("\\right| ");
+            output << "\\right| ";
         else
-            OUTPUT("\\right. ");
+            output << "\\right. ";
     }
-
-    return len;
 }
 #pragma optimize("",on)
 

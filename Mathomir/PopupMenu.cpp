@@ -3982,8 +3982,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         ds->Below = (short)((int)b * 100 / (int)ViewZoom);
                         ds->MovingDotState = (char)0x80;
                         for (int i = 0; i < NumDocumentElements - 1; i++)
-                            if ((TheDocument + i)->absolute_Y < ds->absolute_Y)
-                                (TheDocument + i)->MovingDotState |= (char)0x40;
+                            if (TheDocument[i].absolute_Y < ds->absolute_Y)
+                                TheDocument[i].MovingDotState |= (char)0x40;
 
                         ((CMainFrame*)theApp.m_pMainWnd)->RearangeObjects(delta2);
 

@@ -1483,7 +1483,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                                                    ? KeyboardEntryObject->m_NumElements + 1 : 1;
 
         for (int i = 0; i < NumDocumentElements; i++)
-            if ((TheDocument + i)->Object.draw == Base)
+            if (TheDocument[i].Object.draw == Base)
             {
                 KeyboardEntryBaseObject = TheDocument + i;
                 break;

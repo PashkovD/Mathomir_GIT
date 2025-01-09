@@ -45,7 +45,7 @@ public:
     CObject* SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
                            short paternal_position);
     void XML_output(std::ostream &output, int num_tabs);
-    int LaTeX_output(char* output, char only_calculate) const;
+    void LaTeX_output(std::ostream& output) const;
     char* XML_input(char* file, void* element_struct);
     int CalcChecksum() const;
 
