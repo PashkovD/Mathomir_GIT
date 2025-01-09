@@ -2243,7 +2243,7 @@ int CDrawing::CalculateSize(CDC* DC, short zoom, short* width, short* height) co
         else if (di->Type == 2 && di->pSubdrawing)
         {
             short l, a, b;
-            ((CExpression*)di->pSubdrawing)->CalculateSize(*DC, zoom, l, &a, &b);
+            ((CExpression*)di->pSubdrawing)->CalculateSize(DC, zoom, l, &a, &b);
             di->LineWidth = a; //stored for later usage
             di->X2 = di->X1 + l * DRWZOOM * 100 / zoom;
             di->Y2 = di->Y1 + (a + b) * DRWZOOM * 100 / zoom;
@@ -3929,7 +3929,7 @@ int CDrawing::RotateForAngle(float angle, int centerX, int centerY, int* newX1, 
             int x1 = 0, y1 = 0;
             short l, a, b;
             CDC* DC = pMainView->GetDC();
-            ((CExpression*)di->pSubdrawing)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            ((CExpression*)di->pSubdrawing)->CalculateSize(DC, ViewZoom, l, &a, &b);
             a = a * 100 / ViewZoom;
             pMainView->ReleaseDC(DC);
             int Y = di->Y1 + a;

@@ -570,7 +570,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                 short l, a, b;
                 if (ds->Type == EXPRESSION)
                 {
-                    ds->Object.exp->CalculateSize(tmpDC, ViewZoom, l, &a, &b);
+                    ds->Object.exp->CalculateSize(&tmpDC, ViewZoom, l, &a, &b);
                     ds->Object.exp->DeselectExpression();
                 }
                 else if (ds->Type == DRAWING)
@@ -605,7 +605,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                 PrintRendering = 0;
                 tmpbmp.DeleteObject();
                 if (ds->Type == EXPRESSION)
-                    ds->Object.exp->CalculateSize(tmpDC, prevViewZoom, l, &a, &b);
+                    ds->Object.exp->CalculateSize(&tmpDC, prevViewZoom, l, &a, &b);
                 else if (ds->Type == DRAWING)
                     ds->Object.draw->CalculateSize(&tmpDC, prevViewZoom, &l, &b);
             }
@@ -1191,7 +1191,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                         {
                             int zoom = 7000 / ds->Object.exp->m_FontSize;
                             if (ds->Object.exp->m_FontSize < 150) zoom = zoom * 110 / 128;
-                            ds->Object.exp->CalculateSize(bitmapDC, zoom, l, &a, &b, 0, 0);
+                            ds->Object.exp->CalculateSize(&bitmapDC, zoom, l, &a, &b, 0, 0);
                             if (is_title && RelativeX < TillenRelativeX + Tillens.Width / 5)
                                 RelativeX = TillenRelativeX - 1;
                             if (RelativeX + l > TillenRelativeX + Tillens.Width)
@@ -1206,7 +1206,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                             //bitmapDC.FillSolidRect(RelativeX,RelativeY-a,l,a+b,RGB(255,255,255));
                             ds->Object.exp->PaintExpression(&bitmapDC, zoom, RelativeX, RelativeY,nullptr,
                                                             ds->Object.exp->m_IsHeadline ? RGB(0, 0, 255) : 0);
-                            ds->Object.exp->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(&bitmapDC, ViewZoom, l, &a, &b);
                         }
                         continue;
                     }
@@ -1229,10 +1229,10 @@ void CMathomirView::OnDraw(CDC* pDC)
                         }
                         else
                         {
-                            ds->Object.exp->CalculateSize(bitmapDC, Tillens.Zoom, l, &a, &b, 0, 0);
+                            ds->Object.exp->CalculateSize(&bitmapDC, Tillens.Zoom, l, &a, &b, 0, 0);
                             ds->Object.exp->
                                 PaintExpression(&bitmapDC, Tillens.Zoom, RelativeX, RelativeY);
-                            ds->Object.exp->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(&bitmapDC, ViewZoom, l, &a, &b);
                         }
                     }
                     else if (ds->Type == DRAWING && ds != SpecialDrawingHover)
@@ -1299,9 +1299,9 @@ void CMathomirView::OnDraw(CDC* pDC)
                             if (ds->Object.exp->m_FontSize > 110 &&
                                 ds->Object.exp->m_FontSize < 300)
                                 tmpzoom = 45 - (ds->Object.exp->m_FontSize - 110) / 8;
-                            ds->Object.exp->CalculateSize(bitmapDC, tmpzoom, l, &a, &b, 0, 0);
+                            ds->Object.exp->CalculateSize(&bitmapDC, tmpzoom, l, &a, &b, 0, 0);
                             ds->Object.exp->PaintExpression(&bitmapDC, tmpzoom, RelativeX, RelativeY);
-                            ds->Object.exp->CalculateSize(bitmapDC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(&bitmapDC, ViewZoom, l, &a, &b);
                         }
                         else if (ds->Type == DRAWING && ds != SpecialDrawingHover)
                         {
@@ -1681,7 +1681,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                         CExpression* e = new CExpression(nullptr,nullptr, ds->Object.exp->m_FontSize);
                         e->CopyExpression(ds->Object.exp, 0, 1, 0);
                         short l, a, b;
-                        e->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                        e->CalculateSize(DC, ViewZoom, l, &a, &b);
                         short IsExpression;
                         char IsParenthese = 0;
                         CObject* ret;
@@ -2101,7 +2101,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     delete ClipboardExpression;
                     ClipboardExpression = nullptr;
                     short l, a, b;
-                    e->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                    e->CalculateSize(DC, ViewZoom, l, &a, &b);
                     tDocumentStruct* ds = &TheDocument[NewlineAddObject & 0x3FFFFFFF];
                     ds->Above = (int)a * 100 / ViewZoom;
                     ds->Below = (int)b * 100 / ViewZoom;
@@ -2171,7 +2171,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     SetCursor(::LoadCursor(nullptr,IDC_ARROW));
                 }
                 short l, a, b;
-                ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                 ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                 ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                 ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -3178,7 +3178,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
 
                     short l, a, b;
                     CDC* DC = this->GetDC();
-                    parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                    parent->CalculateSize(DC, ViewZoom, l, &a, &b);
                     int prevlen = ds2->Length;
                     ds2->Length = l * 100 / ViewZoom;
                     ds2->Above = a * 100 / ViewZoom;
@@ -3478,7 +3478,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                         CExpression* e = ds->Object.exp;
                         e->AutowrapText(DC, (AbsoluteX - ds->absolute_X) * ViewZoom / 100, 1);
                         short l, a, b;
-                        e->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                        e->CalculateSize(DC, ViewZoom, l, &a, &b);
                         ds->Length = l * 100 / ViewZoom;
                         ds->Above = a * 100 / ViewZoom;
                         ds->Below = b * 100 / ViewZoom;
@@ -4641,7 +4641,7 @@ int CMathomirView::RepaintTheView(int force_recalculate)
             short l, a, b;
             if (ds->Type == EXPRESSION)
             {
-                ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                 ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                 ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                 ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -4668,7 +4668,7 @@ int CMathomirView::RepaintTheView(int force_recalculate)
                 if (ds->Checksum != chksm || i > NumDocumentElements - 50)
                 {
                     ds->Checksum = chksm;
-                    ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                    ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                     ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                     ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                     ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -4994,7 +4994,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                         ClipboardExpression->CopyExpression(prevClipboardExpression, 0, 0, 0);
                         short l, a, b;
                         CDC* DC = this->GetDC();
-                        ClipboardExpression->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                        ClipboardExpression->CalculateSize(DC, ViewZoom, l, &a, &b);
                         this->ReleaseDC(DC);
                         if (KeyboardEntryObject)
                         {
@@ -5606,7 +5606,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         ClipboardExpression, 0);
 
                                 TheDocument[NumDocumentElements - 1].Object.exp->CalculateSize(
-                                    *DC, ViewZoom, l, &a, &b);
+                                    DC, ViewZoom, l, &a, &b);
                                 TheDocument[NumDocumentElements - 1].Length = l * 100 / ViewZoom;
                                 TheDocument[NumDocumentElements - 1].Above = a * 100 / ViewZoom;
                                 TheDocument[NumDocumentElements - 1].Below = b * 100 / ViewZoom;
@@ -5715,7 +5715,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                         ClipboardExpression->InsertEmptyElement(0, 2, (char)0xB4);
                         CDC* DC = this->GetDC();
                         short l, a, b;
-                        ClipboardExpression->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                        ClipboardExpression->CalculateSize(DC, ViewZoom, l, &a, &b);
                         e->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, false);
                         this->ReleaseDC(DC);
                         return;
@@ -6025,7 +6025,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 CExpression* tmp = new CExpression(nullptr,nullptr, 100);
                                 tmp->CopyExpression(found, 0);
                                 short l, a, b;
-                                tmp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                                tmp->CalculateSize(DC, ViewZoom, l, &a, &b);
                                 ClipboardExpression = tmp;
                                 KeyboardEntryObject = LastEditedExp2;
                                 LastEditedExp2->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, false);
@@ -6066,7 +6066,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                 }
 
 
-                KeyboardEntryBaseObject->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                KeyboardEntryBaseObject->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                 if (KeyboardEntryBaseObject->Above > a * 100 / ViewZoom) RepaintAll = 1;
                 KeyboardEntryBaseObject->Above = a * 100 / ViewZoom;
                 if (KeyboardEntryBaseObject->Below > b * 100 / ViewZoom) RepaintAll = 1;
@@ -6304,7 +6304,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         LastQuickTypeObject = ds;
 
                                         short l, a, b;
-                                        ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                                        ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                                         ds->Above = a * 100 / ViewZoom;
                                         ds->Below = b * 100 / ViewZoom;
 
@@ -6540,7 +6540,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                             }
 
                             short l, a, b;
-                            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                             ds->Length = (short)((int)l * 100 / (int)ViewZoom);
                             ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                             ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -6949,7 +6949,7 @@ void CMathomirView::OnTimer(UINT nIDEvent)
                     {
                         CDC* DC = this->GetDC();
                         short l, a, b;
-                        parent->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                        parent->CalculateSize(DC, ViewZoom, l, &a, &b);
                         TheDocument[i].Length = l * 100 / ViewZoom;
                         TheDocument[i].Above = a * 100 / ViewZoom;
                         TheDocument[i].Below = b * 100 / ViewZoom;
@@ -8208,7 +8208,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             CExpression* dst = ds->Object.exp->CopyAtPoint(
                                 DC, ViewZoom, X, Y, ClipboardExpression);
                             short l, a, b;
-                            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                             char RepaintAll = 0;
                             l = (short)((int)l * 100 / (int)ViewZoom);
                             a = (short)((int)a * 100 / (int)ViewZoom);
@@ -8326,7 +8326,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             selection->KeyboardStart(DC, ViewZoom);
 
                             short l, a, b;
-                            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                            ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                             int XX, YY;
                             ds->Object.exp->GetKeyboardCursorPos(&XX, &YY);
                             XX += (ds->absolute_X - ViewX) * ViewZoom / 100;
@@ -8377,7 +8377,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         ((CExpression*)obj)->KeyboardStart(DC, ViewZoom);
 
                         short l, a, b;
-                        ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                        ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                         int XX, YY;
                         ds->Object.exp->GetKeyboardCursorPos(&XX, &YY);
                         XX += (ds->absolute_X - ViewX) * ViewZoom / 100;
@@ -8872,7 +8872,7 @@ int CMathomirView::PopupCloses(int UserParam, int ExitCode)
             DC = GetDC();
             short l, a = 0, b = 32767;
             if (m_PopupMenuObject->Type == EXPRESSION)
-                m_PopupMenuObject->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                m_PopupMenuObject->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
             else if (m_PopupMenuObject->Type == DRAWING)
                 m_PopupMenuObject->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
             if (b != 32767)
@@ -9021,11 +9021,11 @@ int CMathomirView::PaintClipboard(int X, int Y)
     if (ClipboardExpression)
     {
         ClipboardBackground.ZoomLevel = min(80, ViewZoom);
-        ClipboardExpression->CalculateSize(*DC, ClipboardBackground.ZoomLevel, l, &a, &b);
+        ClipboardExpression->CalculateSize(DC, ClipboardBackground.ZoomLevel, l, &a, &b);
         if (l > 300 || a + b > 240)
         {
             ClipboardBackground.ZoomLevel = min(50, ViewZoom);
-            ClipboardExpression->CalculateSize(*DC, ClipboardBackground.ZoomLevel, l, &a, &b);
+            ClipboardExpression->CalculateSize(DC, ClipboardBackground.ZoomLevel, l, &a, &b);
         }
     }
     else
@@ -9758,7 +9758,7 @@ void CMathomirView::OnEditCopyImage()
             if (ds->Type == EXPRESSION)
             {
                 ds->Object.exp->DeselectExpression();
-                ds->Object.exp->CalculateSize(*DC, ImageSize, l, &a, &b, -1, numsel ? 0 : 1);
+                ds->Object.exp->CalculateSize(DC, ImageSize, l, &a, &b, -1, numsel ? 0 : 1);
             }
             else if (ds->Type == DRAWING)
             {
@@ -9829,7 +9829,7 @@ void CMathomirView::OnEditCopyImage()
         tDocumentStruct* ds = TheDocument + i;
         a = 0;
         if (ds->Type == EXPRESSION)
-            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
         else if (ds->Type == DRAWING)
             ds->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
 
@@ -9879,8 +9879,8 @@ int CMathomirView::MakeImageOfExpression(CObject* expression)
 
     expr->DeselectExpression();
     short l, a, b;
-    expr->CalculateSize(*DC, ImageSize, l, &a, &b, -1, 1);
-    expr->CalculateSize(*DC, ImageSize, l, &a, &b, -1, 1);
+    expr->CalculateSize(DC, ImageSize, l, &a, &b, -1, 1);
+    expr->CalculateSize(DC, ImageSize, l, &a, &b, -1, 1);
     //we call it two times- QUICK FIX (because of GetCellAttributes does not work good)
 
     bmp.CreateCompatibleBitmap(DC, l + 8, a + b + 6);
@@ -10337,7 +10337,7 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
             tmp->CopyExpression((CExpression*)di->pSubdrawing, 0);
             ds->Object.exp = tmp;
             short l = 0, a = 0, b = 0;
-            ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
             ds->Length = (short)((int)l * 100 / (int)ViewZoom);
             ds->Above = (short)((int)a * 100 / (int)ViewZoom);
             ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -10515,7 +10515,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
     //if (start_textmode) {((CExpression*)(ds->Object))->m_IsText=1;((CExpression*)(ds->Object))->m_Alignment=1;} //if we need to start the text box
     short l, a, b;
     CDC* DC = this->GetDC();
-    ds->Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+    ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
     ds->Length = (short)((int)l * 100 / (int)ViewZoom);
     ds->Above = (short)((int)a * 100 / (int)ViewZoom);
     ds->Below = (short)((int)b * 100 / (int)ViewZoom);
@@ -10658,7 +10658,7 @@ int CMathomirView::CopyLaTeXCode(CObject* expr)
     short l, a, b;
     CDC* DC;
     DC = pMainView->GetDC();
-    ((CExpression*)expr)->CalculateSize(*DC, ViewZoom, l, &a, &b);
+    ((CExpression*)expr)->CalculateSize(DC, ViewZoom, l, &a, &b);
     pMainView->ReleaseDC(DC);
 
     char* head = "";
@@ -11208,7 +11208,7 @@ void CMathomirView::KeyboardSelectionPaste()
         CExpression* e = KeyboardEntryObject;
 
         short l, a, b;
-        TheKeyboardClipboard->CalculateSize(*DC, ViewZoom, l, &a, &b);
+        TheKeyboardClipboard->CalculateSize(DC, ViewZoom, l, &a, &b);
         e->AdjustSelection(2);
 
         int is_A_table = 0;
@@ -11224,9 +11224,9 @@ void CMathomirView::KeyboardSelectionPaste()
             ClipboardExpression = new CExpression(nullptr,nullptr, 100);
             ClipboardExpression->CopyExpression(TheKeyboardClipboard, 0, 1, 0);
             short l, a, b;
-            ClipboardExpression->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            ClipboardExpression->CalculateSize(DC, ViewZoom, l, &a, &b);
             e->KeyboardKeyHit(DC, ViewZoom, 6, 0, 0, 0, false);
-            e->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            e->CalculateSize(DC, ViewZoom, l, &a, &b);
             ReleaseDC(DC);
             this->ScrollCursorIntoView();
             return;

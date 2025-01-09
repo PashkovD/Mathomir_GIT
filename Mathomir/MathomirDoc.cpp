@@ -465,7 +465,7 @@ int CMathomirDoc::OpenMOMFile(char* filename)
                     CDC* DC = theApp.m_pMainWnd->GetDC();
                     short l = 0, a = 0, b = 0;
                     if (type == EXPRESSION)
-                        ds.Object.exp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+                        ds.Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
                     else
                         ds.Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
                     ds.Length = l * 100 / ViewZoom;

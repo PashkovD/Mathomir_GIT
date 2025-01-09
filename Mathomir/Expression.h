@@ -163,7 +163,7 @@ public:
 public:
     CExpression(CElement* PaternalElement, CExpression* PaternalExpression, short int FontSize);
     ~CExpression();
-    void CalculateSize(CDC& DC, short int zoom, short int& length, short int* above, short int* below, char HQR = -1,
+    void CalculateSize(CDC* DC, short int zoom, short int& length, short int* above, short int* below, char HQR = -1,
                        char optimize_for_readability = 0);
     void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg = nullptr, COLORREF color = 0);
     short GetActualFontSize(short zoom) const;
@@ -219,12 +219,12 @@ public:
     int AdjustMatrix(void);
     int DeleteSelection(char selection_type = 1);
     int PaintDecoration(CDC* DC, short zoom, int X, int Y, int LastDecorationElement, int i, int LastDecoration,
-                        int color = 0);
+                        int color = 0) const;
     // direction<0 find positions above x,y;  direction>0 find positions below x,y
     int KeyboardStartAt(int X, int Y, char direction, char between = 0);
     int KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt, UINT nFlags, int fcolor, int* x, int* y);
     int KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExpression* orig, int TypingMode);
-    int GetKeyboardCursorPos(int* X, int* Y);
+    int GetKeyboardCursorPos(int* X, int* Y) const;
     int ChangeFontSize(float factor);
     int GetElementLen(const unsigned int StartPos, const unsigned int EndPos, const unsigned int Level,
                       char* element_type, char* has_preoperator) const;

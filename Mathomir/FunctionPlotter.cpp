@@ -911,14 +911,14 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                                 for (int i = 0; i < start_point - 1; i++)
                                     tmp->InsertElement(&func->m_pElementList[i], tmp->m_NumElements);
                                 short l, a, b;
-                                tmp->CalculateSize(*DC, zoom * 3 / 4 * MX / 50, l, &a, &b);
+                                tmp->CalculateSize(DC, zoom * 3 / 4 * MX / 50, l, &a, &b);
                                 DC->FillSolidRect(X + 1, Y + 1, l, a + b + 2,RGB(200, 200, 200));
                                 tmp->PaintExpression(DC, zoom * 3 / 4 * MX / 50, X + 1, Y + a + 1, ClipReg);
                                 tmp->Delete();
                             }
                             tmp->InsertElement(&var->m_pElementList[position], 0);
                             short l, a, b;
-                            tmp->CalculateSize(*DC, zoom * 3 / 4 * MX / 50, l, &a, &b);
+                            tmp->CalculateSize(DC, zoom * 3 / 4 * MX / 50, l, &a, &b);
                             DC->FillSolidRect(X + Xlen - l - 3, Y + Ylen - b - a - 2, l, a + b + 1,RGB(200, 200, 200));
                             tmp->PaintExpression(DC, zoom * 3 / 4 * MX / 50, X + Xlen - l - 3, Y + Ylen - b - 2,
                                                  ClipReg);
@@ -940,7 +940,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
         if (KeyboardEntryObject)
         {
             CExpression* tmp = (CExpression*)(Base->Items + TheState - 100)->pSubdrawing;
-            tmp->CalculateSize(*DC, ViewZoom * MX / 50, l, &a, &b);
+            tmp->CalculateSize(DC, ViewZoom * MX / 50, l, &a, &b);
             a += 2;
             b += 1;
 
@@ -1289,7 +1289,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             short l, a, b;
             CExpression* tmp = (CExpression*)(Base->Items + TheState - 100)->pSubdrawing;
             CDC* DC = pMainView->GetDC();
-            tmp->CalculateSize(*DC, ViewZoom, l, &a, &b);
+            tmp->CalculateSize(DC, ViewZoom, l, &a, &b);
 
 
             int x0;

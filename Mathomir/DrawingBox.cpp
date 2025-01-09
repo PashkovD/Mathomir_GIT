@@ -162,7 +162,7 @@ int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY
         {
             //the command line is active - show the command line text
             short l, a, b;
-            CommandLine->CalculateSize(*DC, 100, l, &a, &b);
+            CommandLine->CalculateSize(DC, 100, l, &a, &b);
             int xx, yy;
             xx = X + 3 * ViewZoom / 100;
             yy = Y + 3 * ViewZoom / 100 + 20;
