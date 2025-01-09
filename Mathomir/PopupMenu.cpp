@@ -817,7 +817,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
                 if (ClipboardExpression->m_NumElements > 1)
                     AddPasteSpecial = 1;
-                else if (ClipboardExpression->m_pElementList)
+                else if (!ClipboardExpression->m_pElementList.empty())
                 {
                     //if only one object in clibpobard then it must not be variable, operator or dummy
                     if (ClipboardExpression->m_pElementList[0].Type > 2)
@@ -2615,15 +2615,15 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     if (drw->Items->LineWidth < 4 * DRWZOOM) r = min(r, 115*DRWZOOM/10);
                                     if (drw->Items->LineWidth < 2 * DRWZOOM) r = min(r, 10*DRWZOOM);
                                 }
-                                int X = (int)(cos(ang + dang) * r + 0.5);
-                                int Y = (int)(sin(ang + dang) * r + 0.5);
-                                int X2 = (int)(cos(ang - dang) * r + 0.5);
-                                int Y2 = (int)(sin(ang - dang) * r + 0.5);
+                                int X =  lround(cos(ang + dang) * r);
+                                int Y =  lround(sin(ang + dang) * r);
+                                int X2 = lround(cos(ang - dang) * r);
+                                int Y2 = lround(sin(ang - dang) * r);
 
-                                int X3 = (int)(cos(ang2 + dang) * r + 0.5);
-                                int Y3 = (int)(sin(ang2 + dang) * r + 0.5);
-                                int X4 = (int)(cos(ang2 - dang) * r + 0.5);
-                                int Y4 = (int)(sin(ang2 - dang) * r + 0.5);
+                                int X3 = lround(cos(ang2 + dang) * r);
+                                int Y3 = lround(sin(ang2 + dang) * r);
+                                int X4 = lround(cos(ang2 - dang) * r);
+                                int Y4 = lround(sin(ang2 - dang) * r);
 
                                 int num_lines = 2;
                                 if (data == 597) num_lines = 4;
@@ -2925,10 +2925,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                             dsx->Object.exp->m_Selection == 0x7FFF))
                                         {
                                             CExpression* exp = dsx->Object.exp;
-                                            int iij = 0;
-                                            tElementStruct* ts = exp->m_pElementList;
-                                            for (; iij < exp->m_NumElements; iij++)
+                                            tElementStruct* ts;
+                                            int iij;
+                                            for (iij = 0; iij < exp->m_NumElements; iij++)
                                             {
+                                                ts = &exp->m_pElementList[iij];
                                                 if (ts->Type == 2)
                                                 {
                                                     char ch = ts->pElementObject->Data1[0];
@@ -2943,7 +2944,6 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                                         ch == '1' || ch == '2')
                                                         break;
                                                 }
-                                                ts++;
                                             }
                                             int equalpos = ts->X_pos;
                                             if (iij == exp->m_NumElements)
@@ -5055,16 +5055,16 @@ int PopupMenu::SymbolicComputation()
                 double re = N / pow(10, exp);
                 E1->GenerateASCIINumber(re, (long long)(re + (re > 0) ? 0.01 : -0.01),
                                         fabs(re - (long long)re) < 1e-100, min(prec+abs(exp), 8), 0);
-                tElementStruct* ts = E1->m_pElementList;
-                int ln = (int)strlen(ts->pElementObject->Data1);
+                tElementStruct& ts = E1->m_pElementList[0];
+                int ln = (int)strlen(ts.pElementObject->Data1);
                 while (ln)
                 {
-                    if (ts->pElementObject->Data1[ln - 1] == '0')
+                    if (ts.pElementObject->Data1[ln - 1] == '0')
                     {
-                        ts->pElementObject->Data1[--ln] = 0;
+                        ts.pElementObject->Data1[--ln] = 0;
                         continue;
                     }
-                    if (ts->pElementObject->Data1[ln - 1] == '.') ts->pElementObject->Data1[--ln] = 0;
+                    if (ts.pElementObject->Data1[ln - 1] == '.') ts.pElementObject->Data1[--ln] = 0;
                     break;
                 }
                 E1->InsertEmptyElement(E1->m_NumElements, 2, (char)0xD7);

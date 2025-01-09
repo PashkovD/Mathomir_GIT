@@ -5881,7 +5881,6 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
             if (KeyboardEntryBaseObject->Object.v == nullptr) return;
             if (KeyboardEntryBaseObject->Type > 10) return;
             if (KeyboardEntryObject->m_NumElements < 0) return;
-            if (KeyboardEntryObject->m_pElementList == nullptr) return;
         }
         catch (...)
         {
@@ -9153,11 +9152,9 @@ int CMathomirView::RestoreClipboardBackground(void)
 
 int CMathomirView::DeleteDocumentObject(tDocumentStruct* object)
 {
-    int i;
-
     LastQuickTypeObject = nullptr;
 
-    for (i = 0; i < NumDocumentElements; i++)
+    for (int i = 0; i < NumDocumentElements; i++)
         if (TheDocument + i == object)
         {
             if (KeyboardEntryObject && KeyboardEntryBaseObject == object)
@@ -9193,7 +9190,7 @@ int CMathomirView::DeleteDocumentObject(tDocumentStruct* object)
             else if (object->Type == DRAWING)
             {
                 //((CDrawing*)(object->Object))->Delete();
-                delete (CDrawing*)object->Object.exp;
+                delete object->Object.draw;
             }
 
             //int j;

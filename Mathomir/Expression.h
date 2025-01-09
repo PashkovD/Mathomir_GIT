@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "Element.h"
 
 
@@ -156,7 +158,7 @@ public:
     char m_IsPointerHover; //to paint faint lines within matrix/table when mouse pointer howers above matrix/table
     char m_IsHeadline;
     int m_NumElements;
-    tElementStruct* m_pElementList;
+    std::vector<tElementStruct> m_pElementList;
     unsigned short m_ModeDefinedAt;
     //two high bits represent the mode (0=math, 1=text); rest is the position where it was defined (increased for 1); 0 for undefined
 
@@ -177,11 +179,11 @@ public:
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
                                  char ForceInsertionPoint = 0);
     // Copies all data from original expression
-    int CopyExpression(const CExpression* Original, const char OnlySelected, const char selection_type = 1,
+    int CopyExpression(CExpression* Original, const char OnlySelected, const char selection_type = 1,
                        const char update_clipboard = 1);
     void Delete(void);
     int InsertElement(const tElementStruct& Element, int position);
-    int MoveElementInto(const tElementStruct* Element, int position);
+    int MoveElementInto(const tElementStruct& Element, int position);
     //int MovePortionInto(int destination_pos, CExpression *Original, int source_pos, int num_elements);
     CExpression* CopyAtPoint(CDC* DC, short zoom, short X, short Y, CExpression* Original, int keyboard_select = 1);
     int DeleteElement(short position);
@@ -232,7 +234,7 @@ public:
     int FindLowestOperatorLevel(char default_oper = 0);
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position
     int Autocomplete(bool is_internal);
-    tElementStruct* GetElementStruct(const CElement* element) const;
+    tElementStruct* GetElementStruct(const CElement* element);
     CElement* DecodeInternalInsertionPoint();
     //returns nullptr if no insertion point found, otherwise the element (type=1) with the insertion point
     int ContainsBlinkingCursor() const;

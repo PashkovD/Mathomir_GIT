@@ -111,13 +111,12 @@ extern CExpression* ExtractedSelection;
 #pragma optimize("s",on)
 CMainFrame::~CMainFrame()
 {
-    int i;
     ClearDocument();
     ClearFontPool();
 
     DeleteObject(HDottedLineBlack);
     DeleteObject(HDottedLineBlue);
-    for (i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++)
     {
         DeleteObject(HSolidLineBlack[i]);
         DeleteObject(HSolidLineBlue[i]);
@@ -130,8 +129,8 @@ CMainFrame::~CMainFrame()
         ClipboardExpression = nullptr;
     }
     UndoRelease(1); //release undo memory
-    if (SpacingBitmap) delete SpacingBitmap;
-    if (GuidlineBitmap) delete GuidlineBitmap;
+    delete SpacingBitmap;
+    delete GuidlineBitmap;
     delete Toolbox;
     delete Popup;
     ReleaseMyPainting();

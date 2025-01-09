@@ -4947,8 +4947,8 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
             else
             {
                 greeksymbolsactivated = 1;
-                prevAltData = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList
-                    ->pElementObject->Data2[0];
+                prevAltData = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]
+                    ->m_pElementList[0].pElementObject->Data2[0];
                 ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
                     pElementObject->Data2[0] = prevAltData & 0x1F | 0x60;
             }

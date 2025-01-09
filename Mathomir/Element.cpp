@@ -89,6 +89,9 @@ CElement::CElement()
     m_Color = -1;
     m_Text = m_pPaternalExpression->m_StartAsText ? 1 : 0;
     m_VMods = 0;
+    this->Expression1 = nullptr;
+    this->Expression2 = nullptr;
+    this->Expression3 = nullptr;
 }
 
 CElement::~CElement()
@@ -108,9 +111,9 @@ CElement::~CElement()
         {
         }
     }
-    if (Expression3) { delete Expression3; }
-    if (Expression2) { delete Expression2; }
-    if (Expression1) { delete Expression1; }
+    delete Expression3;
+    delete Expression2;
+    delete Expression1;
 }
 
 const struct
@@ -3230,9 +3233,8 @@ int CElement::FontSizeForType(int subexpression) const
 int CElement::GetPaternalPosition() const
 {
     CExpression* p = this->m_pPaternalExpression;
-    tElementStruct* ts = p->m_pElementList;
-    for (int i = 0; i < p->m_NumElements; i++, ts++)
-        if (ts->pElementObject == this)
+    for (int i = 0; i < p->m_NumElements; i++)
+        if (p->m_pElementList[i].pElementObject == this)
             return i;
     return 0;
 }
@@ -4990,10 +4992,10 @@ int CElement::IsMeasurementUnit() const
         CExpression* exp = Expression2;
 
         int only_units = 1;
-        tElementStruct* ts = base->m_pElementList;
-        for (int i = 0; i < base->m_NumElements; i++, ts++)
+        for (int i = 0; i < base->m_NumElements; i++)
         {
-            if (ts->pElementObject && ts->pElementObject->IsMeasurementUnit()) continue;
+            tElementStruct& ts = base->m_pElementList[i];
+            if (ts.pElementObject && ts.pElementObject->IsMeasurementUnit()) continue;
             only_units = 0;
             break;
         }
