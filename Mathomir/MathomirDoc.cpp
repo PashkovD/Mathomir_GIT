@@ -615,15 +615,15 @@ int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
         SYSTEMTIME st;
         GetLocalTime(&st);
         sprintf_s(tmpbuf, "%04d-%02d-%02d", st.wYear, st.wMonth, st.wDay);
-        strcpy_s((exp->m_pElementList + 0)->pElementObject->Data1, tmpbuf);
+        strcpy_s(exp->m_pElementList[0].pElementObject->Data1, tmpbuf);
         sprintf_s(tmpbuf, "%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
-        strcpy_s((exp->m_pElementList + 1)->pElementObject->Data1, tmpbuf);
+        strcpy_s(exp->m_pElementList[1].pElementObject->Data1, tmpbuf);
         DWORD lnn = 23;
         GetUserName(tmpbuf, &lnn);
-        strcpy_s((exp->m_pElementList + 3)->pElementObject->Data1, tmpbuf);
+        strcpy_s(exp->m_pElementList[3].pElementObject->Data1, tmpbuf);
         lnn = 23;
         GetComputerName(tmpbuf, &lnn);
-        strcpy_s((exp->m_pElementList + 5)->pElementObject->Data1, tmpbuf);
+        strcpy_s(exp->m_pElementList[5].pElementObject->Data1, tmpbuf);
     }
 #endif
 

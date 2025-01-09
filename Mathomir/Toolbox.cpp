@@ -1369,7 +1369,7 @@ int CToolbox::IsAcceleratorUsed(unsigned short Keycode)
     return 0;
 }
 
-void CToolbox::AdjustPosition(void)
+void CToolbox::AdjustPosition()
 {
     if (!theApp.m_pMainWnd->IsWindowVisible()) return;
 
@@ -1518,12 +1518,12 @@ void CToolbox::AdjustPosition(void)
         RECT wr;
         Toolbox->GetWindowRect(&wr);
         int CorrX, CorrY;
-        SetWindowPos(0, wr.right + ToolboxSize / 4, wr.top + ToolboxSize / 4, 80, 80,SWP_NOZORDER | SWP_NOACTIVATE);
+        SetWindowPos(nullptr, wr.right + ToolboxSize / 4, wr.top + ToolboxSize / 4, 80, 80,SWP_NOZORDER | SWP_NOACTIVATE);
         RECT cr;
         GetClientRect(&cr);
         CorrX = 10 * ToolboxSize / 3 + 6 - cr.right;
         CorrY = ToolboxSize + 6 - cr.bottom;
-        SetWindowPos(0, wr.right + ToolboxSize / 4, wr.top + ToolboxSize / 4 + (UseToolbar ? ToolboxSize / 2 : 0),
+        SetWindowPos(nullptr, wr.right + ToolboxSize / 4, wr.top + ToolboxSize / 4 + (UseToolbar ? ToolboxSize / 2 : 0),
                      80 + CorrX, 80 + CorrY,SWP_NOZORDER);
     }
     else if (m_IsToolbar)
@@ -2510,10 +2510,10 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
     CExpression* exp = KeyboardEntryObject;
     if (exp)
     {
-        int isText = 0;
-        if ((exp->m_pElementList + exp->m_IsKeyboardEntry - 1)->Type == 1)
+        bool isText = false;
+        if (exp->m_pElementList[exp->m_IsKeyboardEntry - 1].Type == 1)
         {
-            if ((exp->m_pElementList + exp->m_IsKeyboardEntry - 1)->pElementObject->m_Text) isText = 1;
+            if (exp->m_pElementList[exp->m_IsKeyboardEntry - 1].pElementObject->m_Text) isText = true;
         }
 
 
@@ -2762,12 +2762,12 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
             {
                 exp->InsertEmptyElement(i, 1, 'A' + i / 2);
                 exp->InsertEmptyElement(i + 1, 1, 'a' + i / 2);
-                (exp->m_pElementList + i)->pElementObject->Data2[0] = fnt;
-                (exp->m_pElementList + i + 1)->pElementObject->Data2[0] = fnt;
-                (exp->m_pElementList + i)->pElementObject->m_Color = clr;
-                (exp->m_pElementList + i + 1)->pElementObject->m_Color = clr;
-                (exp->m_pElementList + i)->pElementObject->m_VMods = vmods;
-                (exp->m_pElementList + i + 1)->pElementObject->m_VMods = vmods;
+                exp->m_pElementList[i].pElementObject->Data2[0] = fnt;
+                exp->m_pElementList[i + 1].pElementObject->Data2[0] = fnt;
+                exp->m_pElementList[i].pElementObject->m_Color = clr;
+                exp->m_pElementList[i + 1].pElementObject->m_Color = clr;
+                exp->m_pElementList[i].pElementObject->m_VMods = vmods;
+                exp->m_pElementList[i + 1].pElementObject->m_VMods = vmods;
             }
 
             exp->CalculateSize(xdc, ToolboxSize + 30, l, &a, &b);
@@ -3545,7 +3545,7 @@ int CToolbox::ConfigureToolbar()
         //check if there is a keyboard selection
         CExpression* e = KeyboardEntryObject;
         for (int i = 0; i < e->m_NumElements; i++)
-            if ((e->m_pElementList + i)->IsSelected == 2)
+            if (e->m_pElementList[i].IsSelected == 2)
             {
                 has_selection = 2;
                 break;
@@ -3674,8 +3674,8 @@ int CToolbox::ConfigureToolbar()
             else
             {
                 for (int i = 0; i < exp->m_NumElements; i++)
-                    if ((exp->m_pElementList + i)->Type == 2 && (exp->m_pElementList + i)->pElementObject->Data1[0]
-                        == (char)0xFF)
+                    if (exp->m_pElementList[i].Type == 2 &&
+                        exp->m_pElementList[i].pElementObject->Data1[0] == (char)0xFF)
                     {
                         add_align_options = 1;
                         break;
@@ -4888,8 +4888,8 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
 
     CExpression* ee = KeyboardEntryObject;
     if (ee && ee->m_IsKeyboardEntry > 0 && ee->m_IsKeyboardEntry <= ee->m_NumElements &&
-        (ee->m_pElementList + ee->m_IsKeyboardEntry - 1)->pElementObject &&
-        (ee->m_pElementList + ee->m_IsKeyboardEntry - 1)->pElementObject->m_Text)
+        ee->m_pElementList[ee->m_IsKeyboardEntry - 1].pElementObject &&
+        ee->m_pElementList[ee->m_IsKeyboardEntry - 1].pElementObject->m_Text)
     //(((ee->DetermineInsertionPointType(ee->m_IsKeyboardEntry-1)))
     {
         //the text mode is active at cursor position
@@ -5176,18 +5176,18 @@ void CToolbox::ReformatKeyboardSelection()
         else return;
 
         CExpression* e = KeyboardEntryObject;
-        int any = 0;
+        bool any = false;
         for (int kk = 0; kk < e->m_NumElements; kk++)
         {
-            tElementStruct* ts = e->m_pElementList + kk;
-            if (ts->pElementObject && ts->IsSelected == 2) ts->pElementObject->m_Color = fcolor;
-            if (ts->Type == 1 && ts->pElementObject && ts->IsSelected == 2 && ts->pElementObject->Data1[0])
+            tElementStruct& ts = e->m_pElementList[kk];
+            if (ts.pElementObject && ts.IsSelected == 2) ts.pElementObject->m_Color = fcolor;
+            if (ts.Type == 1 && ts.pElementObject && ts.IsSelected == 2 && ts.pElementObject->Data1[0])
             {
                 if (!any) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("font formatting", 20218);
                 for (int jj = 0; jj < 24; jj++)
-                    ts->pElementObject->Data2[jj] = format;
-                ts->IsSelected = 0;
-                any = 1;
+                    ts.pElementObject->Data2[jj] = format;
+                ts.IsSelected = 0;
+                any = true;
             }
         }
         if (any && Toolbox->m_FontModeSelection == 0)
@@ -5220,8 +5220,6 @@ int CToolbox::GetFormattingColor() const
 //defines acceleration code (first checks if it already exists)
 int CToolbox::DefineAcceleratorCode(short code)
 {
-    int ii, jj;
-
     if (code == 1) return 0; // the EXIT code
     if (code == 2) //FONT popup menu
     {
@@ -5307,15 +5305,15 @@ int CToolbox::DefineAcceleratorCode(short code)
         return 0; //separator
     }
 
-    for (ii = 0; ii < ToolboxNumMembers; ii++)
-        for (jj = 0; jj < ToolboxMembers[ii].NumSubmembers; jj++)
+    for (int ii = 0; ii < ToolboxNumMembers; ii++)
+        for (int jj = 0; jj < ToolboxMembers[ii].NumSubmembers; jj++)
             if (ToolboxMembers[ii].AcceleratorKey[jj] == code)
             {
                 ToolboxMembers[ii].AcceleratorKey[jj] = 0;
                 if (ii == m_ContextMenuMember && jj == m_ContextMenuSubmember) goto define_code_exit;
             }
 
-    for (ii = 0; ii < ToolboxFontFormating.NumFormats; ii++)
+    for (int ii = 0; ii < ToolboxFontFormating.NumFormats; ii++)
     {
         if (ToolboxFontFormating.UniformAccKey[ii] == code)
         {
@@ -5362,9 +5360,8 @@ int CToolbox::AdjustKeyboardFont() const
     }
     else
     {
-        int i;
-        int any_change = 0;
-        for (i = 0; i < ToolboxKeyboardElements.NumKeys; i++)
+        bool any_change = false;
+        for (int i = 0; i < ToolboxKeyboardElements.NumKeys; i++)
         {
             if (m_FontModeSelection == 0 || textmodeactivated) //permanent font mode
             {
@@ -5407,31 +5404,31 @@ int CToolbox::AdjustKeyboardFont() const
                 color = -1;
             }
 
-            if (data != ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data2[0])
+            if (data != ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data2[0])
             {
-                ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data2[0] = data;
-                any_change = 1;
+                ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data2[0] = data;
+                any_change = true;
             }
-            if (vmods != ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->m_VMods)
+            if (vmods != ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->m_VMods)
             {
-                ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->m_VMods = vmods;
-                any_change = 1;
+                ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->m_VMods = vmods;
+                any_change = true;
             }
             if (color != ToolboxKeyboardElements.Key[i]->m_Color)
             {
                 ToolboxKeyboardElements.Key[i]->m_Color = color;
-                any_change = 1;
+                any_change = true;
             }
             if (m_KeyboardSmallCaps)
-                ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data1[0] =
-                    tolower(ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data1[0]);
+                ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data1[0] =
+                    tolower(ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data1[0]);
             else
-                ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data1[0] =
-                    toupper(ToolboxKeyboardElements.Key[i]->m_pElementList->pElementObject->Data1[0]);
+                ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data1[0] =
+                    toupper(ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data1[0]);
 
             if (prevSmallCaps != m_KeyboardSmallCaps)
             {
-                any_change = 1;
+                any_change = true;
                 prevSmallCaps = m_KeyboardSmallCaps;
             }
         }

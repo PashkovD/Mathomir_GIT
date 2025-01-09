@@ -864,20 +864,22 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 }
 
                 if (Base->m_DrawParentheses == 0)
-                    if ((Base->m_NumElements == 1 && Base->m_pElementList->Type == 6) ||
-                        (Base->m_NumElements == 2 && FrameSelections && Base->m_pElementList->Type == 6 && (Base
-                            ->m_pElementList + 1)->Type == 1 && (Base->m_pElementList + 1)->pElementObject->Data1[0]
-                            == 0) ||
-                        (Base->m_NumElements == 2 && FrameSelections && Base->m_pElementList->Type == 1 && (Base
-                            ->m_pElementList + 1)->Type == 6 && (Base->m_pElementList + 0)->pElementObject->Data1[0]
-                            == 0))
+                    if ((Base->m_NumElements == 1 && Base->m_pElementList[0].Type == 6) ||
+                        (Base->m_NumElements == 2 && FrameSelections &&
+                            Base->m_pElementList[0].Type == 6 &&
+                            Base->m_pElementList[1].Type == 1 &&
+                            Base->m_pElementList[1].pElementObject->Data1[0] == 0) ||
+                        (Base->m_NumElements == 2 && FrameSelections &&
+                            Base->m_pElementList[0].Type == 1 &&
+                            Base->m_pElementList[1].Type == 6 &&
+                            Base->m_pElementList[0].pElementObject->Data1[0] == 0))
                     {
                         int elpos = 0;
                         CElement* BaseElement = Base->m_pElementList->pElementObject;
-                        if (Base->m_NumElements == 2 && Base->m_pElementList->Type == 1)
+                        if (Base->m_NumElements == 2 && Base->m_pElementList[0].Type == 1)
                         {
                             elpos = 1;
-                            BaseElement = (Base->m_pElementList + 1)->pElementObject;
+                            BaseElement = Base->m_pElementList[1].pElementObject;
                         }
 
                         {
@@ -890,7 +892,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                                 if (strcmp(BaseElement->Data1, "lim") == 0)
                                 {
                                     index_length = 0;
-                                    int fname_end = (Base->m_pElementList + elpos)->Length - BaseElement->Data3[1];
+                                    int fname_end = Base->m_pElementList[elpos].Length - BaseElement->Data3[1];
                                     int index_end = BaseElement->E2_posX + BaseElement->E2_length;
                                     if (index_end > fname_end) index_length = index_end - fname_end;
                                     is_lim = 1;
@@ -900,12 +902,12 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                             int MoveToRight = E2_length - index_length - (HQR ? 0 : ActualSize / 6);
                             if (MoveToRight < 0) MoveToRight = 0;
 
-                            E2_posX = (Base->m_pElementList + elpos)->Length - (Base->m_pElementList + elpos)->
-                                                                               pElementObject->Data3[1];
+                            E2_posX = Base->m_pElementList[elpos].Length
+                                - Base->m_pElementList[elpos].pElementObject->Data3[1];
                             //+ActualSize/6;
                             if (HQR) E2_posX += ActualSize / 8;
                             if (BaseElement->Expression2 && !is_lim)
-                                E2_posX = (Base->m_pElementList + elpos)->X_pos + BaseElement->E2_posX;
+                                E2_posX = Base->m_pElementList[elpos].X_pos + BaseElement->E2_posX;
 
                             E2_posY = HQR ? -ActualSize / 8 - E2_below : -ActualSize / 32 - E2_below;
                             if (IsCharacterHigh(BaseElement->Data1[strlen(BaseElement->Data1) - 1],
@@ -919,10 +921,9 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                             //its argument expression must be moved to the right
 
                             if (Base->m_NumElements == 2 && elpos == 0)
-                                (Base->m_pElementList + 1)->X_pos += 3 *
-                                    MoveToRight / 4;
+                                Base->m_pElementList[1].X_pos += 3 * MoveToRight / 4;
                             BaseElement->E1_posX += MoveToRight;
-                            (Base->m_pElementList + elpos)->Length += MoveToRight;
+                            Base->m_pElementList[elpos].Length += MoveToRight;
                             Base->m_OverallLength += MoveToRight;
                         }
                     }
@@ -1035,14 +1036,15 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             CExpression* denom = Expression2;
             if (num && denom && num->m_pElementList->pElementObject)
                 if (num->m_NumElements == 1 ||
-                    (num->m_NumElements == 2 && num->m_pElementList->Type == 1 && num->m_pElementList->
-                        pElementObject->Data1[0] == 0 && (num->m_pElementList + 1)->Type == 6) ||
-                    (num->m_NumElements == 2 && (num->m_pElementList + 1)->Type == 1 && (num->m_pElementList + 1)->
-                        pElementObject->Data1[0] == 0 && num->m_pElementList->Type == 6))
+                    (num->m_NumElements == 2 && num->m_pElementList[0].Type == 1 &&
+                        num->m_pElementList[0].pElementObject->Data1[0] == 0 &&
+                        num->m_pElementList[1].Type == 6) ||
+                    (num->m_NumElements == 2 && num->m_pElementList[1].Type == 1 && num->m_pElementList[1].
+                        pElementObject->Data1[0] == 0 && num->m_pElementList[0].Type == 6))
                 {
                     int elpos = 0;
-                    if (num->m_NumElements > 1 && (num->m_pElementList + 1)->Type == 6) elpos = 1;
-                    CElement* numelement = (num->m_pElementList + elpos)->pElementObject;
+                    if (num->m_NumElements > 1 && num->m_pElementList[1].Type == 6) elpos = 1;
+                    CElement* numelement = num->m_pElementList[elpos].pElementObject;
                     if (numelement->IsDifferential())
                         if (numelement->Expression1 && numelement->Expression1->m_ParenthesesFlags &
                             0x81)
@@ -1050,11 +1052,11 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                             ddform = 1;
                             //we have an fraction if form: d()/d() we will change the function below it
                             int fnamelen = numelement->E1_posX;
-                            (num->m_pElementList + elpos)->Length -= fnamelen;
+                            num->m_pElementList[elpos].Length -= fnamelen;
                             numelement->E1_posX = 0;
                             E1_length -= fnamelen;
                             for (int i = elpos + 1; i < num->m_NumElements; i++)
-                                (num->m_pElementList + i)->X_pos -= fnamelen;
+                                num->m_pElementList[i].X_pos -= fnamelen;
                             num->m_OverallLength -= fnamelen;
                             numelement->Data3[2] = -E2_length / 2 - num->m_MarginX - ActualSize / 6 - elpos * ActualSize
                                 / 6;
@@ -1305,18 +1307,16 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             }
             else
             {
-                if (m_pPaternalExpression && paternal_position < m_pPaternalExpression->m_NumElements
-                    - 1)
+                if (m_pPaternalExpression && paternal_position < m_pPaternalExpression->m_NumElements- 1)
                 {
                     //search through paternal expression and find the next element in the expression
                     //If the next element is not operator (like + or -) then we intentionaly make a little space are
-                    tElementStruct* ts = m_pPaternalExpression->m_pElementList + paternal_position +
-                        1;
+                    tElementStruct& ts = m_pPaternalExpression->m_pElementList[paternal_position + 1];
                     char ch = 0;
-                    if (ts->pElementObject) ch = ts->pElementObject->Data1[0];
-                    if (ts->Type != 2 || GetOperatorLevel(ch) > MulLevel)
-                        if (ts->Type != 1 || ch != 0)
-                            if (ts->Type != 6)
+                    if (ts.pElementObject) ch = ts.pElementObject->Data1[0];
+                    if (ts.Type != 2 || GetOperatorLevel(ch) > MulLevel)
+                        if (ts.Type != 1 || ch != 0)
+                            if (ts.Type != 6)
                             {
                                 if ((Expression1->m_ParenthesesFlags & 0xFD) == 0)
                                 {
@@ -1364,13 +1364,12 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 {
                     //search through paternal expression and find the next element in the expression
                     //If the next element is not operator (like + or -) then we intentionaly make a little space are
-                    tElementStruct* ts = m_pPaternalExpression->m_pElementList + paternal_position +
-                        1;
+                    tElementStruct& ts = m_pPaternalExpression->m_pElementList[paternal_position + 1];
                     char ch = 0;
-                    if (ts->pElementObject) ch = ts->pElementObject->Data1[0];
-                    if (ts->Type != 2 || GetOperatorLevel(ch) >= MulLevel)
+                    if (ts.pElementObject) ch = ts.pElementObject->Data1[0];
+                    if (ts.Type != 2 || GetOperatorLevel(ch) >= MulLevel)
                     {
-                        if (ts->Type != 1 || !ts->pElementObject->m_Text)
+                        if (ts.Type != 1 || !ts.pElementObject->m_Text)
                             AddEndingSpace = ActualSize / 4;
                     }
                     else if (Data1[0] == 'I' || Data1[0] == 'O')
@@ -1378,8 +1377,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                         CExpression* a = Expression1;
                         if (a->m_NumElements)
                         {
-                            tElementStruct* t = a->m_pElementList + a->m_NumElements - 1;
-                            if (t->Type != 6 || strcmp(t->pElementObject->Data1, "d"))
+                            tElementStruct& t = a->m_pElementList[a->m_NumElements - 1];
+                            if (t.Type != 6 || strcmp(t.pElementObject->Data1, "d"))
                                 AddEndingSpace = ActualSize * 2 / 7;
                         }
                     }
@@ -1944,7 +1943,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             int kk = m_pPaternalExpression->m_InternalInsertionPoint;
             if (kk <= 1) kk = 0;
             int paternal_pos = this->GetPaternalPosition();
-            if ((this->m_pPaternalExpression->m_pElementList + paternal_pos)->IsSelected != 2)
+            if (this->m_pPaternalExpression->m_pElementList[paternal_pos].IsSelected != 2)
                 if (Data3[strlen(Data1)] >= kk)
                 {
                     IsBlue = false;
@@ -1978,9 +1977,9 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             int ll = GetPaternalPosition();
             if (ll > 0)
             {
-                Y -= (this->m_pPaternalExpression->m_pElementList + ll - 1)->pElementObject->
-                                                                             ParenthesesAbove - ActualSize / 6;
-                if ((this->m_pPaternalExpression->m_pElementList + ll - 1)->Type > 1)
+                Y -= this->m_pPaternalExpression->m_pElementList[ll - 1].pElementObject->ParenthesesAbove
+                    - ActualSize / 6;
+                if (this->m_pPaternalExpression->m_pElementList[ll - 1].Type > 1)
                     X -= ActualSize / 8;
                 else
                     X -= ActualSize / 16;
@@ -2123,9 +2122,9 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             if (p->m_Selection > 0 && p->m_Selection <= p->m_NumElements + 1)
             {
                 int sel = p->m_Selection;
-                if (sel <= p->m_NumElements && (p->m_pElementList + sel - 1)->pElementObject == this)
+                if (sel <= p->m_NumElements && p->m_pElementList[sel - 1].pElementObject == this)
                     ok = 1;
-                if (sel > 1 && (p->m_pElementList + sel - 2)->pElementObject == this)
+                if (sel > 1 && p->m_pElementList[sel - 2].pElementObject == this)
                     ok = 1;
             }
             if (KeyboardEntryObject == p)
@@ -2133,14 +2132,14 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                 if (p->m_IsKeyboardEntry > 0 && p->m_IsKeyboardEntry <= p->m_NumElements)
                 {
                     int sel = p->m_IsKeyboardEntry;
-                    CElement* elm = (p->m_pElementList + sel - 1)->pElementObject;
+                    CElement* elm = p->m_pElementList[sel - 1].pElementObject;
                     if (elm->m_Type == 1)
                     {
-                        if (sel < p->m_NumElements && (p->m_pElementList + sel)->pElementObject == this && p->
-                            m_KeyboardCursorPos >= (int)strlen(elm->Data1))
+                        if (sel < p->m_NumElements && p->m_pElementList[sel].pElementObject == this &&
+                            p->m_KeyboardCursorPos >= (int)strlen(elm->Data1))
                             ok = 1;
-                        if (sel > 1 && (p->m_pElementList + sel - 2)->pElementObject == this && p->
-                            m_KeyboardCursorPos == 0)
+                        if (sel > 1 && p->m_pElementList[sel - 2].pElementObject == this &&
+                            p->m_KeyboardCursorPos == 0)
                             ok = 1;
                     }
                 }
@@ -3241,20 +3240,22 @@ int CElement::GetPaternalPosition() const
 CElement* CElement::GetPreviousElement() const
 {
     CExpression* e = m_pPaternalExpression;
-    int n = e->m_NumElements;
-    tElementStruct* ts = e->m_pElementList + 1;
-    for (int i = 1; i < n; i++, ts++)
-        if (ts->pElementObject == this) return (ts - 1)->pElementObject;
+    for (int i = 1; i < e->m_NumElements; i++)
+    {
+        if (e->m_pElementList[i + 1].pElementObject == this)
+            return e->m_pElementList[i].pElementObject;
+    }
     return nullptr;
 }
 
 CElement* CElement::GetNextElement() const
 {
     CExpression* e = m_pPaternalExpression;
-    int n = e->m_NumElements;
-    tElementStruct* ts = e->m_pElementList;
-    for (int i = 0; i < n - 1; i++, ts++)
-        if (ts->pElementObject == this) return (ts + 1)->pElementObject;
+    for (int i = 0; i + 1 < e->m_NumElements; i++)
+    {
+        if (e->m_pElementList[i].pElementObject == this)
+            return e->m_pElementList[i + 1].pElementObject;
+    }
     return nullptr;
 }
 
@@ -3422,8 +3423,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
     //pointing at the right half of some operators can select multiple elements
     if ((GetKeyState(16) & 0xFFFE) == 0) //shift not pressed
         if (TouchMouseMode == 0)
-            if (m_Type == 2 && X > (m_pPaternalExpression->m_pElementList + paternal_position)->
-                Length / 2)
+            if (m_Type == 2 && X > m_pPaternalExpression->m_pElementList[paternal_position].Length / 2)
             {
                 char ch = Data1[0];
 
@@ -3434,11 +3434,11 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                     m_pPaternalExpression->m_pElementList[paternal_position].IsSelected = 1;
                     for (int jj = paternal_position + 1; jj < m_pPaternalExpression->m_NumElements; jj++)
                     {
-                        tElementStruct* ts = m_pPaternalExpression->m_pElementList + jj;
-                        if (ts->Type == 1 && ts->pElementObject->m_Text) break;
-                        if (ts->Type == 2 && GetOperatorLevel(ts->pElementObject->Data1[0]) <= PlusLevel) break;
-                        if (ts->Type == 11 || ts->Type == 12 || ts->Type == 9 || ts->Type == 10) break;
-                        if (ts->Type == 0) break;
+                        tElementStruct& ts = m_pPaternalExpression->m_pElementList[jj];
+                        if (ts.Type == 1 && ts.pElementObject->m_Text) break;
+                        if (ts.Type == 2 && GetOperatorLevel(ts.pElementObject->Data1[0]) <= PlusLevel) break;
+                        if (ts.Type == 11 || ts.Type == 12 || ts.Type == 9 || ts.Type == 10) break;
+                        if (ts.Type == 0) break;
                         m_pPaternalExpression->SelectElement(1, jj);
                     }
                     return (CObject*)this->m_pPaternalExpression;
@@ -3449,20 +3449,19 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                     ch == (char)0xBA || ch == (char)0x40 || ch == (char)0xB5 || ch == (char)0x7E)
                 {
                     //select all elements until '=' operator
-                    (m_pPaternalExpression->m_pElementList + paternal_position)->IsSelected = 1;
-                    for (int jj = paternal_position + 1; jj < m_pPaternalExpression->m_NumElements; jj
-                         ++)
+                    m_pPaternalExpression->m_pElementList[paternal_position].IsSelected = 1;
+                    for (int jj = paternal_position + 1; jj < m_pPaternalExpression->m_NumElements; jj++)
                     {
-                        tElementStruct* ts = m_pPaternalExpression->m_pElementList + jj;
-                        if (ts->Type == 1 && ts->pElementObject->m_Text) break;
-                        if (ts->Type == 2 && ts->pElementObject)
+                        tElementStruct& ts = m_pPaternalExpression->m_pElementList[jj];
+                        if (ts.Type == 1 && ts.pElementObject->m_Text) break;
+                        if (ts.Type == 2 && ts.pElementObject)
                         {
-                            char ch = ts->pElementObject->Data1[0];
+                            char ch = ts.pElementObject->Data1[0];
                             if (GetOperatorLevel(ch) <= EqLevel ||
                                 ch == (char)0xBA || ch == 0x7E || ch == 0x40 || ch == (char)0xB5)
                                 break;
                         }
-                        if (ts->Type == 11 || ts->Type == 12 || ts->Type == 9 || ts->Type == 10) break;
+                        if (ts.Type == 11 || ts.Type == 12 || ts.Type == 9 || ts.Type == 10) break;
                         m_pPaternalExpression->SelectElement(1, jj);
                     }
                     return (CObject*)this->m_pPaternalExpression;
@@ -5055,20 +5054,22 @@ int CElement::IsMeasurementUnit() const
             if (exp->m_NumElements > 2) only_units = 0;
             if (exp->m_NumElements == 2)
             {
-                if (exp->m_pElementList->Type != 2) only_units = 0;
-                else if (exp->m_pElementList->pElementObject->Data1[0] != '+' && exp->m_pElementList->pElementObject
-                    ->Data1[0] != '-')
+                if (exp->m_pElementList[0].Type != 2)
                     only_units = 0;
-                if ((exp->m_pElementList + 1)->Type != 1) only_units = 0;
-                else if ((exp->m_pElementList + 1)->pElementObject->Data1[0] < '0' || (exp->m_pElementList + 1)->
-                    pElementObject->Data1[0] > '9')
+                else if (exp->m_pElementList[0].pElementObject->Data1[0] != '+' &&
+                    exp->m_pElementList[0].pElementObject->Data1[0] != '-')
+                    only_units = 0;
+                if (exp->m_pElementList[1].Type != 1)
+                    only_units = 0;
+                else if (exp->m_pElementList[1].pElementObject->Data1[0] < '0' ||
+                    exp->m_pElementList[1].pElementObject->Data1[1] > '9')
                     only_units = 0;
             }
             if (exp->m_NumElements == 1)
             {
-                if (exp->m_pElementList->Type != 1) only_units = 0;
-                else if (exp->m_pElementList->pElementObject->Data1[0] < '0' || exp->m_pElementList->
-                    pElementObject->Data1[0] > '9')
+                if (exp->m_pElementList[0].Type != 1) only_units = 0;
+                else if (exp->m_pElementList[0].pElementObject->Data1[0] < '0' ||
+                    exp->m_pElementList[0].pElementObject->Data1[0] > '9')
                     only_units = 0;
             }
         }

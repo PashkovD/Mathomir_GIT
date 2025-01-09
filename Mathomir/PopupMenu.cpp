@@ -2281,7 +2281,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         for (int j = 0; j < m_Expression->m_MaxNumColumns; j++)
                         {
                             int elm = m_Expression->FindMatrixElement(i, j, 1);
-                            if ((m_Expression->m_pElementList + elm)->IsSelected)
+                            if (m_Expression->m_pElementList[elm].IsSelected)
                             {
                                 tCellAttributes attrib;
                                 if (m_Expression->GetCellAttributes(i, j, &attrib))
@@ -2303,7 +2303,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         for (int j = 0; j < m_Expression->m_MaxNumColumns; j++)
                         {
                             int start = m_Expression->FindMatrixElement(i, j, 1);
-                            if ((m_Expression->m_pElementList + start)->IsSelected)
+                            if (m_Expression->m_pElementList[start].IsSelected)
                             {
                                 top = i;
                                 left = j;
@@ -2315,7 +2315,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         for (int j = m_Expression->m_MaxNumColumns - 1; j >= 0; j--)
                         {
                             int start = m_Expression->FindMatrixElement(i, j, 1);
-                            if ((m_Expression->m_pElementList + start)->IsSelected)
+                            if (m_Expression->m_pElementList[start].IsSelected)
                             {
                                 bottom = i;
                                 right = j;
@@ -2945,10 +2945,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                             }
                                             int equalpos = ts->X_pos;
                                             if (iij == exp->m_NumElements)
-                                                equalpos = (exp->m_pElementList + exp->
-                                                    m_NumElements - 1)->X_pos + (exp->m_pElementList + exp->
-                                                    m_NumElements -
-                                                    1)->Length + exp->m_MarginX;
+                                                equalpos = exp->m_pElementList[exp->m_NumElements - 1].X_pos
+                                                    + exp->m_pElementList[exp->m_NumElements - 1].Length
+                                                    + exp->m_MarginX;
                                             equalpos = equalpos * 100 / ViewZoom;
                                             if (pass == 0)
                                             {
@@ -4744,8 +4743,8 @@ int PopupMenu::ExtractSelection(int StartPos, int EndPos, int* StartSel, int* En
         int found_nl = 0;
         for (int i = *StartSel; i <= *EndSel; i++)
         {
-            if ((m_Expression->m_pElementList + i)->Type == 12) found_nl = 1;
-            ExtractedSelection->InsertElement(m_Expression->m_pElementList + i, ExtractedSelection->m_NumElements);
+            if (m_Expression->m_pElementList[i].Type == 12) found_nl = 1;
+            ExtractedSelection->InsertElement(&m_Expression->m_pElementList[i], ExtractedSelection->m_NumElements);
         }
         if (found_nl)
         {
@@ -4825,10 +4824,10 @@ int PopupMenu::SymbolicComputation()
                                     System[NumEquations] = new CExpression(nullptr, nullptr, 100);
                                     for (int kk = ppos; kk < pos2; kk++)
                                         System[NumEquations]->InsertElement(
-                                            tmp->m_pElementList + kk, System[NumEquations]->m_NumElements);
+                                            &tmp->m_pElementList[kk], System[NumEquations]->m_NumElements);
                                     for (int kk = pos2; kk < pos2 + l2; kk++)
                                         System[NumEquations]->InsertElement(
-                                            tmp->m_pElementList + kk, System[NumEquations]->m_NumElements);
+                                            &tmp->m_pElementList[kk], System[NumEquations]->m_NumElements);
                                     NumEquations++;
                                     if (NumEquations > 16)
                                     {
@@ -5007,16 +5006,16 @@ int PopupMenu::SymbolicComputation()
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
                                         fabs(N - (long long)N) < 1e-100, prec + prec_increase, 0);
                 int last = E1->m_NumElements - 1;
-                tElementStruct* ts = E1->m_pElementList + last;
-                int ln = (int)strlen(ts->pElementObject->Data1);
+                tElementStruct& ts = E1->m_pElementList[last];
+                int ln = (int)strlen(ts.pElementObject->Data1);
                 while (ln)
                 {
-                    if (ts->pElementObject->Data1[ln - 1] == '0')
+                    if (ts.pElementObject->Data1[ln - 1] == '0')
                     {
-                        ts->pElementObject->Data1[--ln] = 0;
+                        ts.pElementObject->Data1[--ln] = 0;
                         continue;
                     }
-                    if (ts->pElementObject->Data1[ln - 1] == '.') ts->pElementObject->Data1[--ln] = 0;
+                    if (ts.pElementObject->Data1[ln - 1] == '.') ts.pElementObject->Data1[--ln] = 0;
                     break;
                 }
                 if (!AddMathMenuOption(E1)) delete E1;
@@ -5070,10 +5069,8 @@ int PopupMenu::SymbolicComputation()
                 }
                 E1->InsertEmptyElement(E1->m_NumElements, 2, (char)0xD7);
                 E1->InsertEmptyElement(E1->m_NumElements, 3, 0);
-                CExpression* a = (E1->m_pElementList + E1->m_NumElements - 1)->pElementObject->
-                                                                               Expression1;
-                CExpression* e = (E1->m_pElementList + E1->m_NumElements - 1)->pElementObject->
-                                                                               Expression2;
+                CExpression* a = E1->m_pElementList[E1->m_NumElements - 1].pElementObject->Expression1;
+                CExpression* e = E1->m_pElementList[E1->m_NumElements - 1].pElementObject->Expression2;
                 a->GenerateASCIINumber(10.0, 10, true, 0, 0);
                 if (exp < 0)
                 {
@@ -5082,15 +5079,16 @@ int PopupMenu::SymbolicComputation()
                 }
                 else
                     e->GenerateASCIINumber(exp, exp, true, 0, 0);
-                if (E1->m_pElementList->Type == 2 && E1->m_pElementList->pElementObject->Data1[0] == '-' &&
-                    (E1->m_pElementList + 1)->Type == 1 && strcmp((E1->m_pElementList + 1)->pElementObject->Data1,
-                                                                  "1") == 0)
+                if (E1->m_pElementList[0].Type == 2 &&
+                    E1->m_pElementList[0].pElementObject->Data1[0] == '-' &&
+                    E1->m_pElementList[1].Type == 1 &&
+                    strcmp(E1->m_pElementList[1].pElementObject->Data1, "1") == 0)
                 {
                     //deletes first part in numbers: -1*10^x
                     E1->DeleteElement(1);
                     E1->DeleteElement(1);
                 }
-                if (E1->m_pElementList->Type == 1 && strcmp(E1->m_pElementList->pElementObject->Data1, "1") == 0)
+                if (E1->m_pElementList[0].Type == 1 && strcmp(E1->m_pElementList[0].pElementObject->Data1, "1") == 0)
                 {
                     //deletes first part in numbers: 1*10^x
                     E1->DeleteElement(0);
@@ -5136,10 +5134,8 @@ int PopupMenu::SymbolicComputation()
                             if (result->m_pElementList->Type)
                                 result->InsertEmptyElement(result->m_NumElements, 2, (char)0xD7);
                             result->InsertEmptyElement(result->m_NumElements, 3, 0);
-                            CExpression* a = (result->m_pElementList + result->m_NumElements - 1)->
-                                             pElementObject->Expression1;
-                            CExpression* e = (result->m_pElementList + result->m_NumElements - 1)->
-                                             pElementObject->Expression2;
+                            CExpression* a = result->m_pElementList[result->m_NumElements - 1].pElementObject->Expression1;
+                            CExpression* e = result->m_pElementList[result->m_NumElements - 1].pElementObject->Expression2;
                             a->GenerateASCIINumber((double)z, z, true, 0, 0);
                             e->GenerateASCIINumber(cnt, cnt, true, 0, 0);
                         }
@@ -5363,7 +5359,7 @@ int PopupMenu::SymbolicComputation()
                 PF.prec1 = 0;
                 CExpression* ex1 = new CExpression(nullptr, nullptr, 100);
                 for (int i = pos + p; i < pos + l; i++)
-                    ex1->InsertElement(ExtractedSelection->m_pElementList + i, ex1->m_NumElements);
+                    ex1->InsertElement(&ExtractedSelection->m_pElementList[i], ex1->m_NumElements);
                 if (ex1->StrikeoutCommonFactors(0, ex1->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF))
                 {
                     number++;
