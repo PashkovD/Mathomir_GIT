@@ -157,7 +157,6 @@ public:
     tMatrixColumns* m_MatrixColumns;
     char m_IsPointerHover; //to paint faint lines within matrix/table when mouse pointer howers above matrix/table
     char m_IsHeadline;
-    int m_NumElements;
     std::vector<tElementStruct> m_pElementList;
     unsigned short m_ModeDefinedAt;
     //two high bits represent the mode (0=math, 1=text); rest is the position where it was defined (increased for 1); 0 for undefined
@@ -228,17 +227,17 @@ public:
     int KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, const CExpression* orig, int TypingMode);
     int GetKeyboardCursorPos(int* X, int* Y) const;
     int ChangeFontSize(float factor);
-    int GetElementLen(const unsigned int StartPos, const unsigned int EndPos, const unsigned int Level,
-                      char* element_type, char* has_preoperator) const;
-    int FindLowestOperatorLevel(const unsigned int StartPos, const unsigned int EndPos, char default_operator = 0) const;
-    int FindLowestOperatorLevel(char default_oper = 0);
+    size_t GetElementLen(size_t StartPos, size_t EndPos, const unsigned int Level,
+                         char* element_type, char* has_preoperator) const;
+    int FindLowestOperatorLevel(size_t StartPos, size_t EndPos, char default_operator = 0) const;
+    int FindLowestOperatorLevel(char default_oper = 0) const;
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position
     int Autocomplete(bool is_internal);
     tElementStruct* GetElementStruct(const CElement* element);
     CElement* DecodeInternalInsertionPoint();
     //returns nullptr if no insertion point found, otherwise the element (type=1) with the insertion point
     int ContainsBlinkingCursor() const;
-    CExpression* GetLabel() const;
+    CExpression* GetLabel();
 
 
     int CompareExpressions(int StartPos, int EndPos, CExpression* Other, int StartPos2, int EndPos2);

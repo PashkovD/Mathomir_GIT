@@ -56,8 +56,8 @@ extern int SelectedGuidelineType;
 extern int GuidlineElement;
 extern int GuidlineClearTimer;
 extern int SizeNerbyList;
-int IsCharacterHigh(char ch, char font);
-int IsCharacterLow(char ch, char font);
+bool IsCharacterHigh(char ch, char font);
+bool IsCharacterLow(char ch, char font);
 int KeyboardIndexMode = 0;
 int KeyboardExponentMode = 0;
 
@@ -427,7 +427,7 @@ int CExpression::InsertEmptyElement(short position, short type, char Operator, i
 {
     //if (type<0) return 0;
     if (position < 0) return 0;
-    if (position > m_NumElements) return 0;
+    if (position > m_pElementList.size()) return 0;
 
     tElementStruct myElement;
     myElement.Above = 0;
@@ -486,13 +486,13 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                 if (KeyboardEntryBaseObject->Type == EXPRESSION && this == KeyboardEntryBaseObject->Object.exp)
                 {
                     int t = ContainsBlinkingCursor();
-                    if (t > 0 && t <= m_NumElements)
+                    if (t > 0 && t <= m_pElementList.size())
                     {
                         if (this->m_MaxNumColumns > 1 || this->m_MaxNumRows > 1)
                         {
                             int fnd = 0;
                             startHQR = 0;
-                            for (int i = 0; i < m_NumElements; i++)
+                            for (size_t i = 0; i < m_pElementList.size(); i++)
                             {
                                 tElementStruct& ts = m_pElementList[i];
                                 if (ts.Type == 11 || ts.Type == 12)
@@ -506,13 +506,13 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                                 }
                                 if (i == t - 1) fnd = 1;
                             }
-                            if (endHQR == -1) endHQR = m_NumElements;
+                            if (endHQR == -1) endHQR = m_pElementList.size();
                         }
                         else
                         {
                             HQR = 0;
                             startHQR = 0;
-                            endHQR = m_NumElements;
+                            endHQR = m_pElementList.size();
                         }
                     }
                 }
@@ -528,7 +528,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
 
         bool is_matrix = false;
         {
-            for (int i = 1; i < m_NumElements - 1; i++)
+            for (size_t i = 1; i < m_pElementList.size() - 1; i++)
             {
                 tElementStruct& p = m_pElementList[i];
                 if (p.Type == 11 || p.Type == 12)
@@ -557,11 +557,11 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
         {
             if (m_pPaternalElement->m_Type == 3) //exponent (power)
             {
-                if (m_NumElements > 2)
+                if (m_pElementList.size() > 2)
                 {
                     m_ParenthesesFlags |= 0x80; //force on
                 }
-                else if (m_NumElements == 2)
+                else if (m_pElementList.size() == 2)
                 {
                     tElementStruct& ts1 = m_pElementList[0];
                     tElementStruct& ts2 = m_pElementList[1];
@@ -590,9 +590,9 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
             {
                 if (m_pPaternalElement->IsDifferential())
                 {
-                    if (m_NumElements > 2)
+                    if (m_pElementList.size() > 2)
                         m_ParenthesesFlags |= 0x80; //force on
-                    else if (m_NumElements == 2)
+                    else if (m_pElementList.size() == 2)
                     {
                         tElementStruct ts1 = m_pElementList[0];
                         tElementStruct ts2 = m_pElementList[1];
@@ -609,9 +609,9 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                 {
                     //go through element list, if found any operator other than multyplying dot'
                     //and even if found some strange elements...
-                    int ii;
+                    size_t ii;
                     char found_one_already = 0;
-                    for (ii = 0; ii < m_NumElements; ii++)
+                    for (ii = 0; ii < m_pElementList.size(); ii++)
                     {
                         int Type = m_pElementList[ii].Type;
                         if (Type == 2 /*&& ((m_pElementList+ii)->pElementObject->Data1[0]!=(char)0xD7)*/) break;
@@ -622,7 +622,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                             found_one_already = 1;
                         }
                     }
-                    if (ii < m_NumElements)
+                    if (ii < m_pElementList.size())
                         m_ParenthesesFlags |= 0x80;
                 }
             }
@@ -633,14 +633,14 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
             {
                 //go through element list, if found any operator other tha...
                 //and even if found some strange elements...
-                int ii;
-                for (ii = 0; ii < m_NumElements; ii++)
+                size_t ii;
+                for (ii = 0; ii < m_pElementList.size(); ii++)
                 {
                     int Type = m_pElementList[ii].Type;
                     if (Type == 2 && m_pElementList[ii].pElementObject->Data1[0] != (char)0xD7) break;
                     if (Type >= 9) break;
                 }
-                if (ii < m_NumElements)
+                if (ii < m_pElementList.size())
                     m_ParenthesesFlags |= 0x80;
             }
         }
@@ -724,13 +724,13 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
 
         int contains_text = IsTextContained(-1);
         int Ycenterline = 0, LastlineBelow = 0;
-        int TextlineStart = 0;
-        int TextBeginning = 0;
-        int Row = 0;
-        int Column = 0;
-        int MaxNumColumns = 1;
-        int MaxNumRows = 1;
-        if (m_MatrixRows)
+        size_t TextlineStart = 0;
+        size_t TextBeginning = 0;
+        unsigned int Row = 0;
+        unsigned int Column = 0;
+        unsigned int MaxNumColumns = 1;
+        unsigned int MaxNumRows = 1;
+        if (m_MatrixRows)  
             memset(m_MatrixRows, 0, sizeof(tMatrixRows) * 50);
         if (m_MatrixColumns)
             memset(m_MatrixColumns, 0, sizeof(tMatrixColumns) * 50);
@@ -738,7 +738,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
         int textlinestartpos = length;
         int LineXpos = textlinestartpos;
 
-        for (int i = 0; i < m_NumElements; i++)
+        for (size_t i = 0; i < m_pElementList.size(); i++)
         {
             tElementStruct& theElement = m_pElementList[i];
 
@@ -784,12 +784,12 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                 theElement.Type != 12 && theElement.Type != 11)
                 if (LineXpos > length) length = LineXpos;
 
-            if ((theElement.Type == 2 && theElement.pElementObject->Data1[0] == (char)0xFF) || i == m_NumElements
+            if ((theElement.Type == 2 && theElement.pElementObject->Data1[0] == (char)0xFF) || i == m_pElementList.size()
                 - 1 || theElement.Type == 11 || theElement.Type == 12)
             {
                 int txAbove = 0, txBelow = 0;
 
-                for (int j = TextlineStart; j <= i; j++)
+                for (size_t j = TextlineStart; j <= i; j++)
                 {
                     tElementStruct& ts = m_pElementList[j];
                     int delta_above = contains_text ? ActualSize / 8 : 0;
@@ -816,7 +816,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                 Ycenterline += max(1, LastlineBelow+txAbove+7*ActualSize/16);
 
 
-                for (int j = TextlineStart; j <= i; j++)
+                for (size_t j = TextlineStart; j <= i; j++)
                 {
                     tElementStruct& ts = m_pElementList[j];
                     if (ts.Y_pos < Ycenterline) ts.Y_pos = Ycenterline;
@@ -854,15 +854,15 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                 //xposerror=0;
             }
 
-            if (theElement.Type == 11 || theElement.Type == 12 || i == m_NumElements - 1)
+            if (theElement.Type == 11 || theElement.Type == 12 || i == m_pElementList.size() - 1)
             //Matrix horizontal and vertical spacer
             {
-                if ((this->m_pPaternalExpression || i < m_NumElements - 1 || Row || Column)
+                if ((this->m_pPaternalExpression || i < m_pElementList.size() - 1 || Row || Column)
                     && TextlineStart != TextBeginning)
                 {
                     //center align text verticaly (if not simple text at document level)
                     int delta = (*below - *above) / 2;
-                    for (int j = TextBeginning; j <= i; j++)
+                    for (size_t j = TextBeginning; j <= i; j++)
                         m_pElementList[j].Y_pos -= delta;
                     *below -= delta;
                     *above += delta;
@@ -871,8 +871,8 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                 }
 
                 //aligning text center-left-right
-                int LineStart = TextBeginning;
-                for (int j = TextBeginning; j <= i; j++)
+                size_t LineStart = TextBeginning;
+                for (size_t j = TextBeginning; j <= i; j++)
                 {
                     if ((m_pElementList[j].Type == 2 && m_pElementList[j].pElementObject->Data1[0] == (char)
                         0xFF) || j == i)
@@ -895,7 +895,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                         }
                         if (align == 0) delta = (length - EndX - MarginX) / 2; //center alignmet
                         if (align == 2) delta = length - EndX - MarginX; //right alignment
-                        for (int k = LineStart; k <= j; k++)
+                        for (size_t k = LineStart; k <= j; k++)
                             m_pElementList[k].X_pos += delta;
                         LineStart = j + 1;
                     }
@@ -942,7 +942,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                     if (theElement.Type == 12)
                     {
                         if (Column > MaxNumColumns) MaxNumColumns = Column;
-                        if (i < m_NumElements - 1)
+                        if (i < m_pElementList.size() - 1)
                         {
                             Column = 0;
                             Row++;
@@ -1029,17 +1029,16 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
 
 
         char* prevcellalign = nullptr;
-        for (int i = 0; i <= m_NumElements; i++)
+        for (size_t i = 0; i <= m_pElementList.size(); i++)
         {
 
-            if (i == m_NumElements || m_pElementList[i].Type == 11 || (m_pElementList[i].Type == 12 && i < m_NumElements - 1))
+            if (i == m_pElementList.size() || m_pElementList[i].Type == 11 || (m_pElementList[i].Type == 12 && i < m_pElementList.size() - 1))
             {
-                int j;
                 l -= 2 * MarginX;
                 int Delta;
                 int align = m_Alignment;
                 char* cellalign = nullptr;
-                if (i < m_NumElements)
+                if (i < m_pElementList.size())
                 {
                     cellalign = &m_pElementList[i].pElementObject->Data1[10];
                     if (m_pElementList[i].Type == 11) prevcellalign = &m_pElementList[i].pElementObject->Data1[11];
@@ -1064,13 +1063,13 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                     //if (Column==m_MaxNumColumns-1) increment-=MarginX/2;
                 }
                 int hh = ColumnStartX - m_pElementList[ColumnStart].X_pos;
-                for (j = ColumnStart; j < i; j++)
+                for (size_t j = ColumnStart; j < i; j++)
                 {
                     m_pElementList[j].X_pos += ColumnStartX + Delta + increment;
                 }
                 m_MatrixColumns[Column].x = ColumnStartX;
 
-                if (i < m_NumElements)
+                if (i < m_pElementList.size())
                 {
                     m_pElementList[i].X_pos += ColumnStartX + Delta + increment;
                     m_pElementList[i].Length = 0;
@@ -1081,16 +1080,15 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                 ColumnStart = i + 1;
                 l = MarginX;
                 Column++;
-                if (i < m_NumElements && m_pElementList[i].Type == 11) continue;
+                if (i < m_pElementList.size() && m_pElementList[i].Type == 11) continue;
             }
 
-            if (i == m_NumElements || (m_pElementList[i].Type == 12 && i < m_NumElements - 1))
+            if (i == m_pElementList.size() || (m_pElementList[i].Type == 12 && i < m_pElementList.size() - 1))
             {
-                int j;
                 int Delta = 0;
                 m_MarginY;
                 int hh = RowStartY - m_pElementList[RowStart].Y_pos;
-                for (j = RowStart; j < i; j++)
+                for (size_t j = RowStart; j < i; j++)
                 {
                     tElementStruct& ts = m_pElementList[j];
                     ts.Y_pos += RowStartY; //hh+Delta;
@@ -1105,7 +1103,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
 
                 m_MatrixRows[Row].y = RowStartY;
 
-                if (i < m_NumElements)
+                if (i < m_pElementList.size())
                 {
                     m_pElementList[i].Length = 0;
                     m_pElementList[i].Y_pos += RowStartY;
@@ -1235,7 +1233,7 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
                 if (HQR && m_pPaternalExpression == nullptr && !is_matrix) deltax -= ActualSize / 8;
                 if (!(m_ParenthesesFlags & 0x08) || m_DrawParentheses == 'b' || m_DrawParentheses == 'x')
                 {
-                    for (int ii = 0; ii < m_NumElements; ii++)
+                    for (int ii = 0; ii < m_pElementList.size(); ii++)
                     {
                         m_pElementList[ii].X_pos += deltax;
                     }
@@ -1258,11 +1256,11 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
         if (m_pPaternalExpression == nullptr && m_MatrixRows)
         {
             int shift = -m_MatrixRows[0].y; //*above-1*ActualSize/3-MarginY;
-            for (int i = 0; i < m_NumElements; i++)
+            for (size_t i = 0; i < m_pElementList.size(); i++)
             {
                 m_pElementList[i].Y_pos += shift;
             }
-            for (int i = 0; i < this->m_MaxNumRows; i++)
+            for (size_t i = 0; i < this->m_MaxNumRows; i++)
             {
                 m_MatrixRows[i].y += shift;
             }
@@ -1339,7 +1337,7 @@ void CExpression::CalculateSizeReadjust(short zoom, short* length, short* above,
     
     int row = 0;
     int col = 0;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct* ts = &this->m_pElementList[i];
         ts->Above = (ts->Above * zoom + HQZMp) / HQZM;
@@ -1482,10 +1480,10 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
         else if (FrameSelections)
         {
             //paint frame around selection ( if is selected or is keyboard entry mode)
-            if (m_Selection == 1 || m_Selection == m_NumElements + 1 ||
+            if (m_Selection == 1 || m_Selection == m_pElementList.size() + 1 ||
                 (m_IsKeyboardEntry == 1 && m_KeyboardCursorPos == 0 && m_pElementList[m_IsKeyboardEntry - 1].
                     Type == 1) ||
-                (m_IsKeyboardEntry == m_NumElements && m_NumElements && m_pElementList[m_IsKeyboardEntry - 1].
+                (m_IsKeyboardEntry == m_pElementList.size() && m_pElementList.size() && m_pElementList[m_IsKeyboardEntry - 1].
                     Type == 1 && m_pElementList[m_IsKeyboardEntry - 1].pElementObject->Data1[m_KeyboardCursorPos] == 0))
             {
                 //finding paternal object, if exists
@@ -1495,7 +1493,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                 int corr = 0;
 
                 int is_cursor_at_end = 0;
-                if (m_NumElements == m_IsKeyboardEntry && m_IsKeyboardEntry > 0 && m_KeyboardCursorPos >= 0 &&
+                if (m_pElementList.size() == m_IsKeyboardEntry && m_IsKeyboardEntry > 0 && m_KeyboardCursorPos >= 0 &&
                     m_KeyboardCursorPos <= 23)
                     if (m_pElementList[m_IsKeyboardEntry - 1].pElementObject->Data1[m_KeyboardCursorPos] == 0)
                         is_cursor_at_end = 1;
@@ -1509,7 +1507,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                     if (ts)
                     {
                         corr = ts->X_pos + ts->pElementObject->E1_posX;
-                        if (ts - &exp->m_pElementList[0] < exp->m_NumElements - 1) is_cursor_at_end = 0;
+                        if (ts - &exp->m_pElementList[0] < exp->m_pElementList.size() - 1) is_cursor_at_end = 0;
                     }
                 }
 
@@ -1518,7 +1516,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
 
                 int Selection = exp->m_Selection;
                 int IsKeyboardEntry = exp->m_IsKeyboardEntry;
-                int NumElements = exp->m_NumElements;
+                int NumElements = exp->m_pElementList.size();
                 int KeyboardCursorPos = exp->m_KeyboardCursorPos;
                 char ParenthesesFlags = exp->m_ParenthesesFlags;
                 tElementStruct* pElementList = &exp->m_pElementList[0];
@@ -1598,7 +1596,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
         //the main loop for painting
         char LastDecoration = m_pElementList[0].Decoration;
         short LastDecorationElement = 0;
-        for (int i = 0; i < m_NumElements; i++)
+        for (size_t i = 0; i < m_pElementList.size(); i++)
         {
             tElementStruct& theElement = m_pElementList[i];
             if (((theElement.IsSelected ||
@@ -1634,7 +1632,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                             this->m_pPaternalElement->m_Type == 7 &&
                             theElement.IsSelected == 0 && this->m_Selection == 0 &&
                             this->m_pPaternalElement->Expression2 == this &&
-                            this->m_pElementList[0].Type == 0 && this->m_NumElements == 1 &&
+                            this->m_pElementList[0].Type == 0 && this->m_pElementList.size() == 1 &&
                             this->m_pPaternalElement->Expression3 != KeyboardEntryObject &&
                             this->m_pPaternalElement->Expression3->m_pElementList[0].Type)
                             paint = 0; //for signa or integral signs, no upper limit will be desplayed if empty
@@ -1691,10 +1689,10 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                 int height = (5 * ActualSize2 + 1) / 2 + ActualSize / 16 + 1;
                 int do_green;
 
-                if (i == m_NumElements - 1 && m_Selection - 1 == m_NumElements)
+                if (i == m_pElementList.size() - 1 && m_Selection - 1 == m_pElementList.size())
                 {
                     //the last one
-                    do_green = this->DetermineInsertionPointType(m_NumElements);
+                    do_green = this->DetermineInsertionPointType(m_pElementList.size());
                     Xpos = X + theElement.X_pos + theElement.Length + (
                         do_green ? 10 * m_MarginX / 8 : m_MarginX * 2 / 3) - width / 2;
                     // /*-ActualSize/20*/-((ActualSize<=20)?1:0);
@@ -1830,7 +1828,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                                       ActualSize2 / 2 + max(ActualSize/24, 1), width, clr);
                 }
 
-                if (m_NumElements == 1 && m_pElementList[0].Type == 1 && m_pElementList[0].pElementObject->Data1[0] ==
+                if (m_pElementList.size() == 1 && m_pElementList[0].Type == 1 && m_pElementList[0].pElementObject->Data1[0] ==
                     0 &&
                     m_pPaternalExpression == nullptr && (this->m_ParenthesesFlags & 0x81) == 0)
                 {
@@ -1864,7 +1862,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
         //go paint decoration
         if (LastDecoration)
         {
-            PaintDecoration(DC, zoom, X, Y, LastDecorationElement, m_NumElements, LastDecoration, color);
+            PaintDecoration(DC, zoom, X, Y, LastDecorationElement, m_pElementList.size(), LastDecoration, color);
         }
 
         //matrix insertion points 
@@ -1978,7 +1976,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                 int row = 0, column = 0;
                 int painted = 0;
                 int lw = max(1, ActualSize/24);
-                for (int i = 0; i < m_NumElements; i++)
+                for (size_t i = 0; i < m_pElementList.size(); i++)
                 {
                     tElementStruct& ts = m_pElementList[i];
                     if (ts.Type == 11)
@@ -2518,7 +2516,7 @@ void CExpression::SelectExpression(char Select)
     m_IsMatrixElementSelected = false;
     m_InternalInsertionPoint = 0;
 
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& theElement = m_pElementList[i];
         theElement.IsSelected = Select;
@@ -2546,7 +2544,7 @@ void CExpression::DeselectExpressionExceptKeyboardSelection()
     m_IsMatrixElementSelected = false;
     m_IsPointerHover = 0;
 
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct* theElement = &m_pElementList[i];
         if (theElement->IsSelected != 2 || /*(!KeyboardEntryObject) ||*/
@@ -2582,7 +2580,7 @@ void CExpression::DeselectExpression()
     m_IsMatrixElementSelected = false;
     m_IsPointerHover = 0;
     
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct* theElement = &m_pElementList[i];
         theElement->IsSelected = 0;
@@ -2641,14 +2639,14 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
     }
 
     //check if the pointer is pointing at any element or insertion point inside the Expression
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& theElement = m_pElementList[i];
         if (startItem == -1) startItem = i;
 
         //handling matrices
         if (!insertion_points_only && m_MatrixRows && m_MatrixColumns)
-            if (i == m_NumElements || theElement.Type == 11 || theElement.Type == 12)
+            if (i == m_pElementList.size() || theElement.Type == 11 || theElement.Type == 12)
             {
                 int Ybaseline = m_MatrixRows[row].y;
                 int startX = m_MatrixColumns[column].x;
@@ -2662,7 +2660,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                 int t2 = m_DrawParentheses ? m_ParentheseWidth : 0;
                 if ((GetKeyState(VK_SHIFT) & 0xFFFE) == 0)
                     if (TouchMouseMode == 0)
-                        if ((X >= endX && X < t1 && i == m_NumElements && Y > m_OverallBelow - ActualSize / 6)
+                        if ((X >= endX && X < t1 && i == m_pElementList.size() && Y > m_OverallBelow - ActualSize / 6)
                             ||
                             /*((X>=endX) && (X<t1) && (row==0) && (column==m_MaxNumColumns-1) && (Y<-m_OverallAbove+ActualSize/6)) ||*/
                             (X <= startX && X > t2 && column == 0 && row == m_MaxNumRows - 1 && Y >
@@ -2757,7 +2755,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                     if ((Y <= maxBelow + m_MarginY / 4 && Y >= maxBelow - ActualSize / 8) ||
                         (Y >= maxAbove - m_MarginY / 4 && Y <= maxAbove + ActualSize / 8))
                     {
-                        if (startItem == 0 && i == m_NumElements)
+                        if (startItem == 0 && i == m_pElementList.size())
                         {
                             //all items are being selected
                             if (ContainsBlinkingCursor()) return nullptr;
@@ -2793,7 +2791,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
             }
 
         //checking if particular elements are pointed-at (touched)
-        if (i < m_NumElements)
+        if (i < m_pElementList.size())
         {
             int is_ok = 0;
             if (Y >= theElement.Y_pos - theElement.Above - ActualSize / 20 && Y <= theElement.Y_pos + theElement.
@@ -2828,11 +2826,11 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                         int has_index = 0;
                         if (base->m_DrawParentheses == 0)
                         {
-                            if (base->m_pElementList[base->m_NumElements - 1].Type == 1 &&
-                                base->m_pElementList[base->m_NumElements - 1].pElementObject->Expression1)
+                            if (base->m_pElementList[base->m_pElementList.size() - 1].Type == 1 &&
+                                base->m_pElementList[base->m_pElementList.size() - 1].pElementObject->Expression1)
                                 has_index = 1;
-                            if (base->m_pElementList[base->m_NumElements - 1].Type == 5 &&
-                                base->m_pElementList[base->m_NumElements - 1].pElementObject->Expression2)
+                            if (base->m_pElementList[base->m_pElementList.size() - 1].Type == 5 &&
+                                base->m_pElementList[base->m_pElementList.size() - 1].pElementObject->Expression2)
                                 has_index = 1;
                         }
                         if (Y <= theElement.Y_pos - 2 * this->m_MarginY / 3 && X > theElement.X_pos + ldelta && X
@@ -2888,7 +2886,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
 
     
     {
-        if (startItem == -1) startItem = m_NumElements;
+        if (startItem == -1) startItem = m_pElementList.size();
 
         //handling matrices
         if (!insertion_points_only && m_MatrixRows && m_MatrixColumns)
@@ -2899,7 +2897,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                 int maxAbove = -m_MatrixRows[row].above + Ybaseline;
                 int maxBelow = m_MatrixRows[row].below + Ybaseline;
 
-                if (startItem == m_NumElements) endX = startX;
+                if (startItem == m_pElementList.size()) endX = startX;
 
                 int t1 = m_OverallLength - (m_DrawParentheses ? m_ParentheseWidth : 0);
                 int t2 = m_DrawParentheses ? m_ParentheseWidth : 0;
@@ -2943,7 +2941,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                                 m_IsColumnInsertion = true;
                                 m_IsRowInsertion = false;
                                 m_Selection = 0;
-                                *IsExpression = m_NumElements + 1;
+                                *IsExpression = m_pElementList.size() + 1;
                                 return (CObject*)this;
                             }
                             if (column == m_MaxNumColumns - 1)
@@ -2955,7 +2953,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                                     m_IsColumnInsertion = true;
                                     m_IsRowInsertion = false;
                                     m_Selection = 0;
-                                    *IsExpression = m_NumElements + 1;
+                                    *IsExpression = m_pElementList.size() + 1;
                                     return (CObject*)this;
                                 }
                         }
@@ -2975,7 +2973,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                                 m_IsColumnInsertion = false;
                                 m_IsRowInsertion = true;
                                 m_Selection = 0;
-                                *IsExpression = m_NumElements + 1;
+                                *IsExpression = m_pElementList.size() + 1;
                                 return (CObject*)this;
                             }
 
@@ -2989,7 +2987,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                                 m_IsColumnInsertion = false;
                                 m_IsRowInsertion = true;
                                 m_Selection = 0;
-                                *IsExpression = m_NumElements + 1;
+                                *IsExpression = m_pElementList.size() + 1;
                                 return (CObject*)this;
                             }
                         }
@@ -3094,12 +3092,12 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
             int maxXb;
             //int minXa;
             //int maxXa;
-            if (m_NumElements)
-                maxXb = max((&m_pElementList[m_NumElements - 1])->X_pos
-                            +(&m_pElementList[m_NumElements - 1])->Length, ActualSize);
+            if (m_pElementList.size())
+                maxXb = max((&m_pElementList[m_pElementList.size() - 1])->X_pos
+                            +(&m_pElementList[m_pElementList.size() - 1])->Length, ActualSize);
             /*minXa=min(m_pElementList[0].X_pos,this->m_OverallLength-ActualSize);
             maxXa=this->m_OverallLength;
-            for (int i=0;i<m_NumElements;i++) //for multi-line expressions, the uppermost-line length is determined
+            for (int i=0;i<m_pElementList.size();i++) //for multi-line expressions, the uppermost-line length is determined
             {
                 tElementStruct *ts=m_pElementList+i;
                 if ((ts->Type==2) && (ts->pElementObject->Data1[0]==(char)0xFF))
@@ -3124,7 +3122,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
     if (no_insertion_points) return nullptr;
 
     //Finally check if it is pointing between elements (insertion point)
-    if (m_NumElements == 0)
+    if (m_pElementList.size() == 0)
     {
         //an empty expression (should not be) 
         m_Selection = 1;
@@ -3134,7 +3132,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
 
     //checking the very last insertion point
     {
-        tElementStruct& theElement = m_pElementList[m_NumElements - 1];
+        tElementStruct& theElement = m_pElementList[m_pElementList.size() - 1];
 
         int xHighLimit = theElement.X_pos + theElement.Length + 5 * m_MarginX / 2 + delta;
 
@@ -3147,12 +3145,12 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
 
         if (X >= theElement.X_pos + theElement.Length - delta && X <= xHighLimit
             && Y > theElement.Y_pos - ActualSize / 2 && Y < theElement.Y_pos + ActualSize / 2)
-            if (this->m_IsKeyboardEntry != m_NumElements || theElement.pElementObject->Data1[0])
+            if (this->m_IsKeyboardEntry != m_pElementList.size() || theElement.pElementObject->Data1[0])
             {
                 if (theElement.Type == 0) //the dummy object can be only pointed before
                 {
-                    m_Selection = m_NumElements;
-                    *IsExpression = m_NumElements;
+                    m_Selection = m_pElementList.size();
+                    *IsExpression = m_pElementList.size();
                     return (CObject*)this;
                 }
 
@@ -3167,8 +3165,8 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                         return obj;
                     }
 
-                m_Selection = m_NumElements + 1;
-                *IsExpression = m_NumElements + 1;
+                m_Selection = m_pElementList.size() + 1;
+                *IsExpression = m_pElementList.size() + 1;
 
                 return (CObject*)this;
             }
@@ -3210,7 +3208,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
     {
         int row = 0;
         int col = 0;
-        for (int i = 1; i < m_NumElements; i++)
+        for (size_t i = 1; i < m_pElementList.size(); i++)
         {
             tElementStruct& theElement = m_pElementList[i];
             tElementStruct& prevElement = m_pElementList[i - 1];
@@ -3223,7 +3221,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
             if ((prevElement.Type == 2 && prevElement.pElementObject->Data1[0] == (char)0xFF) || //newline
                 prevElement.Type == 11 || prevElement.Type == 12)
                 extends = 3 * m_MarginX / 2;
-            if (i < m_NumElements - 1)
+            if (i + 1 < m_pElementList.size())
             {
                 const tElementStruct& postElement = m_pElementList[i + 1];
                 if ((theElement.Type == 2 && theElement.pElementObject->Data1[0] == (char)0xFF) || //newline
@@ -3302,7 +3300,7 @@ void CExpression::AddToStackClipboard(int add_forcefully)
     if (add_forcefully == 0)
     {
         if (GetKeyState(VK_CONTROL) & 0xFFFE)return; //we do not remember keyboard accelerator generated objects
-        if (this->m_NumElements == 1)
+        if (this->m_pElementList.size() == 1)
         {
             if (this->m_pElementList[0].Type == 0) return;
 
@@ -3322,7 +3320,7 @@ void CExpression::AddToStackClipboard(int add_forcefully)
                     return;
             }
         }
-        if (this->m_NumElements > 25) return; //we are not going to add too long objects either
+        if (this->m_pElementList.size() > 25) return; //we are not going to add too long objects either
     }
     //int i;
     //check if we need to add the expression into the stack-clipboard
@@ -3363,25 +3361,25 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
                                 const char update_clipboard)
 {
     //first delete all data in this expression if not empty
-    if (m_NumElements != 1 || m_pElementList[0].Type != 0)
+    if (m_pElementList.size() != 1 || m_pElementList[0].Type != 0)
     {
         Delete();
     }
 
     //check if original is valid
     if (Original == nullptr) return 0;
-    if (Original->m_NumElements < 0) return 0;
-    if (Original->m_NumElements > 0x7FFF) return 0;
+    if (Original->m_pElementList.size() < 0) return 0;
+    if (Original->m_pElementList.size() > 0x7FFF) return 0;
 
     if (OnlySelected == 2) CopyExpressionSpecialFlag = 1;
 
     //now copy data from original
-    int i, j = 0;
-    const int num_elements = Original->m_NumElements;
+    size_t j = 0;
+    const int num_elements = Original->m_pElementList.size();
 
     if (OnlySelected != 1)
     {
-        for (i = 0; i < num_elements; i++)
+        for (size_t i = 0; i < num_elements; i++)
         {
             if (!InsertElement(Original->m_pElementList[i], j++))
             {
@@ -3398,8 +3396,8 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
         char tmp_data[24];
         tmp_data[0] = 0;
         int data_copied = 0;
-        int is_matrix = 0;
-        for (i = 0; i < num_elements; i++)
+        bool is_matrix = false;
+        for (size_t i = 0; i < num_elements; i++)
         {
             tElementStruct* theElement = &Original->m_pElementList[i];
             if (theElement->Type == 11)
@@ -3423,7 +3421,7 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
                     {
                         if (lastrow != row)
                         {
-                            is_matrix = 1;
+                            is_matrix = true;
                             InsertEmptyElement(j, 12, 0);
                             memcpy(m_pElementList[j].pElementObject->Data1, tmp_data, 24);
                             data_copied = 0;
@@ -3432,7 +3430,7 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
                         }
                         else if (lastcol != column)
                         {
-                            is_matrix = 1;
+                            is_matrix = true;
                             InsertEmptyElement(j, 11, 0);
                             memcpy(m_pElementList[j].pElementObject->Data1, tmp_data, 24);
                             data_copied = 0;
@@ -3460,7 +3458,7 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
         {
             if (lastrow != row)
             {
-                is_matrix = 1;
+                is_matrix = true;
                 InsertEmptyElement(j, 12, 0);
                 memcpy(m_pElementList[j].pElementObject->Data1, tmp_data, 24);
                 data_copied = 0;
@@ -3469,7 +3467,7 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
             }
             else if (lastcol != column)
             {
-                is_matrix = 1;
+                is_matrix = true;
                 InsertEmptyElement(j, 11, 0);
                 memcpy(m_pElementList[j].pElementObject->Data1, tmp_data, 24);
                 data_copied = 0;
@@ -3556,7 +3554,6 @@ void CExpression::Delete()
         m_pElementList.clear();
     }
     m_pElementList.push_back({});
-    m_NumElements = 1;
 
     //create an empty frame object
     m_pElementList[0].Type = 0;
@@ -3591,9 +3588,9 @@ void CExpression::Delete()
 int CExpression::InsertElement(const tElementStruct& Element, int position)
 {
     if (position < 0) return 0;
-    if (position > m_NumElements) return 0;
+    if (position > m_pElementList.size()) return 0;
     //if (Element->Type<0) return 0;
-    if (m_NumElements > 0x7FFF - 2) return 0; //0x7FFF-2 elements is the maximum for an expression
+    if (m_pElementList.size() > 0x7FFF - 2) return 0; //0x7FFF-2 elements is the maximum for an expression
 
     CExpression* ccc = this;
     do
@@ -3603,11 +3600,11 @@ int CExpression::InsertElement(const tElementStruct& Element, int position)
     }
     while (ccc);
 
-    if (m_NumElements >= position && position > 0 && m_pElementList[position - 1].Type == 0
+    if (m_pElementList.size() >= position && position > 0 && m_pElementList[position - 1].Type == 0
         && Element.Type != 11 && Element.Type != 12)
         position--;
 
-    if (m_NumElements > position && m_pElementList[position].Type == 0)
+    if (m_pElementList.size() > position && m_pElementList[position].Type == 0)
     {
         //only the 'empty frame' is part of expression - will be replaced
         tElementStruct& ts = m_pElementList[position];
@@ -3633,7 +3630,6 @@ int CExpression::InsertElement(const tElementStruct& Element, int position)
 
 
     //expanding the element list
-    m_NumElements++;
     tElementStruct& ts = *m_pElementList.insert(m_pElementList.begin() + position, tElementStruct());
 
 
@@ -3664,9 +3660,9 @@ int CExpression::InsertElement(const tElementStruct& Element, int position)
 int CExpression::MoveElementInto(const tElementStruct& Element, int position)
 {
     if (position < 0) return 0;
-    if (position > m_NumElements) return 0;
+    if (position > m_pElementList.size()) return 0;
     if (Element.Type < 0) return 0;
-    if (m_NumElements > 0x7FFF - 2) return 0; //0x7FFF-2 elements is the maximum for an expression
+    if (m_pElementList.size() > 0x7FFF - 2) return 0; //0x7FFF-2 elements is the maximum for an expression
 
     CExpression* ccc = this;
     do
@@ -3676,11 +3672,11 @@ int CExpression::MoveElementInto(const tElementStruct& Element, int position)
     }
     while (ccc);
 
-    if (m_NumElements >= position && position > 0 && m_pElementList[position - 1].Type == 0
+    if (m_pElementList.size() >= position && position > 0 && m_pElementList[position - 1].Type == 0
         && Element.Type != 11 && Element.Type != 12)
         position--;
 
-    if (m_NumElements > position && m_pElementList[position].Type == 0)
+    if (m_pElementList.size() > position && m_pElementList[position].Type == 0)
     {
         //only the 'empty frame' is part of expression - will be replaced
         tElementStruct& ts = m_pElementList[position];
@@ -3700,7 +3696,6 @@ int CExpression::MoveElementInto(const tElementStruct& Element, int position)
     }
 
     //expanding the element list
-    m_NumElements++;
     m_pElementList.push_back({});
 
     //moving data
@@ -3736,35 +3731,35 @@ int CExpression::MovePortionInto(int position, CExpression *Original, int source
 		ccc=ccc->m_pPaternalExpression;
 	} while (ccc);
 
-	if ((m_NumElements>=position) && (position>0) && ((m_pElementList+position-1)->Type==0)
+	if ((m_pElementList.size()>=position) && (position>0) && ((m_pElementList+position-1)->Type==0)
 		&& ((Original->m_pElementList+source_pos)->Type!=11) && ((Original->m_pElementList+source_pos)->Type!=12)) position--;
 
 	tElementStruct *ts;
-	if ((m_NumElements>position) && ((m_pElementList+position)->Type==0))
+	if ((m_pElementList.size()>position) && ((m_pElementList+position)->Type==0))
 	{
 		//expanding the element list
-		m_NumElements+=num_elements-1;
-		if (m_NumElements>m_ElementListReservations)
+		m_pElementList.size()+=num_elements-1;
+		if (m_pElementList.size()>m_ElementListReservations)
 		{
-			m_ElementListReservations=m_NumElements;
+			m_ElementListReservations=m_pElementList.size();
 			m_pElementList=(tElementStruct*)HeapReAlloc(ProcessHeap,0,(void*)m_pElementList,m_ElementListReservations*sizeof(tElementStruct));
 			if (m_pElementList==nullptr) {AfxMessageBox("Cannot alloc memory (6)!!!",MB_OK,0);return 0;}
 		}
 		ts=m_pElementList+position;
-		memmove(ts+num_elements-1,ts,(m_NumElements-position-2)*sizeof(tElementStruct));
+		memmove(ts+num_elements-1,ts,(m_pElementList.size()-position-2)*sizeof(tElementStruct));
 	}
 	else
 	{
 		//expanding the element list
-		m_NumElements+=num_elements;
-		if (m_NumElements>m_ElementListReservations)
+		m_pElementList.size()+=num_elements;
+		if (m_pElementList.size()>m_ElementListReservations)
 		{
-			m_ElementListReservations=m_NumElements;
+			m_ElementListReservations=m_pElementList.size();
 			m_pElementList=(tElementStruct*)HeapReAlloc(ProcessHeap,0,(void*)m_pElementList,m_ElementListReservations*sizeof(tElementStruct));
 			if (m_pElementList==nullptr) {AfxMessageBox("Cannot alloc memory (7)!!!",MB_OK,0);return 0;}
 		}
 		ts=m_pElementList+position;
-		memmove(ts+num_elements,ts,(m_NumElements-position-1)*sizeof(tElementStruct));
+		memmove(ts+num_elements,ts,(m_pElementList.size()-position-1)*sizeof(tElementStruct));
 	}
 
 	//moving elements
@@ -3791,9 +3786,9 @@ int CExpression::MovePortionInto(int position, CExpression *Original, int source
 	theElement=Original->m_pElementList+source_pos;
 
 	//then reduce the element list
-	memmove(theElement,theElement+num_elements,(Original->m_NumElements-source_pos-num_elements)*sizeof(tElementStruct));
+	memmove(theElement,theElement+num_elements,(Original->m_pElementList.size()-source_pos-num_elements)*sizeof(tElementStruct));
 
-	Original->m_NumElements-=num_elements;
+	Original->m_pElementList.size()-=num_elements;
 	
 	ccc=Original;
 	do
@@ -3803,7 +3798,7 @@ int CExpression::MovePortionInto(int position, CExpression *Original, int source
 	} while (ccc);
 	
 
-	if (Original->m_NumElements==0)
+	if (Original->m_pElementList.size()==0)
 	{
 		//if emptied, we will add a dummy 'empty frame'
 		Original->m_pElementList[0].Type=0;
@@ -3815,7 +3810,7 @@ int CExpression::MovePortionInto(int position, CExpression *Original, int source
 		Original->m_pElementList[0].Below=0;
 		Original->m_pElementList[0].Above=0;
 
-		Original->m_NumElements=1;
+		Original->m_pElementList.size()=1;
 	}
 
 	return 1;
@@ -3834,8 +3829,8 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
     if (Y < -5000) return nullptr;
     if (Y > 15000) return nullptr;
     if (Original == nullptr) return nullptr;
-    if (Original->m_NumElements < 0) return nullptr;
-    if (Original->m_NumElements > 0x7FFF) return nullptr;
+    if (Original->m_pElementList.size() < 0) return nullptr;
+    if (Original->m_pElementList.size() > 0x7FFF) return nullptr;
 
     //first, find the grand paternal expression
     CExpression* expr = this;
@@ -3903,12 +3898,12 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
                 Original->m_MaxNumRows == 1 && Original->m_MaxNumColumns == 1)
             {
                 //we are puting something over parentheses, we need to kill existing parentheses
-                for (int i = 0; i < expr->m_pPaternalExpression->m_NumElements; i++)
+                for (int i = 0; i < expr->m_pPaternalExpression->m_pElementList.size(); i++)
                 {
                     tElementStruct& ts = expr->m_pPaternalExpression->m_pElementList[i];
                     if (ts.Type == 5 && ts.pElementObject->Expression1 == expr)
                     {
-                        for (int j = 0; j < Original->m_NumElements; j++)
+                        for (size_t j = 0; j < Original->m_pElementList.size(); j++)
                         {
                             expr->m_pPaternalExpression->InsertElement(Original->m_pElementList[j], i + j + 1);
                         }
@@ -3929,13 +3924,13 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
     {
         int pos = expr->m_Selection - 1;
         int IsExpressionEmpty = 0;
-        if (expr->m_NumElements == 0) IsExpressionEmpty = 1;
-        if (expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) IsExpressionEmpty = 1;
+        if (expr->m_pElementList.size() == 0) IsExpressionEmpty = 1;
+        if (expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) IsExpressionEmpty = 1;
         //inserting into expression
         int OriginalIsText = Original->IsTextContained(-1);
         //int ThisIsText=expr->IsTextContained(pos);
         int ThisIsText = expr->DetermineInsertionPointType(pos);
-        if (expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) ThisIsText = OriginalIsText;
+        if (expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) ThisIsText = OriginalIsText;
 
         if (Original->m_DrawParentheses /*|| ((OriginalIsText!=ThisIsText) && (ThisIsText==0))*/ ||
             (!IsExpressionEmpty && (Original->m_MaxNumColumns > 1 || Original->m_MaxNumRows > 1)))
@@ -3953,19 +3948,18 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
         }
 
         //the original has no parentheses, so we will insert just here
-        for (int i = 0; i < Original->m_NumElements; i++)
+        for (size_t i = 0; i < Original->m_pElementList.size(); i++)
         {
-            int ret;
-            tElementStruct& theElement = Original->m_pElementList[i];
+            const tElementStruct& theElement = Original->m_pElementList[i];
             if (theElement.Type == 2 && theElement.pElementObject->Data1[0] == (char)0xFF &&
                 expr->m_MaxNumRows == 1 && expr->m_MaxNumColumns == 1)
             {
                 //expr->m_IsText=1;
                 expr->m_Alignment = 1;
             }
-            ret = expr->InsertElement(theElement, pos + i);
 
-            if (ret == 0) return nullptr;
+            if (expr->InsertElement(theElement, pos + i) == 0)
+                return nullptr;
         }
         return expr;
     }
@@ -4004,7 +3998,7 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
         else
         {
             //overwrite (first delete content of existing cells - selected ones will be overwriten)
-            for (int i = 0; i < expr->m_NumElements; i++)
+            for (size_t i = 0; i < expr->m_pElementList.size(); i++)
             {
                 tElementStruct& ts = expr->m_pElementList[i];
                 if (ts.Type == 11)
@@ -4053,7 +4047,7 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
         {
             //we have to paste over matrix elements
             first_found = expr->FindMatrixElement(first_found_row, first_found_column, 1);
-            for (int i = 0; i < Original->m_NumElements; i++)
+            for (size_t i = 0; i < Original->m_pElementList.size(); i++)
             {
                 tElementStruct& ts = Original->m_pElementList[i];
                 if (ts.Type == 11)
@@ -4072,7 +4066,7 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
                     if (Original->GetCellAttributes(row, column, &att))
                         SetCellAttributes(first_found_row + row, first_found_column + column, *att.alignment,
                                           *att.top_border, *att.bottom_border, *att.left_border, *att.right_border);
-                    if (i < Original->m_NumElements - 1)
+                    if (i < Original->m_pElementList.size() - 1)
                     {
                         row++;
                         column = 0;
@@ -4088,7 +4082,7 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
             return expr;
         }
 
-        for (int i = 0; i < Original->m_NumElements; i++)
+        for (size_t i = 0; i < Original->m_pElementList.size(); i++)
         {
             tElementStruct& ts = Original->m_pElementList[i];
             if (expr->InsertElement(ts, first_found + i) == 0) return nullptr;
@@ -4104,7 +4098,7 @@ int CExpression::ContainsBlinkingCursor() const
 {
     if (this->m_IsKeyboardEntry && KeyboardEntryObject == this) return m_IsKeyboardEntry;
 
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         const tElementStruct& ts = m_pElementList[i];
         if (ts.pElementObject)
@@ -4121,7 +4115,7 @@ CElement* CExpression::DecodeInternalInsertionPoint() //babaluj
 {
     int ns = 0;
     int fp = -1;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
         if (m_pElementList[i].IsSelected)
         {
             ns++;
@@ -4140,20 +4134,16 @@ CElement* CExpression::DecodeInternalInsertionPoint() //babaluj
 //deletes an element of the expression
 int CExpression::DeleteElement(short position)
 {
-    if (position >= m_NumElements) return 0;
+    if (position >= m_pElementList.size()) return 0;
     if (position < 0) return 0;
 
     //first delete element itself
-    tElementStruct* theElement = &m_pElementList[position];
-    if (theElement->Type > 0 && theElement->pElementObject)
-    {
-        delete theElement->pElementObject;
-    }
+    if (tElementStruct& theElement = m_pElementList[position]; theElement.Type > 0)
+        delete theElement.pElementObject;
 
     //then reduce the element list
     m_pElementList.erase(m_pElementList.begin() + position);
     
-    m_NumElements--;
 
     CExpression* ccc = this;
     do
@@ -4164,7 +4154,7 @@ int CExpression::DeleteElement(short position)
     while (ccc);
 
 
-    if (m_NumElements == 0)
+    if (m_pElementList.size() == 0)
     {
         m_pElementList.push_back(tElementStruct());
         //if emptied, we will add a dummy 'empty frame'
@@ -4176,42 +4166,41 @@ int CExpression::DeleteElement(short position)
         m_pElementList[0].Length = 0;
         m_pElementList[0].Below = 0;
         m_pElementList[0].Above = 0;
-
-        m_NumElements = 1;
     }
 
     return 1;
 }
 
-CExpression* CExpression::GetLabel() const
+CExpression* CExpression::GetLabel()
 {
     //search if there is Label contained in this expression
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
-        const tElementStruct* ts = &m_pElementList[i];
-        if (ts->pElementObject)
+        const tElementStruct& ts = m_pElementList[i];
+        if (ts.pElementObject)
         {
-            CElement* el = ts->pElementObject;
-            if (ts->Type == 9 && el->Data1[0] == 'L' && el->Expression2 == nullptr && el->Expression3 == nullptr && el->
-                Expression1)
+            CElement* el = ts.pElementObject;
+            if (ts.Type == 9 && el->Data1[0] == 'L' &&
+                el->Expression2 == nullptr &&
+                el->Expression3 == nullptr &&
+                el->Expression1)
             {
                 //label element found - now return its expression
                 return el->Expression1;
             }
-            CExpression* found;
             if (el->Expression1)
             {
-                found = el->Expression1->GetLabel();
+                CExpression* found = el->Expression1->GetLabel();
                 if (found) return found;
             }
             if (el->Expression2)
             {
-                found = el->Expression2->GetLabel();
+                CExpression* found = el->Expression2->GetLabel();
                 if (found) return found;
             }
             if (el->Expression3)
             {
-                found = el->Expression3->GetLabel();
+                CExpression* found = el->Expression3->GetLabel();
                 if (found) return found;
             }
         }
@@ -4234,8 +4223,8 @@ CExpression* CExpression::AdjustSelection(char keyboard_select)
     short FoundSelectedObjectColumn2 = -1;
     short FoundSelectedObject = 32767;
     short FoundSelectedObject2 = -1;
-    int i;
-    for (i = 0; i < m_NumElements; i++)
+    size_t i;
+    for (i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct* theElement = &m_pElementList[i];
         if (theElement->Type == 11) column++;
@@ -4287,8 +4276,7 @@ CExpression* CExpression::AdjustSelection(char keyboard_select)
             {
                 if (m_pElementList[jj].IsSelected == 0)
                     m_pElementList[jj].IsSelected = keyboard_select;
-                CElement* elm = m_pElementList[jj].pElementObject;
-                if (elm)
+                if (CElement* elm = m_pElementList[jj].pElementObject)
                 {
                     if (elm->Expression1 != nullptr) elm->Expression1->SelectExpression(1);
                     if (elm->Expression2 != nullptr) elm->Expression2->SelectExpression(1);
@@ -4385,7 +4373,7 @@ int CExpression::KeyboardStart(CDC* DC, short zoom)
     {
         if (m_Selection < 0) return 0;
         if (m_Selection == 0x7FFF) return 0;
-        if (m_Selection > m_NumElements + 1) return 0;
+        if (m_Selection > m_pElementList.size() + 1) return 0;
 
         int start_pos = m_Selection;
         if (start_pos == 0) start_pos = 1;
@@ -4428,17 +4416,17 @@ void CExpression::StoreBackspaceStorage()
 
 	if (BackspaceStorage)
 	{
-		int N1=BackspaceStorage->m_NumElements-this->m_NumElements;
+		int N1=BackspaceStorage->m_pElementList.size()-this->m_pElementList.size();
 		int any_deleted=0;
 
 		for (int i=0;i<m_IsKeyboardEntry-1;i++,any_deleted=1)
 			BackspaceStorage->DeleteElement(0);
 
-		int N2=BackspaceStorage->m_NumElements-N1-1;
+		int N2=BackspaceStorage->m_pElementList.size()-N1-1;
 		for (int i=0;i<N2;i++,any_deleted=1)
 			BackspaceStorage->DeleteElement(N1+1);
 
-		for (int i=0;i<BackspaceStorage->m_NumElements;i++)
+		for (int i=0;i<BackspaceStorage->m_pElementList.size();i++)
 			if (((BackspaceStorage->m_pElementList+i)->Type==1) && ((BackspaceStorage->m_pElementList+i)->pElementObject->Data1[0]==0))
 			{
 				BackspaceStorage->DeleteElement(i);
@@ -4458,7 +4446,7 @@ void CExpression::StoreBackspaceStorage()
 #pragma optimize("s",on)
 int CExpression::KeyboardStop()
 {
-    static char is_inside;
+    static bool is_inside;
     if (KeyboardEntryBaseObject)
         if (KeyboardEntryBaseObject - TheDocument < NumDocumentElements)
             if (KeyboardEntryBaseObject->Type == EXPRESSION)
@@ -4466,15 +4454,15 @@ int CExpression::KeyboardStop()
                 //if ((KeyboardEntryObject) && (BackspaceStorage)) ((CExpression*)KeyboardEntryObject)->StoreBackspaceStorage();
 
                 CExpression* e = KeyboardEntryBaseObject->Object.exp;
-                if (e->m_NumElements > 1 &&
-                    e->m_pElementList[e->m_NumElements - 1].Type == 2 &&
-                    e->m_pElementList[e->m_NumElements - 1].pElementObject->Data1[0] == (char)0xFF)
-                    e->DeleteElement(e->m_NumElements - 1); //remove the last element if it is the newline element
+                if (e->m_pElementList.size() > 1 &&
+                    e->m_pElementList[e->m_pElementList.size() - 1].Type == 2 &&
+                    e->m_pElementList[e->m_pElementList.size() - 1].pElementObject->Data1[0] == (char)0xFF)
+                    e->DeleteElement(e->m_pElementList.size() - 1); //remove the last element if it is the newline element
             }
 
     //m_IsKeyboardEntry contains ordinal number (with offset +1) of the element that 
     //is being edited. The edited element can only be variable (type==1)
-    if (m_IsKeyboardEntry <= 0 || m_IsKeyboardEntry > m_NumElements)
+    if (m_IsKeyboardEntry <= 0 || m_IsKeyboardEntry > m_pElementList.size())
     {
         AdjustMatrix();
         return 0;
@@ -4483,7 +4471,7 @@ int CExpression::KeyboardStop()
     if (this == KeyboardEntryObject)
     {
         //we cannot call DeselectExpression because we only need to deselect the keyboard selections
-        for (int i = 0; i < m_NumElements; i++)
+        for (size_t i = 0; i < m_pElementList.size(); i++)
             if (m_pElementList[i].IsSelected == 2)
                 m_pElementList[i].IsSelected = 0;
     }
@@ -4512,9 +4500,9 @@ int CExpression::KeyboardStop()
                 CDC* DC = pMainView->GetDC();
                 this->ResolveKnownFunctions(DC, ViewZoom, ' ', 0, 0, 0, &theElement);
                 pMainView->ReleaseDC(DC);
-                is_inside = 1;
+                is_inside = true;
                 int rval = KeyboardEntryObject->KeyboardStop();
-                is_inside = 0;
+                is_inside = false;
                 return rval;
             }
         }
@@ -4558,11 +4546,11 @@ int CExpression::KeyboardPopupClosed(int user_param, int exit_code)
 
     if (user_param == 0) // the ?? sequence was used to open popup menu
     {
-        int pos = m_IsKeyboardEntry - 1;
+        size_t pos = m_IsKeyboardEntry - 1;
         if (pos && exit_code)
         {
             if (TempPopupExpression->m_pElementList[0].Type)
-                for (int ii = 0; ii < TempPopupExpression->m_NumElements; ii++)
+                for (size_t ii = 0; ii < TempPopupExpression->m_pElementList.size(); ii++)
                     InsertElement(TempPopupExpression->m_pElementList[ii], pos++);
         }
         if (m_pElementList[pos].Type != 1 || m_pElementList[pos].pElementObject->Data1[0])
@@ -4578,10 +4566,10 @@ int CExpression::KeyboardPopupClosed(int user_param, int exit_code)
     {
         if (TempPopupExpression->m_pElementList[0].Type)
         {
-            int tmp = m_NumElements;
-            for (int ii = 0; ii < tmp; ii++)
+            size_t tmp = m_pElementList.size();
+            for (size_t ii = 0; ii < tmp; ii++)
                 DeleteElement(0);
-            for (int ii = 0; ii < TempPopupExpression->m_NumElements; ii++)
+            for (size_t ii = 0; ii < TempPopupExpression->m_pElementList.size(); ii++)
                 InsertElement(TempPopupExpression->m_pElementList[ii], ii);
 
             tmp = user_param;
@@ -4593,8 +4581,8 @@ int CExpression::KeyboardPopupClosed(int user_param, int exit_code)
             else if (tmp < 0)
             {
                 tmp = -tmp;
-                tmp = m_NumElements - tmp + 1;
-                if (tmp >= 0 && tmp <= this->m_NumElements)
+                tmp = m_pElementList.size() - tmp + 1;
+                if (tmp >= 0 && tmp <= this->m_pElementList.size())
                 {
                     this->InsertEmptyElement(tmp, 1, 0, Toolbox->GetFormattingColor());
                     m_IsKeyboardEntry = tmp + 1;
@@ -4619,7 +4607,7 @@ int CExpression::RemoveEmptyVariable(CDC* DC, tElementStruct* theElement, char n
         int prev_type = 11;
         int aft_type = 11;
         if (m_IsKeyboardEntry > 1) prev_type = m_pElementList[m_IsKeyboardEntry - 2].Type;
-        if (m_IsKeyboardEntry < m_NumElements) aft_type = m_pElementList[0].Type;
+        if (m_IsKeyboardEntry < m_pElementList.size()) aft_type = m_pElementList[0].Type;
         if ((prev_type == 11 || prev_type == 12) && (aft_type == 11 || aft_type == 12))
         {
             DeleteElement(m_IsKeyboardEntry - 1);
@@ -4655,7 +4643,7 @@ char InhibitAllKeyHandling = 0;
 int CExpression::InsertTabSpacer(int position, char stop_on_equality)
 {
     if (position < 0) return 0;
-    if (position > m_NumElements) return 0;
+    if (position > m_pElementList.size()) return 0;
 
     int orig_position = position;
 
@@ -4679,8 +4667,8 @@ int CExpression::InsertTabSpacer(int position, char stop_on_equality)
 
     if (position)
         position--;
-    else if (this->m_MaxNumColumns == 1 && this->m_MaxNumRows == 1 && KeyboardEntryBaseObject && KeyboardEntryBaseObject
-        ->Type == EXPRESSION)
+    else if (this->m_MaxNumColumns == 1 && this->m_MaxNumRows == 1 && KeyboardEntryBaseObject &&
+        KeyboardEntryBaseObject->Type == EXPRESSION)
     {
         //we are at the beginning of an object - check if there is another object just above us
         int mindelta = 0x7FFFFFFF;
@@ -4703,7 +4691,7 @@ int CExpression::InsertTabSpacer(int position, char stop_on_equality)
         {
             //we found an object just above our own object
             exp = TheDocument[ffound].Object.exp;
-            position = exp->m_NumElements;
+            position = exp->m_pElementList.size();
         }
     }
 
@@ -4891,7 +4879,7 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
         return 2;
     }
     /*if ((_strnicmp(theElement->pElementObject->Data1,"\\text",5)==0)
-        && (this->m_NumElements==1) && (this->m_pPaternalExpression==nullptr)) //this is special handling for empty only (otherwise from table)
+        && (this->m_pElementList.size()==1) && (this->m_pPaternalExpression==nullptr)) //this is special handling for empty only (otherwise from table)
     {
         theElement->pElementObject->Data1[0]=0;
         this->m_KeyboardCursorPos=0;
@@ -4975,8 +4963,8 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
                 }
         }
         CExpression* b = theElement->pElementObject->m_pPaternalExpression;
-        int i;
-        for (i = 0; i < b->m_NumElements; i++)
+        size_t i;
+        for (i = 0; i < b->m_pElementList.size(); i++)
             if (&b->m_pElementList[i] == theElement) break;
         b->DeleteElement(i);
         b->InsertEmptyElement(i, 6, 'f', fcolor);
@@ -5005,8 +4993,8 @@ int CExpression::ResolveKnownFunctions(CDC* DC, short zoom, UINT nChar, UINT nRp
         memcpy(tmp, theElement->pElementObject->Data1, 24);
         tmp[23] = 0;
         CExpression* b = theElement->pElementObject->m_pPaternalExpression;
-        int i;
-        for (i = 0; i < b->m_NumElements; i++)
+        size_t i;
+        for (i = 0; i < b->m_pElementList.size(); i++)
             if (&b->m_pElementList[i] == theElement) break;
         b->DeleteElement(i);
         b->InsertEmptyElement(i, 1, 'u', fcolor);
@@ -5293,7 +5281,7 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
 
     m_IsKeyboardEntry = 0;
     m_KeyboardCursorPos = 0;
-    if (position > new_focus->m_NumElements) position = new_focus->m_NumElements;
+    if (position > new_focus->m_pElementList.size()) position = new_focus->m_pElementList.size();
     if (position > 0 && new_focus->m_pElementList[position - 1].Type == 0) position--;
     new_focus->InsertEmptyElement(position, 1, 0, Toolbox->GetFormattingColor());
     new_focus->m_IsKeyboardEntry = position + 1;
@@ -5311,7 +5299,7 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
 	//check if there is any differential opperator and fuse it with its argument
 
 	tElementStruct *ts=this->m_pElementList;
-	for (int i=0;i<this->m_NumElements-1;i++,ts++)
+	for (int i=0;i<this->m_pElementList.size()-1;i++,ts++)
 	if (ts->Type==6)
 	{
 		CElement *elm=ts->pElementObject;
@@ -5329,7 +5317,7 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
 	}
 
 	//now fuse cases of d^2
-	if ((this->m_NumElements==1) && (this->m_pElementList[0].Type==6) && (this->m_pElementList[0].pElementObject) &&
+	if ((this->m_pElementList.size()==1) && (this->m_pElementList[0].Type==6) && (this->m_pElementList[0].pElementObject) &&
 		(this->m_pElementList[0].pElementObject->Expression1==nullptr) &&
 		(this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type==3) && (this->m_pPaternalElement->Expression1==(CObject*)this))
 	{
@@ -5337,7 +5325,7 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
 		if (elm->IsDifferential())
 		{
 			CExpression *p=this->m_pPaternalExpression;
-			for (int i=0;i<p->m_NumElements;i++)
+			for (int i=0;i<p->m_pElementList.size();i++)
 			if ((p->m_pElementList+i)->pElementObject==this->m_pPaternalElement)
 			{
 				//now add the next element into the function argument
@@ -5352,7 +5340,7 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
 	}
 
 	//now fuse cases of d/d
-	if ((this->m_NumElements==1) && (this->m_pElementList[0].Type==6) && (this->m_pElementList[0].pElementObject) &&
+	if ((this->m_pElementList.size()==1) && (this->m_pElementList[0].Type==6) && (this->m_pElementList[0].pElementObject) &&
 		(this->m_pElementList[0].pElementObject->Expression1==nullptr) &&
 		(this->m_pPaternalElement) && (this->m_pPaternalElement->m_Type==4) && (this->m_pPaternalElement->Expression1==(CObject*)this))
 	{
@@ -5360,7 +5348,7 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
 		if (elm->IsDifferential())
 		{
 			CExpression *p=this->m_pPaternalExpression;
-			for (int i=0;i<p->m_NumElements;i++)
+			for (int i=0;i<p->m_pElementList.size();i++)
 			if ((p->m_pElementList+i)->pElementObject==this->m_pPaternalElement)
 			{
 				//now add the next element into the function argument
@@ -5375,7 +5363,7 @@ int CExpression::KeyboardRefocus(CExpression* new_focus, int position)
 	}
 
 	ts=this->m_pElementList;
-	for (int i=0;i<this->m_NumElements-1;i++,ts++)
+	for (int i=0;i<this->m_pElementList.size()-1;i++,ts++)
 	{
 		CElement *elm=ts->pElementObject;
 		if (elm)
@@ -5442,7 +5430,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         m_IsKeyboardEntry = 0;
         return 0;
     }
-    if (m_IsKeyboardEntry > m_NumElements)
+    if (m_IsKeyboardEntry > m_pElementList.size())
     {
         m_IsKeyboardEntry = 0;
         return 0;
@@ -5473,10 +5461,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
     } //not variable
 
     //determining the keyboard mode: math (for editing formulas) or text (for editing plain text)
-    char IsText = 0;
-    if (theElement->Type == 1 && (theElement->pElementObject->m_Text || (SpacebarPressedRecently && is_external
-        == 2)))
-        IsText = 1;
+    bool IsText = false;
+    if (theElement->Type == 1 && (theElement->pElementObject->m_Text ||
+        (SpacebarPressedRecently && is_external)))
+        IsText = true;
 
     //if pure number has its double IEEE value coded inside, just delete it
     if (theElement->pElementObject->Data1[14] == 0 && (theElement->pElementObject->Data1[15] & 0x7F) == 126)
@@ -5484,7 +5472,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
     //prepare some frequently used data
     CElement* EditedVariable = theElement->pElementObject;
-    bool IsEditedVariableEmpty = strlen(EditedVariable->Data1) == 0 ? 1 : 0;
+    bool IsEditedVariableEmpty = strlen(EditedVariable->Data1) == 0;
 
     //int fcolor=Toolbox->GetFormattingColor();
 
@@ -5556,7 +5544,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
     if ((nChar & 0xFF) == 6) //WM_TIMER message (sent as character code 6)
     {
         //periodically check if there is anything in the clipboard to be inserted at the keyboard cursor positon
-        if (ClipboardExpression && ClipboardExpression->m_NumElements > 0 && m_IsKeyboardEntry && (
+        if (ClipboardExpression && ClipboardExpression->m_pElementList.size() > 0 && m_IsKeyboardEntry && (
             GetKeyState(VK_LBUTTON) & 0xFFFE) == 0)
         {
             //we are going to copy the clipboard at the current cursor position
@@ -5579,10 +5567,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             if (m_KeyboardCursorPos == 0) IsEditedVariableEmpty = true;
 
             //special handling for tekst mode
-            if (this->m_pPaternalExpression == nullptr && this->m_NumElements == 1 &&
+            if (this->m_pPaternalExpression == nullptr && this->m_pElementList.size() == 1 &&
                 this->m_pElementList[0].Type == 1 && m_IsKeyboardEntry == 1 && m_KeyboardCursorPos == 0)
             {
-                if (ClipboardExpression->m_NumElements == 1 &&
+                if (ClipboardExpression->m_pElementList.size() == 1 &&
                     ClipboardExpression->m_pElementList[0].Type == 5 &&
                     ClipboardExpression->m_pElementList[0].pElementObject->Expression1->m_StartAsText)
                 {
@@ -5605,26 +5593,26 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
             if (!ClipboardExpression) return 1;
             //just check if there is an empty variable at the end - delete it (we don't want empty variables to propagate)
-            tElementStruct* tss = &ClipboardExpression->m_pElementList[ClipboardExpression->m_NumElements - 1];
+            tElementStruct* tss = &ClipboardExpression->m_pElementList[ClipboardExpression->m_pElementList.size() - 1];
             if (tss->Type == 1 && (tss->pElementObject->Data1[0] == 0 || tss->pElementObject->Data1[0] == 32))
-                ClipboardExpression->DeleteElement(ClipboardExpression->m_NumElements - 1);
+                ClipboardExpression->DeleteElement(ClipboardExpression->m_pElementList.size() - 1);
 
 
             //now we check if there is a keyboard selection that can be inserted
             //into clipboard element before pasting (implanting)
-            if (ClipboardExpression->m_NumElements == 1 &&
+            if (ClipboardExpression->m_pElementList.size() == 1 &&
                 ClipboardExpression->m_pElementList[0].pElementObject)
             {
                 CExpression* ex = ClipboardExpression->m_pElementList[0].pElementObject->Expression1;
-                if (ex && ex->m_NumElements == 1 && ex->m_pElementList[0].Type == 0)
+                if (ex && ex->m_pElementList.size() == 1 && ex->m_pElementList[0].Type == 0)
                 {
-                    for (int jj = 0; jj < m_NumElements; jj++)
+                    for (size_t jj = 0; jj < m_pElementList.size(); jj++)
                     {
                         if (m_pElementList[jj].IsSelected == 2)
                         {
-                            ex->InsertElement(m_pElementList[jj], ex->m_NumElements);
+                            ex->InsertElement(m_pElementList[jj], ex->m_pElementList.size());
                             DeleteElement(jj);
-                            if (m_IsKeyboardEntry - 1 > jj) m_IsKeyboardEntry--;
+                            if (m_IsKeyboardEntry > jj + 1) m_IsKeyboardEntry--;
                             jj--;
                         }
                     }
@@ -5640,12 +5628,12 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             m_IsRowInsertion = false;
             m_IsColumnInsertion = false;
 
-            int tmp = m_NumElements;
+            int tmp = m_pElementList.size();
             if (tmp == 1 && m_pElementList[0].Type == 0) tmp = 0;
             CopyAtPoint(nullptr, ViewZoom, -1, -1, ClipboardExpression);
             if (ClipboardExpression) ClipboardExpression->AddToStackClipboard(0);
             m_Selection = 0;
-            int newtmp = m_NumElements;
+            int newtmp = m_pElementList.size();
             if (newtmp == 1 && m_pElementList[0].Type == 0) newtmp = 0;
 
             m_IsKeyboardEntry += newtmp - tmp;
@@ -5654,7 +5642,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             for (int oo = 0; oo < NumAdded; oo++)
             {
                 int trt = m_IsKeyboardEntry - NumAdded - 1 + oo;
-                if (trt < 0 || trt > m_NumElements) break;
+                if (trt < 0 || trt > m_pElementList.size()) break;
 
                 theElement = &m_pElementList[trt];
 
@@ -5676,7 +5664,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             (e->m_pElementList[0].Type == 5 && e->m_pElementList[0].pElementObject->
                                 Expression1->m_pElementList[0].Type == 0) ||
                             (e->m_pElementList[0].pElementObject->IsDifferential() &&
-                                e->m_pElementList[0].pElementObject->Expression1->m_NumElements == 1 &&
+                                e->m_pElementList[0].pElementObject->Expression1->m_pElementList.size() == 1 &&
                                 e->m_pElementList[0].pElementObject->Expression1->m_pElementList[0].Type ==
                                 0))
                         {
@@ -5703,7 +5691,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             //opens new variable for editing
 
             InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
-            if (m_IsKeyboardEntry <= m_NumElements)
+            if (m_IsKeyboardEntry <= m_pElementList.size())
                 m_pElementList[m_IsKeyboardEntry - 1].pElementObject->m_Text = IsText;
             m_KeyboardCursorPos = 0;
             IsEditedVariableEmpty = true;
@@ -5774,7 +5762,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 KeyboardEntryStringLen = -1;
             }
 
-            if (IsEditedVariableEmpty && this->m_NumElements == 1 &&
+            if (IsEditedVariableEmpty && this->m_pElementList.size() == 1 &&
                 this->m_pPaternalExpression == nullptr && KeyboardEntryBaseObject->Type == EXPRESSION &&
                 KeyboardEntryBaseObject->Object.exp == this)
             {
@@ -5876,33 +5864,32 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         char ch = KeyboardEntryString[i];
                         if (ch == ' ')
                         {
-                            exp->InsertEmptyElement(exp->m_NumElements, 1, 0, fcolor);
-                            exp->m_pElementList[exp->m_NumElements - 1].pElementObject->m_Text = 1;
+                            exp->InsertEmptyElement(exp->m_pElementList.size(), 1, 0, fcolor);
+                            exp->m_pElementList[exp->m_pElementList.size() - 1].pElementObject->m_Text = 1;
                             continue;
                         }
-                        int l = (int)strlen(exp->m_pElementList[exp->m_NumElements - 1].pElementObject->Data1);
-                        exp->m_pElementList[exp->m_NumElements - 1].pElementObject->Data1[l] = ch;
-                        exp->m_pElementList[exp->m_NumElements - 1].pElementObject->Data1[l + 1] = 0;
-                        exp->m_pElementList[exp->m_NumElements - 1].pElementObject->Data2[l] =
+                        int l = (int)strlen(exp->m_pElementList[exp->m_pElementList.size() - 1].pElementObject->Data1);
+                        exp->m_pElementList[exp->m_pElementList.size() - 1].pElementObject->Data1[l] = ch;
+                        exp->m_pElementList[exp->m_pElementList.size() - 1].pElementObject->Data1[l + 1] = 0;
+                        exp->m_pElementList[exp->m_pElementList.size() - 1].pElementObject->Data2[l] =
                             //KeyboardEntryFonts[i];
                             Toolbox->GetUniformFormatting();
                     }
-                    exp->m_IsKeyboardEntry = exp->m_NumElements;
+                    exp->m_IsKeyboardEntry = exp->m_pElementList.size();
                     exp->m_KeyboardCursorPos = (int)strlen(
-                        exp->m_pElementList[exp->m_NumElements - 1].pElementObject->Data1);
+                        exp->m_pElementList[exp->m_pElementList.size() - 1].pElementObject->Data1);
                     KeyboardEntryStringLen = -1;
                     KeyboardEntryObject = exp;
 
-                    IsText = 1;
+                    IsText = true;
                     m_StartAsText = 1;
                     m_ModeDefinedAt = 1;
                     if (IsText) m_ModeDefinedAt |= 0x4000;
                     Toolbox->KeyboardHit(6, 0); //just to make the toolbox aware that the text mode is activated
                     fcolor = Toolbox->GetFormattingColor();
-                    for (int i = 0; i < exp->m_NumElements; i++)
-                        if (exp->m_pElementList[i].pElementObject)
-                            exp->m_pElementList[i].pElementObject->
-                                                   m_Color = fcolor;
+                    for (tElementStruct& element : exp->m_pElementList)
+                        if (element.pElementObject)
+                            element.pElementObject->m_Color = fcolor;
 
 
                     //m_ModeDefinedAt=0;
@@ -6097,7 +6084,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
     //if not clicked at any of cursor moving keys, then we delete prevEmptyBoxType 
     if (nChar != 0x05 && nChar != 0x04 && nChar != 0x03 && nChar != 0x02 && is_external
-        /*|| (m_NumElements>1) || (m_KeyboardCursorPos>0)*/)
+        /*|| (m_pElementList.size()>1) || (m_KeyboardCursorPos>0)*/)
         prevEmptyBoxType = -1;
 
 
@@ -6144,8 +6131,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         RemoveEmptyVariable(DC, theElement);
                     m_IsKeyboardEntry = 0;
                     m_KeyboardCursorPos = 0;
-                    if (LastCursorPositionPosition > LastCursorPositionExpression->m_NumElements + 11)
-                        LastCursorPositionPosition = LastCursorPositionExpression->m_NumElements + 1;
+                    if (LastCursorPositionPosition > LastCursorPositionExpression->m_pElementList.size() + 11)
+                        LastCursorPositionPosition = LastCursorPositionExpression->m_pElementList.size() + 1;
                     if (LastCursorPositionPosition > 1 &&
                         LastCursorPositionExpression->m_pElementList[LastCursorPositionPosition - 2].Type == 0)
                         LastCursorPositionPosition--;
@@ -6170,7 +6157,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     return 2;
                 }
 
-            if (m_NumElements > 1 || m_pElementList[0].Type > 1 || m_pPaternalExpression ||
+            if (m_pElementList.size() > 1 || m_pElementList[0].Type > 1 || m_pPaternalExpression ||
                 (m_pElementList[0].Type == 1 && m_pElementList[0].pElementObject->Data1[0] != 0))
             {
                 if (IsEditedVariableEmpty)
@@ -6215,7 +6202,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 int minc = 0x7FFF, minr = 0x7FFF, maxc = 0, maxr = 0;
                 int cursor_row = 0, cursor_column = 0;
                 int is_matrix = 0;
-                for (int i = 0; i < m_NumElements; i++)
+                for (size_t i = 0; i < m_pElementList.size(); i++)
                 {
                     tElementStruct* ts = &m_pElementList[i];
                     if (ts->Type == 11) column++;
@@ -6242,9 +6229,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
                 if (!is_matrix)
                 {
-                    int ii = m_IsKeyboardEntry;
+                    size_t ii = m_IsKeyboardEntry;
                     if (m_IsKeyboardEntry == 1 || m_pElementList[m_IsKeyboardEntry - 2].IsSelected != 2)
-                        for (; ii < m_NumElements; ii++)
+                        for (; ii < m_pElementList.size(); ii++)
                         {
                             if (m_pElementList[ii].IsSelected != 2)
                             {
@@ -6254,6 +6241,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     if (ii == m_IsKeyboardEntry)
                     {
                         bool has_columns = false;
+                        int ii;
                         for (ii = m_IsKeyboardEntry - 2; ii >= 0; ii--)
                         {
                             tElementStruct& ts = m_pElementList[ii];
@@ -6271,8 +6259,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         AdjustSelection(2);
                         if (m_IsMatrixElementSelected)
                         {
-                            int ii;
-                            for (ii = m_IsKeyboardEntry - 1; ii < m_NumElements; ii++)
+                            size_t ii;
+                            for (ii = m_IsKeyboardEntry - 1; ii < m_pElementList.size(); ii++)
                             {
                                 if (m_pElementList[ii].Type == 11 || m_pElementList[ii].Type == 12)
                                     break;
@@ -6292,11 +6280,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 {
                     if (cursor_column == minc && minc < maxc)
                     {
-                        for (int ii = 0; ii < m_MaxNumRows; ii++)
+                        for (unsigned int ii = 0; ii < m_MaxNumRows; ii++)
                         {
                             int k = FindMatrixElement(ii, maxc, 0);
                             if (k >= 0)
-                                for (int jj = k; jj < m_NumElements; jj++)
+                                for (size_t jj = k; jj < m_pElementList.size(); jj++)
                                 {
                                     SelectElement(0, jj);
                                     if (m_pElementList[jj].Type == 11) break;
@@ -6338,7 +6326,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
             DeselectExpression();
 
-            if (m_IsKeyboardEntry == 2 && m_NumElements == 1 && m_pElementList[0].Type != 5 &&
+            if (m_IsKeyboardEntry == 2 && m_pElementList.size() == 1 && m_pElementList[0].Type != 5 &&
                 m_pPaternalElement && m_pPaternalElement->m_Type == 3 && m_pPaternalElement->Expression1 == this &&
                 (this->m_ParenthesesFlags & 0x81) == 0)
             {
@@ -6362,7 +6350,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     int absY = KeyboardEntryBaseObject->absolute_Y + m_pElementList[m_IsKeyboardEntry - 1].Y_pos *
                         100 / ViewZoom;
                     int dist = 3 * GRID;
-                    if (m_NumElements == 0 || m_pElementList[0].Type == 0) dist = 2 * GRID;
+                    if (m_pElementList.size() == 0 || m_pElementList[0].Type == 0) dist = 2 * GRID;
 
                     tDocumentStruct* ds = TheDocument;
                     for (int i = 0; i < NumDocumentElements; i++, ds++)
@@ -6383,7 +6371,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         if (c->m_MaxNumRows <= 1 ||
                             c->KeyboardStartAt(TheDocument[candidate].Length * ViewZoom / 100,
                                                (absY - TheDocument[candidate].absolute_Y) * ViewZoom / 100, -2) == 0)
-                            KeyboardRefocus(c, c->m_NumElements);
+                            KeyboardRefocus(c, c->m_pElementList.size());
                         else
                             m_IsKeyboardEntry = 0;
                         KeyboardEntryBaseObject = TheDocument + candidate;
@@ -6394,7 +6382,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     {
                         int y_pos = absY; //KeyboardEntryBaseObject->absolute_Y;
                         int x_pos = (KeyboardEntryBaseObject->absolute_X + 3 - GRID * (
-                            m_NumElements == 0 || m_pElementList[0].Type == 0 ? 1 : 2)) / GRID * GRID - 3;
+                            m_pElementList.size() == 0 || m_pElementList[0].Type == 0 ? 1 : 2)) / GRID * GRID - 3;
 
                         GuidlinesFirstPass = 1;
                         GuidlineElement = -1;
@@ -6408,7 +6396,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                                     GuidlineElement = i;
                         }
                         int make_text = 0;
-                        //if ((this->m_NumElements==1) && (this->m_pElementList[0].Type==0))
+                        //if ((this->m_pElementList.size()==1) && (this->m_pElementList[0].Type==0))
                         {
                             if (prevEmptyBoxType == -1)
                                 make_text = IsText;
@@ -6498,7 +6486,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (NextEditedObject)
                 {
                     //we found an expression inside the same object that is positioned to left
-                    KeyboardRefocus(NextEditedObject, NextEditedObject->m_NumElements);
+                    KeyboardRefocus(NextEditedObject, NextEditedObject->m_pElementList.size());
                     return 1;
                 }
                 else
@@ -6510,17 +6498,17 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     if (parent && pelement && (pelement->m_Type == 6 || pelement->m_Type == 5) && pelement->
                         Expression1 == this &&
                         parent->m_pPaternalElement && parent->m_pPaternalElement->m_Type == 3 && parent->
-                        m_NumElements == 1 &&
+                        m_pElementList.size() == 1 &&
                         parent->m_pPaternalElement->Expression1 == parent)
                     {
                         //exponent over function! - we are jumping all the way out of the exponent element -//BABA
                         pelement = parent->m_pPaternalElement;
                         parent = parent->m_pPaternalExpression;
                     }
-                    int ii;
-                    for (ii = 0; ii < parent->m_NumElements; ii++)
+                    size_t ii;
+                    for (ii = 0; ii < parent->m_pElementList.size(); ii++)
                         if (parent->m_pElementList[ii].pElementObject == pelement) break;
-                    if (ii == parent->m_NumElements) return 0;
+                    if (ii == parent->m_pElementList.size()) return 0;
                     KeyboardRefocus(parent, ii);
                     return 1;
                 }
@@ -6540,9 +6528,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             else if (theElement->Type == 11)
             {
                 //if this is just spacer (tab) then jump over it
-                int tmp = m_NumElements;
+                int tmp = m_pElementList.size();
                 InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
-                if (tmp == m_NumElements) m_IsKeyboardEntry--;
+                if (tmp == m_pElementList.size()) m_IsKeyboardEntry--;
                 m_KeyboardCursorPos = 0;
                 return 1;
             }
@@ -6554,7 +6542,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     newpos = theElement->pElementObject->Expression1;
                 else
                     newpos = theElement->pElementObject->Expression2;
-                KeyboardRefocus(newpos, newpos->m_NumElements);
+                KeyboardRefocus(newpos, newpos->m_pElementList.size());
                 return 1;
             }
             else
@@ -6564,7 +6552,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 int Y;
                 X = theElement->X_pos + theElement->Length;
                 Y = theElement->Y_pos;
-                if (theElement->Type == 12 && m_IsKeyboardEntry < m_NumElements)
+                if (theElement->Type == 12 && m_IsKeyboardEntry < m_pElementList.size())
                 {
                     X = (theElement + 1)->X_pos;
                     Y = (theElement + 1)->Y_pos;
@@ -6576,7 +6564,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     if (KeyboardStartAt(X - 1, Y, -2) == 0)
                     {
                         m_IsKeyboardEntry++;
-                        if (m_IsKeyboardEntry < m_NumElements) if ((theElement + 1)->Type == 0) m_IsKeyboardEntry++;
+                        if (m_IsKeyboardEntry < m_pElementList.size()) if ((theElement + 1)->Type == 0) m_IsKeyboardEntry++;
                         InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
                     }
                     return 1;
@@ -6589,14 +6577,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     if (theElement->pElementObject && theElement->pElementObject->Expression1)
                     {
                         CExpression* NextEditedObject = theElement->pElementObject->Expression1;
-                        KeyboardRefocus(NextEditedObject, NextEditedObject->m_NumElements);
+                        KeyboardRefocus(NextEditedObject, NextEditedObject->m_pElementList.size());
                         return 1;
                     }
 
                     //Nothing, jump over this one and create new empty variable
-                    int tmp = m_NumElements;
+                    int tmp = m_pElementList.size();
                     InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
-                    if (tmp == m_NumElements) m_IsKeyboardEntry--;
+                    if (tmp == m_pElementList.size()) m_IsKeyboardEntry--;
                     m_KeyboardCursorPos = 0;
                     if (m_MaxNumColumns == 1) AdjustMatrix();
 
@@ -6631,7 +6619,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 int minc = 0x7FFF, minr = 0x7FFF, maxc = 0, maxr = 0;
                 int cursor_row = 0, cursor_column = 0;
                 int is_matrix = 0;
-                for (int i = 0; i < m_NumElements; i++)
+                for (size_t i = 0; i < m_pElementList.size(); i++)
                 {
                     tElementStruct* ts = &m_pElementList[i];
                     if (ts->Type == 11) column++;
@@ -6658,7 +6646,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (!is_matrix)
                 {
                     int ii = m_IsKeyboardEntry - 2;
-                    if (m_IsKeyboardEntry == m_NumElements || m_pElementList[0].IsSelected != 2)
+                    if (m_IsKeyboardEntry == m_pElementList.size() || m_pElementList[0].IsSelected != 2)
                         for (ii; ii >= 0; ii--)
                         {
                             if (m_pElementList[ii].IsSelected != 2) break;
@@ -6666,8 +6654,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
                     if (ii == m_IsKeyboardEntry - 2)
                     {
-                        int has_columns = 0;
-                        for (ii = m_IsKeyboardEntry; ii < this->m_NumElements; ii++)
+                        bool has_columns = 0;
+                        for (ii = m_IsKeyboardEntry; ii < this->m_pElementList.size(); ii++)
                         {
                             tElementStruct* ts = &m_pElementList[ii];
                             if (ts->Type == 12) /*if (m_IsText) continue; else*/ break;
@@ -6678,7 +6666,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             }
                             if (ts->IsSelected != 2) break;
                         }
-                        if (ii < this->m_NumElements) if (m_pElementList[ii].Type != 12) SelectElement(2, ii);
+                        if (ii < this->m_pElementList.size())
+                            if (m_pElementList[ii].Type != 12)
+                                SelectElement(2, ii);
                         if (has_columns) SelectElement(2, m_IsKeyboardEntry - 1);
 
                         AdjustSelection(2);
@@ -6709,7 +6699,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         {
                             int k = FindMatrixElement(ii, minc, 0);
                             if (k >= 0)
-                                for (int jj = k; jj < m_NumElements; jj++)
+                                for (size_t jj = k; jj < m_pElementList.size(); jj++)
                                 {
                                     SelectElement(0, jj);
                                     if (m_pElementList[jj].Type == 11) break;
@@ -6762,7 +6752,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             }
 
             //delete this variable if empty
-            int tmp = m_NumElements;
+            int tmp = m_pElementList.size();
             if (IsEditedVariableEmpty)
             {
                 if (RemoveEmptyVariable(DC, theElement)) tmp--;
@@ -6782,7 +6772,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (m_pPaternalExpression == nullptr)
                 {
                     //we were editing the main line (bottom level expression)
-                    //int X=(parent->m_pElementList+parent->m_NumElements-1)->X_pos+(parent->m_pElementList+parent->m_NumElements-1)->Length;
+                    //int X=(parent->m_pElementList+parent->m_pElementList.size()-1)->X_pos+(parent->m_pElementList+parent->m_pElementList.size()-1)->Length;
                     //int Y=0;
                     if (KeyboardEntryBaseObject->Type == DRAWING) return 1;
 
@@ -6792,7 +6782,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     int absY = KeyboardEntryBaseObject->absolute_Y + m_pElementList[m_IsKeyboardEntry - 1].Y_pos *
                         100 / ViewZoom;
                     int dist = 3 * GRID;
-                    if (m_NumElements == 0 || m_pElementList[0].Type == 0) dist = 2 * GRID;
+                    if (m_pElementList.size() == 0 || m_pElementList[0].Type == 0) dist = 2 * GRID;
 
                     tDocumentStruct* ds = TheDocument;
                     for (int i = 0; i < NumDocumentElements; i++, ds++)
@@ -6828,7 +6818,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
                         int y_pos = absY;
                         int x_pos = (KeyboardEntryBaseObject->absolute_X + KeyboardEntryBaseObject->Length + GRID * (
-                            m_NumElements == 0 || m_pElementList[0].Type == 0 ? 1 : 2)) / GRID * GRID - 3;
+                            m_pElementList.size() == 0 || m_pElementList[0].Type == 0 ? 1 : 2)) / GRID * GRID - 3;
 
 
                         GuidlinesFirstPass = 1;
@@ -6843,7 +6833,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                                     GuidlineElement = i;
                         }
                         int make_text = 0;
-                        //if ((this->m_NumElements==1) && (this->m_pElementList[0].Type==0))
+                        //if ((this->m_pElementList.size()==1) && (this->m_pElementList[0].Type==0))
                         {
                             if (prevEmptyBoxType == -1)
                                 make_text = IsText;
@@ -6913,7 +6903,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
                     if (pelement->m_Type == 6 && pelement->Expression1 == this &&
                         parent->m_pPaternalElement && parent->m_pPaternalElement->m_Type == 3 && parent->
-                        m_NumElements == 1 &&
+                        m_pElementList.size() == 1 &&
                         parent->m_pPaternalElement->Expression1 == parent)
                     {
                         //function with exponent!!! - special handling as we don't want to jump over insertion point of the exponent function //BABA
@@ -6922,11 +6912,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     }
 
                     //first find the currently edited object in its parent object list
-                    int ii;
+                    size_t ii;
 
-                    for (ii = 0; ii < parent->m_NumElements; ii++)
+                    for (ii = 0; ii < parent->m_pElementList.size(); ii++)
                         if (parent->m_pElementList[ii].pElementObject == pelement) break;
-                    if (ii == parent->m_NumElements) return 0;
+                    if (ii == parent->m_pElementList.size()) return 0;
 
                     KeyboardRefocus(parent, ii + 1);
                     return 1;
@@ -7010,7 +7000,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
     if (((nChar & 0xFF) == 3 || (nChar & 0xFF) == 2) && IsSHIFTDown) //SHIFT+UP/DOWN key
     {
         DotAutomaticallyAdded = 0;
-        if (m_NumElements == 1)
+        if (m_pElementList.size() == 1)
         {
             //togles vertical/horizontal orientattion of equation
             CExpression* parent = this;
@@ -7025,7 +7015,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         else
         {
             //check if there is a line wraper in front or below somewhwre
-            int wraper_found = 0;
+            bool wraper_found = 0;
             if (nChar == 3)
                 for (int i = m_IsKeyboardEntry - 1; i >= 0; i--)
                 {
@@ -7038,7 +7028,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     if (m_pElementList[i].Type == 11 || m_pElementList[i].Type == 12) break;
                 }
             else
-                for (int i = m_IsKeyboardEntry; i < m_NumElements; i++)
+                for (size_t i = m_IsKeyboardEntry; i < m_pElementList.size(); i++)
                 {
                     if (m_pElementList[i].Type == 2 && m_pElementList[i].pElementObject->Data1[0] == (char)
                         0xFF)
@@ -7064,7 +7054,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     dir = -1;
                 }
                 int oldpos = m_IsKeyboardEntry;
-                int oldnum = m_NumElements;
+                int oldnum = m_pElementList.size();
                 if (this->KeyboardStartAt(X, Y, dir, 1))
                 {
                     if (m_IsKeyboardEntry > oldpos)
@@ -7079,7 +7069,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     }
                     if (m_IsKeyboardEntry < oldpos)
                     {
-                        if (m_NumElements > oldnum) oldpos++;
+                        if (m_pElementList.size() > oldnum) oldpos++;
                         for (int i = m_IsKeyboardEntry; i <= oldpos; i++)
                             this->SelectElement(2, i - 1);
                         if (m_pElementList[oldpos - 1].pElementObject->Data1[0] == 0)
@@ -7105,7 +7095,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             int row = 0, column = 0;
             int minc = 0x7FFF, minr = 0x7FFF, maxc = 0, maxr = 0;
             int cursor_row = 0, cursor_column = 0;
-            for (int i = 0; i < m_NumElements; i++)
+            for (size_t i = 0; i < m_pElementList.size(); i++)
             {
                 tElementStruct* ts = &m_pElementList[i];
                 if (ts->Type == 11) column++;
@@ -7140,7 +7130,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 //removes from selection
                 int k = FindMatrixElement(maxr, 0, 0);
                 if (k >= 0)
-                    while (k < m_NumElements)
+                    while (k < m_pElementList.size())
                         SelectElement(0, k++);
                 if (UseToolbar && Toolbox->Toolbar) Toolbox->Toolbar->ConfigureToolbar();
 
@@ -7192,7 +7182,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             }
         if (!found) mi = m_IsKeyboardEntry;
 
-        for (mx = m_NumElements - 1; mx >= m_IsKeyboardEntry; mx--)
+        for (mx = m_pElementList.size() - 1; mx >= m_IsKeyboardEntry; mx--)
             if (this->m_pElementList[mx].IsSelected == 2)
             {
                 found = 2;
@@ -7229,7 +7219,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             TempPopupExpression, theApp.m_pMainWnd, 3, m_IsKeyboardEntry);
                     if (m_IsKeyboardEntry - 1 > mi)
                         Popup->ShowPopupMenu(
-                            TempPopupExpression, theApp.m_pMainWnd, 3, m_IsKeyboardEntry - m_NumElements - 1);
+                            TempPopupExpression, theApp.m_pMainWnd, 3, m_IsKeyboardEntry - m_pElementList.size() - 1);
                 }
                 return 1;
             }
@@ -7252,8 +7242,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (IsEditedVariableEmpty)
                     DeleteElement(m_IsKeyboardEntry - 1);
 
-                mi = 0;
-                for (int i = 0; i < m_NumElements; i++)
+                size_t mi = 0;
+                for (size_t i = 0; i < m_pElementList.size(); i++)
                 {
                     if (m_pElementList[i].IsSelected == 2)
                     {
@@ -7261,10 +7251,9 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         break;
                     }
                 }
-                if (mi >= m_NumElements) mi = m_NumElements - 1;
                 DeleteSelection(2);
                 if (mi) if (m_pElementList[mi - 1].Type == 0) mi--;
-                if (mi > m_NumElements) mi = m_NumElements;
+                if (mi > m_pElementList.size()) mi = m_pElementList.size();
                 m_IsKeyboardEntry = mi + 1;
                 InsertEmptyElement(mi, 1, 0, fcolor);
                 m_KeyboardCursorPos = 0;
@@ -7327,7 +7316,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     {
                         if (m_pElementList[mi].pElementObject)
                             m_pElementList[mi].pElementObject->m_Text = 0;
-                        base->InsertElement(m_pElementList[mi], base->m_NumElements);
+                        base->InsertElement(m_pElementList[mi], base->m_pElementList.size());
                         DeleteElement(mi);
                     }
                     KeyboardRefocus(low, 0);
@@ -7343,7 +7332,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     {
                         if (m_pElementList[mi].pElementObject)
                             m_pElementList[mi].pElementObject->m_Text = 0;
-                        num->InsertElement(m_pElementList[mi], num->m_NumElements);
+                        num->InsertElement(m_pElementList[mi], num->m_pElementList.size());
                         DeleteElement(mi);
                     }
                     KeyboardRefocus(denom, 0);
@@ -7359,7 +7348,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     {
                         if (m_pElementList[mi].pElementObject)
                             m_pElementList[mi].pElementObject->m_Text = 0;
-                        num->InsertElement(m_pElementList[mi], num->m_NumElements);
+                        num->InsertElement(m_pElementList[mi], num->m_pElementList.size());
                         DeleteElement(mi);
                     }
                     m_IsKeyboardEntry = mi + 2;
@@ -7378,7 +7367,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     {
                         if (m_pElementList[mi].pElementObject)
                             m_pElementList[mi].pElementObject->m_Text = 0;
-                        num->InsertElement(m_pElementList[mi], num->m_NumElements);
+                        num->InsertElement(m_pElementList[mi], num->m_pElementList.size());
                         DeleteElement(mi);
                     }
                     m_IsKeyboardEntry = mi + 1;
@@ -7395,7 +7384,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     {
                         if (m_pElementList[mi].pElementObject)
                             m_pElementList[mi].pElementObject->m_Text = 0;
-                        num->InsertElement(m_pElementList[mi], num->m_NumElements);
+                        num->InsertElement(m_pElementList[mi], num->m_pElementList.size());
                         DeleteElement(mi);
                     }
                     if (ch == '}')
@@ -7455,11 +7444,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     theElement = KeyboardSplitVariable();
 
                     //deletes the last line wraper if it is found at the end of expression
-                    if (m_IsKeyboardEntry == m_NumElements && m_NumElements > 2)
-                        if (m_pElementList[m_NumElements - 2].Type == 2 &&
-                            m_pElementList[m_NumElements - 2].pElementObject->Data1[0] == (char)0xFF)
+                    if (m_IsKeyboardEntry == m_pElementList.size() && m_pElementList.size() > 2)
+                        if (m_pElementList[m_pElementList.size() - 2].Type == 2 &&
+                            m_pElementList[m_pElementList.size() - 2].pElementObject->Data1[0] == (char)0xFF)
                         {
-                            DeleteElement(m_NumElements - 2);
+                            DeleteElement(m_pElementList.size() - 2);
                             m_IsKeyboardEntry--;
                         }
                 }
@@ -7482,11 +7471,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     else if (m_IsKeyboardEntry > 2)
                     {
                         CExpression* tmp = new CExpression(nullptr, nullptr, 100);
-                        for (int i = m_IsKeyboardEntry; i < m_NumElements; i++)
+                        for (size_t i = m_IsKeyboardEntry; i < m_pElementList.size(); i++)
                             tmp->InsertElement(this->m_pElementList[i], i - m_IsKeyboardEntry);
                         //while ((tmp->m_pElementList[0].Type==2) && (tmp->m_pElementList[0].pElementObject->Data1[0]==(char)0xFF)) tmp->DeleteElement(0);
 
-                        while (m_NumElements > m_IsKeyboardEntry - 2)
+                        while (m_pElementList.size() > m_IsKeyboardEntry - 2)
                             DeleteElement(m_IsKeyboardEntry - 2);
                         m_IsKeyboardEntry = 0;
                         this->KeyboardInsertNewEquation(DC, zoom, nChar, tmp->m_pElementList[0].Type ? tmp : nullptr,
@@ -7523,7 +7512,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     }
                 }
                 int found_break = 0;
-                for (int i = 0; i < m_NumElements; i++)
+                for (size_t i = 0; i < m_pElementList.size(); i++)
                     if (m_pElementList[i].Type == 11 || m_pElementList[i].Type == 12 ||
                         (m_pElementList[i].Type == 2 && m_pElementList[i].pElementObject->Data1[0] == (char)0xFF))
                         found_break = 1;
@@ -7554,17 +7543,18 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         if (m_MaxNumColumns > 1 || m_MaxNumRows > 1)
         {
             //jump into the next column/row
-            for (int i = m_IsKeyboardEntry; i < m_NumElements; i++)
+            for (size_t i = m_IsKeyboardEntry; i < m_pElementList.size(); i++)
             {
                 tElementStruct* ts = &m_pElementList[i];
-                if (ts->Type == 11 || (ts->Type == 12 && i < m_NumElements - 1))
+                if (ts->Type == 11 || (ts->Type == 12 && i < m_pElementList.size() - 1))
                 {
                     //first delete the newline if there is nothing in the last line of text
                     if (m_IsKeyboardEntry)
                     {
-                        tElementStruct* ts = &m_pElementList[m_IsKeyboardEntry - 1];
-                        if (ts->Type == 2 && ts->pElementObject->Data1[0] == (char)0xFF &&
-                            ((ts + 1)->Type == 11 || (ts + 1)->Type == 12))
+                        if (m_pElementList[m_IsKeyboardEntry - 1].Type == 2 &&
+                            m_pElementList[m_IsKeyboardEntry - 1].pElementObject->Data1[0] == (char)0xFF &&
+                            (m_pElementList[m_IsKeyboardEntry].Type == 11 ||
+                                m_pElementList[m_IsKeyboardEntry].Type == 12))
                         {
                             DeleteElement(m_IsKeyboardEntry - 1);
                             i--;
@@ -7584,12 +7574,12 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         {
             if (KeyboardEntryObject && KeyboardEntryBaseObject)
             {
-                InsertEmptyElement(m_NumElements, 1, 0, fcolor);
-                m_IsKeyboardEntry = m_NumElements;
+                InsertEmptyElement(m_pElementList.size(), 1, 0, fcolor);
+                m_IsKeyboardEntry = m_pElementList.size();
                 m_KeyboardCursorPos = 0;
                 ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("Enter key", 20307);
                 //text checked in the backspace handling
-                DeleteElement(m_NumElements - 1);
+                DeleteElement(m_pElementList.size() - 1);
                 if (this->m_MaxNumColumns > 1 || this->m_MaxNumRows > 1) this->AdjustMatrix();
 
                 m_IsKeyboardEntry = 0;
@@ -7609,7 +7599,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             if (m_pPaternalElement->Expression1 == this && m_pPaternalElement->Expression1->m_pElementList[0].Type)
             {
                 CExpression* e2 = m_pPaternalElement->Expression2;
-                if (e2->m_NumElements == 1)
+                if (e2->m_pElementList.size() == 1)
                 {
                     if (e2->m_pElementList[0].Type == 0) NextEditedObject = m_pPaternalElement->Expression2;
                     else if (e2->m_pElementList[0].Type == 6)
@@ -7630,7 +7620,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         {
             if (m_pPaternalElement->Expression2 == this)
                 if (m_pPaternalElement->Expression1->m_pElementList[0].Type == 6 &&
-                    m_pPaternalElement->Expression1->m_NumElements == 1)
+                    m_pPaternalElement->Expression1->m_pElementList.size() == 1)
                 {
                     CExpression* tmp = m_pPaternalElement->Expression1->m_pElementList[0].pElementObject->Expression1;
                     if (tmp && tmp->m_pElementList[0].Type == 0)
@@ -7657,7 +7647,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         {
             if (m_pPaternalElement->Expression3 == this &&
                 m_pPaternalElement->Expression3->m_pElementList[0].Type &&
-                //(((CExpression*)(m_pPaternalElement->Expression3))->m_NumElements>1) &&
+                //(((CExpression*)(m_pPaternalElement->Expression3))->m_pElementList.size()>1) &&
                 m_pPaternalElement->Expression2->m_pElementList[0].Type == 0)
                 NextEditedObject = m_pPaternalElement->Expression2;
             //from upper to lower limit (if lower limit not defined)
@@ -7671,14 +7661,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 //from any limit into the function argument, if the argument is empty (or contains 'd' or 'partial' empty function)
                 CExpression* e = m_pPaternalElement->Expression1;
                 char is_empty = 0;
-                if (e->m_NumElements)
+                if (e->m_pElementList.size())
                 {
                     if (e->m_pElementList[0].Type == 0)
                         is_empty = 1;
                     else if (e->m_pElementList[0].Type == 6)
                     {
                         if (e->m_pElementList[0].pElementObject->IsDifferential())
-                            if (e->m_pElementList[0].pElementObject->Expression1->m_NumElements == 1 &&
+                            if (e->m_pElementList[0].pElementObject->Expression1->m_pElementList.size() == 1 &&
                                 e->m_pElementList[0].pElementObject->Expression1->m_pElementList[0].Type ==
                                 0)
                                 is_empty = 1;
@@ -7691,15 +7681,15 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             {
                 //we will put the cursor into the 'd' element if it is empty
                 CExpression* e = m_pPaternalElement->Expression1;
-                if (e->m_NumElements && e->m_pElementList[e->m_NumElements - 1].Type == 6 && prevkeyboardentry
-                    < e->m_NumElements)
+                if (e->m_pElementList.size() && e->m_pElementList[e->m_pElementList.size() - 1].Type == 6 &&
+                    prevkeyboardentry < e->m_pElementList.size())
                 {
-                    CElement* el = e->m_pElementList[e->m_NumElements - 1].pElementObject;
+                    CElement* el = e->m_pElementList[e->m_pElementList.size() - 1].pElementObject;
                     if (el)
                     {
                         CExpression* e2 = el->Expression1;
                         if (el->IsDifferential())
-                            if (e2->m_NumElements == 1 && e2->m_pElementList[0].Type == 0)
+                            if (e2->m_pElementList.size() == 1 && e2->m_pElementList[0].Type == 0)
                                 NextEditedObject = e2;
                     }
                 }
@@ -7720,7 +7710,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         {
             //we will continue editing next expression of the same element
             int delete_var_index = 0;
-            if (this->m_pElementList[0].Type == 0 && this->m_NumElements < 2 &&
+            if (this->m_pElementList[0].Type == 0 && this->m_pElementList.size() < 2 &&
                 (m_pPaternalElement->m_Type == 6 && this == m_pPaternalElement->Expression2))
             {
                 delete_var_index = 2;
@@ -7761,7 +7751,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
 
             if (pelement->m_Type == 6 && pelement->Expression1 == this &&
-                parent->m_pPaternalElement && parent->m_pPaternalElement->m_Type == 3 && parent->m_NumElements ==
+                parent->m_pPaternalElement && parent->m_pPaternalElement->m_Type == 3 && parent->m_pElementList.size() ==
                 1 &&
                 parent->m_pPaternalElement->Expression1 == parent)
             {
@@ -7772,17 +7762,17 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
 
             ii = pelement->GetPaternalPosition();
-            /*for (ii=0;ii<parent->m_NumElements;ii++)
+            /*for (ii=0;ii<parent->m_pElementList.size();ii++)
                 if ((parent->m_pElementList+ii)->pElementObject==pelement) break;
-            if (ii==parent->m_NumElements) return 0;*/
+            if (ii==parent->m_pElementList.size()) return 0;*/
 
 
-            if (pelement->m_Type == 3 && this == pelement->Expression2 && this->m_NumElements == 1
+            if (pelement->m_Type == 3 && this == pelement->Expression2 && this->m_pElementList.size() == 1
                 && this->m_pElementList[0].Type == 0)
             {
                 //we are removing exponent because it is empty
                 CExpression* base = pelement->Expression1;
-                if (base->m_NumElements > 1 || base->m_MaxNumRows > 1 || base->m_MaxNumColumns > 1)
+                if (base->m_pElementList.size() > 1 || base->m_MaxNumRows > 1 || base->m_MaxNumColumns > 1)
                 {
                     parent->InsertEmptyElement(ii, 5, '(', fcolor);
                     parent->m_pElementList[ii].pElementObject->Expression1->CopyExpression(
@@ -7791,7 +7781,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     parent->DeleteElement(ii + 2);
                     return 1;
                 }
-                else if (base->m_NumElements == 1 && base->m_pElementList[0].Type)
+                else if (base->m_pElementList.size() == 1 && base->m_pElementList[0].Type)
                 {
                     parent->InsertElement(base->m_pElementList[0], ii);
                     KeyboardRefocus(parent, ii + 1);
@@ -7801,7 +7791,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             }
 
             int delete_var_index = 0;
-            if (this->m_pElementList[0].Type == 0 && this->m_NumElements < 2 &&
+            if (this->m_pElementList[0].Type == 0 && this->m_pElementList.size() < 2 &&
                 ((m_pPaternalElement->m_Type == 1 && this == m_pPaternalElement->Expression1) ||
                     (m_pPaternalElement->m_Type == 6 && this == m_pPaternalElement->Expression2) ||
                     (m_pPaternalElement->m_Type == 6 && this == m_pPaternalElement->Expression1) ||
@@ -7914,13 +7904,12 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 IsEditedVariableEmpty = true;
             }
             this->DeselectExpression();
-            int ii;
-            for (ii = m_IsKeyboardEntry; ii < m_NumElements; ii++)
+            for (size_t ii = m_IsKeyboardEntry; ii < m_pElementList.size(); ii++)
             {
                 if (m_pElementList[ii].Type == 11 ||
                     m_pElementList[ii].Type == 12 ||
-                    (m_pElementList[ii].Type == 2 && m_pElementList[ii].pElementObject->Data1[0] == (char)
-                        0xFF))
+                    (m_pElementList[ii].Type == 2 &&
+                        m_pElementList[ii].pElementObject->Data1[0] == (char)0xFF))
                     break;
                 SelectElement(2, ii);
             }
@@ -7936,10 +7925,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
 
         CExpression* e = this;
-        int startpos = m_IsKeyboardEntry - 1;
+        size_t startpos = m_IsKeyboardEntry - 1;
         while (e)
         {
-            for (int i = startpos; i < e->m_NumElements; i++)
+            for (size_t i = startpos; i < e->m_pElementList.size(); i++)
             {
                 tElementStruct* ts = &e->m_pElementList[i];
                 if (ts->Type == 12 || ts->Type == 11 ||
@@ -7954,7 +7943,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 e = e->m_pPaternalExpression;
             else
             {
-                KeyboardRefocus(e, e->m_NumElements);
+                KeyboardRefocus(e, e->m_pElementList.size());
                 e = nullptr;
             }
         }
@@ -7965,7 +7954,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
     {
         //special handling - will execute the Undo operation if the backspace is used after the Enter key that creates a new object
         if (m_IsKeyboardEntry == 1 && m_pElementList[0].Type == 1 &&
-            m_NumElements == 1 && m_pPaternalExpression == nullptr &&
+            m_pElementList.size() == 1 && m_pPaternalExpression == nullptr &&
             m_KeyboardCursorPos == 0 && (m_ParenthesesFlags & 0x01) == 0)
         {
             //if the Enter key was last used, then we execute the undo (return 88)
@@ -8054,8 +8043,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             //special handling - if we typed one variable then immediately deleting it (by backspace), the following lines
             //will ensure that the cursor is placed at the end of the previous variable (not in an empty variable)
             //(this is if we accidentaly typed a letter, after backspace everything is as it was before we typed the accidental letter)
-            if (m_KeyboardCursorPos == 0 && KeyboardCursorWasAttached && m_IsKeyboardEntry > 1 && (theElement -
-                1)->Type == 1)
+            if (m_KeyboardCursorPos == 0 && KeyboardCursorWasAttached && m_IsKeyboardEntry > 1 &&
+                (theElement - 1)->Type == 1)
             {
                 m_KeyboardCursorPos = (int)strlen((theElement - 1)->pElementObject->Data1);
                 m_IsKeyboardEntry--;
@@ -8083,7 +8072,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         if (m_IsKeyboardEntry <= 1)
         {
             //if not empty do nothing
-            if (m_NumElements > 1 || m_pElementList[0].Type != 1 || m_pElementList[0].pElementObject->Data1[0])
+            if (m_pElementList.size() > 1 || m_pElementList[0].Type != 1 || m_pElementList[0].pElementObject->Data1[0])
                 return
                     1;
 
@@ -8165,7 +8154,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 if (Base->m_ParenthesesFlags & 0x80)
                 {
                     NextEditedObject->InsertEmptyElement(i + 1, 5, Base->m_ParentheseShape, fcolor);
-                    for (int jj = 0; jj < Base->m_NumElements; jj++)
+                    for (size_t jj = 0; jj < Base->m_pElementList.size(); jj++)
                         NextEditedObject->m_pElementList[i + 1].pElementObject->Expression1->
                                                                 InsertElement(Base->m_pElementList[jj], jj);
                     NextEditedObject->InsertEmptyElement(i + 2, 1, 0, fcolor);
@@ -8174,8 +8163,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 }
                 else
                 {
-                    int jj;
-                    for (jj = 0; jj < Base->m_NumElements; jj++)
+                    size_t jj;
+                    for (jj = 0; jj < Base->m_pElementList.size(); jj++)
                         NextEditedObject->InsertElement(Base->m_pElementList[jj], i + jj + 1);
                     NextEditedObject->InsertEmptyElement(i + jj + 1, 1, 0, fcolor);
                     NextEditedObject->DeleteElement(i);
@@ -8220,7 +8209,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             CExpression* index = theElement->pElementObject->Expression1;
             if (index)
             {
-                if (index->m_NumElements == 1 && index->m_pElementList[0].Type == 1 && strlen(
+                if (index->m_pElementList.size() == 1 && index->m_pElementList[0].Type == 1 && strlen(
                     index->m_pElementList[0].pElementObject->Data1) <= 2)
                 {
                     delete index;
@@ -8229,7 +8218,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 }
                 else
                 {
-                    KeyboardRefocus(index, index->m_NumElements);
+                    KeyboardRefocus(index, index->m_pElementList.size());
                 }
                 return 1;
             }
@@ -8287,14 +8276,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             if (theElement->Type == 3)
             {
                 CExpression* exp = theElement->pElementObject->Expression2;
-                if ((exp && exp->m_NumElements == 1 && exp->m_pElementList[0].Type <= 2) ||
-                    (exp && exp->m_NumElements == 2 && exp->m_pElementList[0].Type <= 2 &&
+                if ((exp && exp->m_pElementList.size() == 1 && exp->m_pElementList[0].Type <= 2) ||
+                    (exp && exp->m_pElementList.size() == 2 && exp->m_pElementList[0].Type <= 2 &&
                         exp->m_pElementList[1].Type <= 2))
                 {
                     int i = m_IsKeyboardEntry;
                     CExpression* exp = theElement->pElementObject->Expression2;
                     CExpression* Base = theElement->pElementObject->Expression1;
-                    if (Base->m_NumElements == 1)
+                    if (Base->m_pElementList.size() == 1)
                     {
                         InsertElement(Base->m_pElementList[0], i);
                         InsertEmptyElement(i + 1, 1, 0, fcolor);
@@ -8393,7 +8382,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         }*/
 
         //if we are in the empty function argument then we delete the function argument box (as if we hit the Enter key)
-        if (IsEditedVariableEmpty && this->m_NumElements == 1 &&
+        if (IsEditedVariableEmpty && this->m_pElementList.size() == 1 &&
             this->m_pPaternalElement && this->m_pPaternalElement->m_Type == 6 && this->m_pPaternalElement->
             Expression1 == this)
         {
@@ -8432,17 +8421,17 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
 
         //delete this variable if empty
-        if (IsEditedVariableEmpty && m_IsKeyboardEntry < m_NumElements && IsText == 0)
+        if (IsEditedVariableEmpty && m_IsKeyboardEntry < m_pElementList.size() && IsText == 0)
             DeleteElement(m_IsKeyboardEntry - 1);
         else
             m_IsKeyboardEntry++;
 
-        if (m_IsKeyboardEntry > m_NumElements)
+        if (m_IsKeyboardEntry > m_pElementList.size())
         {
             //nothing else to delete in this expression...
             //check if the expression is completely empty, and if we can delete its paternal element
-            m_IsKeyboardEntry = m_NumElements;
-            if (m_NumElements == 1)
+            m_IsKeyboardEntry = m_pElementList.size();
+            if (m_pElementList.size() == 1)
                 if (m_pElementList[0].Type == 0 ||
                     (m_pElementList[0].Type == 1 && m_pElementList[0].pElementObject->Data1[0] == 0))
                 {
@@ -8451,7 +8440,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         this->m_pPaternalElement->m_Type != 4 && this->m_pPaternalElement->m_Type != 1)
                     {
                         CExpression* parent = this->m_pPaternalExpression;
-                        for (int i = 0; i < parent->m_NumElements; i++)
+                        for (size_t i = 0; i < parent->m_pElementList.size(); i++)
                         {
                             tElementStruct* ts = &parent->m_pElementList[i];
                             if (ts->pElementObject == this->m_pPaternalElement)
@@ -8603,16 +8592,16 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                                                 Expression2 == this && strcmp(
                                                     this->m_pPaternalElement->Data1, "lim"))))
                                     {
-                                        int iii;
-                                        for (iii = 0; iii < this->m_pPaternalExpression->m_NumElements; iii++)
+                                        size_t iii;
+                                        for (iii = 0; iii < this->m_pPaternalExpression->m_pElementList.size(); iii++)
                                         {
                                             if (this->m_pPaternalExpression->m_pElementList[iii].pElementObject
                                                 == this->m_pPaternalElement)
                                                 break;
                                         }
-                                        if (iii < this->m_pPaternalExpression->m_NumElements)
+                                        if (iii < this->m_pPaternalExpression->m_pElementList.size())
                                         {
-                                            if (IsEditedVariableEmpty && m_NumElements == 1)
+                                            if (IsEditedVariableEmpty && m_pElementList.size() == 1)
                                             {
                                                 //we are deleting the index
                                                 DeleteElement(0);
@@ -8735,7 +8724,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     e->m_Alignment = 2;
 
                     for (int i = 0; i < m_IsKeyboardEntry - 1; i++)
-                        e->InsertElement(m_pElementList[i], e->m_NumElements);
+                        e->InsertElement(m_pElementList[i], e->m_pElementList.size());
                     for (int i = 0; i < m_IsKeyboardEntry - 1; i++)
                         DeleteElement(0);
 
@@ -8809,14 +8798,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         CElement* pelement = exp->m_pPaternalElement;
                         if (pelement->m_Type == 6 && pelement->Expression1 == this &&
                             parent->m_pPaternalElement && parent->m_pPaternalElement->m_Type == 3 && parent->
-                            m_NumElements == 1 &&
+                            m_pElementList.size() == 1 &&
                             parent->m_pPaternalElement->Expression1 == parent)
                         {
                             //exponent over function! - we are jumping all the way out of the exponent element -//BABA
                             pelement = parent->m_pPaternalElement;
                             parent = parent->m_pPaternalExpression;
                         }
-                        for (int ii = 0; ii < parent->m_NumElements; ii++)
+                        for (size_t ii = 0; ii < parent->m_pElementList.size(); ii++)
                         {
                             tElementStruct* ts = &parent->m_pElementList[ii];
 
@@ -8880,7 +8869,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             {
                                 //we are in the argument of function
                                 if (!InhibitParentheseMerging)
-                                    if (m_NumElements == 1 && IsEditedVariableEmpty && lastkeystrokes[1] != ' ' &&
+                                    if (m_pElementList.size() == 1 && IsEditedVariableEmpty && lastkeystrokes[1] != ' ' &&
                                         ((m_ParenthesesFlags & 0x01) == 0 || m_ParentheseShape < ch))
                                     {
                                         //if the first key pressed inside function argument is open parenthese
@@ -8985,15 +8974,14 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         if (ch == '*' || ch == '\"' || ch == 94 || ch == '~')
         {
             CElement* pelem = this->m_pPaternalElement;
-            if (this->m_NumElements == 1 && m_KeyboardCursorPos == 0 && IsEditedVariableEmpty)
+            if (this->m_pElementList.size() == 1 && m_KeyboardCursorPos == 0 && IsEditedVariableEmpty)
                 if (pelem && pelem->m_Type == 3 && pelem->Expression2 == this)
-                    if (pelem->Expression1->m_NumElements == 1 &&
+                    if (pelem->Expression1->m_pElementList.size() == 1 &&
                         pelem->Expression1->m_pElementList[0].Type == 1)
                     {
                         //this handles sequence ^*	(putting the star)
-                        int i;
                         CExpression* baseline = pelem->m_pPaternalExpression;
-                        for (i = 0; i < baseline->m_NumElements; i++)
+                        for (size_t i = 0; i < baseline->m_pElementList.size(); i++)
                         {
                             if (baseline->m_pElementList[i].pElementObject == pelem)
                             {
@@ -9061,10 +9049,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     {
                         //we are in function argument - powering the function
                         int ii;
-                        for (ii=0;ii<this->m_pPaternalExpression->m_NumElements;ii++)
+                        for (ii=0;ii<this->m_pPaternalExpression->m_pElementList.size();ii++)
                             if ((this->m_pPaternalExpression->m_pElementList+ii)->pElementObject==this->m_pPaternalElement) break;
                         CExpression *base=this->m_pPaternalExpression;						
-                        if ((ii!=0) || (base->m_NumElements!=1) || (base->m_pPaternalElement==0) ||
+                        if ((ii!=0) || (base->m_pElementList.size()!=1) || (base->m_pPaternalElement==0) ||
                             (base->m_pPaternalElement->m_Type!=3))
                         {
 
@@ -9139,19 +9127,19 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     exp=((CExpression*)theElement2->pElementObject->Expression2);
 
 keyboardkeyhit_addtoexponent:
-                    if (ToAdd) exp->InsertElement(ToAdd->m_pElementList,exp->m_NumElements);
+                    if (ToAdd) exp->InsertElement(ToAdd->m_pElementList,exp->m_pElementList.size());
                     char palt=IsALTDown;IsALTDown=0;
                     KeyboardEntryObject=(CObject*)exp;
-                    if ((exp->m_pElementList+exp->m_NumElements-1)->Type==1)
+                    if ((exp->m_pElementList+exp->m_pElementList.size()-1)->Type==1)
                     {
-                        exp->m_IsKeyboardEntry=exp->m_NumElements;
-                        exp->m_KeyboardCursorPos=(int)strlen((exp->m_pElementList+exp->m_NumElements-1)->pElementObject->Data1);
+                        exp->m_IsKeyboardEntry=exp->m_pElementList.size();
+                        exp->m_KeyboardCursorPos=(int)strlen((exp->m_pElementList+exp->m_pElementList.size()-1)->pElementObject->Data1);
                     }
                     else
                     {
-                        exp->InsertEmptyElement(exp->m_NumElements,1,0,fcolor);
+                        exp->InsertEmptyElement(exp->m_pElementList.size(),1,0,fcolor);
                         exp->m_KeyboardCursorPos=0;
-                        exp->m_IsKeyboardEntry=exp->m_NumElements;
+                        exp->m_IsKeyboardEntry=exp->m_pElementList.size();
                     }
                     int tmpeau=ExponentAcceleratorUsed;
                     exp->KeyboardKeyHit(DC,zoom,nChar,nRptCnt,nFlags);
@@ -9312,12 +9300,14 @@ keyboardkeyhit_addtoexponent:
             ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("autocomplete", 20316);
 
             lastkeystrokes[0] = 0;
-            while (this->m_pElementList[0].Type || this->m_NumElements > 1) this->DeleteElement(0);
-            for (int i = 0; i < AutocompleteSource->m_NumElements; i++)
-                this->InsertElement(AutocompleteSource->m_pElementList[i], this->m_NumElements);
+            while (this->m_pElementList[0].Type || this->m_pElementList.size() > 1) this->DeleteElement(0);
+            for (size_t i = 0; i < AutocompleteSource->m_pElementList.size(); i++)
+            {
+                this->InsertElement(AutocompleteSource->m_pElementList[i], this->m_pElementList.size());
+            }
 
-            this->InsertEmptyElement(m_NumElements, 1, 0, fcolor);
-            this->m_IsKeyboardEntry = m_NumElements;
+            this->InsertEmptyElement(m_pElementList.size(), 1, 0, fcolor);
+            this->m_IsKeyboardEntry = m_pElementList.size();
             this->m_KeyboardCursorPos = 0;
 
             IsSHIFTDown = 0;
@@ -9342,7 +9332,7 @@ keyboardkeyhit_addtoexponent:
                     //inserting new line
                     int found_break = 0;
                     if (this->m_MaxNumColumns == 1 && this->m_MaxNumRows == 1)
-                        for (int i = 0; i < m_NumElements; i++)
+                        for (size_t i = 0; i < m_pElementList.size(); i++)
                         {
                             if (m_pElementList[i].Type == 2 && m_pElementList[i].pElementObject->Data1[0] == (char)0xFF)
                             {
@@ -9525,14 +9515,14 @@ keyboardkeyhit_addtoexponent:
                     if (m_pPaternalElement && m_pPaternalElement->IsDifferential(1))
                     {
                         //inside differentials, any operator automatically exits the differential argument //BABA2
-                        int ii = 0;
-                        for (ii = 0; ii < m_NumElements; ii++)
+                        size_t ii = 0;
+                        for (ii = 0; ii < m_pElementList.size(); ii++)
                             if (m_pElementList[ii].Type != 2 && (ii != m_IsKeyboardEntry - 1 || m_KeyboardCursorPos >
                                 0)) break;
-                        if (ii < m_NumElements)
-                            if (m_IsKeyboardEntry == m_NumElements && m_KeyboardCursorPos == strlen(
+                        if (ii < m_pElementList.size())
+                            if (m_IsKeyboardEntry == m_pElementList.size() && m_KeyboardCursorPos == strlen(
                                 theElement->pElementObject->Data1))
-                                if (m_NumElements > 1 || m_KeyboardCursorPos > 0)
+                                if (m_pElementList.size() > 1 || m_KeyboardCursorPos > 0)
                                 {
                                     int prevsh = IsSHIFTDown;
                                     IsSHIFTDown = 0;
@@ -9600,15 +9590,16 @@ keyboardkeyhit_addtoexponent:
                     if (ch == '`' || ch == '#') //grave accent or hash sign (inserting simple fraction)
                     {
                         //check if the cursor is in the empty denominator
-                        int paternal_pos = 0;
-                        if (m_pPaternalExpression && this->m_NumElements == 1 && this->m_pElementList[0].Type == 0)
-                            for (paternal_pos = 0; paternal_pos < m_pPaternalExpression->m_NumElements; paternal_pos++)
+                        size_t paternal_pos = 0;
+                        if (m_pPaternalExpression && this->m_pElementList.size() == 1 && this->m_pElementList[0].Type == 0)
+                            for (paternal_pos = 0; paternal_pos < m_pPaternalExpression->m_pElementList.size(); paternal_pos++)
                                 if (m_pPaternalExpression->m_pElementList[paternal_pos].pElementObject ==
                                     m_pPaternalElement)
                                     break;
                         if (paternal_pos > 0)
-                            if (m_pPaternalElement && m_pPaternalElement->m_Type == 4 && m_pPaternalElement->Data1[
-                                0] == 0 && m_pPaternalElement->Expression2 == this)
+                            if (m_pPaternalElement && m_pPaternalElement->m_Type == 4 &&
+                                m_pPaternalElement->Data1[0] == 0 &&
+                                m_pPaternalElement->Expression2 == this)
                             {
                                 //suck-in the object into the numerator
 
@@ -9819,7 +9810,7 @@ keyboardkeyhit_addtoexponent:
 
                             short t = 0;
                             if (m_IsKeyboardEntry > 1) t = m_pElementList[m_IsKeyboardEntry - 2].Type;
-                            if ((m_IsKeyboardEntry == 1 && m_NumElements == 1) ||
+                            if ((m_IsKeyboardEntry == 1 && m_pElementList.size() == 1) ||
                                 (IsText &&
                                     (m_IsKeyboardEntry == 1 || t == 12 || t == 11 ||
                                         (t == 2 && m_IsKeyboardEntry > 1 &&
@@ -9832,7 +9823,7 @@ keyboardkeyhit_addtoexponent:
                                 {
                                     if (!IsText)
                                     {
-                                        IsText = 1;
+                                        IsText = true;
                                         if (m_pElementList[0].Type == 1) m_pElementList[0].pElementObject->m_Text = 1;
                                         m_ModeDefinedAt = 1;
                                         m_StartAsText = 1;
@@ -9884,7 +9875,7 @@ keyboardkeyhit_addtoexponent:
                         if (m_IsKeyboardEntry == 1 || (m_IsKeyboardEntry > 1 &&
                             ((te - 1)->Type == 11 || (te - 1)->Type == 12)))
                             is_section_start = 1;
-                        if (m_IsKeyboardEntry == m_NumElements || (m_IsKeyboardEntry < m_NumElements &&
+                        if (m_IsKeyboardEntry == m_pElementList.size() || (m_IsKeyboardEntry < m_pElementList.size() &&
                             ((te + 1)->Type == 11 || (te + 1)->Type == 12)))
                             is_section_end = 1;
                         if (te->pElementObject && te->pElementObject->Data1[0] == 0) is_element_empty = 1;
@@ -9902,7 +9893,7 @@ keyboardkeyhit_addtoexponent:
                                 {
                                     m_pElementList[m_IsKeyboardEntry - 1].pElementObject->m_Text = IsText =
                                         IsText ? 0 : 1;
-                                    if (m_NumElements == 1) m_StartAsText = IsText;
+                                    if (m_pElementList.size() == 1) m_StartAsText = IsText;
 
                                     m_ModeDefinedAt = m_IsKeyboardEntry & 0x3FFF;
                                     if (IsText) m_ModeDefinedAt |= 0x4000;
@@ -9969,10 +9960,10 @@ keyboardkeyhit_addtoexponent:
                 m_pPaternalElement->Expression1 == this)
             {
                 base_exp = this->m_pPaternalExpression;
-                int ii;
-                for (ii = 0; ii < base_exp->m_NumElements; ii++)
+                size_t ii;
+                for (ii = 0; ii < base_exp->m_pElementList.size(); ii++)
                     if (base_exp->m_pElementList[ii].pElementObject == this->m_pPaternalElement) break;
-                if (ii == base_exp->m_NumElements) return 1;
+                if (ii == base_exp->m_pElementList.size()) return 1;
                 base_elm = &base_exp->m_pElementList[ii];
             }
 
@@ -10110,7 +10101,7 @@ keyboardkeyhit_addtoexponent:
                 }
 
                 if (IsSimpleVariableMode)
-                    if (base_exp->m_NumElements > start_ord + 1)
+                    if (base_exp->m_pElementList.size() > start_ord + 1)
                         if (base_exp->m_pElementList[start_ord + 1].Type == 6 &&
                             base_exp->m_pElementList[start_ord + 1].pElementObject->IsDifferential(1))
                         {
@@ -10272,10 +10263,10 @@ keyboardkeyhit_addtoexponent:
                 if (el && el->Expression1 && el->Expression2)
                 {
                     CExpression* base = el->Expression1;
-                    if (base->m_NumElements > 1 || base->m_pElementList[0].Type != 6)
+                    if (base->m_pElementList.size() > 1 || base->m_pElementList[0].Type != 6)
                     {
                         CExpression* exp = el->Expression2;
-                        KeyboardRefocus(exp, exp->m_NumElements);
+                        KeyboardRefocus(exp, exp->m_pElementList.size());
                         return 1;
                     }
                 }
@@ -10289,19 +10280,19 @@ keyboardkeyhit_addtoexponent:
                 if (this->m_pPaternalElement->Data1[0] == '/')
                 // integration limit bar (the function is on the left side)
                 {
-                    a = this->m_NumElements;
+                    a = this->m_pElementList.size();
                     b = (int)strlen(this->m_pElementList[a - 1].pElementObject->Data1);
                 }
                 if (m_IsKeyboardEntry == a && m_KeyboardCursorPos == b && this->m_pPaternalElement->Expression2)
                 {
                     KeyboardRefocus(this->m_pPaternalElement->Expression2,
-                                    this->m_pPaternalElement->Expression2->m_NumElements);
+                                    this->m_pPaternalElement->Expression2->m_pElementList.size());
                     return 1;
                 }
             }
             if (this->m_pPaternalElement && this->m_pPaternalElement->m_Type == 3 && this->m_pPaternalElement->
                 Expression1 == this &&
-                m_IsKeyboardEntry >= m_NumElements)
+                m_IsKeyboardEntry >= m_pElementList.size())
             {
                 //special handling for the exponent - go into exponent
                 KeyboardRefocus(this->m_pPaternalElement->Expression2, 0);
@@ -10327,7 +10318,7 @@ keyboardkeyhit_addtoexponent:
             {
                 //special handling for root
                 KeyboardRefocus(this->m_pPaternalElement->Expression2,
-                                this->m_pPaternalElement->Expression2->m_NumElements);
+                                this->m_pPaternalElement->Expression2->m_pElementList.size());
                 return 1;
             }
             m_IsKeyboardEntry = 0;
@@ -10341,7 +10332,7 @@ keyboardkeyhit_addtoexponent:
                 int candidate_y = -100000;
                 int absX = X * 100 / ViewZoom + KeyboardEntryBaseObject->absolute_X;
                 int dist = 2 * GRID;
-                if (m_NumElements == 0 || m_pElementList[0].Type == 0) dist = 3 * GRID / 2;
+                if (m_pElementList.size() == 0 || m_pElementList[0].Type == 0) dist = 3 * GRID / 2;
 
                 tDocumentStruct* ds = TheDocument;
                 for (int i = 0; i < NumDocumentElements; i++, ds++)
@@ -10377,7 +10368,7 @@ keyboardkeyhit_addtoexponent:
                 //we are going to create new object
                 {
                     int make_text = 0;
-                    if (this->m_NumElements == 1 && this->m_pElementList[0].Type == 0)
+                    if (this->m_pElementList.size() == 1 && this->m_pElementList[0].Type == 0)
                     {
                         make_text = IsText; //if we are 'moving' and empty box, then we will inherit its math/text type
                     }
@@ -10444,13 +10435,13 @@ keyboardkeyhit_addtoexponent:
                 if (this->m_pPaternalElement->Data1[0] == '/')
                 // integration limit bar (the function is on the left side)
                 {
-                    a = this->m_NumElements;
+                    a = this->m_pElementList.size();
                     b = (int)strlen(this->m_pElementList[a - 1].pElementObject->Data1);
                 }
                 if (m_IsKeyboardEntry == a && m_KeyboardCursorPos == b && this->m_pPaternalElement->Expression3)
                 {
                     KeyboardRefocus(this->m_pPaternalElement->Expression3,
-                                    this->m_pPaternalElement->Expression3->m_NumElements);
+                                    this->m_pPaternalElement->Expression3->m_pElementList.size());
                     return 1;
                 }
             }
@@ -10467,7 +10458,7 @@ keyboardkeyhit_addtoexponent:
                     int candidate_y = 0x7FFFFFFF;
                     int absX = X * 100 / ViewZoom + KeyboardEntryBaseObject->absolute_X;
                     int dist = 2 * GRID;
-                    if (m_NumElements == 0 || m_pElementList[0].Type == 0) dist = 3 * GRID / 2;
+                    if (m_pElementList.size() == 0 || m_pElementList[0].Type == 0) dist = 3 * GRID / 2;
 
                     tDocumentStruct* ds = TheDocument;
                     for (int i = 0; i < NumDocumentElements; i++, ds++)
@@ -10506,7 +10497,7 @@ keyboardkeyhit_addtoexponent:
                     //we are going to create new object
                     {
                         int make_text = 0;
-                        if (this->m_NumElements == 1 && this->m_pElementList[0].Type == 0)
+                        if (this->m_pElementList.size() == 1 && this->m_pElementList[0].Type == 0)
                         {
                             make_text = IsText;
                             //if we are 'moving' and empty box, then we will inherit its math/text type
@@ -10605,7 +10596,7 @@ keyboardkeyhit_addtoexponent:
                     Baseline = this->m_pPaternalExpression;
 
                     //check if we are already inside an exponential element (if so, also move pointers outside it)
-                    if (Baseline->m_NumElements == 1 && Baseline->m_pPaternalElement && Baseline->
+                    if (Baseline->m_pElementList.size() == 1 && Baseline->m_pPaternalElement && Baseline->
                         m_pPaternalElement->m_Type == 3)
                     {
                         Basepos = Baseline->m_pPaternalElement->GetPaternalPosition();
@@ -10625,7 +10616,7 @@ keyboardkeyhit_addtoexponent:
                     //we are only adding to the existing exponent
                     CExpression* exp = Baseline->m_pElementList[Basepos].pElementObject->
                                                                          Expression2;
-                    KeyboardRefocus(exp, exp->m_NumElements);
+                    KeyboardRefocus(exp, exp->m_pElementList.size());
                     return 1;
                 }
 
@@ -10695,7 +10686,7 @@ keyboardkeyhit_addtoexponent:
                                           ? elm->Expression2
                                           : elm->Expression3;
 
-                    int d = ee->m_NumElements;
+                    int d = ee->m_pElementList.size();
                     if (ee->m_pElementList[0].Type == 0) d = 0;
                     if (m_IsKeyboardEntry == 2)
                     {
@@ -10711,7 +10702,7 @@ keyboardkeyhit_addtoexponent:
                     (m_IsKeyboardEntry > 1 &&
                         (m_pElementList[m_IsKeyboardEntry - 2].Type == 1 ||
                             (m_pElementList[m_IsKeyboardEntry - 2].Type == 3 &&
-                                m_pElementList[m_IsKeyboardEntry - 2].pElementObject->Expression1->m_NumElements == 1 &&
+                                m_pElementList[m_IsKeyboardEntry - 2].pElementObject->Expression1->m_pElementList.size() == 1 &&
                                 (m_pElementList[m_IsKeyboardEntry - 2].pElementObject->Expression1
                                                                      ->
                                                                      m_pElementList[0].Type == 1 || m_pElementList[
@@ -10726,7 +10717,7 @@ keyboardkeyhit_addtoexponent:
                                     m_pElementList[m_IsKeyboardEntry - 3].Type == 5)) ||
                             m_pElementList[m_IsKeyboardEntry - 2].Type == 6)))
                     ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("index entry", 20311);
-                else if (m_NumElements == 1 &&
+                else if (m_pElementList.size() == 1 &&
                     m_KeyboardCursorPos == 0 &&
                     m_pElementList[0].pElementObject->Data1[0] == 0 &&
                     m_pPaternalElement &&
@@ -10825,11 +10816,11 @@ keyboardkeyhit_addtoexponent:
 
                         if (operator_flag)
                         {
-                            index->InsertElement(m_pElementList[m_IsKeyboardEntry - 1], index->m_NumElements);
+                            index->InsertElement(m_pElementList[m_IsKeyboardEntry - 1], index->m_pElementList.size());
                             DeleteElement(m_IsKeyboardEntry - 1);
                         }
-                        KeyboardRefocus(index, index->m_NumElements);
-                        //if ((index->m_NumElements==1) && (index->m_pElementList[0].Type==1) && (index->m_IsKeyboardEntry==1) && (index->m_KeyboardCursorPos==0))
+                        KeyboardRefocus(index, index->m_pElementList.size());
+                        //if ((index->m_pElementList.size()==1) && (index->m_pElementList[0].Type==1) && (index->m_IsKeyboardEntry==1) && (index->m_KeyboardCursorPos==0))
                         //{
                         //	index->m_pElementList[0].pElementObject->m_Text=IsText;
                         //}
@@ -10945,7 +10936,7 @@ keyboardkeyhit_addtoexponent:
             int i = m_IsKeyboardEntry;
             int j = FindMatrixElement(crow, ccolumn, 1);
             if (j < 0) j = 0;
-            while (m_pElementList[i].Type != 12 && i < m_NumElements)
+            while (m_pElementList[i].Type != 12 && i < m_pElementList.size())
             {
                 tElementStruct* ts = &m_pElementList[i];
                 if (ts->Type == 12 || ts->Type == 11) break;
@@ -11110,7 +11101,7 @@ keyboardkeyhit_addtoexponent:
             tElementStruct *prevelm=nullptr;
             if ((m_IsKeyboardEntry==1) && (m_KeyboardCursorPos==0))
             {
-                for (int ii=0;ii<this->m_pPaternalExpression->m_NumElements;ii++)
+                for (int ii=0;ii<this->m_pPaternalExpression->m_pElementList.size();ii++)
                     if ((this->m_pPaternalExpression->m_pElementList+ii)->pElementObject==this->m_pPaternalElement)
                     {
                         prevelm=this->m_pPaternalExpression->m_pElementList+ii;
@@ -11137,7 +11128,7 @@ keyboardkeyhit_addtoexponent:
                 }
                 CExpression *indexexp=*exp;
                 if (indexexp->m_pElementList[0].Type==0) indexexp->InsertEmptyElement(0,1,0,fcolor);
-                CElement *lastone=(indexexp->m_pElementList+indexexp->m_NumElements-1)->pElementObject;
+                CElement *lastone=(indexexp->m_pElementList+indexexp->m_pElementList.size()-1)->pElementObject;
                 if ((lastone) && (lastone->m_Type==1))
                 {
                     int len=(int)strlen(lastone->Data1);
@@ -11478,7 +11469,7 @@ keyboardkeyhit_addtoexponent:
 tElementStruct* CExpression::KeyboardSplitVariable()
 {
     if (m_IsKeyboardEntry < 1) return nullptr;
-    if (m_IsKeyboardEntry > m_NumElements) return nullptr;
+    if (m_IsKeyboardEntry > m_pElementList.size()) return nullptr;
 
     tElementStruct* theElement = &m_pElementList[m_IsKeyboardEntry - 1];
 
@@ -11573,7 +11564,7 @@ int CExpression::KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt
             if (tt < 20) *x -= 1;
             *x -= tt / 48;
         }
-        else /*if (newFocus->m_IsKeyboardEntry<newFocus->m_NumElements)*/
+        else /*if (newFocus->m_IsKeyboardEntry<newFocus->m_pElementList.size())*/
             *x += tt / 20;
 
 
@@ -11582,7 +11573,7 @@ int CExpression::KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt
     }
 
 
-    if (m_NumElements > 2 && m_IsKeyboardEntry == m_NumElements &&
+    if (m_pElementList.size() > 2 && m_IsKeyboardEntry == m_pElementList.size() &&
         m_pElementList[m_IsKeyboardEntry - 1].Type == 1 &&
         m_pElementList[m_IsKeyboardEntry - 1].pElementObject->Data1[0] == 0 &&
         m_pElementList[m_IsKeyboardEntry - 2].Type == 2 && m_pElementList[m_IsKeyboardEntry - 2].
@@ -12154,10 +12145,7 @@ int CExpression::Autocomplete(bool is_internal)
 {
     if (is_internal)
     {
-        int i;
-        int Points = 0;
-
-        if (this->m_NumElements == 1 && this->m_pElementList[0].Type == 2 || this->m_pElementList[0].Type == 0)
+        if (this->m_pElementList.size() == 1 && this->m_pElementList[0].Type == 2 || this->m_pElementList[0].Type == 0)
             return 1; //some pointless math line (single operator - this happens sometimes with exponents or indexes)
 
         CExpression* org = KeyboardEntryObject;
@@ -12181,7 +12169,7 @@ int CExpression::Autocomplete(bool is_internal)
             e = e->m_pPaternalExpression;
         }
 
-        int num_obj = org->m_NumElements;
+        int num_obj = org->m_pElementList.size();
         if (num_obj)
             if (org->m_pElementList[num_obj - 1].Type == 1 &&
                 org->m_pElementList[num_obj - 1].pElementObject->Data1[0] == 0)
@@ -12194,11 +12182,11 @@ int CExpression::Autocomplete(bool is_internal)
         //if the last element of is comma, don't take it into the account (this enables double-comma triggering)
 
         //check if all elements are equal (up to the number of typed elements in org)
-        i = 0;
-        if (num_obj < m_NumElements)
+        size_t i = 0;
+        if (num_obj < m_pElementList.size())
             for (; i < num_obj; i++)
             {
-                if (i >= m_NumElements) break;
+                if (i >= m_pElementList.size()) break;
                 tElementStruct* es1 = &org->m_pElementList[i];
                 tElementStruct* es2 = &m_pElementList[i];
                 if (es1 != es2)
@@ -12207,6 +12195,7 @@ int CExpression::Autocomplete(bool is_internal)
 
         if (i == num_obj)
         {
+            int Points = 0;
             //we will add points
             CExpression* a = org;
             CExpression* b = this;
@@ -12377,7 +12366,7 @@ int CExpression::Autocomplete(bool is_internal)
             }
             if (Points && Points >= AutocompletePoints && this->m_pElementList[0].pElementObject)
             {
-                if (org->m_IsKeyboardEntry <= org->m_NumElements &&
+                if (org->m_IsKeyboardEntry <= org->m_pElementList.size() &&
                     org->m_pElementList[org->m_IsKeyboardEntry - 1].Type == 1 &&
                     org->m_pElementList[org->m_IsKeyboardEntry - 1].pElementObject->Data1[0] == 0)
                     AutocompleteTriggered = 1;
@@ -12389,14 +12378,14 @@ int CExpression::Autocomplete(bool is_internal)
             }
         }
     autocomplete_doall:
-        for (i = 0; i < m_NumElements; i++)
+        for (size_t i = 0; i < m_pElementList.size(); i++)
         {
-            tElementStruct* ts = &m_pElementList[i];
-            if (ts->pElementObject)
+            tElementStruct& ts = m_pElementList[i];
+            if (ts.pElementObject)
             {
-                if (ts->pElementObject->Expression1) ts->pElementObject->Expression1->Autocomplete(true);
-                if (ts->pElementObject->Expression2) ts->pElementObject->Expression2->Autocomplete(true);
-                if (ts->pElementObject->Expression3) ts->pElementObject->Expression3->Autocomplete(true);
+                if (ts.pElementObject->Expression1) ts.pElementObject->Expression1->Autocomplete(true);
+                if (ts.pElementObject->Expression2) ts.pElementObject->Expression2->Autocomplete(true);
+                if (ts.pElementObject->Expression3) ts.pElementObject->Expression3->Autocomplete(true);
             }
         }
         return 1;
@@ -12409,9 +12398,9 @@ int CExpression::Autocomplete(bool is_internal)
     if (KeyboardEntryObject == nullptr) return 0;
     if (KeyboardEntryBaseObject == nullptr) return 0;
     if (m_IsKeyboardEntry <= 0) return 0;
-    if (m_NumElements > m_IsKeyboardEntry) return 0;
+    if (m_pElementList.size() > m_IsKeyboardEntry) return 0;
     if (m_pElementList[m_IsKeyboardEntry - 1].Type != 1) return 0;
-    if (m_NumElements > m_IsKeyboardEntry + 1) return 0;
+    if (m_pElementList.size() > m_IsKeyboardEntry + 1) return 0;
 
 
     int X = KeyboardEntryBaseObject->absolute_X;
@@ -12437,7 +12426,7 @@ int CExpression::Autocomplete(bool is_internal)
 
 tElementStruct* CExpression::GetElementStruct(const CElement* element)
 {
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         if (m_pElementList[i].pElementObject == element)
             return &m_pElementList[i];
@@ -12509,13 +12498,13 @@ int CExpression::GetCellAttributes(int row, int column, tCellAttributes* attribu
     int elm = FindMatrixElement(row, column, 0); //getting the first element within the cell
     if (elm < 0) elm = 0;
     int k;
-    for (k = elm; k < m_NumElements; k++)
+    for (k = elm; k < m_pElementList.size(); k++)
     {
         if (m_pElementList[k].Type == 11 || m_pElementList[k].Type == 12) break;
     }
-    if (k == m_NumElements) return 0; //not found
+    if (k == m_pElementList.size()) return 0; //not found
 
-    /*if (k==m_NumElements)
+    /*if (k==m_pElementList.size())
     {
         if ((elm>0) && (alternative_data==0))
         {
@@ -12591,13 +12580,13 @@ autowraptext_start:
     }
     int linestart = startelm;
     int ip_type = 1; //text type insertion point
-    for (int i = startelm; i < this->m_NumElements; i++)
+    for (size_t i = startelm; i < this->m_pElementList.size(); i++)
     {
         tElementStruct* ts = &this->m_pElementList[i];
         if (i == linestart) continue; //we never do wraping at the beginning of a line
 
         if (ts->Type == 2 && ts->pElementObject->Data1[0] == (char)0xFF && ts->X_pos + ts->Length < width && rewrap_all
-            && i < m_NumElements - 1)
+            && i < m_pElementList.size() - 1)
         {
             //this line is too short, we will check if new elements can be added from below
 
@@ -12636,13 +12625,13 @@ autowraptext_start:
 
         //handling spliced text
         int wpos = ts->X_pos + ts->Length;
-        if (ts->Type == 1 && ts->pElementObject->m_Text == 4 && i < m_NumElements - 1 && (ts + 1)->Type == 1)
+        if (ts->Type == 1 && ts->pElementObject->m_Text == 4 && i < m_pElementList.size() - 1 && (ts + 1)->Type == 1)
         {
             wpos = (ts + 1)->X_pos + (ts + 1)->Length;
-            if (i < m_NumElements - 2 && (ts + 2)->Type == 1 && (ts + 2)->pElementObject->m_Text == 2)
+            if (i < m_pElementList.size() - 2 && (ts + 2)->Type == 1 && (ts + 2)->pElementObject->m_Text == 2)
                 wpos = (ts + 2)->X_pos + (ts + 2)->Length;
         }
-        if (ts->Type == 1 && i < m_NumElements - 1 && (ts + 1)->Type == 1 && (ts + 1)->pElementObject->m_Text ==
+        if (ts->Type == 1 && i < m_pElementList.size() - 1 && (ts + 1)->Type == 1 && (ts + 1)->pElementObject->m_Text ==
             2)
             wpos = (ts + 1)->X_pos + (ts + 1)->Length;
 
@@ -12686,11 +12675,11 @@ autowraptext_start:
                 //first we check if the line is unwraped until now - if yet unwraped, we adjust alignment
                 {
                     int j;
-                    for (j = 0; j < m_NumElements; j++)
+                    for (j = 0; j < m_pElementList.size(); j++)
                         if (m_pElementList[j].Type == 2 &&
                             m_pElementList[j].pElementObject->Data1[0] == (char)0xFF)
                             break;
-                    if (j == m_NumElements) this->m_Alignment = 1;
+                    if (j == m_pElementList.size()) this->m_Alignment = 1;
                 }
 
                 //first we insert the row separator here
@@ -12698,8 +12687,8 @@ autowraptext_start:
                 if (m_IsKeyboardEntry > i) m_IsKeyboardEntry++;
                 startelm = i + 1;
                 //then we search until the end of the line and check if we can delete this row separator
-                int j;
-                for (j = i + 1; j < m_NumElements; j++)
+                size_t j;
+                for (j = i + 1; j < m_pElementList.size(); j++)
                 {
                     tElementStruct* ts2 = &this->m_pElementList[j];
                     if (ts2->Type == 2 && ts2->pElementObject->Data1[0] == (char)0xFF)
@@ -12708,21 +12697,21 @@ autowraptext_start:
                         break;
                     }
                 }
-                if (j < m_NumElements - 1)
+                if (j < m_pElementList.size() - 1)
                 {
                     tElementStruct& ts2 = this->m_pElementList[j + 1];
-                    int ok_to_wrap = 1;
+                    bool ok_to_wrap = true;
                     if (ts2.Type == 1 && ts2.pElementObject->Data1[1] == 0)
                     {
                         char ch = ts2.pElementObject->Data1[0];
-                        if (ch < '0') ok_to_wrap = 0;
+                        if (ch < '0') ok_to_wrap = false;
                     }
                     if (ts2.Type == 2)
                     {
                         char ch = ts2.pElementObject->Data1[0];
-                        if (ch == 9 || ch == (char)0xB7) ok_to_wrap = 0;
+                        if (ch == 9 || ch == (char)0xB7) ok_to_wrap = false;
                     }
-                    if (ts2.Type == 11 || ts2.Type == 12 || ts2.Type == 0) ok_to_wrap = 0;
+                    if (ts2.Type == 11 || ts2.Type == 12 || ts2.Type == 0) ok_to_wrap = false;
                     if (ok_to_wrap)
                     {
                         this->DeleteElement(j);
@@ -12766,9 +12755,9 @@ void CExpression::XML_output(std::ostream& output, int num_tabs)
     {
         if (m_MaxNumRows == 1 && m_MaxNumColumns == 1)
         {
-            for (int ii = 0; ii < m_NumElements; ii++)
-                if (m_pElementList[ii].Type == 2 && m_pElementList[ii].pElementObject->Data1[0] == (char)
-                    0xFF)
+            for (int ii = 0; ii < m_pElementList.size(); ii++)
+                if (m_pElementList[ii].Type == 2 &&
+                    m_pElementList[ii].pElementObject->Data1[0] == (char)0xFF)
                 {
                     old_version_text_decode = 1;
                     m_StartAsText = 1;
@@ -12822,14 +12811,14 @@ void CExpression::XML_output(std::ostream& output, int num_tabs)
 
     //special handling for backward compatibility with file format 1.x (matrices/tables do not have the last row separator)
     if (XMLFileVersion == 1 && (m_MaxNumRows > 1 || m_MaxNumColumns > 1) &&
-        m_pElementList[m_NumElements - 1].Type == 12)
+        m_pElementList[m_pElementList.size() - 1].Type == 12)
     {
-        const char top = m_pElementList[m_NumElements - 1].pElementObject->Data1[0];
-        const char right = m_pElementList[m_NumElements - 1].pElementObject->Data1[1];
-        const char bottom = m_pElementList[m_NumElements - 1].pElementObject->Data1[2];
-        const char left = m_pElementList[m_NumElements - 1].pElementObject->Data1[3];
-        const char align = m_pElementList[m_NumElements - 1].pElementObject->Data1[10];
-        for (int jj = m_NumElements - 2; jj >= 0; jj--)
+        const char top = m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[0];
+        const char right = m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[1];
+        const char bottom = m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[2];
+        const char left = m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[3];
+        const char align = m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[10];
+        for (int jj = m_pElementList.size() - 2; jj >= 0; jj--)
         {
             const tElementStruct* ts = &m_pElementList[jj];
             if (ts->Type == 11)
@@ -12853,7 +12842,7 @@ void CExpression::XML_output(std::ostream& output, int num_tabs)
         }
     }
 
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct* ts = &m_pElementList[i];
         if (ts->Type == 11)
@@ -12866,7 +12855,7 @@ void CExpression::XML_output(std::ostream& output, int num_tabs)
         }
         else if (ts->Type == 12)
         {
-            if (XMLFileVersion > 1 || i < m_NumElements - 1)
+            if (XMLFileVersion > 1 || i < m_pElementList.size() - 1)
             //for file format version 1.x, we never store the last row separator
             {
                 ts->pElementObject->Data1[20] = 0;
@@ -12957,12 +12946,12 @@ char* CExpression::XML_input(char* file)
             if (!found_anything) InsertEmptyElement(0, 0, 0);
             if (is_matrix /*&& ((m_MaxNumRows>1) || (m_MaxNumColumns>1))*/)
             {
-                if (XMLFileVersion == 1 && m_pElementList[m_NumElements - 1].Type != 12)
+                if (XMLFileVersion == 1 && m_pElementList[m_pElementList.size() - 1].Type != 12)
                 {
                     //math-o-mir 1.x file format, we must find matrix cell attributes in former type 11/12 element
                     char top, bottom, left, right;
                     char align = top = bottom = left = right = ' ';
-                    for (int jj = m_NumElements - 1; jj >= 0; jj--)
+                    for (int jj = m_pElementList.size() - 1; jj >= 0; jj--)
                     {
                         tElementStruct* ts = &m_pElementList[jj];
                         if (ts->Type == 11)
@@ -12984,12 +12973,12 @@ char* CExpression::XML_input(char* file)
                             break;
                         }
                     }
-                    InsertEmptyElement(m_NumElements, 12, 0);
-                    m_pElementList[m_NumElements - 1].pElementObject->Data1[0] = top;
-                    m_pElementList[m_NumElements - 1].pElementObject->Data1[1] = right;
-                    m_pElementList[m_NumElements - 1].pElementObject->Data1[2] = bottom;
-                    m_pElementList[m_NumElements - 1].pElementObject->Data1[3] = left;
-                    m_pElementList[m_NumElements - 1].pElementObject->Data1[10] = align;
+                    InsertEmptyElement(m_pElementList.size(), 12, 0);
+                    m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[0] = top;
+                    m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[1] = right;
+                    m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[2] = bottom;
+                    m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[3] = left;
+                    m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[10] = align;
                 }
                 AdjustMatrix();
             }
@@ -13003,11 +12992,11 @@ char* CExpression::XML_input(char* file)
             char attrib[24];
             file += 7;
             mf->XML_read_attribute(attrib, buff, file, 20);
-            InsertEmptyElement(m_NumElements, 11, 0);
+            InsertEmptyElement(m_pElementList.size(), 11, 0);
             if (strcmp(attrib, "data") == 0)
             {
-                memcpy(m_pElementList[m_NumElements - 1].pElementObject->Data1, buff, 20);
-                m_pElementList[m_NumElements - 1].pElementObject->Data1[21] = 0;
+                memcpy(m_pElementList[m_pElementList.size() - 1].pElementObject->Data1, buff, 20);
+                m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[21] = 0;
             }
             is_matrix = true;
             found_anything = true;
@@ -13021,16 +13010,16 @@ char* CExpression::XML_input(char* file)
             mf->XML_read_attribute(attrib, buff, file, 20);
             if (old_version_text_decode)
             {
-                InsertEmptyElement(m_NumElements, 2, (char)0xFF);
+                InsertEmptyElement(m_pElementList.size(), 2, (char)0xFF);
             }
             else
             {
-                InsertEmptyElement(m_NumElements, 12, 0);
+                InsertEmptyElement(m_pElementList.size(), 12, 0);
 
                 if (strcmp(attrib, "data") == 0)
                 {
-                    memcpy(m_pElementList[m_NumElements - 1].pElementObject->Data1, buff, 20);
-                    m_pElementList[m_NumElements - 1].pElementObject->Data1[21] = 0;
+                    memcpy(m_pElementList[m_pElementList.size() - 1].pElementObject->Data1, buff, 20);
+                    m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[21] = 0;
                 }
                 is_matrix = true;
             }
@@ -13040,7 +13029,7 @@ char* CExpression::XML_input(char* file)
         else if (strncmp(file, "wrap", 4) == 0)
         {
             file += 4;
-            InsertEmptyElement(m_NumElements, 2, (char)0xFF);
+            InsertEmptyElement(m_pElementList.size(), 2, (char)0xFF);
             found_anything = true;
         }
         else if (strncmp(file, "elm", 3) == 0 ||
@@ -13085,8 +13074,8 @@ char* CExpression::XML_input(char* file)
                     return nullptr;
                 }
                 element.Type = element.pElementObject->m_Type;
-                //InsertElement(&element,m_NumElements);
-                MoveElementInto(element, m_NumElements);
+                //InsertElement(&element,m_pElementList.size());
+                MoveElementInto(element, m_pElementList.size());
                 //delete element.pElementObject;
             }
             found_anything = true;
@@ -13157,9 +13146,9 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 	while (true)
 	{
 		char et,p;
-		int l=GetElementLen(pos,m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+		int l=GetElementLen(pos,m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
 
-		if ((pos>0) || (l<m_NumElements))
+		if ((pos>0) || (l<m_pElementList.size()))
 		{
 			//handling if there is matrix
 			if (pos==0) 
@@ -13297,7 +13286,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			strcat_s(tmpstr,"</menclose>\r\n");
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
-		if ((pos>0) || (l<m_NumElements))
+		if ((pos>0) || (l<m_pElementList.size()))
 		{
 			if (l-p>1)
 			{
@@ -13311,7 +13300,7 @@ int CExpression::MathML_output(char * output, int num_tabs, char only_calculate,
 			{int tt=(int)strlen(tmpstr);len+=tt;if (!only_calculate) {strcpy(output,tmpstr);output+=tt;}}
 		}
 		pos+=l;
-		if (pos>m_NumElements-1) 
+		if (pos>m_pElementList.size()-1) 
 		{
 			if (is_table)
 			{
@@ -13388,9 +13377,9 @@ void CExpression::LaTeX_output(std::ostream& output) const
     while (true)
     {
         char et, p;
-        int l = GetElementLen(pos, m_NumElements - 1,GetOperatorLevel((char)0xFF), &et, &p);
+        int l = GetElementLen(pos, m_pElementList.size() - 1, GetOperatorLevel((char)0xFF), &et, &p);
 
-        if (pos > 0 || l < m_NumElements)
+        if (pos > 0 || l < m_pElementList.size())
         {
             //handling if there is matrix
             if (pos == 0)
@@ -13497,7 +13486,7 @@ void CExpression::LaTeX_output(std::ostream& output) const
         }
 
         pos += l;
-        if (pos > m_NumElements - 1)
+        if (pos > m_pElementList.size() - 1)
         {
             if (is_table)
             {
@@ -13534,13 +13523,13 @@ void CExpression::LaTeX_output(std::ostream& output) const
 // tests if the given character is high or not (heght above baseline)
 //THIS FUNCTION MUST BE VERY FAST;
 #pragma optimize("",on)
-int IsCharacterHigh(char ch, char font)
+bool IsCharacterHigh(char ch, char font)
 {
     if (ch < 'a' && ch > 0)
     {
         if (ch != '.' && ch != ',' && ch != '_' && ch != '-' && ch != '+' && ch != ';' && ch != ':' &&
             ch != '*' && ch != '<' && ch != '>' && ch != '=' && ch != ' ')
-            return 1;
+            return true;
     }
     else if (ch <= 'z' && ch > 0)
     {
@@ -13548,14 +13537,14 @@ int IsCharacterHigh(char ch, char font)
         {
             if (ch == 'b' || ch == 'd' || ch == 'f' || ch == 'l' ||
                 ch == 'q' || ch == 'x' || ch == 'z')
-                return 1;
+                return true;
         }
         else
         {
             if (ch == 'b' || ch == 'd' || ch == 'f' || ch == 'h' ||
                 ch == 'i' || ch == 'j' || ch == 'k' || ch == 'l' ||
                 ch == 't')
-                return 1;
+                return true;
         }
     }
     else
@@ -13568,21 +13557,21 @@ int IsCharacterHigh(char ch, char font)
                 ch == 0xBA || ch == 0xBB || ch == 0xBC || ch == 0xC4 ||
                 ch == 0xC5 || ch == 0xCE || ch == 0xCF || ch == 0xD7 ||
                 ch == 0xDB || ch == 0xDC || ch == 0xDE)
-                return 0;
+                return false;
         }
-        return 1;
+        return true;
     }
 
-    return 0;
+    return false;
 }
 
 // tests if the given character goes below the font baseline
 //THIS FUNCTION MUST BE VERY FAST;
-int IsCharacterLow(char ch, char font)
+bool IsCharacterLow(char ch, char font)
 {
     if (ch < 'a' && ch > 0)
     {
-        if (ch == ',' || ch == ';' || (ch == 'V' && (font & 0xE0) == 0x60)) return 1;
+        if (ch == ',' || ch == ';' || (ch == 'V' && (font & 0xE0) == 0x60)) return true;
     }
     else if (ch <= 'z' && ch > 0)
     {
@@ -13591,25 +13580,25 @@ int IsCharacterLow(char ch, char font)
             if (ch == 'r' || ch == 'z' || ch == 'f' || ch == 'g' ||
                 ch == 'h' || ch == 'j' || ch == 'y' || ch == 'x' ||
                 ch == 'c' || ch == 'b' || ch == 'm')
-                return 1;
+                return true;
         }
         else
         {
-            if (ch == 'g' || ch == 'j' || ch == 'q' || ch == 'y') return 1;
+            if (ch == 'g' || ch == 'j' || ch == 'q' || ch == 'y') return true;
         }
     }
     else
-        if ((font & 0xE0) == 0x60 && (ch == 0xA6 || ch == 0xC3)) return 1;
+        if ((font & 0xE0) == 0x60 && (ch == 0xA6 || ch == 0xC3)) return true;
 
-    return 0;
+    return false;
 }
 
 int CExpression::CalcChecksum() const
 {
-    if (m_NumElements == 1 && m_pElementList[0].Type == 5) //special () =()	
+    if (m_pElementList.size() == 1 && m_pElementList[0].Type == 5) //special () =()	
         return m_pElementList[0].pElementObject->Expression1->CalcChecksum();
 
-    int c = m_NumElements;
+    int c = m_pElementList.size();
     c += 8 * (m_ParenthesesFlags & 0x1F);
     c += 16 * m_ParentheseShape;
     //c+=32*m_ParentheseData;
@@ -13626,9 +13615,9 @@ int CExpression::CalcChecksum() const
     }
 
     //loop partily unwinded for speed
-    if (m_NumElements)
+    if (m_pElementList.size())
     {
-        for (int i = 0; i < m_NumElements; i++)
+        for (size_t i = 0; i < m_pElementList.size(); i++)
         {
             const tElementStruct& ts = m_pElementList[i];
             if (ts.pElementObject)
@@ -13646,11 +13635,11 @@ int CExpression::CalcChecksum() const
 int CExpression::DetermineInsertionPointType(int position)
 {
     int retval = 0;
-    if (position > m_NumElements) position = m_NumElements;
+    if (position > m_pElementList.size()) position = m_pElementList.size();
     if (position < 0) position = 0;
     if (KeyboardEntryBaseObject == nullptr)
         m_ModeDefinedAt = 0;
-    if (position < m_NumElements && this == KeyboardEntryObject && position == m_IsKeyboardEntry - 1
+    if (position < m_pElementList.size() && this == KeyboardEntryObject && position == m_IsKeyboardEntry - 1
         &&
         this->m_pElementList[position].Type == 1 && this->m_pElementList[position].pElementObject->Data1[0]
         == '\\')
@@ -13662,12 +13651,12 @@ int CExpression::DetermineInsertionPointType(int position)
     if (defposss < position && defposss >= 0)
     {
         int i;
-        for (i = min(position, m_NumElements-1); i >= defposss; i--)
+        for (i = min(position, m_pElementList.size()-1); i >= defposss; i--)
             if (m_pElementList[i].Type == 12) break;
         if (i < defposss) return (char)(m_ModeDefinedAt >> 14);
     }
 
-    if (position == 0 && position < m_NumElements)
+    if (position == 0 && position < m_pElementList.size())
         if (m_pElementList[0].Type == 1) return m_pElementList[0].pElementObject->m_Text;
 
     while (position > 0)
@@ -13677,7 +13666,7 @@ int CExpression::DetermineInsertionPointType(int position)
         if (defposss == position) return (char)(m_ModeDefinedAt >> 14);
         if (ts.Type == 12 || ts.Type == 11)
         {
-            if (position < m_NumElements)
+            if (position < m_pElementList.size())
             {
                 if (m_pElementList[position].Type == 1)
                     return m_pElementList[position].pElementObject->m_Text;
@@ -13705,7 +13694,7 @@ int CExpression::DetermineInsertionPointType(int position)
                     else
                         type1 = 0;
                 }
-                if (position < m_NumElements)
+                if (position < m_pElementList.size())
                 {
                     if (m_pElementList[position].Type == 1)
                         type2 = m_pElementList[position].pElementObject->m_Text;
@@ -13713,7 +13702,7 @@ int CExpression::DetermineInsertionPointType(int position)
                         type2 = 0;
                 }
                 if (position == 0) type1 = type2;
-                if (position == m_NumElements) type2 = type1;
+                if (position == m_pElementList.size()) type2 = type1;
                 if (type1 || type2) return 1;
                 else return 0;
             }
@@ -13729,7 +13718,7 @@ CExpression* CExpression::KeyboardFindEntryPos()
     //searches for an expression that has m_IsKeyboardEntry flag set
 
     if (m_IsKeyboardEntry) return this;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (ts.pElementObject)
@@ -13803,7 +13792,7 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, cons
     char istxt = org_ds->Object.exp->m_StartAsText;
     char algn = org_ds->Object.exp->m_Alignment;
 
-    if (this->m_NumElements == 1 &&
+    if (this->m_pElementList.size() == 1 &&
         this->m_pPaternalExpression == nullptr &&
         (this->m_pElementList[0].Type == 0 || (this->m_pElementList[0].Type == 1 && this->m_pElementList[0].
             pElementObject->Data1[0] == 0)))
@@ -13833,7 +13822,7 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, cons
         ds->Object.exp->m_StartAsText = istxt;
         //if the object was non-empty then inherit paragraph formatting
 
-        for (int i = 0; i < orig->m_NumElements; i++)
+        for (int i = 0; i < orig->m_pElementList.size(); i++)
             ds->Object.exp->InsertElement(orig->m_pElementList[i], i);
     }
     //((CExpression*)(ds->Object))->m_FontSizeHQ=fsh;
@@ -14398,23 +14387,23 @@ int CExpression::PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short
 //Returns 1 if it contains text.
 int CExpression::IsTextContained(int position, char unmark_at_line_start) const
 {
-    if (position > m_NumElements - 1) position = m_NumElements - 1;
+    if (position > m_pElementList.size() - 1) position = m_pElementList.size() - 1;
     if (position < -1) position = -1;
     if (position == -1 && m_pElementList[0].Type == 0) return this->m_StartAsText;
     if (position >= 0 && m_pElementList[position].Type == 0) return this->m_StartAsText;
 
     int from = 0;
-    int to = m_NumElements - 1;
+    int to = m_pElementList.size() - 1;
     if (position >= 0)
     {
         from = position;
         while (from >= 0 && m_pElementList[from].Type != 12 && m_pElementList[from].Type != 11) from--;
         to = position;
-        while (to < m_NumElements && m_pElementList[to].Type != 12 && m_pElementList[to].Type != 11) to++;
+        while (to < m_pElementList.size() && m_pElementList[to].Type != 12 && m_pElementList[to].Type != 11) to++;
         from++;
         to--;
         if (from < 0) from = 0;
-        if (to > m_NumElements - 1) to = m_NumElements - 1;
+        if (to > m_pElementList.size() - 1) to = m_pElementList.size() - 1;
     }
 
     //check if the keyboard entry is active and the cursor stands at the beginning of a line
@@ -14424,7 +14413,7 @@ int CExpression::IsTextContained(int position, char unmark_at_line_start) const
         //cursor is at the beginning of the line
         if (this == KeyboardEntryObject && KeyboardEntryBaseObject)
         {
-            if (m_IsKeyboardEntry >= 1 && m_IsKeyboardEntry <= m_NumElements)
+            if (m_IsKeyboardEntry >= 1 && m_IsKeyboardEntry <= m_pElementList.size())
             {
                 if (m_pElementList[m_IsKeyboardEntry - 1].Type == 1 && m_KeyboardCursorPos == 0)
                 {
@@ -14487,7 +14476,7 @@ int CExpression::SelectMatrixElement(int row, int column, char select_type)
     int r = 0, c = 0;
     bool found_anything = false;
     m_InternalInsertionPoint = 0;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (ts.Type == 11) c++;
@@ -14515,12 +14504,12 @@ int CExpression::InsertMatrixColumn(int position)
     if (position >= 50) return 0;
     if (position > this->m_MaxNumColumns) return 0;
 
-    if (m_pElementList[m_NumElements - 1].Type != 12)
-        InsertEmptyElement(m_NumElements, 12, 0);
+    if (m_pElementList[m_pElementList.size() - 1].Type != 12)
+        InsertEmptyElement(m_pElementList.size(), 12, 0);
 
     int col = 0;
     int separator_inserted = 0;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (col == position && !separator_inserted)
@@ -14581,8 +14570,8 @@ int CExpression::InsertMatrixRow(int position)
     if (position >= 50) return 0;
     if (position > this->m_MaxNumRows) return 0;
 
-    if (m_pElementList[m_NumElements - 1].Type != 12)
-        InsertEmptyElement(m_NumElements, 12, 0);
+    if (m_pElementList[m_pElementList.size() - 1].Type != 12)
+        InsertEmptyElement(m_pElementList.size(), 12, 0);
 
 
     if (position == 0)
@@ -14606,7 +14595,7 @@ int CExpression::InsertMatrixRow(int position)
     }
 
     int row = 0;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (ts.Type == 12)
@@ -14640,7 +14629,7 @@ int CExpression::InsertMatrixRow(int position)
 int CExpression::FindMatrixElement(int row, int column, int expand_flag)
 {
     int r = 0, c = 0;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (r == row && c == column)
@@ -14687,7 +14676,7 @@ int CExpression::AdjustMatrix()
     int row, column;
     m_MaxNumColumns = m_MaxNumRows = 1;
     column = 1;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (ts.Type == 11)
@@ -14696,7 +14685,7 @@ int CExpression::AdjustMatrix()
         {
             if (column > m_MaxNumColumns)
                 m_MaxNumColumns = column;
-            if (i < m_NumElements - 1)
+            if (i < m_pElementList.size() - 1)
                 m_MaxNumRows++;
             column = 1;
         }
@@ -14706,19 +14695,19 @@ int CExpression::AdjustMatrix()
     if (m_MaxNumColumns == 1 && m_MaxNumRows == 1)
     {
         //if this is not a matrix, then it should not end with type 12 or type 11 element
-        if (m_pElementList[m_NumElements - 1].Type == 12 ||
-            m_pElementList[m_NumElements - 1].Type == 11)
-            DeleteElement(m_NumElements - 1);
+        if (m_pElementList[m_pElementList.size() - 1].Type == 12 ||
+            m_pElementList[m_pElementList.size() - 1].Type == 11)
+            DeleteElement(m_pElementList.size() - 1);
         return 0;
     }
 
     //make sure the matrix ends with row separator (element of type 12)
-    if (m_pElementList[m_NumElements - 1].Type != 12)
-        InsertEmptyElement(m_NumElements, 12, 0);
+    if (m_pElementList[m_pElementList.size() - 1].Type != 12)
+        InsertEmptyElement(m_pElementList.size(), 12, 0);
 
     //we are expanding rows that may be too short
     row = column = 0;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (ts.Type == 11)
@@ -14741,7 +14730,7 @@ int CExpression::AdjustMatrix()
     //inserty dummy objects if neccessary
     bool found_any = false;
     //ts=m_pElementList;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (ts.Type == 11)
@@ -14801,7 +14790,7 @@ int CExpression::ConvertToPlainText(int buffer_size, char* compile, bool force_p
     }
 
     char wordend = 0;
-    for (int i = 0; i < this->m_NumElements; i++)
+    for (size_t i = 0; i < this->m_pElementList.size(); i++)
     {
         int len = (int)strlen(compile);
         if (len >= buffer_size) break;
@@ -14858,11 +14847,11 @@ int CExpression::ConvertToPlainText(int buffer_size, char* compile, bool force_p
         else if (ts.Type == 3)
         {
             int ret = ts.pElementObject->Expression1->ConvertToPlainText(
-                buffer_size, compile, ts.pElementObject->Expression1->m_NumElements > 1);
+                buffer_size, compile, ts.pElementObject->Expression1->m_pElementList.size() > 1);
             if (ret == 0) return 0;
             strcat(compile + len, "^");
             ret = ts.pElementObject->Expression2->ConvertToPlainText(
-                buffer_size, compile, ts.pElementObject->Expression2->m_NumElements > 1);
+                buffer_size, compile, ts.pElementObject->Expression2->m_pElementList.size() > 1);
             if (ret == 0) return 0;
             wordend = 0;
         }
@@ -14927,7 +14916,7 @@ int CExpression::SearchForString(char* str)
         free(compile);
     }
 
-    for (int i = 0; i < this->m_NumElements; i++)
+    for (int i = 0; i < this->m_pElementList.size(); i++)
     {
         tElementStruct& ts = this->m_pElementList[i];
         if (ts.pElementObject)
@@ -14966,7 +14955,7 @@ int CExpression::DeleteSelection(char selection_type)
             //special handling for parenthese type element
             if (m_ParenthesesSelected && m_pPaternalExpression)
             {
-                for (int i = 0; i < m_pPaternalExpression->m_NumElements; i++)
+                for (int i = 0; i < m_pPaternalExpression->m_pElementList.size(); i++)
                 {
                     tElementStruct* theElement = &m_pPaternalExpression->m_pElementList[i];
                     if (theElement->pElementObject == this->m_pPaternalElement)
@@ -15004,7 +14993,7 @@ delete_one_by_one:
             {
                 int first = FindMatrixElement(i, j, 0);
                 if (first < 0) first = 0;
-                while (first < m_NumElements && m_pElementList[first].Type != 11 && m_pElementList[first].
+                while (first < m_pElementList.size() && m_pElementList[first].Type != 11 && m_pElementList[first].
                     Type != 12)
                 {
                     if (m_pElementList[first].IsSelected != selection_type)
@@ -15023,7 +15012,7 @@ delete_one_by_one:
                 //deleting the whole row
                 int j = FindMatrixElement(i, 0, 0);
                 if (j < 0) j = 0;
-                while (j < m_NumElements)
+                while (j < m_pElementList.size())
                 {
                     if (m_pElementList[j].Type == 12)
                     {
@@ -15031,8 +15020,8 @@ delete_one_by_one:
                         break;
                     }
                     DeleteElement(j);
-                    if (m_NumElements == 1 && m_pElementList[0].Type == 0) break;
-                    if (m_NumElements <= j && j > 0)
+                    if (m_pElementList.size() == 1 && m_pElementList[0].Type == 0) break;
+                    if (m_pElementList.size() <= j && j > 0)
                     {
                         DeleteElement(j - 1);
                         break;
@@ -15043,7 +15032,7 @@ delete_one_by_one:
             }
         }
 
-        if (m_NumElements <= 1)
+        if (m_pElementList.size() <= 1)
         {
             m_MaxNumColumns = 1;
             m_MaxNumRows = 1;
@@ -15060,7 +15049,7 @@ delete_one_by_one:
             {
                 int first = FindMatrixElement(j, i, 0);
                 if (first < 0) first = 0;
-                while (first < m_NumElements && m_pElementList[first].Type != 11 && m_pElementList[first].
+                while (first < m_pElementList.size() && m_pElementList[first].Type != 11 && m_pElementList[first].
                     Type != 12)
                 {
                     if (m_pElementList[first].IsSelected != selection_type)
@@ -15081,7 +15070,7 @@ delete_one_by_one:
                 {
                     j = FindMatrixElement(ii, i, 0);
                     if (j < 0) j = 0;
-                    while (j < m_NumElements)
+                    while (j < m_pElementList.size())
                     {
                         if (m_pElementList[j].Type == 12 || m_pElementList[j].Type == 11)
                         {
@@ -15091,11 +15080,11 @@ delete_one_by_one:
                             break;
                         }
                         DeleteElement(j);
-                        if (m_NumElements == 1 && m_pElementList[0].Type == 0) break;
+                        if (m_pElementList.size() == 1 && m_pElementList[0].Type == 0) break;
                     }
                 }
-                if (m_pElementList[m_NumElements - 1].Type == 11)
-                    m_pElementList[m_NumElements - 1].Type = 12;
+                if (m_pElementList[m_pElementList.size() - 1].Type == 11)
+                    m_pElementList[m_pElementList.size() - 1].Type = 12;
                 i--;
                 m_MaxNumColumns--;
             }
@@ -15104,7 +15093,7 @@ delete_one_by_one:
 
     {
         //delete all selected elements
-        for (int i = 0; i < m_NumElements; i++)
+        for (size_t i = 0; i < m_pElementList.size(); i++)
         {
             tElementStruct& ts = m_pElementList[i];
             //if (selection_type!=2)
@@ -15235,7 +15224,7 @@ int CExpression::KeyboardStartAt(int X, int Y, char direction, char between)
         else
         {
             if (KSAoriginal == nullptr) KSAoriginal = this;
-            for (int ii = 0; ii < m_pPaternalExpression->m_NumElements; ii++)
+            for (int ii = 0; ii < m_pPaternalExpression->m_pElementList.size(); ii++)
             {
                 tElementStruct& ts = m_pPaternalExpression->m_pElementList[ii];
                 if (ts.pElementObject && ts.Type != 0 && ts.Type != 11 && ts.Type != 12)
@@ -15264,7 +15253,7 @@ int CExpression::KeyboardStartAt(int X, int Y, char direction, char between)
         }
     }
 
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (direction == -1 && ts.Y_pos <= Y) //finding UP
@@ -15286,7 +15275,7 @@ int CExpression::KeyboardStartAt(int X, int Y, char direction, char between)
                 if (abs(ts.X_pos + ts.Length - X) <= delta * 2 || between == 2)
                 {
                     int d = abs(ts.X_pos + ts.Length - X) * 2 + delta;
-                    if (i < m_NumElements - 1 && m_pElementList[i + 1].Y_pos > Y) d = 0x7FFFFFFF;
+                    if (i < m_pElementList.size() - 1 && m_pElementList[i + 1].Y_pos > Y) d = 0x7FFFFFFF;
                     if (d < KSAdistance)
                     {
                         KSAdistance = d;
@@ -15335,7 +15324,7 @@ int CExpression::KeyboardStartAt(int X, int Y, char direction, char between)
                 if (abs(ts.X_pos + ts.Length - X) <= delta * 2 || between == 2)
                 {
                     int d = abs(ts.X_pos + ts.Length - X) * 2 + delta;
-                    if (i < m_NumElements - 1 && m_pElementList[i + 1].Y_pos < Y) d = 0x7FFFFFFF;
+                    if (i < m_pElementList.size() - 1 && m_pElementList[i + 1].Y_pos < Y) d = 0x7FFFFFFF;
                     if (d < KSAdistance)
                     {
                         KSAdistance = d;
@@ -15517,17 +15506,17 @@ int CExpression::GetKeyboardCursorPos(int* X, int* Y) const
 {
     if (m_IsKeyboardEntry)
     {
-        const tElementStruct& ts = m_pElementList[min(m_IsKeyboardEntry-1, m_NumElements-1)];
+        const tElementStruct& ts = m_pElementList[min(m_IsKeyboardEntry-1, m_pElementList.size()-1)];
         *Y = ts.Y_pos;
         *X = ts.X_pos;
         if (ts.Type == 1)
             *X += ts.pElementObject->Data3[m_KeyboardCursorPos];
-        else if (m_IsKeyboardEntry == m_NumElements)
+        else if (m_IsKeyboardEntry == m_pElementList.size())
             *X += ts.Length;
         goto getkeyboardcursorpos_finish;
     }
 
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         const tElementStruct& ts = m_pElementList[i];
         if (ts.Type != 0 && ts.Type != 11 && ts.Type != 12 && ts.pElementObject)
@@ -15577,7 +15566,7 @@ int CExpression::ChangeFontSize(float factor)
         m_FontSize = 10;
 
     //now go to all submembers;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& theElement = m_pElementList[i];
 
@@ -15597,7 +15586,7 @@ int CExpression::ChangeFontSize(float factor)
 int CExpression::SetColor(int color)
 {
     m_Color = color;
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct& ts = m_pElementList[i];
         if (ts.Type != 0 && ts.Type != 11 && ts.Type != 12 && ts.pElementObject)
@@ -15647,15 +15636,14 @@ char CExpression::GetDefaultElementType(const int Level)
 //this function returns the size and type of first mathematical element (at the same operator level)
 // for example in expression  -a*b*c+g-h*d and for Level that equals '+' operator
 // the function will return 6 (length of '-a*b*c') and will set element_type to '-' and has_preoperator to 1)
-int CExpression::GetElementLen(const unsigned int StartPos, const unsigned int EndPos, const unsigned int Level,
-                               char* element_type, char* has_preoperator) const
+size_t CExpression::GetElementLen(const size_t StartPos, const size_t EndPos, const unsigned int Level,
+                                  char* element_type, char* has_preoperator) const
 {
-    unsigned char prev_elm_type;
     unsigned char oper_type;
     unsigned char ll;
 
     const tElementStruct* theElement = &m_pElementList[StartPos];
-    prev_elm_type = theElement->Type;
+    byte prev_elm_type = theElement->Type;
 
     if (prev_elm_type == 2)
     {
@@ -15688,16 +15676,17 @@ int CExpression::GetElementLen(const unsigned int StartPos, const unsigned int E
         *has_preoperator = 0;
     }
 
-    unsigned int i = StartPos + 1;
+    size_t i = StartPos + 1;
     theElement++;
 
-    for (; i <= EndPos; i++, theElement++)
+    for (; i <= EndPos; i++)
     {
-        int elm_type = theElement->Type;
+        const tElementStruct& element = m_pElementList[i];
+        int elm_type = element.Type;
         if (elm_type == 2)
         {
             prev_elm_type = 2;
-            oper_type = (unsigned char)theElement->pElementObject->Data1[0];
+            oper_type = (byte)element.pElementObject->Data1[0];
             ll = OperatorLevelTable[oper_type];
         }
         else if (elm_type == 11 || elm_type == 12)
@@ -15726,10 +15715,10 @@ int CExpression::GetElementLen(const unsigned int StartPos, const unsigned int E
 //this function returns level of the lowest-level operator found at specified positions
 //if it cannot determine operator level (for example if only one variable is contained)
 //then the level of the 'default_oper' is returned (or -1 if 'default_oper'==0)
-int CExpression::FindLowestOperatorLevel(const unsigned int StartPos, const unsigned int EndPos,
+int CExpression::FindLowestOperatorLevel(const size_t StartPos, const size_t EndPos,
                                          const char default_oper) const
 {
-    //if (EndPos==-1) EndPos=m_NumElements-1;
+    //if (EndPos==-1) EndPos=m_pElementList.size()-1;
     if (StartPos == EndPos)
     {
         //the fast case
@@ -15739,7 +15728,7 @@ int CExpression::FindLowestOperatorLevel(const unsigned int StartPos, const unsi
 
     unsigned char prev_elm_type = 2;
     unsigned char Level = 0xFF;
-    for (unsigned int i = StartPos; i <= EndPos; i++)
+    for (size_t i = StartPos; i <= EndPos; i++)
     {
         const tElementStruct& theElement = m_pElementList[i];
         int elm_type = theElement.Type;
@@ -15769,19 +15758,19 @@ int CExpression::FindLowestOperatorLevel(const unsigned int StartPos, const unsi
 }
 
 //faster version of the above function - used when the whole expression is to be analyzed
-int CExpression::FindLowestOperatorLevel(const char default_oper)
+int CExpression::FindLowestOperatorLevel(const char default_oper) const
 {
-    if (m_NumElements == 1)
+    if (m_pElementList.size() == 1)
     {
         //the fast case
         if (default_oper) return OperatorLevelTable[(unsigned char)default_oper];
         return -1;
     }
 
-    const unsigned int EndPos = m_NumElements;
+    const size_t EndPos = m_pElementList.size();
     unsigned char prev_elm_type = 2;
     unsigned char Level = 0xFF;
-    for (unsigned int i = 0; i < EndPos; i++)
+    for (size_t i = 0; i < EndPos; i++)
     {
         const tElementStruct* theElement = &m_pElementList[i];
         int elm_type = theElement->Type;
@@ -15818,8 +15807,8 @@ int CExpression::CompareExpressions(int StartPos, int EndPos, CExpression* Other
     if (Other == nullptr) return 0;
     PROFILE_TIME(&PROFILER.CompareExpressions);
 
-    if (EndPos < 0) EndPos = m_NumElements - 1;
-    if (EndPos2 < 0) EndPos2 = Other->m_NumElements - 1;
+    if (EndPos < 0) EndPos = m_pElementList.size() - 1;
+    if (EndPos2 < 0) EndPos2 = Other->m_pElementList.size() - 1;
 
     int Level, Level2;
     if (EndPos == StartPos)
@@ -15964,16 +15953,16 @@ struct tElementStorage
 int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int OutsideLevel)
 {
     //initial testing of input parameters
-    if (EndPos < 0) EndPos = m_NumElements - 1;
+    if (EndPos < 0) EndPos = m_pElementList.size() - 1;
     if (StartPos > EndPos) return 0;
-    if (EndPos > m_NumElements - 1) return 0;
+    if (EndPos > m_pElementList.size() - 1) return 0;
 
 
     //special handling for absolute value or determinants
     if (this->m_pPaternalExpression == nullptr &&
         (this->m_ParentheseShape == '|' || this->m_ParentheseShape == '\\' || this->m_ParentheseShape == 'c' || this->
             m_ParentheseShape == 'f') &&
-        (this->m_ParenthesesFlags & 0x1C) == 0 && StartPos == 0 && EndPos == m_NumElements - 1)
+        (this->m_ParenthesesFlags & 0x1C) == 0 && StartPos == 0 && EndPos == m_pElementList.size() - 1)
     {
         // we do a trick - nest the whole expression into empty one (expand otside)
         // so that computation can be made in "ComputeParenthese"
@@ -15986,14 +15975,14 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
         tmptmp->CopyExpression(this, 0);
         if (tmp->ComputeParentheses(0, 5, ComputationType, OutsideLevel))
         {
-            if (tmp->m_NumElements > 1 || tmp->m_pElementList[0].Type != 5 ||
+            if (tmp->m_pElementList.size() > 1 || tmp->m_pElementList[0].Type != 5 ||
                 tmp->m_pElementList[0].pElementObject->Expression1->m_ParentheseShape != shape)
                 this->CopyExpression(tmp, 0);
             else
                 this->CopyExpression(tmptmp, 0);
             delete tmp;
             int cntr = 0;
-            while (Compute(0, m_NumElements - 1, ComputationType, OutsideLevel) && cntr < 50) cntr++;
+            while (Compute(0, m_pElementList.size() - 1, ComputationType, OutsideLevel) && cntr < 50) cntr++;
             return 1;
         }
         delete tmp;
@@ -16011,7 +16000,7 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
 
     int IsComputedTestMask = 0;
     int IsComputedTestMask2 = 0;
-    if (StartPos == 0 && EndPos == m_NumElements - 1)
+    if (StartPos == 0 && EndPos == m_pElementList.size() - 1)
     {
         //if the whole expression is taken in computation, then calculate the mask
         IsComputedTestMask = 1 << ComputationType * 2;
@@ -16080,7 +16069,7 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
                         tElementStorage* es3 = es;
                         int pos = es3->position;
                         num_factors = i;
-                        EndPos = m_NumElements - 1;
+                        EndPos = m_pElementList.size() - 1;
                         while (true)
                         {
                             int l = GetElementLen(pos, EndPos, Level, &es3->et, &es3->p);
@@ -16302,8 +16291,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                                   int inv2, int ComputationType)
 {
     PROFILE_TIME(&PROFILER.MultiplyElements);
-    if (EndPos == -1) EndPos = m_NumElements - 1;
-    if (EndPos2 == -1) EndPos2 = Other->m_NumElements - 1;
+    if (EndPos == -1) EndPos = m_pElementList.size() - 1;
+    if (EndPos2 == -1) EndPos2 = Other->m_pElementList.size() - 1;
 
     double N1, N2;
     int prec1, prec2;
@@ -16332,7 +16321,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             int ok = 1;
 
             //we will not do it if the form is '1/something' (at the beginning of the group)
-            if (StartPos < m_NumElements - 1 &&
+            if (StartPos < m_pElementList.size() - 1 &&
                 m_pElementList[StartPos + 1].Type == 2 &&
                 m_pElementList[StartPos + 1].pElementObject->Data1[0] == '/')
             {
@@ -16393,7 +16382,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             int ok = 1;
 
             //we will not do it if the form is '1/something' (at the beginning of the group)
-            if (StartPos2 < Other->m_NumElements - 1 &&
+            if (StartPos2 < Other->m_pElementList.size() - 1 &&
                 Other->m_pElementList[StartPos2 + 1].Type == 2 &&
                 Other->m_pElementList[StartPos2 + 1].pElementObject->Data1[0] == '/')
             {
@@ -16514,9 +16503,9 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 double N1, N2, N3;
                 if (IsPureNumber(StartPos, 1, &N1, &prec1))
                     if (N1 >= 1.0 - 1e-100 && N1 < 10.0)
-                        if (argument->IsPureNumber(0, argument->m_NumElements, &N2, &prec2))
+                        if (argument->IsPureNumber(0, argument->m_pElementList.size(), &N2, &prec2))
                             if (fabs(N2 - 10.0) < 1e-100)
-                                if (exponent->IsPureNumber(0, exponent->m_NumElements, &N3, &prec3))
+                                if (exponent->IsPureNumber(0, exponent->m_pElementList.size(), &N3, &prec3))
                                     if (fabs(N3 - (int)N3) < 1e-100)
                                         xreturn(0);
             }
@@ -16562,7 +16551,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                                                    : 0, prec, ResultPos);
                 else if (Other->m_pElementList[0].Type == 0)
                     Other->InsertEmptyElement(0, 1, '1');
-                else if (Other->m_NumElements == 1 && Other->m_pElementList[0].Type == 2 &&
+                else if (Other->m_pElementList.size() == 1 && Other->m_pElementList[0].Type == 2 &&
                     GetOperatorLevel(Other->m_pElementList[0].pElementObject->Data1[0]) == PlusLevel)
                     Other->InsertEmptyElement(1, 1, '1');
                 else
@@ -16597,7 +16586,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                                             : 0, prec, ResultPos);
                 else if (m_pElementList[0].Type == 0)
                     InsertEmptyElement(0, 1, '1');
-                else if (m_NumElements == 1 && m_pElementList[0].Type == 2 &&
+                else if (m_pElementList.size() == 1 && m_pElementList[0].Type == 2 &&
                     GetOperatorLevel(m_pElementList[0].pElementObject->Data1[0]) == PlusLevel)
                     InsertEmptyElement(1, 1, '1');
                 else
@@ -16713,7 +16702,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             while (true)
             {
                 VeryEnd++;
-                if (VeryEnd>pe->m_NumElements-1) break;
+                if (VeryEnd>pe->m_pElementList.size()-1) break;
                 if ((pe->m_pElementList+VeryEnd)->Type==11) break;
                 if ((pe->m_pElementList+VeryEnd)->Type==12) break;
                 if (((pe->m_pElementList+VeryEnd)->Type==2) && ((pe->m_pElementList+VeryEnd)->pElementObject) &&
@@ -16721,19 +16710,19 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             }
             VeryEnd--;
 
-            if (VeryEnd-VeryStart<pe->m_NumElements-1)
+            if (VeryEnd-VeryStart<pe->m_pElementList.size()-1)
             {
                 CExpression *test1=new CExpression(nullptr,nullptr,100);
                 CExpression *test2=new CExpression(nullptr,nullptr,100);
                 for (int kk=0;kk<VeryStart;kk++)
-                    test1->InsertElement(pe->m_pElementList+kk,test1->m_NumElements);
+                    test1->InsertElement(pe->m_pElementList+kk,test1->m_pElementList.size());
                 for (int kk=VeryStart;kk<=VeryEnd;kk++)
-                    test2->InsertElement(pe->m_pElementList+kk,test2->m_NumElements);
-                for (int kk=VeryEnd+1;kk<pe->m_NumElements;kk++)
-                    test1->InsertElement(pe->m_pElementList+kk,test1->m_NumElements);
+                    test2->InsertElement(pe->m_pElementList+kk,test2->m_pElementList.size());
+                for (int kk=VeryEnd+1;kk<pe->m_pElementList.size();kk++)
+                    test1->InsertElement(pe->m_pElementList+kk,test1->m_pElementList.size());
 
-                while (test1->Compute(0,test1->m_NumElements-1,0));
-                while (test2->Compute(0,test2->m_NumElements-1,0));
+                while (test1->Compute(0,test1->m_pElementList.size()-1,0));
+                while (test2->Compute(0,test2->m_pElementList.size()-1,0));
                 int level=test1->FindLowestOperatorLevel();
                 int level2=test2->FindLowestOperatorLevel();
 
@@ -16746,14 +16735,14 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     while (!found_identical_summand)
                     {
                         char et,p;
-                        int l=test1->GetElementLen(pos,test1->m_NumElements-1,level2,&et,&p);
+                        int l=test1->GetElementLen(pos,test1->m_pElementList.size()-1,level2,&et,&p);
                         if (l==0) break;
 
                         int pos2=0;
                         while (!found_identical_summand)
                         {
                             char et2,p2;
-                            int l2=test2->GetElementLen(pos2,test2->m_NumElements-1,level2,&et2,&p2);
+                            int l2=test2->GetElementLen(pos2,test2->m_pElementList.size()-1,level2,&et2,&p2);
                             if (l2==0) break;
 
                             tPureFactors PF;
@@ -16766,11 +16755,11 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                             test2->StrikeoutRemove(pos2+p2,pos2+l2-1);
 
                             pos2+=l2;
-                            if (pos2>test2->m_NumElements-1) break;
+                            if (pos2>test2->m_pElementList.size()-1) break;
                         }
 
                         pos+=l;
-                        if (pos>test1->m_NumElements-1) break;
+                        if (pos>test1->m_pElementList.size()-1) break;
                     }
 
                     if (found_identical_summand)
@@ -16778,7 +16767,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         if (test2->m_pElementList[0].Type==2) pp=0;
                         for (int kk=VeryStart+pp;kk<=VeryEnd;kk++)
                             pe->DeleteElement(VeryStart+pp);
-                        for (int kk=0;kk<test2->m_NumElements;kk++)
+                        for (int kk=0;kk<test2->m_pElementList.size();kk++)
                             pe->InsertElement(test2->m_pElementList+kk,VeryStart+pp+kk);
 
                         xreturn (1);
@@ -16815,29 +16804,29 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     for (int kk = 0; kk < columns1; kk++)
                     {
                         if (kk)
-                            tmp->InsertEmptyElement(tmp->m_NumElements, 2, '+');
-                        tmp->InsertEmptyElement(tmp->m_NumElements, 5, '(');
-                        CExpression* f1 = tmp->m_pElementList[tmp->m_NumElements - 1].pElementObject->Expression1;
-                        tmp->InsertEmptyElement(tmp->m_NumElements, 5, '(');
-                        CExpression* f2 = tmp->m_pElementList[tmp->m_NumElements - 1].pElementObject->Expression1;
+                            tmp->InsertEmptyElement(tmp->m_pElementList.size(), 2, '+');
+                        tmp->InsertEmptyElement(tmp->m_pElementList.size(), 5, '(');
+                        CExpression* f1 = tmp->m_pElementList[tmp->m_pElementList.size() - 1].pElementObject->Expression1;
+                        tmp->InsertEmptyElement(tmp->m_pElementList.size(), 5, '(');
+                        CExpression* f2 = tmp->m_pElementList[tmp->m_pElementList.size() - 1].pElementObject->Expression1;
                         int pos = this->FindMatrixElement(ii, kk, 0);
                         if (pos < 0) pos = 0;
-                        while (pos < this->m_NumElements && this->m_pElementList[pos].Type < 11)
+                        while (pos < this->m_pElementList.size() && this->m_pElementList[pos].Type < 11)
                         {
-                            f1->InsertElement(this->m_pElementList[pos], f1->m_NumElements);
+                            f1->InsertElement(this->m_pElementList[pos], f1->m_pElementList.size());
                             pos++;
                         }
                         int pos2 = Other->FindMatrixElement(kk, jj, 0);
                         if (pos2 < 0) pos2 = 0;
-                        while (pos2 < Other->m_NumElements && Other->m_pElementList[pos2].Type < 11)
+                        while (pos2 < Other->m_pElementList.size() && Other->m_pElementList[pos2].Type < 11)
                         {
-                            f2->InsertElement(Other->m_pElementList[pos2], f2->m_NumElements);
+                            f2->InsertElement(Other->m_pElementList[pos2], f2->m_pElementList.size());
                             pos2++;
                         }
                     }
-                    if (jj < columns - 1) tmp->InsertEmptyElement(tmp->m_NumElements, 11, 0);
+                    if (jj < columns - 1) tmp->InsertEmptyElement(tmp->m_pElementList.size(), 11, 0);
                 }
-                if (ii < rows - 1) tmp->InsertEmptyElement(tmp->m_NumElements, 12, 0);
+                if (ii < rows - 1) tmp->InsertEmptyElement(tmp->m_pElementList.size(), 12, 0);
             }
             int pst = this->m_ParenthesesFlags;
             int shp = this->m_ParentheseShape;
@@ -16883,7 +16872,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             {
                 do
                 {
-                    if (end + 1 >= pe->m_NumElements) break;
+                    if (end + 1 >= pe->m_pElementList.size()) break;
                     if (pe->m_pElementList[end + 1].Type == 11) break;
                     if (pe->m_pElementList[end + 1].Type == 12) break;
                     if (pe->m_pElementList[end + 1].Type == 2 && pe->m_pElementList[end + 1].pElementObject
@@ -16918,7 +16907,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 while (true)
                 {
                     char p, et;
-                    int l = arg->GetElementLen(pos, arg->m_NumElements - 1, InsideLevel, &et, &p);
+                    int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, InsideLevel, &et, &p);
                     if (l == 0) break;
 
                     int lv2 = arg->FindLowestOperatorLevel(pos + p, pos + l - 1, (char)0xD7);
@@ -16928,7 +16917,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         CExpression* tmp = arg->m_pElementList[pos + p].pElementObject->Expression1;
                         for (int iii = pos + p + 1; iii < pos + l + 1; iii++)
                         {
-                            tmp->InsertElement(arg->m_pElementList[pos + p + 1], tmp->m_NumElements);
+                            tmp->InsertElement(arg->m_pElementList[pos + p + 1], tmp->m_pElementList.size());
                             arg->DeleteElement(pos + p + 1);
                         }
                         l = 1 + p;
@@ -16965,7 +16954,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
 
                             int ll = pe->FindLowestOperatorLevel(start, end, (char)0xD7);
                             if (ll < MulLevel || pe->m_pElementList[start].Type == 2 ||
-                                (pe->m_NumElements > 1 && use_inversion))
+                                (pe->m_pElementList.size() > 1 && use_inversion))
                             {
                                 arg->InsertEmptyElement(pos + l, 5, '(');
                                 CExpression* tmp = arg->m_pElementList[pos + l].pElementObject->
@@ -16988,23 +16977,23 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                             n->InsertEmptyElement(0, 1, '1');
                             l++;
                             for (int kk = start; kk <= end; kk++)
-                                d->InsertElement(pe->m_pElementList[kk], d->m_NumElements);
+                                d->InsertElement(pe->m_pElementList[kk], d->m_pElementList.size());
                         }
                     }
 
                     pos += l;
-                    if (pos > arg->m_NumElements - 1) break;
+                    if (pos > arg->m_pElementList.size() - 1) break;
                 }
 
                 for (int kk = start; kk <= end; kk++)
                     pe->DeleteElement(start);
-                if (at_front && start < pe->m_NumElements &&
+                if (at_front && start < pe->m_pElementList.size() &&
                     pe->m_pElementList[start].Type == 2 &&
                     pe->m_pElementList[start].pElementObject->Data1[0] == (char)0xD7)
                 {
                     pe->DeleteElement(start); //deleting the multiplication dot
                 }
-                if (!at_front && start - 1 < pe->m_NumElements && start - 1 > 0 &&
+                if (!at_front && start - 1 < pe->m_pElementList.size() && start - 1 > 0 &&
                     pe->m_pElementList[start - 1].Type == 2 &&
                     (pe->m_pElementList[start - 1].pElementObject->Data1[0] == (char)0xD7 ||
                         pe->m_pElementList[start - 1].pElementObject->Data1[0] == '/'))
@@ -17028,7 +17017,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 //        but the result looks not nice: try: [a/(b+c) + d/(e+f)]^4
                 //        one can fix the ComputationType to 1, but then there is no benefit????
                 //int cnt=0;
-                //while ((arg->Compute(0,arg->m_NumElements-1,ComputationType)) && (cnt<50)) cnt++;
+                //while ((arg->Compute(0,arg->m_pElementList.size()-1,ComputationType)) && (cnt<50)) cnt++;
                 xreturn(1);
             }
         }
@@ -17109,8 +17098,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             CExpression* base1 = ts.pElementObject->Expression2;
             CExpression* base2 = ts2.pElementObject->Expression2;
             if ((base1 == nullptr && base2 == nullptr) ||
-                (base1 && base2 && base1->CompareExpressions(0, base1->m_NumElements - 1, base2, 0,
-                                                             base2->m_NumElements - 1)))
+                (base1 && base2 && base1->CompareExpressions(0, base1->m_pElementList.size() - 1, base2, 0,
+                                                             base2->m_pElementList.size() - 1)))
             {
                 CExpression* arg1 = ts.pElementObject->Expression1;
                 CExpression* arg2 = ts2.pElementObject->Expression1;
@@ -17127,8 +17116,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     PF.N1 = PF.N2 = 1.0;
                     PF.is_frac1 = 0;
                     PF.prec1 = 0;
-                    arg1->StrikeoutCommonFactors(0, arg1->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-                    arg1->StrikeoutRemove(0, arg1->m_NumElements - 1);
+                    arg1->StrikeoutCommonFactors(0, arg1->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+                    arg1->StrikeoutRemove(0, arg1->m_pElementList.size() - 1);
                     if (PF.N1 * PF.N2 < 0) neg1 = 1;
                 }
                 if (lvl2 >= MulLevel)
@@ -17137,8 +17126,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     PF.N1 = PF.N2 = 1.0;
                     PF.is_frac1 = 0;
                     PF.prec1 = 0;
-                    arg2->StrikeoutCommonFactors(0, arg2->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-                    arg2->StrikeoutRemove(0, arg2->m_NumElements - 1);
+                    arg2->StrikeoutCommonFactors(0, arg2->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+                    arg2->StrikeoutRemove(0, arg2->m_pElementList.size() - 1);
                     if (PF.N1 * PF.N2 < 0) neg2 = 1;
                 }
                 if (neg1 == 0 || neg2 == 0)
@@ -17149,10 +17138,10 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         arg1->InsertEmptyElement(0, 4, 0);
                         CExpression* n = arg1->m_pElementList[0].pElementObject->Expression1;
                         CExpression* d = arg1->m_pElementList[0].pElementObject->Expression2;
-                        n->InsertSequence('+', 0, arg1, 1, arg1->m_NumElements - 1);
-                        while (arg1->m_NumElements > 1)
+                        n->InsertSequence('+', 0, arg1, 1, arg1->m_pElementList.size() - 1);
+                        while (arg1->m_pElementList.size() > 1)
                             arg1->DeleteElement(1);
-                        d->InsertSequence('+', 0, arg2, 0, arg2->m_NumElements - 1);
+                        d->InsertSequence('+', 0, arg2, 0, arg2->m_pElementList.size() - 1);
                     }
                     else
                     {
@@ -17160,15 +17149,15 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         {
                             arg1->InsertEmptyElement(0, 5, '(');
                             CExpression* a = arg1->m_pElementList[0].pElementObject->Expression1;
-                            int ttt = arg1->m_NumElements;
+                            int ttt = arg1->m_pElementList.size();
                             for (int kk = 1; kk < ttt; kk++)
                             {
-                                a->InsertElement(arg1->m_pElementList[1], a->m_NumElements);
+                                a->InsertElement(arg1->m_pElementList[1], a->m_pElementList.size());
                                 arg1->DeleteElement(1);
                             }
                         }
 
-                        arg1->InsertSequence((char)0xD7, arg1->m_NumElements, arg2, 0, arg2->m_NumElements - 1);
+                        arg1->InsertSequence((char)0xD7, arg1->m_pElementList.size(), arg2, 0, arg2->m_pElementList.size() - 1);
                     }
                     Other->DeleteElement(StartPos2);
                     if (StartPos2 == 1 && Other->m_pElementList[0].Type == 2 &&
@@ -17187,8 +17176,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         {
             CExpression* base1 = ts.pElementObject->Expression2;
             CExpression* base2 = ts2.pElementObject->Expression2;
-            if (base1 && base2 && base1->CompareExpressions(0, base1->m_NumElements - 1, base2, 0,
-                                                            base2->m_NumElements - 1))
+            if (base1 && base2 && base1->CompareExpressions(0, base1->m_pElementList.size() - 1, base2, 0,
+                                                            base2->m_pElementList.size() - 1))
             {
                 CExpression* arg1 = ts.pElementObject->Expression1;
                 CExpression* arg2 = ts2.pElementObject->Expression1;
@@ -17198,10 +17187,10 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     arg1->InsertEmptyElement(0, 4, 0);
                     CExpression* n = arg1->m_pElementList[0].pElementObject->Expression1;
                     CExpression* d = arg1->m_pElementList[0].pElementObject->Expression2;
-                    n->InsertSequence('+', 0, arg1, 1, arg1->m_NumElements - 1);
-                    while (arg1->m_NumElements > 1)
+                    n->InsertSequence('+', 0, arg1, 1, arg1->m_pElementList.size() - 1);
+                    while (arg1->m_pElementList.size() > 1)
                         arg1->DeleteElement(1);
-                    d->InsertSequence('+', 0, arg2, 0, arg2->m_NumElements - 1);
+                    d->InsertSequence('+', 0, arg2, 0, arg2->m_pElementList.size() - 1);
                 }
                 else
                 {
@@ -17209,14 +17198,14 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                     {
                         arg1->InsertEmptyElement(0, 5, '(');
                         CExpression* a = arg1->m_pElementList[0].pElementObject->Expression1;
-                        int ttt = arg1->m_NumElements;
+                        int ttt = arg1->m_pElementList.size();
                         for (int kk = 1; kk < ttt; kk++)
                         {
-                            a->InsertElement(arg1->m_pElementList[1], a->m_NumElements);
+                            a->InsertElement(arg1->m_pElementList[1], a->m_pElementList.size());
                             arg1->DeleteElement(1);
                         }
                     }
-                    arg1->InsertSequence((char)0xD7, arg1->m_NumElements, arg2, 0, arg2->m_NumElements - 1);
+                    arg1->InsertSequence((char)0xD7, arg1->m_pElementList.size(), arg2, 0, arg2->m_pElementList.size() - 1);
                 }
                 Other->RemoveSequence(MulLevel, StartPos2, StartPos2);
                 xreturn(1);
@@ -17252,8 +17241,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         {
             arg_first = m_pElementList[StartPos].pElementObject->Expression1;
             exp_first = m_pElementList[StartPos].pElementObject->Expression2;
-            if ((arg_first->m_NumElements == 1 && arg_first->m_pElementList[0].Type == 5)
-                || arg_first->m_NumElements > 1)
+            if ((arg_first->m_pElementList.size() == 1 && arg_first->m_pElementList[0].Type == 5)
+                || arg_first->m_pElementList.size() > 1)
                 if (ComputationType == 0)
                     xreturn(0);
         }
@@ -17263,8 +17252,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         {
             arg_second = Other->m_pElementList[StartPos2].pElementObject->Expression1;
             exp_second = Other->m_pElementList[StartPos2].pElementObject->Expression2;
-            if ((arg_second->m_NumElements == 1 && arg_second->m_pElementList[0].Type == 5)
-                || arg_second->m_NumElements > 1)
+            if ((arg_second->m_pElementList.size() == 1 && arg_second->m_pElementList[0].Type == 5)
+                || arg_second->m_pElementList.size() > 1)
                 if (ComputationType == 0)
                     xreturn(0);
         }
@@ -17311,18 +17300,18 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         {
             double N;
             int prec;
-            if (!exp_first->IsPureNumber(0, exp_first->m_NumElements, &N, &prec))
+            if (!exp_first->IsPureNumber(0, exp_first->m_pElementList.size(), &N, &prec))
                 xreturn(0);
         }
 
-        if (StartPos2 == EndPos2 && arg_first->m_NumElements == 1)
+        if (StartPos2 == EndPos2 && arg_first->m_pElementList.size() == 1)
         {
             if (Other->CompareElement(Other->m_pElementList[StartPos2], arg_first->m_pElementList[0]) == 0)
                 xreturn(0);
         }
         else
         {
-            if (Other->CompareExpressions(StartPos2, EndPos2, arg_first, 0, arg_first->m_NumElements - 1) == 0)
+            if (Other->CompareExpressions(StartPos2, EndPos2, arg_first, 0, arg_first->m_pElementList.size() - 1) == 0)
                 xreturn(0);
         }
         CExpression* arg = m_pElementList[StartPos].pElementObject->Expression1;
@@ -17330,7 +17319,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
 
         double N;
         int prec;
-        if (exp->IsPureNumber(0, exp->m_NumElements, &N, &prec))
+        if (exp->IsPureNumber(0, exp->m_pElementList.size(), &N, &prec))
         {
             if (inv != inv2) N -= 1.0;
             else N += 1.0;
@@ -17346,15 +17335,15 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 //we will have to enclose in parentheses
                 exp->InsertEmptyElement(0, 5, '(');
                 int k = 0;
-                while (exp->m_NumElements > 1)
+                while (exp->m_pElementList.size() > 1)
                 {
                     exp->m_pElementList[0].pElementObject->Expression1->InsertElement(exp->m_pElementList[1], k++);
                     exp->DeleteElement(1);
                 }
             }
 
-            exp->InsertEmptyElement(exp->m_NumElements, 2, inv2 != inv ? '-' : '+');
-            exp->InsertEmptyElement(exp->m_NumElements, 1, '1');
+            exp->InsertEmptyElement(exp->m_pElementList.size(), 2, inv2 != inv ? '-' : '+');
+            exp->InsertEmptyElement(exp->m_pElementList.size(), 1, '1');
         }
         StartPos--;
         EndPos--;
@@ -17371,17 +17360,17 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         {
             double N;
             int prec;
-            if (!exp_second->IsPureNumber(0, exp_second->m_NumElements, &N, &prec))
+            if (!exp_second->IsPureNumber(0, exp_second->m_pElementList.size(), &N, &prec))
                 xreturn(0);
         }
-        if (StartPos == EndPos && arg_second->m_NumElements == 1)
+        if (StartPos == EndPos && arg_second->m_pElementList.size() == 1)
         {
             if (CompareElement(m_pElementList[StartPos], arg_second->m_pElementList[0]) == 0)
                 xreturn(0);
         }
         else
         {
-            if (CompareExpressions(StartPos, EndPos, arg_second, 0, arg_second->m_NumElements - 1) == 0)
+            if (CompareExpressions(StartPos, EndPos, arg_second, 0, arg_second->m_pElementList.size() - 1) == 0)
                 xreturn(0);
         }
         InsertEmptyElement(StartPos, 3, 0);
@@ -17389,7 +17378,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         CExpression* exp = m_pElementList[StartPos].pElementObject->Expression2;
         double N;
         int prec;
-        if (exp_second->IsPureNumber(0, exp_second->m_NumElements, &N, &prec))
+        if (exp_second->IsPureNumber(0, exp_second->m_pElementList.size(), &N, &prec))
         {
             if (inv != inv2) N = 1.0 - N;
             else N += 1.0;
@@ -17405,7 +17394,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 //we will have to enclose in parentheses
                 exp_second->InsertEmptyElement(0, 5, '(');
                 int k = 0;
-                while (exp_second->m_NumElements > 1)
+                while (exp_second->m_pElementList.size() > 1)
                 {
                     exp_second->m_pElementList[0].pElementObject->Expression1->InsertElement(
                         exp_second->m_pElementList[1], k++);
@@ -17425,21 +17414,21 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         {
             double N;
             int prec;
-            if (!exp_first->IsPureNumber(0, exp_first->m_NumElements, &N, &prec))
+            if (!exp_first->IsPureNumber(0, exp_first->m_pElementList.size(), &N, &prec))
                 xreturn(0);
-            if (!exp_second->IsPureNumber(0, exp_second->m_NumElements, &N, &prec))
+            if (!exp_second->IsPureNumber(0, exp_second->m_pElementList.size(), &N, &prec))
                 xreturn(0);
         }
 
-        if (arg_first->m_NumElements == 1 && arg_second->m_NumElements == 1)
+        if (arg_first->m_pElementList.size() == 1 && arg_second->m_pElementList.size() == 1)
         {
             if (arg_first->CompareElement(arg_first->m_pElementList[0], arg_second->m_pElementList[0]) == 0)
                 xreturn(0);
         }
         else
         {
-            if (arg_first->CompareExpressions(0, arg_first->m_NumElements - 1, arg_second, 0,
-                                              arg_second->m_NumElements - 1) == 0)
+            if (arg_first->CompareExpressions(0, arg_first->m_pElementList.size() - 1, arg_second, 0,
+                                              arg_second->m_pElementList.size() - 1) == 0)
                 xreturn(0);
         }
         int exp_level = exp_first->FindLowestOperatorLevel();
@@ -17448,7 +17437,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             //we will have to enclose in parentheses
             exp_first->InsertEmptyElement(0, 5, '(');
             int k = 0;
-            while (exp_first->m_NumElements > 1)
+            while (exp_first->m_pElementList.size() > 1)
             {
                 exp_first->m_pElementList[0].pElementObject->Expression1->InsertElement(
                     exp_first->m_pElementList[1], k++);
@@ -17461,7 +17450,7 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             //we will have to enclose in parentheses
             exp_second->InsertEmptyElement(0, 5, '(');
             int k = 0;
-            while (exp_second->m_NumElements > 1)
+            while (exp_second->m_pElementList.size() > 1)
             {
                 exp_second->m_pElementList[0].pElementObject->Expression1->InsertElement(
                     exp_second->m_pElementList[1], k++);
@@ -17470,9 +17459,9 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
         }
         CExpression* arg = m_pElementList[StartPos].pElementObject->Expression1;
         CExpression* exp = m_pElementList[StartPos].pElementObject->Expression2;
-        exp->InsertEmptyElement(exp->m_NumElements, 2, inv != inv2 ? '-' : '+');
-        for (int k = 0; k < exp_second->m_NumElements; k++)
-            exp->InsertElement(exp_second->m_pElementList[k], exp->m_NumElements);
+        exp->InsertEmptyElement(exp->m_pElementList.size(), 2, inv != inv2 ? '-' : '+');
+        for (int k = 0; k < exp_second->m_pElementList.size(); k++)
+            exp->InsertElement(exp_second->m_pElementList[k], exp->m_pElementList.size());
         StartPos--;
         EndPos--;
         if (this == Other && StartPos2 > StartPos)
@@ -17606,7 +17595,7 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
             StrikeoutRemove(StartPos, EndPos, 2);
 
             //if only '1' was left after the StrikeoutRemove, we will delete it
-            if (m_NumElements == 1 && m_pElementList[0].Type == 1 && strcmp(
+            if (m_pElementList.size() == 1 && m_pElementList[0].Type == 1 && strcmp(
                 m_pElementList[0].pElementObject->Data1, "1") == 0)
                 DeleteElement(0);
 
@@ -17708,14 +17697,14 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                     {
                         for (int jj = 0; jj < columns1; jj++)
                         {
-                            tmp->InsertEmptyElement(tmp->m_NumElements, 5, '(');
-                            CExpression* a = tmp->m_pElementList[tmp->m_NumElements - 1].
+                            tmp->InsertEmptyElement(tmp->m_pElementList.size(), 5, '(');
+                            CExpression* a = tmp->m_pElementList[tmp->m_pElementList.size() - 1].
                                              pElementObject->Expression1;
                             int pos = inside1->FindMatrixElement(ii, jj, 0);
                             if (pos < 0) pos = 0;
-                            while (inside1->m_pElementList[pos].Type < 11 && pos < inside1->m_NumElements)
+                            while (inside1->m_pElementList[pos].Type < 11 && pos < inside1->m_pElementList.size())
                             {
-                                a->InsertElement(inside1->m_pElementList[pos], a->m_NumElements);
+                                a->InsertElement(inside1->m_pElementList[pos], a->m_pElementList.size());
                                 pos++;
                             }
 
@@ -17725,24 +17714,24 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                                 if (element_type2 == '+') ch = '-';
                                 if (element_type2 == (char)0xB1) ch = (char)0xB2;
                                 if (element_type2 == (char)0xB2) ch = (char)0xB1;
-                                tmp->InsertEmptyElement(tmp->m_NumElements, 2, ch);
+                                tmp->InsertEmptyElement(tmp->m_pElementList.size(), 2, ch);
                             }
                             else
-                                tmp->InsertEmptyElement(tmp->m_NumElements, 2, element_type2);
+                                tmp->InsertEmptyElement(tmp->m_pElementList.size(), 2, element_type2);
 
-                            tmp->InsertEmptyElement(tmp->m_NumElements, 5, '(');
-                            a = tmp->m_pElementList[tmp->m_NumElements - 1].pElementObject->Expression1;
+                            tmp->InsertEmptyElement(tmp->m_pElementList.size(), 5, '(');
+                            a = tmp->m_pElementList[tmp->m_pElementList.size() - 1].pElementObject->Expression1;
                             pos = inside2->FindMatrixElement(ii, jj, 0);
                             if (pos < 0) pos = 0;
-                            while (inside2->m_pElementList[pos].Type < 11 && pos < inside2->m_NumElements)
+                            while (inside2->m_pElementList[pos].Type < 11 && pos < inside2->m_pElementList.size())
                             {
-                                a->InsertElement(inside2->m_pElementList[pos], a->m_NumElements);
+                                a->InsertElement(inside2->m_pElementList[pos], a->m_pElementList.size());
                                 pos++;
                             }
 
-                            if (jj < columns1 - 1) tmp->InsertEmptyElement(tmp->m_NumElements, 11, 0);
+                            if (jj < columns1 - 1) tmp->InsertEmptyElement(tmp->m_pElementList.size(), 11, 0);
                         }
-                        if (ii < rows1 - 1) tmp->InsertEmptyElement(tmp->m_NumElements, 12, 0);
+                        if (ii < rows1 - 1) tmp->InsertEmptyElement(tmp->m_pElementList.size(), 12, 0);
                     }
                     int pst = inside1->m_ParenthesesFlags;
                     int shp = inside1->m_ParentheseShape;
@@ -17816,8 +17805,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                             else
                                 d1 = m_pElementList[pos + p].pElementObject->Expression2;
 
-                            if (d1->CompareExpressions(0, d1->m_NumElements - 1, fraction_denom, 0,
-                                                       fraction_denom->m_NumElements - 1) == 0)
+                            if (d1->CompareExpressions(0, d1->m_pElementList.size() - 1, fraction_denom, 0,
+                                                       fraction_denom->m_pElementList.size() - 1) == 0)
                             {
                                 fraction_found = 0;
                                 break;
@@ -17861,8 +17850,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                             n = m_pElementList[pos + p].pElementObject->Expression2;
                         else
                             n = m_pElementList[pos + p].pElementObject->Expression1;
-                        num->InsertEmptyElement(num->m_NumElements, 5, '(');
-                        CExpression* a = num->m_pElementList[num->m_NumElements - 1].pElementObject->
+                        num->InsertEmptyElement(num->m_pElementList.size(), 5, '(');
+                        CExpression* a = num->m_pElementList[num->m_pElementList.size() - 1].pElementObject->
                             Expression1;
                         a->CopyExpression(n, 0);
                         a->m_ParenthesesFlags = 0x02;
@@ -17870,7 +17859,7 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                     else
                     {
                         for (int i = pos; i < pos + l; i++)
-                            num->InsertElement(m_pElementList[i], num->m_NumElements);
+                            num->InsertElement(m_pElementList[i], num->m_pElementList.size());
                     }
                     pos += l;
                     if (pos > EndPos) break;
@@ -17878,13 +17867,13 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
 
                 if (element_type == '-')
                 {
-                    if (element_type2 == '+') num->InsertEmptyElement(num->m_NumElements, 2, '-');
-                    if (element_type2 == '-') num->InsertEmptyElement(num->m_NumElements, 2, '+');
-                    if (element_type2 == (char)0xB1) num->InsertEmptyElement(num->m_NumElements, 2, (char)0xB2);
-                    if (element_type2 == (char)0xB2) num->InsertEmptyElement(num->m_NumElements, 2, (char)0xB1);
+                    if (element_type2 == '+') num->InsertEmptyElement(num->m_pElementList.size(), 2, '-');
+                    if (element_type2 == '-') num->InsertEmptyElement(num->m_pElementList.size(), 2, '+');
+                    if (element_type2 == (char)0xB1) num->InsertEmptyElement(num->m_pElementList.size(), 2, (char)0xB2);
+                    if (element_type2 == (char)0xB2) num->InsertEmptyElement(num->m_pElementList.size(), 2, (char)0xB1);
                 }
                 else
-                    num->InsertEmptyElement(num->m_NumElements, 2, element_type2);
+                    num->InsertEmptyElement(num->m_pElementList.size(), 2, element_type2);
 
                 pos = StartPos2;
                 while (true)
@@ -17900,8 +17889,8 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                             n = m_pElementList[pos + p].pElementObject->Expression2;
                         else
                             n = m_pElementList[pos + p].pElementObject->Expression1;
-                        num->InsertEmptyElement(num->m_NumElements, 5, '(');
-                        CExpression* a = num->m_pElementList[num->m_NumElements - 1].pElementObject->
+                        num->InsertEmptyElement(num->m_pElementList.size(), 5, '(');
+                        CExpression* a = num->m_pElementList[num->m_pElementList.size() - 1].pElementObject->
                             Expression1;
                         a->CopyExpression(n, 0);
                         a->m_ParenthesesFlags = 0x02;
@@ -17909,7 +17898,7 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                     else
                     {
                         for (int i = pos; i < pos + l; i++)
-                            num->InsertElement(m_pElementList[i], num->m_NumElements);
+                            num->InsertElement(m_pElementList[i], num->m_pElementList.size());
                     }
                     pos += l;
                     if (pos > EndPos2) break;
@@ -18020,12 +18009,12 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                             P2++;
                             CExpression* a = num->m_pElementList[P1 - 1].pElementObject->
                                                                          Expression1;
-                            for (int k = 0; k < n->m_NumElements; k++)
-                                a->InsertElement(n->m_pElementList[k], a->m_NumElements);
+                            for (int k = 0; k < n->m_pElementList.size(); k++)
+                                a->InsertElement(n->m_pElementList[k], a->m_pElementList.size());
                         }
                         else
                         {
-                            for (int k = 0; k < n->m_NumElements; k++)
+                            for (int k = 0; k < n->m_pElementList.size(); k++)
                             {
                                 num->InsertElement(n->m_pElementList[k], P1++);
                                 P2++;
@@ -18038,15 +18027,15 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                         {
                             num->InsertEmptyElement(P2++, 5, '(');
                             CExpression* a = num->m_pElementList[P2 - 1].pElementObject->Expression1;
-                            for (int k = 0; k < d->m_NumElements; k++)
-                                a->InsertElement(d->m_pElementList[k], a->m_NumElements);
-                            denom->InsertElement(num->m_pElementList[P2 - 1], denom->m_NumElements);
+                            for (int k = 0; k < d->m_pElementList.size(); k++)
+                                a->InsertElement(d->m_pElementList[k], a->m_pElementList.size());
+                            denom->InsertElement(num->m_pElementList[P2 - 1], denom->m_pElementList.size());
                         }
                         else
                         {
-                            for (int k = 0; k < d->m_NumElements; k++)
+                            for (int k = 0; k < d->m_pElementList.size(); k++)
                             {
-                                denom->InsertElement(d->m_pElementList[k], denom->m_NumElements);
+                                denom->InsertElement(d->m_pElementList[k], denom->m_pElementList.size());
                                 num->InsertElement(d->m_pElementList[k], P2++);
                             }
                         }
@@ -18088,12 +18077,12 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                         {
                             num->InsertEmptyElement(P2++, 5, '(');
                             CExpression* a = num->m_pElementList[P2 - 1].pElementObject->Expression1;
-                            for (int k = 0; k < n->m_NumElements; k++)
-                                a->InsertElement(n->m_pElementList[k], a->m_NumElements);
+                            for (int k = 0; k < n->m_pElementList.size(); k++)
+                                a->InsertElement(n->m_pElementList[k], a->m_pElementList.size());
                         }
                         else
                         {
-                            for (int k = 0; k < n->m_NumElements; k++)
+                            for (int k = 0; k < n->m_pElementList.size(); k++)
                                 num->InsertElement(n->m_pElementList[k], P2++);
                         }
 
@@ -18105,15 +18094,15 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                             P2++;
                             CExpression* a = num->m_pElementList[P1 - 1].pElementObject->
                                                                          Expression1;
-                            for (int k = 0; k < d->m_NumElements; k++)
-                                a->InsertElement(d->m_pElementList[k], a->m_NumElements);
-                            denom->InsertElement(num->m_pElementList[P1 - 1], denom->m_NumElements);
+                            for (int k = 0; k < d->m_pElementList.size(); k++)
+                                a->InsertElement(d->m_pElementList[k], a->m_pElementList.size());
+                            denom->InsertElement(num->m_pElementList[P1 - 1], denom->m_pElementList.size());
                         }
                         else
                         {
-                            for (int k = 0; k < d->m_NumElements; k++)
+                            for (int k = 0; k < d->m_pElementList.size(); k++)
                             {
-                                denom->InsertElement(d->m_pElementList[k], denom->m_NumElements);
+                                denom->InsertElement(d->m_pElementList[k], denom->m_pElementList.size());
                                 num->InsertElement(d->m_pElementList[k], P1++);
                                 P2++;
                             }
@@ -18252,9 +18241,9 @@ int CExpression::IsPureNumber(const int StartPos, const int Len, double* number,
 
         CExpression* a = theElement->pElementObject->Expression1;
         CExpression* e = theElement->pElementObject->Expression2;
-        if (a->m_NumElements <= 2 && e->m_NumElements <= 2)
-            if (a->IsPureNumber(0, a->m_NumElements, &N1, &prec1))
-                if (e->IsPureNumber(0, e->m_NumElements, &N2, &prec2))
+        if (a->m_pElementList.size() <= 2 && e->m_pElementList.size() <= 2)
+            if (a->IsPureNumber(0, a->m_pElementList.size(), &N1, &prec1))
+                if (e->IsPureNumber(0, e->m_pElementList.size(), &N2, &prec2))
                 {
                     long long N2int = (long long)(N2 + (N2 >= 0 ? 0.01 : -0.01));
                     if (N1 >= 0 || fabs(N2 - (double)N2int) < 1e-100)
@@ -18271,7 +18260,7 @@ int CExpression::IsPureNumber(const int StartPos, const int Len, double* number,
     {
         double N1;
         CExpression* a = theElement->pElementObject->Expression1;
-        if (a->m_NumElements <= 2 && a->IsPureNumber(0, a->m_NumElements, &N1, precision))
+        if (a->m_pElementList.size() <= 2 && a->IsPureNumber(0, a->m_pElementList.size(), &N1, precision))
         {
             *number = N1;
             if (a->m_ParentheseShape == '|' || a->m_ParentheseShape == '\\') *number = fabs(*number);
@@ -18289,10 +18278,10 @@ int CExpression::IsPureNumber(const int StartPos, const int Len, double* number,
         int prec1, prec2;
         CExpression* nom = theElement->pElementObject->Expression1;
         CExpression* denom = theElement->pElementObject->Expression2;
-        if (nom->m_NumElements <= 2 && denom->m_NumElements <= 2)
-            if (nom->IsPureNumber(0, nom->m_NumElements, &N1, &prec1))
+        if (nom->m_pElementList.size() <= 2 && denom->m_pElementList.size() <= 2)
+            if (nom->IsPureNumber(0, nom->m_pElementList.size(), &N1, &prec1))
             {
-                if (denom->IsPureNumber(0, denom->m_NumElements, &N2, &prec2))
+                if (denom->IsPureNumber(0, denom->m_pElementList.size(), &N2, &prec2))
                 {
                     if (N2 < 0)
                     {
@@ -18327,7 +18316,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, bo
         precision -= 100;
     } //shortening means that the value will be trimed for ending zeros
 
-    int NumElems = m_NumElements;
+    int NumElems = m_pElementList.size();
     if (m_pElementList[0].Type == 0) NumElems = 0;
 
     char buffer[32];
@@ -18593,7 +18582,7 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, bo
             }
         }
     }
-    return m_NumElements - NumElems;
+    return m_pElementList.size() - NumElems;
 }
 
 
@@ -18702,7 +18691,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     int cnt = 0;
     //if (ComputationType!=2)
     {
-        while (exp->Compute(0, exp->m_NumElements - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
+        while (exp->Compute(0, exp->m_pElementList.size() - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
         if (cnt) retval = 1;
     }
 
@@ -18710,14 +18699,14 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     if (ComputationType == 1)
     {
         cnt = 0;
-        while (arg->Compute(0, arg->m_NumElements - 1, 1) && cnt < 50) cnt++;
+        while (arg->Compute(0, arg->m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
         if (cnt) retval = 1;
         if (arg->FactorizeExpression()) retval = 1;
     }
     else if (ComputationType != 2 && ComputationType != 3)
     {
         cnt = 0;
-        while (arg->Compute(0, arg->m_NumElements - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
+        while (arg->Compute(0, arg->m_pElementList.size() - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
         if (cnt) retval = 1;
     }
 
@@ -18733,8 +18722,8 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
         PF.N1 = PF.N2 = 1.0;
         PF.is_frac1 = 0;
         PF.prec1 = 0;
-        int ret = arg->StrikeoutCommonFactors(0, arg->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-        arg->StrikeoutRemove(0, arg->m_NumElements - 1);
+        int ret = arg->StrikeoutCommonFactors(0, arg->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+        arg->StrikeoutRemove(0, arg->m_pElementList.size() - 1);
         if (ret)
         {
             is_argument_pure = 1;
@@ -18745,8 +18734,8 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
         PF.N1 = PF.N2 = 1.0;
         PF.is_frac1 = 0;
         PF.prec1 = 0;
-        ret = exp->StrikeoutCommonFactors(0, exp->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-        exp->StrikeoutRemove(0, exp->m_NumElements - 1);
+        ret = exp->StrikeoutCommonFactors(0, exp->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+        exp->StrikeoutRemove(0, exp->m_pElementList.size() - 1);
         if (ret)
         {
             is_exponent_pure = 1;
@@ -18756,11 +18745,11 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     }
     else
     {
-        if (arg->IsPureNumber(0, arg->m_NumElements, &ArgVal, &arg_prec)) is_argument_pure = 1;
-        if (exp->IsPureNumber(0, exp->m_NumElements, &ExpVal, &exp_prec)) is_exponent_pure = 1;
+        if (arg->IsPureNumber(0, arg->m_pElementList.size(), &ArgVal, &arg_prec)) is_argument_pure = 1;
+        if (exp->IsPureNumber(0, exp->m_pElementList.size(), &ExpVal, &exp_prec)) is_exponent_pure = 1;
     }
 
-    if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 1 &&
+    if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 1 &&
         arg->m_pElementList[0].pElementObject->Data1[0] == ImaginaryUnit &&
         arg->m_pElementList[0].pElementObject->Data1[1] == 0 &&
         arg->m_pElementList[0].pElementObject->m_VMods == 0 &&
@@ -18771,7 +18760,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
         PF.N1 = PF.N2 = 1.0;
         PF.is_frac1 = 0;
         PF.prec1 = 0;
-        int ret = exp->StrikeoutCommonFactors(0, exp->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+        int ret = exp->StrikeoutCommonFactors(0, exp->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
         if (PF.N2 < 0)
         {
             PF.N1 = -PF.N1;
@@ -18807,7 +18796,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             }
             if (ret == 0 || fabs(PF.N1 - 1.0) > 1e-100 || fabs(PF.N2 - 1.0) > 1e-100)
             {
-                exp->StrikeoutRemove(0, exp->m_NumElements, 2);
+                exp->StrikeoutRemove(0, exp->m_pElementList.size(), 2);
                 int p = 0;
                 if (exp->m_pElementList[0].Type == 2 && GetOperatorLevel(
                         exp->m_pElementList[0].pElementObject->Data1[0])
@@ -18851,9 +18840,9 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
         if (fabs(ExpVal - 1.0) < 1e-100) //X^1
         {
             if (GetOperatorLevel(element_type) != MulLevel)
-                Position = InsertSequence((char)0xD7, Position, arg, 0, arg->m_NumElements - 1);
+                Position = InsertSequence((char)0xD7, Position, arg, 0, arg->m_pElementList.size() - 1);
             else
-                Position = InsertSequence(element_type, Position, arg, 0, arg->m_NumElements - 1);
+                Position = InsertSequence(element_type, Position, arg, 0, arg->m_pElementList.size() - 1);
             RemoveSequence(MulLevel, Position);
             return 1;
         }
@@ -18968,7 +18957,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     if (is_exponent_pure && fabs(ExpVal - -1.0) < 1e-100)
     {
         CExpression* a = arg;
-        if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 5)
+        if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 5)
             a = arg->m_pElementList[0].pElementObject->Expression1;
         if (a->FindLowestOperatorLevel() == GetOperatorLevel((char)0xFF))
         {
@@ -18982,13 +18971,13 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     }
 
     //matrix transpose
-    if (exp->m_NumElements == 1 && exp->m_pElementList[0].Type == 1 &&
+    if (exp->m_pElementList.size() == 1 && exp->m_pElementList[0].Type == 1 &&
         *(unsigned short*)exp->m_pElementList[0].pElementObject->Data1 == 0x0054 && //this is "T" string
         exp->m_pElementList[0].pElementObject->m_VMods == 0 &&
         (exp->m_pElementList[0].pElementObject->Data2[0] & 0xE0) != 0x60)
     {
         CExpression* a = arg;
-        if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 5)
+        if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 5)
             a = arg->m_pElementList[0].pElementObject->Expression1;
         if (a->FindLowestOperatorLevel() == GetOperatorLevel((char)0xFF))
         {
@@ -19004,13 +18993,13 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                         int pos = a->FindMatrixElement(jj, ii, 0);
                         if (pos < 0) pos = 0;
                         char et, p;
-                        int l = a->GetElementLen(pos, a->m_NumElements - 1,GetOperatorLevel((char)0xFF), &et, &p);
+                        int l = a->GetElementLen(pos, a->m_pElementList.size() - 1, GetOperatorLevel((char)0xFF), &et, &p);
                         for (int k = pos; k < pos + l; k++)
-                            M->InsertElement(a->m_pElementList[k], M->m_NumElements);
+                            M->InsertElement(a->m_pElementList[k], M->m_pElementList.size());
 
-                        if (jj < rows - 1) M->InsertEmptyElement(M->m_NumElements, 11, 0);
+                        if (jj < rows - 1) M->InsertEmptyElement(M->m_pElementList.size(), 11, 0);
                     }
-                    if (ii < columns - 1) M->InsertEmptyElement(M->m_NumElements, 12, 0);
+                    if (ii < columns - 1) M->InsertEmptyElement(M->m_pElementList.size(), 12, 0);
                 }
 
                 int ps = a->m_ParentheseShape;
@@ -19034,7 +19023,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     // if the sign is plus, just delete the + sign,
     // if the sign is minus and the exponent is pure integer then depends if exp. is odd or even
     if ((ArgLevel == -1 || ArgLevel >= MulLevel) &&
-        arg->m_NumElements > 1 &&
+        arg->m_pElementList.size() > 1 &&
         arg->m_pElementList[0].Type == 2)
     {
         char* ch = &arg->m_pElementList[0].pElementObject->Data1[0];
@@ -19088,7 +19077,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
 
 
     //exponent of fraction
-    if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 4)
+    if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 4)
     {
         CExpression* nom = arg->m_pElementList[0].pElementObject->Expression1;
         CExpression* denom = arg->m_pElementList[0].pElementObject->Expression2;
@@ -19118,7 +19107,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     }
 
     //exponent of exponent
-    if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 3)
+    if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 3)
     {
         CExpression* a = arg->m_pElementList[0].pElementObject->Expression1;
         CExpression* e = arg->m_pElementList[0].pElementObject->Expression2;
@@ -19129,7 +19118,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             {
                 exp->InsertEmptyElement(0, 5, '(');
                 CExpression* tmp = exp->m_pElementList[0].pElementObject->Expression1;
-                int cc = exp->m_NumElements;
+                int cc = exp->m_pElementList.size();
                 for (int kk = 1; kk < cc; kk++)
                 {
                     tmp->InsertElement(exp->m_pElementList[1], kk - 1);
@@ -19139,20 +19128,20 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             int exp2level = e->FindLowestOperatorLevel(0xD7);
             if (exp2level < MulLevel || e->m_pElementList[0].Type == 2)
             {
-                exp->InsertEmptyElement(exp->m_NumElements, 5, '(');
-                CExpression* tmp = exp->m_pElementList[exp->m_NumElements - 1].pElementObject->
+                exp->InsertEmptyElement(exp->m_pElementList.size(), 5, '(');
+                CExpression* tmp = exp->m_pElementList[exp->m_pElementList.size() - 1].pElementObject->
                                                                                Expression1;
                 tmp->CopyExpression(e, 0);
                 tmp->m_ParenthesesFlags = 0x02;
             }
             else
             {
-                for (int kk = 0; kk < e->m_NumElements; kk++)
-                    exp->InsertElement(e->m_pElementList[kk], exp->m_NumElements);
+                for (int kk = 0; kk < e->m_pElementList.size(); kk++)
+                    exp->InsertElement(e->m_pElementList[kk], exp->m_pElementList.size());
             }
 
-            for (int kk = 0; kk < a->m_NumElements; kk++)
-                arg->InsertElement(a->m_pElementList[kk], arg->m_NumElements);
+            for (int kk = 0; kk < a->m_pElementList.size(); kk++)
+                arg->InsertElement(a->m_pElementList[kk], arg->m_pElementList.size());
 
             arg->DeleteElement(0);
             return 1;
@@ -19160,7 +19149,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     }
 
     //exponent of logarithm (X^logx(y))
-    if (exp->m_NumElements == 1 && exp->m_pElementList[0].Type == 6)
+    if (exp->m_pElementList.size() == 1 && exp->m_pElementList[0].Type == 6)
     {
         int is_log = 0;
         int is_ln = 0;
@@ -19186,7 +19175,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             {
                 double N;
                 int prec;
-                if (arg->IsPureNumber(0, arg->m_NumElements, &N, &prec))
+                if (arg->IsPureNumber(0, arg->m_pElementList.size(), &N, &prec))
                     if (fabs(N - 10.0) < 1e-100)
                     {
                         InsertEmptyElement(Position + 1, 5, '(');
@@ -19198,7 +19187,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             }
             else if (a && is_ln)
             {
-                if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 1 &&
+                if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 1 &&
                     *(unsigned short*)arg->m_pElementList[0].pElementObject->Data1 == 0x0065 && //this is "e" string
                     (arg->m_pElementList[0].pElementObject->Data2[0] & 0xE4) == 0)
                 {
@@ -19213,7 +19202,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
     }
 
     //exponent of root  sqrt(x)^y
-    if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 8)
+    if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 8)
     {
         CExpression* a = arg->m_pElementList[0].pElementObject->Expression1;
         CExpression* base = arg->m_pElementList[0].pElementObject->Expression2;
@@ -19230,7 +19219,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             }
             int prec;
             double N;
-            if (base == nullptr && exp->IsPureNumber(0, exp->m_NumElements, &N, &prec))
+            if (base == nullptr && exp->IsPureNumber(0, exp->m_pElementList.size(), &N, &prec))
                 if (fabs(N - 2.0) < 1e-100)
                 {
                     InsertEmptyElement(Position + 1, 5, '(');
@@ -19253,8 +19242,8 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                 PF.prec1 = 0;
                 PF.is_frac1 = 0;
 
-                int rv = exp->StrikeoutCommonFactors(0, exp->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-                exp->StrikeoutRemove(0, exp->m_NumElements - 1);
+                int rv = exp->StrikeoutCommonFactors(0, exp->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+                exp->StrikeoutRemove(0, exp->m_pElementList.size() - 1);
                 if (fabs(N - 1.0) > 1e-100)
                 {
                     double n = PF.N1 / N;
@@ -19286,12 +19275,12 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
 
     //combined argument: (abc)^x  ->  a^x b^x c^x
     if (ComputationType == 1 ||
-        (exp->m_pElementList[0].Type == 1 && exp->m_NumElements == 1) ||
-        (exp->m_pElementList[0].Type == 2 && exp->m_pElementList[1].Type == 1 && exp->m_NumElements == 2))
+        (exp->m_pElementList[0].Type == 1 && exp->m_pElementList.size() == 1) ||
+        (exp->m_pElementList[0].Type == 2 && exp->m_pElementList[1].Type == 1 && exp->m_pElementList.size() == 2))
     {
         CExpression* marg = arg;
         int Level = ArgLevel;
-        if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 5)
+        if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 5)
         {
             marg = arg->m_pElementList[0].pElementObject->Expression1;
             Level = marg->FindLowestOperatorLevel();
@@ -19305,7 +19294,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                 char et;
                 char p;
                 int l;
-                l = marg->GetElementLen(pos, marg->m_NumElements - 1, Level, &et, &p);
+                l = marg->GetElementLen(pos, marg->m_pElementList.size() - 1, Level, &et, &p);
                 if (l - p == 0) break;
 
                 if (pos > 0)
@@ -19320,11 +19309,11 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                 CExpression* e = m_pElementList[Position + 1 + gg].pElementObject->Expression2;
                 gg++;
                 for (int kk = pos + p; kk < pos + l; kk++)
-                    a->InsertElement(marg->m_pElementList[kk], a->m_NumElements);
+                    a->InsertElement(marg->m_pElementList[kk], a->m_pElementList.size());
                 e->CopyExpression(exp, 0);
 
                 pos += l;
-                if (pos > marg->m_NumElements - 1) break;
+                if (pos > marg->m_pElementList.size() - 1) break;
             }
 
             DeleteElement(Position);
@@ -19346,7 +19335,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             {
                 char et;
                 char p;
-                int l = exp->GetElementLen(pos, exp->m_NumElements - 1, lvl, &et, &p);
+                int l = exp->GetElementLen(pos, exp->m_pElementList.size() - 1, lvl, &et, &p);
                 if (l == 0) break;
 
                 zz++;
@@ -19360,7 +19349,7 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                 if (et != '+') tmp->InsertEmptyElement(0, 2, et);
 
                 pos += l;
-                if (pos > exp->m_NumElements - 1) break;
+                if (pos > exp->m_pElementList.size() - 1) break;
             }
             DeleteElement(Position);
             return 1;
@@ -19381,12 +19370,12 @@ int CExpression::FactorizeExpression(int force_factorization)
 
     //check if the expression is at all a candidate for factorization
     {
-        if (m_NumElements == 1 && m_pElementList[0].Type <= 2) return 0;
+        if (m_pElementList.size() == 1 && m_pElementList[0].Type <= 2) return 0;
 
         int iii;
-        for (iii = 0; iii < m_NumElements; iii++)
+        for (iii = 0; iii < m_pElementList.size(); iii++)
             if (m_pElementList[iii].Type != 1) break;
-        if (iii == m_NumElements) return 0;
+        if (iii == m_pElementList.size()) return 0;
     }
 
     PROFILE_TIME(&PROFILER.FactorizeExpression);
@@ -19401,7 +19390,7 @@ factorizeexpression_try_again:
     {
         //prepare for factorization
         int cnt = 0;
-        while (Compute(0, m_NumElements - 1, 1) && cnt < 50) cnt++;
+        while (Compute(0, m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
     }
 
     int Level = FindLowestOperatorLevel((char)0xD7);
@@ -19415,7 +19404,7 @@ factorizeexpression_try_again:
         while (true)
         {
             char et, p;
-            int l = GetElementLen(pos, m_NumElements - 1, Level, &et, &p);
+            int l = GetElementLen(pos, m_pElementList.size() - 1, Level, &et, &p);
             if (l == 0) break;
 
             tElementStruct* ts = &m_pElementList[pos + p];
@@ -19439,7 +19428,7 @@ factorizeexpression_try_again:
             }
 
             pos += l;
-            if (pos > m_NumElements - 1) break;
+            if (pos > m_pElementList.size() - 1) break;
         }
 
         if (any_change)
@@ -19451,7 +19440,7 @@ factorizeexpression_try_again:
             goto factorizeexpression_exit;
     }
 
-    if (m_NumElements <= 2)
+    if (m_pElementList.size() <= 2)
     {
         goto factorizeexpression_exit;
     }
@@ -19474,7 +19463,7 @@ factorizeexpression_try_again:
     //prepare sturcture that will hold list of all variables in this expression
     tVariableList* VarList;
     int summand_no;
-    VarList = (tVariableList*)this->GenerateVariableList(0, m_NumElements - 1, &summand_no);
+    VarList = (tVariableList*)this->GenerateVariableList(0, m_pElementList.size() - 1, &summand_no);
     if (!VarList) goto factorizeexpression_exit;
 
 
@@ -19981,19 +19970,19 @@ factorizeexpression_try_again:
                 int rpos = sstate[s].summand_rpos[0];
 
 
-                int ppos = arg->m_NumElements;
+                int ppos = arg->m_pElementList.size();
                 if (arg->m_pElementList[0].Type == 0) ppos = 0;
                 arg->SynthetizeExpression(ppos, commVarList, rpos);
             }
 
 
-            factorized->InsertEmptyElement(factorized->m_NumElements, 5, '(');
-            arg = factorized->m_pElementList[factorized->m_NumElements - 1].pElementObject->Expression1;
+            factorized->InsertEmptyElement(factorized->m_pElementList.size(), 5, '(');
+            arg = factorized->m_pElementList[factorized->m_pElementList.size() - 1].pElementObject->Expression1;
             for (int k = 0; k < n; k++)
             {
                 int rpos = sstate[0].summand_rpos[k];
 
-                int ppos = arg->m_NumElements;
+                int ppos = arg->m_pElementList.size();
                 if (arg->m_pElementList[0].Type == 0) ppos = 0;
                 arg->SynthetizeExpression(ppos, tmpVarList, rpos);
             }
@@ -20022,7 +20011,7 @@ factorizeexpression_try_again:
     {
         is_first_pass = false;
         int cnt = 0;
-        while (Compute(0, m_NumElements - 1, 0) && cnt < 50) { cnt++; }
+        while (Compute(0, m_pElementList.size() - 1, 0) && cnt < 50) { cnt++; }
         if (cnt) goto factorizeexpression_try_again;
     }
 
@@ -20032,8 +20021,8 @@ factorizeexpression_try_again:
 
     int retval = 0;
     CExpression* tmp = new CExpression(nullptr, nullptr, 100);
-    for (int kk = 0; kk <= m_NumElements - 1; kk++)
-        tmp->InsertElement(m_pElementList[kk], tmp->m_NumElements);
+    for (int kk = 0; kk <= m_pElementList.size() - 1; kk++)
+        tmp->InsertElement(m_pElementList[kk], tmp->m_pElementList.size());
 
 
     int order = tmp->Polynomize(nullptr);
@@ -20044,7 +20033,7 @@ factorizeexpression_try_again:
         if (lvl == PlusLevel)
         {
             char et, p;
-            int l = tmp->GetElementLen(0, tmp->m_NumElements - 1, lvl, &et, &p);
+            int l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, &p);
             if (tmp->m_pElementList[l - 1].Type == 3)
             {
                 tPureFactors aPF;
@@ -20065,17 +20054,17 @@ factorizeexpression_try_again:
                         variable->CopyExpression(arg, 0);
 
                         tmp->InsertEmptyElement(0, 5, '(');
-                        for (int jj = 1; jj < tmp->m_NumElements; jj++)
+                        for (int jj = 1; jj < tmp->m_pElementList.size(); jj++)
                             tmp->m_pElementList[0].pElementObject->Expression1
                                                   ->InsertElement(tmp->m_pElementList[jj], jj - 1);
-                        while (tmp->m_NumElements > 1)
+                        while (tmp->m_pElementList.size() > 1)
                             tmp->DeleteElement(1);
                         tmp->GenerateASCIIFraction(0, aPF.N2, aPF.N1,max(aPF.prec1, aPF.prec2), 1);
 
                         int cntr = 0;
-                        while (tmp->Compute(0, tmp->m_NumElements - 1, 0) && cntr < 50) cntr++;
+                        while (tmp->Compute(0, tmp->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
                         tmp->Polynomize(variable);
-                        l = tmp->GetElementLen(0, tmp->m_NumElements - 1, lvl, &et, &p);
+                        l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, &p);
                         delete variable;
                         //this->CopyExpression(tmp,0);
                         //goto factorizeexpression_finish;
@@ -20085,42 +20074,42 @@ factorizeexpression_try_again:
                 CExpression* arg = tmp->m_pElementList[l - 1].pElementObject->Expression1;
                 double N;
                 int prec;
-                if (arg && exp && exp->IsPureNumber(0, exp->m_NumElements, &N, &prec) &&
+                if (arg && exp && exp->IsPureNumber(0, exp->m_pElementList.size(), &N, &prec) &&
                     fabs(N - 2.0) < 1e-100)
                 {
                     char et2, p2;
-                    int l2 = tmp->GetElementLen(l, tmp->m_NumElements - 1, lvl, &et2, &p2);
-                    if (l2 - p2 >= arg->m_NumElements)
+                    int l2 = tmp->GetElementLen(l, tmp->m_pElementList.size() - 1, lvl, &et2, &p2);
+                    if (l2 - p2 >= arg->m_pElementList.size())
                     {
-                        if (arg->CompareExpressions(0, arg->m_NumElements - 1, tmp, l2 + l - arg->m_NumElements,
+                        if (arg->CompareExpressions(0, arg->m_pElementList.size() - 1, tmp, l2 + l - arg->m_pElementList.size(),
                                                     l2 + l - 1))
                         {
                             //this is factor for x^1
                             char et3, p3;
-                            int l3 = tmp->GetElementLen(l + l2, tmp->m_NumElements - 1, lvl, &et3, &p3);
+                            int l3 = tmp->GetElementLen(l + l2, tmp->m_pElementList.size() - 1, lvl, &et3, &p3);
                             if (l3)
                             {
                                 //build tmp2
                                 tmp2->InsertEmptyElement(0, 5, '(');
                                 CExpression* factor1 = tmp2->m_pElementList[0].pElementObject->
                                                                                Expression1;
-                                for (int kk = 0; kk < arg->m_NumElements; kk++)
-                                    factor1->InsertElement(arg->m_pElementList[kk], factor1->m_NumElements);
-                                factor1->InsertEmptyElement(factor1->m_NumElements, 2, '-');
-                                factor1->InsertEmptyElement(factor1->m_NumElements, 4, 0);
-                                CExpression* nom = factor1->m_pElementList[factor1->m_NumElements - 1]
+                                for (int kk = 0; kk < arg->m_pElementList.size(); kk++)
+                                    factor1->InsertElement(arg->m_pElementList[kk], factor1->m_pElementList.size());
+                                factor1->InsertEmptyElement(factor1->m_pElementList.size(), 2, '-');
+                                factor1->InsertEmptyElement(factor1->m_pElementList.size(), 4, 0);
+                                CExpression* nom = factor1->m_pElementList[factor1->m_pElementList.size() - 1]
                                                    .pElementObject->Expression1;
-                                CExpression* denom = factor1->m_pElementList[factor1->m_NumElements - 1]
+                                CExpression* denom = factor1->m_pElementList[factor1->m_pElementList.size() - 1]
                                                      .pElementObject->Expression2;
                                 nom->InsertEmptyElement(0, 2, '-');
                                 nom->InsertEmptyElement(1, 5, '(');
                                 CExpression* arg2 = nom->m_pElementList[1].pElementObject->
                                                                            Expression1;
-                                for (int kk = l; kk < l + l2 - arg->m_NumElements; kk++)
-                                    arg2->InsertElement(tmp->m_pElementList[kk], arg2->m_NumElements);
+                                for (int kk = l; kk < l + l2 - arg->m_pElementList.size(); kk++)
+                                    arg2->InsertElement(tmp->m_pElementList[kk], arg2->m_pElementList.size());
                                 if (arg2->m_pElementList[0].Type == 0 ||
-                                    (arg2->m_NumElements == 1 && arg2->m_pElementList[0].Type == 2))
-                                    arg2->InsertEmptyElement(arg2->m_NumElements, 1, '1');
+                                    (arg2->m_pElementList.size() == 1 && arg2->m_pElementList[0].Type == 2))
+                                    arg2->InsertEmptyElement(arg2->m_pElementList.size(), 1, '1');
                                 nom->InsertEmptyElement(2, 2, '+');
                                 nom->InsertEmptyElement(3, 8, 1);
                                 CExpression* arg3 = nom->m_pElementList[3].pElementObject->
@@ -20132,18 +20121,18 @@ factorizeexpression_try_again:
                                 arg3->InsertEmptyElement(4, 5, '(');
                                 CExpression* arg4 = arg3->m_pElementList[4].pElementObject->Expression1;
                                 for (int kk = 0; kk < l - 1; kk++)
-                                    arg4->InsertElement(tmp->m_pElementList[kk], arg4->m_NumElements);
+                                    arg4->InsertElement(tmp->m_pElementList[kk], arg4->m_pElementList.size());
                                 if (arg4->m_pElementList[0].Type == 0 ||
-                                    (arg4->m_NumElements == 1 && arg4->m_pElementList[0].Type == 2))
-                                    arg4->InsertEmptyElement(arg4->m_NumElements, 1, '1');
+                                    (arg4->m_pElementList.size() == 1 && arg4->m_pElementList[0].Type == 2))
+                                    arg4->InsertEmptyElement(arg4->m_pElementList.size(), 1, '1');
 
                                 arg3->InsertEmptyElement(5, 5, '(');
                                 CExpression* arg5 = arg3->m_pElementList[5].pElementObject->Expression1;
                                 for (int kk = l + l2; kk < l + l2 + l3; kk++)
-                                    arg5->InsertElement(tmp->m_pElementList[kk], arg5->m_NumElements);
+                                    arg5->InsertElement(tmp->m_pElementList[kk], arg5->m_pElementList.size());
                                 if (arg5->m_pElementList[0].Type == 0 ||
-                                    (arg5->m_NumElements == 1 && arg5->m_pElementList[0].Type == 2))
-                                    arg5->InsertEmptyElement(arg5->m_NumElements, 1, '1');
+                                    (arg5->m_pElementList.size() == 1 && arg5->m_pElementList[0].Type == 2))
+                                    arg5->InsertEmptyElement(arg5->m_pElementList.size(), 1, '1');
                                 denom->InsertEmptyElement(0, 5, '(');
                                 CExpression* arg6 = denom->m_pElementList[0].pElementObject->
                                                                              Expression1;
@@ -20151,7 +20140,7 @@ factorizeexpression_try_again:
                                 denom->InsertEmptyElement(0, 1, '2');
 
                                 int cntr = 0;
-                                while (arg3->Compute(0, arg3->m_NumElements - 1, 0) && cntr < 50) cntr++;
+                                while (arg3->Compute(0, arg3->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
 
                                 int llv = arg3->FindLowestOperatorLevel((char)0xD7);
                                 if (llv >= MulLevel)
@@ -20161,8 +20150,8 @@ factorizeexpression_try_again:
                                     PF.is_frac1 = 0;
                                     PF.prec1 = 0;
                                     int rslt = arg3
-                                        ->StrikeoutCommonFactors(0, arg3->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-                                    arg3->StrikeoutRemove(0, arg3->m_NumElements - 1);
+                                        ->StrikeoutCommonFactors(0, arg3->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+                                    arg3->StrikeoutRemove(0, arg3->m_pElementList.size() - 1);
                                     if (/*(!rslt) || */PF.N1 * PF.N2 > -1e-100)
                                     {
                                         tmp2->InsertEmptyElement(1, 5, '(');
@@ -20171,10 +20160,10 @@ factorizeexpression_try_again:
                                         nom->m_pElementList[2].pElementObject->Data1[0] = '-';
 
                                         int cntr = 0;
-                                        while (factor1->Compute(0, factor1->m_NumElements - 1, 0) && cntr < 50)
+                                        while (factor1->Compute(0, factor1->m_pElementList.size() - 1, 0) && cntr < 50)
                                             cntr++;
                                         cntr = 0;
-                                        while (factor2->Compute(0, factor2->m_NumElements - 1, 0) && cntr < 50)
+                                        while (factor2->Compute(0, factor2->m_pElementList.size() - 1, 0) && cntr < 50)
                                             cntr ++;
                                         if (!force_factorization)
                                         {
@@ -20182,7 +20171,7 @@ factorizeexpression_try_again:
                                             char tmpstr[3];
                                             tmpstr[0] = ImaginaryUnit;
                                             tmpstr[1] = 0;
-                                            for (int iii = 0; iii < factor1->m_NumElements; iii++)
+                                            for (int iii = 0; iii < factor1->m_pElementList.size(); iii++)
                                                 if (factor1->m_pElementList[iii].Type == 8 ||
                                                     (factor1->m_pElementList[iii].Type == 1 &&
                                                         strcmp(factor1->m_pElementList[iii].pElementObject->Data1,
@@ -20209,29 +20198,29 @@ factorizeexpression_try_again:
                             //this is factor for x^0
                             tmp2->InsertEmptyElement(0, 5, '(');
                             CExpression* factor1 = tmp2->m_pElementList[0].pElementObject->Expression1;
-                            for (int kk = 0; kk < arg->m_NumElements; kk++)
-                                factor1->InsertElement(arg->m_pElementList[kk], factor1->m_NumElements);
-                            factor1->InsertEmptyElement(factor1->m_NumElements, 2, '-');
-                            factor1->InsertEmptyElement(factor1->m_NumElements, 8, 1);
-                            CExpression* arg1 = factor1->m_pElementList[factor1->m_NumElements - 1].
+                            for (int kk = 0; kk < arg->m_pElementList.size(); kk++)
+                                factor1->InsertElement(arg->m_pElementList[kk], factor1->m_pElementList.size());
+                            factor1->InsertEmptyElement(factor1->m_pElementList.size(), 2, '-');
+                            factor1->InsertEmptyElement(factor1->m_pElementList.size(), 8, 1);
+                            CExpression* arg1 = factor1->m_pElementList[factor1->m_pElementList.size() - 1].
                                                 pElementObject->Expression1;
                             arg1->InsertEmptyElement(0, 4, 0);
                             CExpression* nom = arg1->m_pElementList[0].pElementObject->Expression1;
                             CExpression* denom = arg1->m_pElementList[0].pElementObject->Expression2;
                             for (int kk = 0; kk < l - 1; kk++)
-                                denom->InsertElement(tmp->m_pElementList[kk], denom->m_NumElements);
+                                denom->InsertElement(tmp->m_pElementList[kk], denom->m_pElementList.size());
                             if (denom->m_pElementList[0].Type == 0 ||
-                                (denom->m_NumElements == 1 && denom->m_pElementList[0].Type == 2))
-                                denom->InsertEmptyElement(denom->m_NumElements, 1, '1');
+                                (denom->m_pElementList.size() == 1 && denom->m_pElementList[0].Type == 2))
+                                denom->InsertEmptyElement(denom->m_pElementList.size(), 1, '1');
                             for (int kk = l; kk < l + l2; kk++)
-                                nom->InsertElement(tmp->m_pElementList[kk], nom->m_NumElements);
+                                nom->InsertElement(tmp->m_pElementList[kk], nom->m_pElementList.size());
                             if (nom->m_pElementList[0].Type == 0 ||
-                                (nom->m_NumElements == 1 && nom->m_pElementList[0].Type == 2))
-                                nom->InsertEmptyElement(nom->m_NumElements, 1, '1');
+                                (nom->m_pElementList.size() == 1 && nom->m_pElementList[0].Type == 2))
+                                nom->InsertEmptyElement(nom->m_pElementList.size(), 1, '1');
                             arg1->InsertEmptyElement(0, 2, '-');
 
                             int cntr = 0;
-                            while (arg1->Compute(0, arg1->m_NumElements - 1, 0) && cntr < 50) cntr++;
+                            while (arg1->Compute(0, arg1->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
 
                             int llv = arg1->FindLowestOperatorLevel((char)0xD7);
                             if (llv >= MulLevel)
@@ -20240,27 +20229,27 @@ factorizeexpression_try_again:
                                 PF.N1 = PF.N2 = 1.0;
                                 PF.is_frac1 = 0;
                                 PF.prec1 = 0;
-                                int rslt = arg1->StrikeoutCommonFactors(0, arg1->m_NumElements - 1, 1, nullptr, 0, 0, 1,
+                                int rslt = arg1->StrikeoutCommonFactors(0, arg1->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1,
                                                                         &PF);
-                                arg1->StrikeoutRemove(0, arg1->m_NumElements - 1);
+                                arg1->StrikeoutRemove(0, arg1->m_pElementList.size() - 1);
                                 if (/*(!rslt) ||*/ PF.N1 * PF.N2 > -1e-100)
                                 {
                                     tmp2->InsertEmptyElement(1, 5, '(');
                                     CExpression* factor2 = tmp2->m_pElementList[1].pElementObject->Expression1;
                                     factor2->CopyExpression(factor1, 0);
-                                    factor2->m_pElementList[factor2->m_NumElements - 2].pElementObject->Data1[0] = '+';
+                                    factor2->m_pElementList[factor2->m_pElementList.size() - 2].pElementObject->Data1[0] = '+';
 
                                     int cntr = 0;
-                                    while (factor1->Compute(0, factor1->m_NumElements - 1, 0) && cntr < 50) cntr++;
+                                    while (factor1->Compute(0, factor1->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
                                     cntr = 0;
-                                    while (factor2->Compute(0, factor2->m_NumElements - 1, 0) && cntr < 50) cntr++;
+                                    while (factor2->Compute(0, factor2->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
                                     if (!force_factorization)
                                     {
                                         //we don't do it if square root or imaginary unit is found
                                         char tmpstr[3];
                                         tmpstr[0] = ImaginaryUnit;
                                         tmpstr[1] = 0;
-                                        for (int iii = 0; iii < factor1->m_NumElements; iii++)
+                                        for (int iii = 0; iii < factor1->m_pElementList.size(); iii++)
                                             if (factor1->m_pElementList[iii].Type == 8 ||
                                                 (factor1->m_pElementList[iii].Type == 1 &&
                                                     strcmp(factor1->m_pElementList[iii].pElementObject->Data1,
@@ -20285,14 +20274,14 @@ factorizeexpression_try_again:
                 if (fabs(aPF.N1 / aPF.N2 - 1.00) > 1e-100 && tmp2->m_pElementList[0].Type)
                 {
                     tmp2->InsertEmptyElement(0, 5, '(');
-                    for (int jj = 1; jj < tmp2->m_NumElements; jj++)
+                    for (int jj = 1; jj < tmp2->m_pElementList.size(); jj++)
                         tmp2->m_pElementList[0].pElementObject->Expression1
                                                ->InsertElement(tmp2->m_pElementList[jj], jj - 1);
-                    while (tmp2->m_NumElements > 1)
+                    while (tmp2->m_pElementList.size() > 1)
                         tmp2->DeleteElement(1);
                     tmp2->GenerateASCIIFraction(0, aPF.N1, aPF.N2,max(aPF.prec1, aPF.prec2), 1);
                     int cntr = 0;
-                    while (tmp2->Compute(0, tmp2->m_NumElements - 1, 1) && cntr < 50) cntr++;
+                    while (tmp2->Compute(0, tmp2->m_pElementList.size() - 1, 1) && cntr < 50) cntr++;
                 }
                 /*if ((a_factor_negative) && (tmp2->m_pElementList[0].Type))
                 {
@@ -20323,7 +20312,7 @@ factorizeexpression_finish:
         FactorizeExpression();
     {
         int cnt = 0;
-        while (Compute(0, m_NumElements - 1, 1) && cnt < 50) cnt++;
+        while (Compute(0, m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
     }
     this->m_IsComputed |= 0x00800000;
     xreturn(1);
@@ -20353,23 +20342,23 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
     if (ComputationType != 10)
     {
         cntr = 0;
-        while (arg->Compute(0, arg->m_NumElements - 1, 1) && cntr < 50) cntr++;
+        while (arg->Compute(0, arg->m_pElementList.size() - 1, 1) && cntr < 50) cntr++;
         if (cntr) retval = 1;
         if (arg->FactorizeExpression()) retval = 1;
     }
     else
     {
         cntr = 0;
-        while (arg->Compute(0, arg->m_NumElements - 1, ComputationType) && cntr < 50) cntr++;
+        while (arg->Compute(0, arg->m_pElementList.size() - 1, ComputationType) && cntr < 50) cntr++;
         if (cntr) retval = 1;
     }
 
 
     //also prepare the base of root (if exists)
-    if (base && (base->m_NumElements > 1 || base->m_pElementList[0].Type > 1))
+    if (base && (base->m_pElementList.size() > 1 || base->m_pElementList[0].Type > 1))
     {
         cntr = 0;
-        while (base->Compute(0, base->m_NumElements - 1, 0) && cntr < 50) cntr++;
+        while (base->Compute(0, base->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
     }
 
 
@@ -20383,7 +20372,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
             char et1;
             char p1;
             int l1;
-            l1 = arg->GetElementLen(pos, arg->m_NumElements - 1, Level1, &et1, &p1);
+            l1 = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, Level1, &et1, &p1);
             if (l1 == 0) break;
 
             //jump over + or - sign if it exists
@@ -20432,9 +20421,9 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
 
                     //make the calculation
                     int cnt = 0;
-                    while (n->Compute(0, n->m_NumElements - 1, ComputationType == 10 ? 10 : 1) && cnt < 50) cnt++;
+                    while (n->Compute(0, n->m_pElementList.size() - 1, ComputationType == 10 ? 10 : 1) && cnt < 50) cnt++;
                     cnt = 0;
-                    while (d->Compute(0, d->m_NumElements - 1, ComputationType == 10 ? 10 : 1) && cnt < 50) cnt++;
+                    while (d->Compute(0, d->m_pElementList.size() - 1, ComputationType == 10 ? 10 : 1) && cnt < 50) cnt++;
 
                     //evaluate the result - separate factors that are now outside of root
                     tmp2->InsertEmptyElement(0, 4, 0);
@@ -20448,17 +20437,17 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                         while (true)
                         {
                             char et, p;
-                            int l = n->GetElementLen(poss, n->m_NumElements - 1, MulLevel, &et, &p);
+                            int l = n->GetElementLen(poss, n->m_pElementList.size() - 1, MulLevel, &et, &p);
                             if (l == 0) break;
 
                             if (l - p == 1 && n->m_pElementList[poss + p].Type == 8)
                             {
                                 CExpression* a = n->m_pElementList[poss + p].pElementObject->Expression1;
-                                nom->InsertSequence(et, nom->m_NumElements, a, 0, a->m_NumElements - 1);
+                                nom->InsertSequence(et, nom->m_pElementList.size(), a, 0, a->m_pElementList.size() - 1);
                                 n->RemoveSequence(MulLevel, poss + p, poss + l - 1);
                                 l = 0;
                             }
-                            else if (n->m_NumElements)
+                            else if (n->m_pElementList.size())
                             {
                                 if (n->m_pElementList[0].Type != 0)
                                 {
@@ -20470,7 +20459,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                 }
                             }
                             poss += l;
-                            if (poss > n->m_NumElements - 1) break;
+                            if (poss > n->m_pElementList.size() - 1) break;
                         }
                         CExpression* tt;
                         tt = n;
@@ -20489,9 +20478,9 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                         arg->DeleteElement(pos + p1);
                         arg->InsertElement(tmp2->m_pElementList[0], pos + p1);
                         if (GetOperatorLevel(element_type) != MulLevel)
-                            Position = InsertSequence((char)0xD7, Position, tmp, 0, tmp->m_NumElements - 1);
+                            Position = InsertSequence((char)0xD7, Position, tmp, 0, tmp->m_pElementList.size() - 1);
                         else
-                            Position = InsertSequence(element_type, Position, tmp, 0, tmp->m_NumElements - 1);
+                            Position = InsertSequence(element_type, Position, tmp, 0, tmp->m_pElementList.size() - 1);
                         retval = 1;
                     }
                     delete tmp;
@@ -20522,7 +20511,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                         PF.N1 = PF.N2 = PF.N3 = PF.N4 = 1.0;
                         PF.is_frac1 = PF.is_frac2 = 0;
                         PF.prec1 = PF.prec2 = 0;
-                        int rval = tmp->StrikeoutCommonFactors(0, tmp->m_NumElements - 1, 1, e, 0, e->m_NumElements - 1,
+                        int rval = tmp->StrikeoutCommonFactors(0, tmp->m_pElementList.size() - 1, 1, e, 0, e->m_pElementList.size() - 1,
                                                                1, &PF);
                         double xx = PF.N3 * PF.N2 / PF.N1 / PF.N4;
                         if (rval && fabs(xx - (long long)xx) < 1e-100)
@@ -20531,7 +20520,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                             PF.N3 = PF.N3 * PF.N2;
                             PF.N3 = PF.N3 / PF.N1;
                             ReduceTwoNumbers(PF.N3, PF.N4);
-                            e->StrikeoutRemove(0, e->m_NumElements - 1, 2);
+                            e->StrikeoutRemove(0, e->m_pElementList.size() - 1, 2);
                             int pp = 0;
                             if (e->m_pElementList[0].Type == 2 &&
                                 GetOperatorLevel(e->m_pElementList[0].pElementObject->Data1[0]) == PlusLevel)
@@ -20550,7 +20539,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                             //we didn't manage to calculate the root - however check two more special cases
                             //this is only possible if the root base is pure number (integer that is greater than 1)
                             int ok = 1;
-                            for (int kk = 0; kk < tmp->m_NumElements; kk++)
+                            for (int kk = 0; kk < tmp->m_pElementList.size(); kk++)
                                 if ((tmp->m_pElementList[0].IsSelected & 0x40) == 0)
                                 {
                                     ok = 0;
@@ -20570,7 +20559,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                     if (fabs(PF.N3 - (long long)PF.N3) > 1e-100 ||
                                         fabs(PF.N4 - 1.0) > 1e-100)
                                     {
-                                        e->StrikeoutRemove(0, e->m_NumElements, 2);
+                                        e->StrikeoutRemove(0, e->m_pElementList.size(), 2);
 
                                         PF.N4 *= PF.N1;
                                         if (e->m_pElementList[0].Type == 2 &&
@@ -20601,7 +20590,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                         }
                                         if (n > p)
                                         {
-                                            e->StrikeoutRemove(0, e->m_NumElements - 1, 2);
+                                            e->StrikeoutRemove(0, e->m_pElementList.size() - 1, 2);
                                             if (e->m_pElementList[0].Type == 2 &&
                                                 GetOperatorLevel(e->m_pElementList[0].pElementObject->Data1[0]) ==
                                                 PlusLevel)
@@ -20619,17 +20608,17 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                                             retval = 1;
                                         }
                                         else
-                                            e->StrikeoutRemove(0, e->m_NumElements - 1);
+                                            e->StrikeoutRemove(0, e->m_pElementList.size() - 1);
                                     }
                                     else
                                     {
-                                        e->StrikeoutRemove(0, e->m_NumElements - 1);
+                                        e->StrikeoutRemove(0, e->m_pElementList.size() - 1);
                                     }
                                 }
                             }
                             else
                             {
-                                e->StrikeoutRemove(0, e->m_NumElements - 1);
+                                e->StrikeoutRemove(0, e->m_pElementList.size() - 1);
                             }
                         }
                         delete tmp;
@@ -20637,11 +20626,11 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                 }
             }
             pos += l1;
-            if (pos > arg->m_NumElements - 1) break;
+            if (pos > arg->m_pElementList.size() - 1) break;
             if (arg->m_pElementList[0].Type == 0) break;
         }
 
-        if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 0)
+        if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 0)
             RemoveSequence(MulLevel, Position, Position);
         if (retval) return retval;
     }
@@ -20654,7 +20643,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
         N1 = 2.0;
         prec1 = 0;
     }
-    if (base == nullptr || base->IsPureNumber(0, base->m_NumElements, &N1, &prec1))
+    if (base == nullptr || base->IsPureNumber(0, base->m_pElementList.size(), &N1, &prec1))
         if (fabs(N1 - (long long)N1) < 1e-100 && N1 > 0.999)
         {
             N1 = (double)(long long)(N1 + (N1 >= 0 ? 0.01 : -0.01));
@@ -20665,7 +20654,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                 //if it equals to -1, then result is the imaginary unit (when used)
                 double N;
                 int prec;
-                if (arg->IsPureNumber(0, arg->m_NumElements, &N, &prec))
+                if (arg->IsPureNumber(0, arg->m_pElementList.size(), &N, &prec))
                 {
                     if (fabs(N - 1.0) < 1e-100)
                     {
@@ -20694,7 +20683,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                         }
                         if (arg->m_pElementList[0].Type == 2 && arg->m_pElementList[0].pElementObject->Data1[0] == '+')
                             p = 1;
-                        if (arg->m_NumElements == 1 + p && arg->m_pElementList[p].Type == 1 &&
+                        if (arg->m_pElementList.size() == 1 + p && arg->m_pElementList[p].Type == 1 &&
                             arg->m_pElementList[p].pElementObject->Data1[0] == ImaginaryUnit &&
                             arg->m_pElementList[p].pElementObject->Data1[1] == 0 &&
                             arg->m_pElementList[p].pElementObject->m_VMods == 0 &&
@@ -20719,7 +20708,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
             PF.N1 = PF.N2 = 1.0;
             PF.prec1 = 0;
             PF.is_frac1 = 0;
-            int rv = arg->StrikeoutCommonFactors(0, arg->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+            int rv = arg->StrikeoutCommonFactors(0, arg->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
 
             double N2 = PF.N1, N3 = PF.N2;
             int prec2 = PF.prec1;
@@ -20850,10 +20839,10 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                             fabs(denom * 1000 - (long long)(denom * 1000)) < 1e-100) || ComputationType == 10) &&
                         (fabs(denom) > 1e-100 && fabs(nom / denom - 1.0) > 1e-100))
                     {
-                        arg->StrikeoutRemove(0, arg->m_NumElements - 1, 2);
+                        arg->StrikeoutRemove(0, arg->m_pElementList.size() - 1, 2);
                         retval = 1;
 
-                        if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 0)
+                        if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 0)
                         {
                             Position -= RemoveSequence(MulLevel, Position, Position);
                         }
@@ -20936,7 +20925,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                         }
                     }
                     else
-                        arg->StrikeoutRemove(0, arg->m_NumElements - 1);
+                        arg->StrikeoutRemove(0, arg->m_pElementList.size() - 1);
                 }
             }
 
@@ -20947,7 +20936,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
     if (ComputationType == 1)
     {
         //root of fraction
-        if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 4)
+        if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 4)
         {
             InsertEmptyElement(Position + 1, 4, 0);
             CExpression* n = m_pElementList[Position + 1].pElementObject->Expression1;
@@ -20987,7 +20976,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
             while (true)
             {
                 char et, p;
-                int l = arg->GetElementLen(pos, arg->m_NumElements - 1, Level, &et, &p);
+                int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, Level, &et, &p);
                 if (l == 0) break;
 
                 if ((element_type == '/' && et != '/') ||
@@ -21009,7 +20998,7 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                 tt++;
 
                 pos += l;
-                if (pos > arg->m_NumElements - 1) break;
+                if (pos > arg->m_pElementList.size() - 1) break;
             }
             RemoveSequence(MulLevel, Position, Position);
             return 1;
@@ -21035,7 +21024,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
     if (ComputationType != 10) //if not pure number only calculation (for function plotting)
     {
         //check if this is derivation: d(f(x))/d(x) 
-        if (nom->m_NumElements == 1 && denom->m_NumElements == 1 &&
+        if (nom->m_pElementList.size() == 1 && denom->m_pElementList.size() == 1 &&
             nom->m_pElementList[0].Type == 6 &&
             denom->m_pElementList[0].Type == 6 &&
             *(unsigned short*)nom->m_pElementList[0].pElementObject->Data1 == 0x0064 && //this is "d" string
@@ -21046,7 +21035,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             CExpression* arg = nom->m_pElementList[0].pElementObject->Expression1;
             CExpression* var = denom->m_pElementList[0].pElementObject->Expression1;
             if (arg && var)
-                if (arg->ContainsVariable(0, arg->m_NumElements - 1, var, 0, var->m_NumElements))
+                if (arg->ContainsVariable(0, arg->m_pElementList.size() - 1, var, 0, var->m_pElementList.size()))
                 {
                     if (arg->Derivate(var))
                     {
@@ -21069,7 +21058,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             while (true)
             {
                 char et, p;
-                int l = nom->GetElementLen(pos, nom->m_NumElements - 1, Level1, &et, &p);
+                int l = nom->GetElementLen(pos, nom->m_pElementList.size() - 1, Level1, &et, &p);
                 if (l == 0) break;
 
                 tElementStruct& ts1 = nom->m_pElementList[pos + p];
@@ -21077,7 +21066,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                 while (true)
                 {
                     char et2, p2;
-                    int l2 = denom->GetElementLen(pos2, denom->m_NumElements - 1, Level2, &et2, &p2);
+                    int l2 = denom->GetElementLen(pos2, denom->m_pElementList.size() - 1, Level2, &et2, &p2);
                     if (l2 == 0) break;
 
                     if (et == et2)
@@ -21103,10 +21092,10 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                             }
                         }
                     pos2 += l2;
-                    if (pos2 > denom->m_NumElements - 1) break;
+                    if (pos2 > denom->m_pElementList.size() - 1) break;
                 }
                 pos += l;
-                if (pos > nom->m_NumElements - 1) break;
+                if (pos > nom->m_pElementList.size() - 1) break;
             }
         }
     }
@@ -21120,7 +21109,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
         //without this filter it works extremely slow
         {
             int cntr = 0;
-            while (denom->Compute(0, denom->m_NumElements - 1, ComputationType) && cntr < 50) cntr++;
+            while (denom->Compute(0, denom->m_pElementList.size() - 1, ComputationType) && cntr < 50) cntr++;
             if (cntr)
             {
                 retval = -1;
@@ -21130,7 +21119,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
         else
         {
             int cntr = 0;
-            while (denom->Compute(0, denom->m_NumElements - 1, 3) && cntr < 50) cntr++;
+            while (denom->Compute(0, denom->m_pElementList.size() - 1, 3) && cntr < 50) cntr++;
             if (cntr) retval = -1;
         }
 
@@ -21139,7 +21128,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
         else if (Level1 == PlusLevel || ComputationType == 1 || ComputationType == 10)
         {
             int cntr = 0;
-            while (nom->Compute(0, nom->m_NumElements - 1, ComputationType) && cntr < 50) cntr++;
+            while (nom->Compute(0, nom->m_pElementList.size() - 1, ComputationType) && cntr < 50) cntr++;
             if (cntr)
             {
                 retval = -1;
@@ -21149,7 +21138,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
         else
         {
             int cntr = 0;
-            while (nom->Compute(0, nom->m_NumElements - 1, 3) && cntr < 50) cntr++;
+            while (nom->Compute(0, nom->m_pElementList.size() - 1, 3) && cntr < 50) cntr++;
             if (cntr) retval = -1;
         }
     }
@@ -21161,18 +21150,18 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             char tmpstr[3];
             tmpstr[0] = ImaginaryUnit;
             tmpstr[1] = 0;
-            if (denom->ContainsVariable(0, denom->m_NumElements - 1, nullptr, 0, 0, tmpstr, 0))
+            if (denom->ContainsVariable(0, denom->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, 0))
             {
                 int order = denom->Polynomize(nullptr, tmpstr, 0);
                 if (order == 1)
                 {
                     char et, p;
-                    int l = denom->GetElementLen(0, denom->m_NumElements - 1, PlusLevel, &et, &p);
-                    if (l < denom->m_NumElements && (et == '+' || et == '-'))
+                    int l = denom->GetElementLen(0, denom->m_pElementList.size() - 1, PlusLevel, &et, &p);
+                    if (l < denom->m_pElementList.size() && (et == '+' || et == '-'))
                     {
                         char et2, p2;
-                        int l2 = denom->GetElementLen(l, denom->m_NumElements - 1, PlusLevel, &et2, &p2);
-                        if (l2 + l == denom->m_NumElements && (et2 == '+' || et2 == '-'))
+                        int l2 = denom->GetElementLen(l, denom->m_pElementList.size() - 1, PlusLevel, &et2, &p2);
+                        if (l2 + l == denom->m_pElementList.size() && (et2 == '+' || et2 == '-'))
                         {
                             denom->InsertEmptyElement(0, 5, '(');
                             CExpression* tmp = denom->m_pElementList[0].pElementObject->Expression1;
@@ -21180,20 +21169,20 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                             if (et2 != '+')
                                 tmp->InsertEmptyElement(0, 2, et2);
                             for (int k = l + 1 + p2; k <= l + l2; k++)
-                                tmp->InsertElement(denom->m_pElementList[k], tmp->m_NumElements);
-                            int sign_pos = tmp->m_NumElements;
-                            tmp->InsertEmptyElement(tmp->m_NumElements, 2, et);
+                                tmp->InsertElement(denom->m_pElementList[k], tmp->m_pElementList.size());
+                            int sign_pos = tmp->m_pElementList.size();
+                            tmp->InsertEmptyElement(tmp->m_pElementList.size(), 2, et);
                             for (int k = 1 + p; k < l + 1; k++)
-                                tmp->InsertElement(denom->m_pElementList[k], tmp->m_NumElements);
+                                tmp->InsertElement(denom->m_pElementList[k], tmp->m_pElementList.size());
                             for (int k = 1; k <= l + l2; k++)
                                 denom->DeleteElement(1);
 
                             nom->InsertEmptyElement(0, 5, '(');
                             tmp = nom->m_pElementList[0].pElementObject->Expression1;
-                            int ccc = nom->m_NumElements;
+                            int ccc = nom->m_pElementList.size();
                             for (int k = 1; k < ccc; k++)
                             {
-                                tmp->InsertElement(nom->m_pElementList[1], tmp->m_NumElements);
+                                tmp->InsertElement(nom->m_pElementList[1], tmp->m_pElementList.size());
                                 nom->DeleteElement(1);
                             }
 
@@ -21209,9 +21198,9 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                             denom->InsertElement(nom->m_pElementList[1], 1);
 
                             int cntr = 0;
-                            while (nom->Compute(0, nom->m_NumElements - 1, 0) && cntr < 50) cntr++;
+                            while (nom->Compute(0, nom->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
                             cntr = 0;
-                            while (denom->Compute(0, denom->m_NumElements - 1, 0) && cntr < 50) cntr++;
+                            while (denom->Compute(0, denom->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
 
                             retval = -1;
                         }
@@ -21221,10 +21210,10 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
         }
 
         int cnt = 0;
-        while (denom->Compute(0, denom->m_NumElements - 1, 2) && cnt < 50) cnt++;
+        while (denom->Compute(0, denom->m_pElementList.size() - 1, 2) && cnt < 50) cnt++;
         if (cnt) retval = -1;
         cnt = 0;
-        while (nom->Compute(0, nom->m_NumElements - 1, 2) && cnt < 50) cnt++;
+        while (nom->Compute(0, nom->m_pElementList.size() - 1, 2) && cnt < 50) cnt++;
         if (cnt) retval = -1;
     }
 
@@ -21235,7 +21224,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
         PureFactors.prec1 = PureFactors.prec2 = 0;
         PureFactors.is_frac1 = PureFactors.is_frac2 = 0;
         int force_calc = 0;
-        if (nom->StrikeoutCommonFactors(0, nom->m_NumElements - 1, 1, denom, 0, denom->m_NumElements - 1, 1,
+        if (nom->StrikeoutCommonFactors(0, nom->m_pElementList.size() - 1, 1, denom, 0, denom->m_pElementList.size() - 1, 1,
                                         &PureFactors, 1) &&
             ComputationType == 10)
         {
@@ -21267,16 +21256,16 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             force_calc)
         {
             //remove all common factors and pure numbers
-            nom->StrikeoutRemove(0, nom->m_NumElements - 1, 1);
-            denom->StrikeoutRemove(0, denom->m_NumElements - 1, 1);
+            nom->StrikeoutRemove(0, nom->m_pElementList.size() - 1, 1);
+            denom->StrikeoutRemove(0, denom->m_pElementList.size() - 1, 1);
 
             //if (nom->m_pElementList[0].Type==0) nom->InsertEmptyElement(0,1,'1');
             //if (denom->m_pElementList[0].Type==0) denom->InsertEmptyElement(0,1,'1');
 
-            if (nom->m_NumElements == 1 && nom->m_pElementList[0].Type == 1 && strcmp(
+            if (nom->m_pElementList.size() == 1 && nom->m_pElementList[0].Type == 1 && strcmp(
                 nom->m_pElementList[0].pElementObject->Data1, "1") == 0)
                 nom->DeleteElement(0);
-            if (denom->m_NumElements == 1 && denom->m_pElementList[0].Type == 1 && strcmp(
+            if (denom->m_pElementList.size() == 1 && denom->m_pElementList[0].Type == 1 && strcmp(
                 denom->m_pElementList[0].pElementObject->Data1, "1") == 0)
                 denom->DeleteElement(0);
 
@@ -21288,9 +21277,9 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             {
                 nom->InsertEmptyElement(0, 5, '(');
                 CExpression* tmp = nom->m_pElementList[0].pElementObject->Expression1;
-                for (int kk = 1; kk < nom->m_NumElements; kk++)
-                    tmp->InsertElement(nom->m_pElementList[kk], tmp->m_NumElements);
-                while (nom->m_NumElements > 1) nom->DeleteElement(1);
+                for (int kk = 1; kk < nom->m_pElementList.size(); kk++)
+                    tmp->InsertElement(nom->m_pElementList[kk], tmp->m_pElementList.size());
+                while (nom->m_pElementList.size() > 1) nom->DeleteElement(1);
             }
             int pp = 0;
             if (nom->m_pElementList[0].Type == 2 &&
@@ -21301,9 +21290,9 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             {
                 denom->InsertEmptyElement(0, 5, '(');
                 CExpression* tmp = denom->m_pElementList[0].pElementObject->Expression1;
-                for (int kk = 1; kk < denom->m_NumElements; kk++)
-                    tmp->InsertElement(*(&denom->m_pElementList[kk]), tmp->m_NumElements);
-                while (denom->m_NumElements > 1) denom->DeleteElement(1);
+                for (int kk = 1; kk < denom->m_pElementList.size(); kk++)
+                    tmp->InsertElement((denom->m_pElementList[kk]), tmp->m_pElementList.size());
+                while (denom->m_pElementList.size() > 1) denom->DeleteElement(1);
             }
             if (denom->m_pElementList[0].Type == 2 &&
                 GetOperatorLevel(denom->m_pElementList[0].pElementObject->Data1[0]) == PlusLevel)
@@ -21314,8 +21303,8 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
         else
         {
             //remove only common factors that are not pure numbers
-            if (nom->StrikeoutRemove(0, nom->m_NumElements - 1, 3)) retval = -1;
-            if (denom->StrikeoutRemove(0, denom->m_NumElements - 1, 3)) retval = -1;
+            if (nom->StrikeoutRemove(0, nom->m_pElementList.size() - 1, 3)) retval = -1;
+            if (denom->StrikeoutRemove(0, denom->m_pElementList.size() - 1, 3)) retval = -1;
 
             if (nom->m_pElementList[0].Type == 0) nom->InsertEmptyElement(0, 1, '1');
             if (denom->m_pElementList[0].Type == 0) denom->InsertEmptyElement(0, 1, '1');
@@ -21329,7 +21318,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
 
     //some special handling for speed - if pure numbers only calculation (function plotting) change negative numbers into handier form with integrated minus sign
     if (is_call_from_ploter)
-        if (ComputationType == 10 && nom->m_NumElements == 2 &&
+        if (ComputationType == 10 && nom->m_pElementList.size() == 2 &&
             nom->m_pElementList[0].Type == 2 && nom->m_pElementList[0].pElementObject->Data1[0] == '-' &&
             nom->m_pElementList[1].Type == 1)
         {
@@ -21340,16 +21329,16 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
 
 
     //if denominator is equal to one then convert into non-fraction
-    if ((denom->m_NumElements == 1 && denom->m_pElementList[0].Type == 1) ||
-        (denom->m_NumElements == 2 && denom->m_pElementList[0].Type == 2 && denom->m_pElementList[1].Type == 1))
+    if ((denom->m_pElementList.size() == 1 && denom->m_pElementList[0].Type == 1) ||
+        (denom->m_pElementList.size() == 2 && denom->m_pElementList[0].Type == 2 && denom->m_pElementList[1].Type == 1))
     {
         double N;
         int prec;
-        if (denom->IsPureNumber(0, denom->m_NumElements, &N, &prec))
+        if (denom->IsPureNumber(0, denom->m_pElementList.size(), &N, &prec))
         {
             if (fabs(N - 1.0) < 1e-100) //+1
             {
-                if (nom->m_NumElements == 1)
+                if (nom->m_pElementList.size() == 1)
                 {
                     InsertElement(nom->m_pElementList[0], Position + 1);
                     DeleteElement(Position);
@@ -21381,12 +21370,12 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
     }
 
     //if numerator is equal to zero, then the fraction is zero
-    if ((nom->m_NumElements == 1 && nom->m_pElementList[0].Type == 1) ||
-        (nom->m_NumElements == 2 && nom->m_pElementList[0].Type == 2 && nom->m_pElementList[1].Type == 1))
+    if ((nom->m_pElementList.size() == 1 && nom->m_pElementList[0].Type == 1) ||
+        (nom->m_pElementList.size() == 2 && nom->m_pElementList[0].Type == 2 && nom->m_pElementList[1].Type == 1))
     {
         double N;
         int prec;
-        if (nom->IsPureNumber(0, nom->m_NumElements, &N, &prec))
+        if (nom->IsPureNumber(0, nom->m_pElementList.size(), &N, &prec))
             if (fabs(N) < 1e-100)
             {
                 InsertEmptyElement(Position + 1, 1, '0');
@@ -21406,7 +21395,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                 char et1;
                 char p1;
                 int l_nom;
-                l_nom = nom->GetElementLen(n_pos, nom->m_NumElements - 1, Level1, &et1, &p1);
+                l_nom = nom->GetElementLen(n_pos, nom->m_pElementList.size() - 1, Level1, &et1, &p1);
                 if (l_nom - p1 == 0) break;
 
                 if (n_pos == 0 && l_nom > 1 && nom->m_pElementList[0].Type == 2 &&
@@ -21429,21 +21418,21 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                             denom->InsertEmptyElement(0, 5, '(');
                             CExpression* tmp = denom->m_pElementList[0].pElementObject->Expression1;
                             int kk = 0;
-                            while (denom->m_NumElements > 1)
+                            while (denom->m_pElementList.size() > 1)
                             {
                                 tmp->InsertElement(denom->m_pElementList[1], kk++);
                                 denom->DeleteElement(1);
                             }
                         }
-                        denom->InsertEmptyElement(denom->m_NumElements, 5, '(');
-                        CExpression* tmp = denom->m_pElementList[denom->m_NumElements - 1].pElementObject->Expression1;
+                        denom->InsertEmptyElement(denom->m_pElementList.size(), 5, '(');
+                        CExpression* tmp = denom->m_pElementList[denom->m_pElementList.size() - 1].pElementObject->Expression1;
                         tmp->InsertEmptyElement(0, 2, '-');
                         tmp->InsertEmptyElement(1, 1, ImaginaryUnit);
                         for (int kk = n_pos; kk < n_pos + l_nom; kk++)
                             nom->DeleteElement(n_pos);
-                        if (nom->m_pElementList[0].Type == 0 || (nom->m_NumElements == 1 && nom->m_pElementList[0].Type
+                        if (nom->m_pElementList[0].Type == 0 || (nom->m_pElementList.size() == 1 && nom->m_pElementList[0].Type
                             == 2))
-                            nom->InsertEmptyElement(nom->m_NumElements, 1, '1');
+                            nom->InsertEmptyElement(nom->m_pElementList.size(), 1, '1');
                         xreturn(-1);
                     }
 
@@ -21455,7 +21444,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                         denom->InsertEmptyElement(0, 5, '(');
                         CExpression* tmp = denom->m_pElementList[0].pElementObject->Expression1;
                         int kk = 0;
-                        while (denom->m_NumElements > 1)
+                        while (denom->m_pElementList.size() > 1)
                         {
                             tmp->InsertElement(denom->m_pElementList[1], kk++);
                             denom->DeleteElement(1);
@@ -21463,13 +21452,13 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                     }
 
                     for (int kk = n_pos + p1; kk < n_pos + l_nom; kk++)
-                        denom->InsertElement(nom->m_pElementList[kk], denom->m_NumElements);
+                        denom->InsertElement(nom->m_pElementList[kk], denom->m_pElementList.size());
 
                     for (int kk = n_pos; kk < n_pos + l_nom; kk++)
                         nom->DeleteElement(n_pos);
-                    if (nom->m_pElementList[0].Type == 0 || (nom->m_NumElements == 1 && nom->m_pElementList[0].Type ==
+                    if (nom->m_pElementList[0].Type == 0 || (nom->m_pElementList.size() == 1 && nom->m_pElementList[0].Type ==
                         2))
-                        nom->InsertEmptyElement(nom->m_NumElements, 1, '1');
+                        nom->InsertEmptyElement(nom->m_pElementList.size(), 1, '1');
                     xreturn(-1);
                 }
 
@@ -21481,7 +21470,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                     PF.N1 = PF.N2 = PF.N3 = PF.N4 = 1.0;
                     PF.is_frac1 = PF.is_frac2 = 0;
                     PF.prec1 = PF.prec2 = 0;
-                    exp->StrikeoutCommonFactors(0, exp->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+                    exp->StrikeoutCommonFactors(0, exp->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
                     if (PF.N2 < 0)
                     {
                         PF.N1 = -PF.N1;
@@ -21493,7 +21482,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                         double N2 = PF.N2;
                         int is_fraction = PF.is_frac1;
                         int precision = PF.prec1;
-                        exp->StrikeoutRemove(0, exp->m_NumElements - 1, 2);
+                        exp->StrikeoutRemove(0, exp->m_pElementList.size() - 1, 2);
                         int pp = 0;
                         if (exp->m_pElementList[0].Type == 2 && GetOperatorLevel(
                             exp->m_pElementList[0].pElementObject->Data1[0]==PlusLevel))
@@ -21505,7 +21494,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                             denom->InsertEmptyElement(0, 5, '(');
                             CExpression* tmp = denom->m_pElementList[0].pElementObject->Expression1;
                             int kk = 0;
-                            while (denom->m_NumElements > 1)
+                            while (denom->m_pElementList.size() > 1)
                             {
                                 tmp->InsertElement(denom->m_pElementList[1], kk++);
                                 denom->DeleteElement(1);
@@ -21513,18 +21502,18 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                         }
 
                         for (int kk = n_pos + p1; kk < n_pos + l_nom; kk++)
-                            denom->InsertElement(nom->m_pElementList[kk], denom->m_NumElements);
+                            denom->InsertElement(nom->m_pElementList[kk], denom->m_pElementList.size());
 
                         for (int kk = n_pos; kk < n_pos + l_nom; kk++)
                             nom->DeleteElement(n_pos);
                         if (nom->m_pElementList[0].Type == 0 ||
-                            (nom->m_NumElements == 1 && nom->m_pElementList[0].Type == 2))
-                            nom->InsertEmptyElement(nom->m_NumElements, 1, '1');
+                            (nom->m_pElementList.size() == 1 && nom->m_pElementList[0].Type == 2))
+                            nom->InsertEmptyElement(nom->m_pElementList.size(), 1, '1');
 
                         xreturn(-1);
                     }
                     else
-                        exp->StrikeoutRemove(0, exp->m_NumElements - 1);
+                        exp->StrikeoutRemove(0, exp->m_pElementList.size() - 1);
                 }
 
                 //if there are subfractions
@@ -21538,11 +21527,11 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                     if (ddl == -1) ddl = Level1;
 
                     {
-                        nom->InsertEmptyElement(nom->m_NumElements, 5, '(');
-                        CExpression* tmp = nom->m_pElementList[nom->m_NumElements - 1].pElementObject
+                        nom->InsertEmptyElement(nom->m_pElementList.size(), 5, '(');
+                        CExpression* tmp = nom->m_pElementList[nom->m_pElementList.size() - 1].pElementObject
                             ->Expression1;
-                        for (int kk = 0; kk < nn->m_NumElements; kk++)
-                            tmp->InsertElement(nn->m_pElementList[kk], tmp->m_NumElements);
+                        for (int kk = 0; kk < nn->m_pElementList.size(); kk++)
+                            tmp->InsertElement(nn->m_pElementList[kk], tmp->m_pElementList.size());
                     }
 
                     if (Level2 < Level1) //put denominator into parentheses
@@ -21550,7 +21539,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                         denom->InsertEmptyElement(0, 5, '(');
                         CExpression* tmp = denom->m_pElementList[0].pElementObject->Expression1;
                         int kk = 0;
-                        while (denom->m_NumElements > 1)
+                        while (denom->m_pElementList.size() > 1)
                         {
                             tmp->InsertElement(denom->m_pElementList[1], kk++);
                             denom->DeleteElement(1);
@@ -21558,10 +21547,10 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                     }
 
                     {
-                        denom->InsertEmptyElement(denom->m_NumElements, 5, '(');
-                        CExpression* tmp = denom->m_pElementList[denom->m_NumElements - 1].pElementObject->Expression1;
-                        for (int kk = 0; kk < dd->m_NumElements; kk++)
-                            tmp->InsertElement(dd->m_pElementList[kk], tmp->m_NumElements);
+                        denom->InsertEmptyElement(denom->m_pElementList.size(), 5, '(');
+                        CExpression* tmp = denom->m_pElementList[denom->m_pElementList.size() - 1].pElementObject->Expression1;
+                        for (int kk = 0; kk < dd->m_pElementList.size(); kk++)
+                            tmp->InsertElement(dd->m_pElementList[kk], tmp->m_pElementList.size());
                     }
 
                     nom->RemoveSequence(Level1, n_pos, n_pos + l_nom - 1);
@@ -21570,7 +21559,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                     xreturn(-1);
                 }
                 n_pos += l_nom;
-                if (n_pos > nom->m_NumElements - 1) break;
+                if (n_pos > nom->m_pElementList.size() - 1) break;
             }
 
         CExpression* ttmp;
@@ -21586,10 +21575,10 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
 
     //if nominator has 'plus level' then we transform the fraction into sum of fractions
     //example: (a+b)/c  ->   a/c + b/c
-    if (ComputationType == 0 && nom->m_NumElements > 2 &&
+    if (ComputationType == 0 && nom->m_pElementList.size() > 2 &&
         GetOperatorLevel(element_type) == PlusLevel)
     {
-        while (nom->Compute(0, nom->m_NumElements - 1, 0));
+        while (nom->Compute(0, nom->m_pElementList.size() - 1, 0));
 
         int lvl = nom->FindLowestOperatorLevel();
         if (lvl == PlusLevel)
@@ -21599,7 +21588,7 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             while (true)
             {
                 char et, p;
-                int l = nom->GetElementLen(pos, nom->m_NumElements - 1, lvl, &et, &p);
+                int l = nom->GetElementLen(pos, nom->m_pElementList.size() - 1, lvl, &et, &p);
                 if (l == 0) break;
 
 
@@ -21618,12 +21607,12 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                 CExpression* d = m_pElementList[Position + jj].pElementObject->Expression2;
                 d->CopyExpression(denom, 0);
                 for (int kk = pos + p; kk < pos + l; kk++)
-                    n->InsertElement(nom->m_pElementList[kk], n->m_NumElements);
+                    n->InsertElement(nom->m_pElementList[kk], n->m_pElementList.size());
 
 
                 jj++;
                 pos += l;
-                if (pos > nom->m_NumElements - 1) break;
+                if (pos > nom->m_pElementList.size() - 1) break;
             }
 
             DeleteElement(Position);
@@ -21709,7 +21698,7 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
         else if (ts->Type == 5 && l - p == 1)
         {
             CExpression* arg = ts->pElementObject->Expression1;
-            if (arg->ExtractVariables(0, arg->m_NumElements - 1, ord, summand_no, VarList, exponent, stl))
+            if (arg->ExtractVariables(0, arg->m_pElementList.size() - 1, ord, summand_no, VarList, exponent, stl))
                 retval = 1;
         }
         else if (ts->Type == 4 && l - p == 1)
@@ -21717,9 +21706,9 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
             stl |= 0x01;
             CExpression* nom = ts->pElementObject->Expression1;
             CExpression* denom = ts->pElementObject->Expression2;
-            if (nom->ExtractVariables(0, nom->m_NumElements - 1, ord, summand_no, VarList, exponent, stl))
+            if (nom->ExtractVariables(0, nom->m_pElementList.size() - 1, ord, summand_no, VarList, exponent, stl))
                 retval = 1;
-            if (denom->ExtractVariables(0, denom->m_NumElements - 1, -ord, summand_no, VarList, exponent, stl))
+            if (denom->ExtractVariables(0, denom->m_pElementList.size() - 1, -ord, summand_no, VarList, exponent, stl))
                 retval = 1;
         }
         else if (ts->Type == 3 && l - p == 1)
@@ -21732,12 +21721,12 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
             PF.prec1 = 0;
             PF.is_frac1 = 0;
             int rval;
-            if (e->IsPureNumber(0, e->m_NumElements, &PF.N1, &PF.prec1))
+            if (e->IsPureNumber(0, e->m_pElementList.size(), &PF.N1, &PF.prec1))
                 rval = 1;
             else
             {
-                rval = e->StrikeoutCommonFactors(0, e->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-                e->StrikeoutRemove(0, e->m_NumElements - 1);
+                rval = e->StrikeoutCommonFactors(0, e->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+                e->StrikeoutRemove(0, e->m_pElementList.size() - 1);
                 ReduceTwoNumbers(PF.N1, PF.N2);
             }
 
@@ -21767,13 +21756,13 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
 
                 var = new CExpression(nullptr, nullptr, 100);
                 var->CopyExpression(e, 0);
-                var->StrikeoutCommonFactors(0, var->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF2);
-                var->StrikeoutRemove(0, var->m_NumElements - 1, 2);
+                var->StrikeoutCommonFactors(0, var->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF2);
+                var->StrikeoutRemove(0, var->m_pElementList.size() - 1, 2);
 
                 if (exponent)
                 {
-                    var->InsertEmptyElement(var->m_NumElements, 5, '(');
-                    CExpression* tmp = var->m_pElementList[var->m_NumElements - 1].pElementObject->Expression1;
+                    var->InsertEmptyElement(var->m_pElementList.size(), 5, '(');
+                    CExpression* tmp = var->m_pElementList[var->m_pElementList.size() - 1].pElementObject->Expression1;
                     tmp->CopyExpression(exponent, 0);
                     tmp->m_ParenthesesFlags = 0x02;
                 }
@@ -21784,7 +21773,7 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
                     pp = 1;
                 var->GenerateASCIIFraction(pp, PF.N1, PF.N2, PF.prec1, PF.is_frac1);
             }
-            if (!a->ExtractVariables(0, a->m_NumElements - 1, ord, summand_no, VarList, var, stl))
+            if (!a->ExtractVariables(0, a->m_pElementList.size() - 1, ord, summand_no, VarList, var, stl))
             {
                 if (var) delete var;
             }
@@ -21818,8 +21807,8 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
                     if (CompareExpressions(pos + p, pos + l - 1, tvar->variable, tvar->pos, tvar->pos + tvar->len - 1))
                         if ((exponent == nullptr && tvar->exponent == nullptr) ||
                             (exponent && tvar->exponent &&
-                                exponent->CompareExpressions(0, exponent->m_NumElements - 1, tvar->exponent, 0,
-                                                             tvar->exponent->m_NumElements - 1)))
+                                exponent->CompareExpressions(0, exponent->m_pElementList.size() - 1, tvar->exponent, 0,
+                                                             tvar->exponent->m_pElementList.size() - 1)))
                             break;
             }
             if (i < VarList->NumVariables)
@@ -21867,7 +21856,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
     //prepare the expression for polynomization
     {
         int cnt = 0;
-        while (Compute(0, m_NumElements - 1, 0) && cnt < 50) cnt++;
+        while (Compute(0, m_pElementList.size() - 1, 0) && cnt < 50) cnt++;
     }
 
     //make some additional checkings (to proceed the expression must be summation of summands)
@@ -21887,7 +21876,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
     while (true)
     {
         char et, p;
-        int l = GetElementLen(pos, m_NumElements - 1, Level, &et, &p);
+        int l = GetElementLen(pos, m_pElementList.size() - 1, Level, &et, &p);
         if (l == 0) break;
 
         if (et == '-') VarList->Constants[summand_no].N1 = -VarList->Constants[summand_no].N1;
@@ -21895,7 +21884,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
 
         summand_no++;
         pos += l;
-        if (pos > m_NumElements - 1) break;
+        if (pos > m_pElementList.size() - 1) break;
     }
 
 
@@ -21952,7 +21941,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
             int fnd = 0;
             if (variable && variable->m_pElementList[0].Type)
             {
-                if (variable->CompareExpressions(0, variable->m_NumElements - 1,
+                if (variable->CompareExpressions(0, variable->m_pElementList.size() - 1,
                                                  VarList->Variables[kk].variable,
                                                  VarList->Variables[kk].pos,
                                                  VarList->Variables[kk].pos + VarList->Variables[kk].len - 1))
@@ -22093,14 +22082,14 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                     {
                         if (polynome->m_pElementList[0].Type != 0)
                         {
-                            if (polynome->m_pElementList[polynome->m_NumElements - 1].Type != 2 &&
-                                polynome->m_pElementList[polynome->m_NumElements - 1].Type != 11 &&
-                                polynome->m_pElementList[polynome->m_NumElements - 1].Type != 12)
-                                polynome->InsertEmptyElement(polynome->m_NumElements, 2, '+');
+                            if (polynome->m_pElementList[polynome->m_pElementList.size() - 1].Type != 2 &&
+                                polynome->m_pElementList[polynome->m_pElementList.size() - 1].Type != 11 &&
+                                polynome->m_pElementList[polynome->m_pElementList.size() - 1].Type != 12)
+                                polynome->InsertEmptyElement(polynome->m_pElementList.size(), 2, '+');
                         }
 
-                        polynome->InsertEmptyElement(polynome->m_NumElements, 5, '(');
-                        arg = polynome->m_pElementList[polynome->m_NumElements - 1].pElementObject->
+                        polynome->InsertEmptyElement(polynome->m_pElementList.size(), 5, '(');
+                        arg = polynome->m_pElementList[polynome->m_pElementList.size() - 1].pElementObject->
                             Expression1;
                         residuum_pos = 0;
                     }
@@ -22110,7 +22099,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                         if (polynome->m_pElementList[0].Type == 0)
                             residuum_pos = 0;
                         else
-                            residuum_pos = polynome->m_NumElements;
+                            residuum_pos = polynome->m_pElementList.size();
                     }
 
                     if (order == 1)
@@ -22119,9 +22108,9 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                     }
                     else if (order)
                     {
-                        polynome->InsertEmptyElement(polynome->m_NumElements, 3, 0);
-                        a = polynome->m_pElementList[polynome->m_NumElements - 1].pElementObject->Expression1;
-                        e = polynome->m_pElementList[polynome->m_NumElements - 1].pElementObject->Expression2;
+                        polynome->InsertEmptyElement(polynome->m_pElementList.size(), 3, 0);
+                        a = polynome->m_pElementList[polynome->m_pElementList.size() - 1].pElementObject->Expression1;
+                        e = polynome->m_pElementList[polynome->m_pElementList.size() - 1].pElementObject->Expression2;
 
                         e->GenerateASCIINumber(order, order, true, 0, 0);
                     }
@@ -22165,7 +22154,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                     else if (fabs(N1 - 1.0) > 1e-100)
                     {
                         int pos;
-                        pos = arg->m_NumElements;
+                        pos = arg->m_pElementList.size();
                         if (arg->m_pElementList[0].Type == 0) pos = 0;
                         residuum_pos += arg->GenerateASCIINumber(N1, (long long)(N1 + (N1 > 0 ? 0.01 : -0.01)),
                                                                  fabs(N1 - (long long)N1) < 1e-100 ? 1 : 0, prec,
@@ -22190,10 +22179,10 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                 {
                                     if (numerator2 == nullptr)
                                     {
-                                        a->InsertEmptyElement(a->m_NumElements, 4, 0);
-                                        numerator2 = a->m_pElementList[a->m_NumElements - 1].pElementObject->
+                                        a->InsertEmptyElement(a->m_pElementList.size(), 4, 0);
+                                        numerator2 = a->m_pElementList[a->m_pElementList.size() - 1].pElementObject->
                                             Expression1;
-                                        denominator2 = a->m_pElementList[a->m_NumElements - 1].pElementObject->
+                                        denominator2 = a->m_pElementList[a->m_pElementList.size() - 1].pElementObject->
                                             Expression2;
                                     }
                                     if (order2 > 0) a2 = numerator2;
@@ -22206,17 +22195,17 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                 if (VarList->Variables[i].summand[j].style & 0x02 && order2 < 0)
                                 {
                                     if (a2->m_pElementList[0].Type == 0) a2->InsertEmptyElement(0, 1, '1');
-                                    a2->InsertEmptyElement(a2->m_NumElements, 2, '/');
+                                    a2->InsertEmptyElement(a2->m_pElementList.size(), 2, '/');
                                     order2 = -order2;
                                 }
 
                                 if (VarList->Variables[i].exponent ||
                                     order2 != 1)
                                 {
-                                    a2->InsertEmptyElement(a2->m_NumElements, 3, 0);
-                                    CExpression* aa = a2->m_pElementList[a2->m_NumElements - 1].pElementObject->
+                                    a2->InsertEmptyElement(a2->m_pElementList.size(), 3, 0);
+                                    CExpression* aa = a2->m_pElementList[a2->m_pElementList.size() - 1].pElementObject->
                                         Expression1;
-                                    CExpression* ee = a2->m_pElementList[a2->m_NumElements - 1].pElementObject->
+                                    CExpression* ee = a2->m_pElementList[a2->m_pElementList.size() - 1].pElementObject->
                                         Expression2;
                                     if (VarList->Variables[i].exponent)
                                         ee->CopyExpression(VarList->Variables[i].exponent, 0);
@@ -22228,30 +22217,30 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                         ee->GenerateASCIINumber(order2, order2, true, 0, pp);
                                     for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                                         aa->InsertElement(
-                                            *(&VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos
+                                            (VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos
                                                 +
-                                                kk]), aa->m_NumElements);
+                                                kk]), aa->m_pElementList.size());
                                 }
                                 else if (VarList->Variables[i].variable->FindLowestOperatorLevel(
                                     VarList->Variables[i].pos,
                                     VarList->Variables[i].pos + VarList->Variables[i].len - 1, (char)0xD7) < MulLevel)
                                 {
-                                    a2->InsertEmptyElement(a2->m_NumElements, 5, '(');
-                                    CExpression* tmp = a2->m_pElementList[a2->m_NumElements - 1].
+                                    a2->InsertEmptyElement(a2->m_pElementList.size(), 5, '(');
+                                    CExpression* tmp = a2->m_pElementList[a2->m_pElementList.size() - 1].
                                                        pElementObject->Expression1;
                                     for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                                         tmp->InsertElement(
-                                            *(&VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos
+                                            (VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos
                                                 +
-                                                kk]), tmp->m_NumElements);
+                                                kk]), tmp->m_pElementList.size());
                                 }
                                 else
                                 {
                                     for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                                         a2->InsertElement(
-                                            *(&VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos
+                                            (VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos
                                                 +
-                                                kk]), a2->m_NumElements);
+                                                kk]), a2->m_pElementList.size());
                                 }
                             }
                         }
@@ -22280,7 +22269,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                     order2 = -order2;
                                 }
 
-                                xresiduum_pos = arg2->m_NumElements;
+                                xresiduum_pos = arg2->m_pElementList.size();
                                 if (arg2->m_pElementList[0].Type == 0) xresiduum_pos = 0;
                                 copyback = 0;
                             }
@@ -22308,7 +22297,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                 for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                                     aa->InsertElement(
                                         VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos + kk],
-                                        aa->m_NumElements);
+                                        aa->m_pElementList.size());
                             }
                             else if (VarList->Variables[i].variable->FindLowestOperatorLevel(
                                 VarList->Variables[i].pos, VarList->Variables[i].pos + VarList->Variables[i].len - 1,
@@ -22320,7 +22309,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                                 for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                                     tmp->InsertElement(
                                         VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos + kk],
-                                        tmp->m_NumElements);
+                                        tmp->m_pElementList.size());
                             }
                             else
                             {
@@ -22354,7 +22343,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
         for (int kk = 0; kk < VarList->Variables[var_order].len; kk++)
             variable->InsertElement(
                 VarList->Variables[var_order].variable->m_pElementList[VarList->Variables[var_order].pos + kk],
-                variable->m_NumElements);
+                variable->m_pElementList.size());
     }
 
     //copy the bult polynome int this variable
@@ -22404,7 +22393,7 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
     while (true)
     {
         char et, p;
-        int l = P->GetElementLen(pos, P->m_NumElements - 1, PlusLevel, &et, &p);
+        int l = P->GetElementLen(pos, P->m_pElementList.size() - 1, PlusLevel, &et, &p);
         if (l == 0) goto divide_polynome_exit2;
 
         int fnd = 0;
@@ -22415,15 +22404,15 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
             CExpression* exp = ts.pElementObject->Expression2;
             double N;
             int prec;
-            if (exp->IsPureNumber(0, exp->m_NumElements, &N, &prec) && N > 0 && fabs(N - (long long)N) < 1e-100)
+            if (exp->IsPureNumber(0, exp->m_pElementList.size(), &N, &prec) && N > 0 && fabs(N - (long long)N) < 1e-100)
             {
                 const int ord = (int)(N + 0.01);
-                if (variable->CompareExpressions(0, variable->m_NumElements - 1, arg, 0, arg->m_NumElements - 1))
+                if (variable->CompareExpressions(0, variable->m_pElementList.size() - 1, arg, 0, arg->m_pElementList.size() - 1))
                 {
                     if (factors[ord] == nullptr)
                         factors[ord] = new CExpression(nullptr, nullptr, 100);
                     for (int k = pos + p; k < pos + l - 1; k++)
-                        factors[ord]->InsertElement(P->m_pElementList[k], factors[ord]->m_NumElements);
+                        factors[ord]->InsertElement(P->m_pElementList[k], factors[ord]->m_pElementList.size());
                     if (factors[ord]->m_pElementList[0].Type == 0) factors[ord]->InsertEmptyElement(0, 1, '1');
                     factors_et[ord] = et;
                     if (ord > pnum_factors) pnum_factors = ord;
@@ -22433,14 +22422,14 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         }
         if (!fnd)
         {
-            if (l >= variable->m_NumElements &&
-                variable->CompareExpressions(0, variable->m_NumElements - 1, P, pos + l - variable->m_NumElements,
+            if (l >= variable->m_pElementList.size() &&
+                variable->CompareExpressions(0, variable->m_pElementList.size() - 1, P, pos + l - variable->m_pElementList.size(),
                                              pos + l - 1))
             {
                 if (factors[1] == nullptr)
                     factors[1] = new CExpression(nullptr, nullptr, 100);
-                for (int k = pos + p; k < pos + l - variable->m_NumElements; k++)
-                    factors[1]->InsertElement(P->m_pElementList[k], factors[1]->m_NumElements);
+                for (int k = pos + p; k < pos + l - variable->m_pElementList.size(); k++)
+                    factors[1]->InsertElement(P->m_pElementList[k], factors[1]->m_pElementList.size());
                 if (factors[1]->m_pElementList[0].Type == 0) factors[1]->InsertEmptyElement(0, 1, '1');
                 factors_et[1] = et;
                 if (pnum_factors < 1) pnum_factors = 1;
@@ -22452,13 +22441,13 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
             if (factors[0] == nullptr)
                 factors[0] = new CExpression(nullptr, nullptr, 100);
             for (int k = pos + p; k <= pos + l - 1; k++)
-                factors[0]->InsertElement(P->m_pElementList[k], factors[0]->m_NumElements);
+                factors[0]->InsertElement(P->m_pElementList[k], factors[0]->m_pElementList.size());
             factors_et[0] = et;
             fnd = 1;
         }
 
         pos += l;
-        if (pos >= P->m_NumElements) break;
+        if (pos >= P->m_pElementList.size()) break;
     }
     if (pnum_factors == 0) goto divide_polynome_exit2;
     if (pnum_factors < orderQ) goto divide_polynome_exit2;
@@ -22477,14 +22466,14 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
     int LevelQ = Q->FindLowestOperatorLevel();
     if (LevelQ == -1 || LevelQ > PlusLevel) LevelQ = PlusLevel;
     if (LevelQ < PlusLevel) goto divide_polynome_exit2; //strange error - should not happen
-    const int l2 = Q->GetElementLen(0, Q->m_NumElements - 1, LevelQ, &et2, &p2);
+    const int l2 = Q->GetElementLen(0, Q->m_pElementList.size() - 1, LevelQ, &et2, &p2);
     int l2f = l2 - 1;
     if (orderQ == 1)
     {
-        if (l2 >= variable->m_NumElements &&
-            variable->CompareExpressions(0, variable->m_NumElements - 1, Q, l2 - variable->m_NumElements, l2 - 1))
+        if (l2 >= variable->m_pElementList.size() &&
+            variable->CompareExpressions(0, variable->m_pElementList.size() - 1, Q, l2 - variable->m_pElementList.size(), l2 - 1))
         {
-            l2f = l2 - variable->m_NumElements;
+            l2f = l2 - variable->m_pElementList.size();
         }
     }
 
@@ -22499,34 +22488,34 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         CExpression* denom = tmp->m_pElementList[0].pElementObject->Expression2;
         num->CopyExpression(factors[num_factors], 0);
         for (int kk = p2; kk < l2f; kk++)
-            denom->InsertElement(*(&Q->m_pElementList[kk]), denom->m_NumElements);
+            denom->InsertElement((Q->m_pElementList[kk]), denom->m_pElementList.size());
         if (l2f - p2 == 0)
             denom->InsertEmptyElement(0, 1, '1');
 
 
         int cnt = 0;
-        while (tmp->Compute(0, tmp->m_NumElements - 1, 1) && cnt < 50) cnt++;
+        while (tmp->Compute(0, tmp->m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
 
         //now the 'tmp' holds the multyplying factor
         char et = factors_et[num_factors];
         if (et2 == '-')
         {
-            if (et == '+') result->InsertEmptyElement(result->m_NumElements, 2, et = '-');
-            else if (et == '-') result->InsertEmptyElement(result->m_NumElements, 2, et = '+');
+            if (et == '+') result->InsertEmptyElement(result->m_pElementList.size(), 2, et = '-');
+            else if (et == '-') result->InsertEmptyElement(result->m_pElementList.size(), 2, et = '+');
         }
         if (et2 == '+')
         {
-            if (et == '+') result->InsertEmptyElement(result->m_NumElements, 2, et = '+');
-            else if (et == '-') result->InsertEmptyElement(result->m_NumElements, 2, et = '-');
+            if (et == '+') result->InsertEmptyElement(result->m_pElementList.size(), 2, et = '+');
+            else if (et == '-') result->InsertEmptyElement(result->m_pElementList.size(), 2, et = '-');
         }
-        for (int kk = 0; kk < tmp->m_NumElements; kk++)
-            result->InsertElement(tmp->m_pElementList[kk], result->m_NumElements);
+        for (int kk = 0; kk < tmp->m_pElementList.size(); kk++)
+            result->InsertElement(tmp->m_pElementList[kk], result->m_pElementList.size());
         if (num_factors > orderQ)
         {
-            result->InsertEmptyElement(result->m_NumElements, 3, 0);
-            CExpression* arg = result->m_pElementList[result->m_NumElements - 1].pElementObject->
+            result->InsertEmptyElement(result->m_pElementList.size(), 3, 0);
+            CExpression* arg = result->m_pElementList[result->m_pElementList.size() - 1].pElementObject->
                 Expression1;
-            CExpression* exp = result->m_pElementList[result->m_NumElements - 1].pElementObject->
+            CExpression* exp = result->m_pElementList[result->m_pElementList.size() - 1].pElementObject->
                 Expression2;
             arg->CopyExpression(variable, 0);
             exp->GenerateASCIINumber(num_factors - orderQ, num_factors - orderQ, true, 0, 0);
@@ -22535,13 +22524,13 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
 
         int tmpf = num_factors;
         int pos = l2;
-        if (pos <= Q->m_NumElements - 1)
+        if (pos <= Q->m_pElementList.size() - 1)
             while (true)
             {
                 if (tmpf < 0) goto divide_polynome_exit2; //should never happen
 
                 char et2, p2;
-                int l2 = Q->GetElementLen(pos, Q->m_NumElements - 1, LevelQ, &et2, &p2);
+                int l2 = Q->GetElementLen(pos, Q->m_pElementList.size() - 1, LevelQ, &et2, &p2);
                 if (l2 == 0) break;
 
                 char ee = '+';
@@ -22555,15 +22544,15 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
                     if (et == '+') ee = '-';
                     if (et == '-') ee = '+';
                 }
-                factors[tmpf]->InsertEmptyElement(factors[tmpf]->m_NumElements, 2, ee);
+                factors[tmpf]->InsertEmptyElement(factors[tmpf]->m_pElementList.size(), 2, ee);
                 for (int kk = pos + p2; kk < pos + l2; kk++)
-                    factors[tmpf]->InsertElement(*(&Q->m_pElementList[kk]), factors[tmpf]->m_NumElements);
-                for (int kk = 0; kk < tmp->m_NumElements; kk++)
-                    factors[tmpf]->InsertElement(tmp->m_pElementList[kk], factors[tmpf]->m_NumElements);
+                    factors[tmpf]->InsertElement((Q->m_pElementList[kk]), factors[tmpf]->m_pElementList.size());
+                for (int kk = 0; kk < tmp->m_pElementList.size(); kk++)
+                    factors[tmpf]->InsertElement(tmp->m_pElementList[kk], factors[tmpf]->m_pElementList.size());
 
                 tmpf--;
                 pos += l2;
-                if (pos > Q->m_NumElements - 1) break;
+                if (pos > Q->m_pElementList.size() - 1) break;
             }
 
 
@@ -22571,11 +22560,11 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         for (int k = 0; k <= num_factors; k++)
         {
             cnt = 0;
-            while (factors[k]->Compute(0, factors[k]->m_NumElements - 1, 0) && cnt < 50) cnt++;
+            while (factors[k]->Compute(0, factors[k]->m_pElementList.size() - 1, 0) && cnt < 50) cnt++;
 
             double N;
             int prec;
-            if (!factors[k]->IsPureNumber(0, factors[k]->m_NumElements, &N, &prec))
+            if (!factors[k]->IsPureNumber(0, factors[k]->m_pElementList.size(), &N, &prec))
             {
                 all_zero = 0;
             }
@@ -22736,15 +22725,15 @@ int CExpression::RemoveSequence(int Level, int StartPos, int EndPos)
 {
     int sStartPos = StartPos;
     if (StartPos < 0) return 0;
-    if (EndPos >= m_NumElements) return 0;
+    if (EndPos >= m_pElementList.size()) return 0;
     if (EndPos == -1)
     {
         if (Level == 0)
-            EndPos = m_NumElements - 1;
+            EndPos = m_pElementList.size() - 1;
         else
         {
             char p, et;
-            int l = GetElementLen(StartPos, m_NumElements - 1, Level, &et, &p);
+            int l = GetElementLen(StartPos, m_pElementList.size() - 1, Level, &et, &p);
             EndPos = StartPos + l - 1;
         }
     }
@@ -22795,11 +22784,11 @@ int CExpression::RemoveSequence(int Level, int StartPos, int EndPos)
 
     //if the expression is left empty (or only with one + or - opertor
     if (m_pElementList[0].Type == 0 ||
-        (m_pElementList[0].Type == 2 && m_NumElements == 1 &&
+        (m_pElementList[0].Type == 2 && m_pElementList.size() == 1 &&
             GetOperatorLevel(m_pElementList[0].pElementObject->Data1[0]) == PlusLevel))
     {
-        if (Level == PlusLevel) InsertEmptyElement(m_NumElements, 1, '0');
-        if (Level == MulLevel) InsertEmptyElement(m_NumElements, 1, '1');
+        if (Level == PlusLevel) InsertEmptyElement(m_pElementList.size(), 1, '0');
+        if (Level == MulLevel) InsertEmptyElement(m_pElementList.size(), 1, '1');
     }
 
     return sStartPos - StartPos;
@@ -22815,13 +22804,13 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
 
     if (StartPos < 0) return 0;
     if (Source == nullptr) return 0;
-    if (Position > m_NumElements) Position = m_NumElements;
+    if (Position > m_pElementList.size()) Position = m_pElementList.size();
     if (Position < 0) Position = 0;
     if (Position && m_pElementList[Position - 1].Type == 0) Position--;
     if (EndPos == -1)
     {
         char et, p;
-        EndPos = StartPos + Source->GetElementLen(StartPos, Source->m_NumElements - 1, Level, &et, &p) - 1;
+        EndPos = StartPos + Source->GetElementLen(StartPos, Source->m_pElementList.size() - 1, Level, &et, &p) - 1;
     }
     if (EndPos < StartPos) return 0;
 
@@ -22834,7 +22823,7 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
         {
             while (Position >= 0)
             {
-                if (Position == m_NumElements) break;
+                if (Position == m_pElementList.size()) break;
                 if (m_pElementList[Position].Type == 12) break;
                 if (m_pElementList[Position].Type == 11) break;
                 Position--;
@@ -22874,7 +22863,7 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
                 }
 
 
-                if (Position < m_NumElements)
+                if (Position < m_pElementList.size())
                 {
                     if (m_pElementList[Position].Type == 12) break;
                     else if (m_pElementList[Position].Type == 11) break;
@@ -22893,7 +22882,7 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
                     }
                 }
 
-                if (Position == m_NumElements) break;
+                if (Position == m_pElementList.size()) break;
 
                 Position--;
                 armed = 1;
@@ -22945,7 +22934,7 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
             Source->m_pElementList[StartPos].pElementObject->Data1[0]) == PlusLevel))
     {
         char pt = '(';
-        if (StartPos == 0 && EndPos == Source->m_NumElements - 1 && Source->m_ParenthesesFlags &&
+        if (StartPos == 0 && EndPos == Source->m_pElementList.size() - 1 && Source->m_ParenthesesFlags &&
             Source->m_ParentheseShape)
             pt = Source->m_ParentheseShape;
         if (element_type != (char)0xD7)
@@ -22957,7 +22946,7 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
         InsertEmptyElement(Position++, 5, pt);
         CExpression* tmp = m_pElementList[Position - 1].pElementObject->Expression1;
         for (int kk = StartPos; kk <= EndPos; kk++)
-            tmp->InsertElement(*(&Source->m_pElementList[kk]), tmp->m_NumElements);
+            tmp->InsertElement((Source->m_pElementList[kk]), tmp->m_pElementList.size());
     }
     else
     {
@@ -23009,7 +22998,7 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
             is_first = 0;
 
             for (int kk = pos + p; kk < pos + l; kk++)
-                InsertElement(*(&Source->m_pElementList[kk]), Position++);
+                InsertElement((Source->m_pElementList[kk]), Position++);
 
             pos += l;
             if (pos > EndPos) break;
@@ -23072,17 +23061,17 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
         CExpression* tmp1 = *(CExpression**)&firstElement1->pElementObject->Data3[0];
         if (tmp1)
         {
-            int rval = tmp1->StrikeoutCommonFactors(0, tmp1->m_NumElements - 1, inv, Other, StartPos2, EndPos2, inv2,
+            int rval = tmp1->StrikeoutCommonFactors(0, tmp1->m_pElementList.size() - 1, inv, Other, StartPos2, EndPos2, inv2,
                                                     PureFactors, UseDeepCalculation);
             bool all_pures = true;
             int kk;
-            for (kk = 0; kk < tmp1->m_NumElements; kk++)
+            for (kk = 0; kk < tmp1->m_pElementList.size(); kk++)
             {
                 tElementStruct& ts = tmp1->m_pElementList[kk];
                 if ((ts.IsSelected & 0x40) == 0) break;
                 if ((ts.IsSelected & 0x20) == 0) all_pures = false;
             }
-            if (kk == tmp1->m_NumElements)
+            if (kk == tmp1->m_pElementList.size())
             {
                 for (int kk = StartPos; kk <= EndPos; kk++, firstElement1++)
                     firstElement1->IsSelected |= 0x40 | (all_pures ? 0x20 : 0x00);
@@ -23097,17 +23086,17 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
         CExpression* tmp1 = *(CExpression**)&firstElement2->pElementObject->Data3[0];
         if (tmp1)
         {
-            int rval = StrikeoutCommonFactors(StartPos, EndPos, inv, tmp1, 0, tmp1->m_NumElements - 1, inv2,
+            int rval = StrikeoutCommonFactors(StartPos, EndPos, inv, tmp1, 0, tmp1->m_pElementList.size() - 1, inv2,
                                               PureFactors, UseDeepCalculation);
             bool all_pures = true;
             int kk;
-            for (kk = 0; kk < tmp1->m_NumElements; kk++)
+            for (kk = 0; kk < tmp1->m_pElementList.size(); kk++)
             {
                 tElementStruct& ts = tmp1->m_pElementList[kk];
                 if ((ts.IsSelected & 0x40) == 0) break;
                 if ((ts.IsSelected & 0x20) == 0) all_pures = false;
             }
-            if (kk == tmp1->m_NumElements)
+            if (kk == tmp1->m_pElementList.size())
             {
                 for (int kk = StartPos2; kk <= EndPos2; kk++, firstElement2++)
                     firstElement2->IsSelected |= 0x40 | (all_pures ? 0x20 : 0x00);
@@ -23127,15 +23116,15 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
         if (Level == PlusLevel && (firstElement1->IsSelected & 0x44) == 0)
         {
             //try to factorize frist expression
-            if (StartPos > 0 || EndPos < m_NumElements - 1 || (m_IsComputed & 0x00800000) == 0)
+            if (StartPos > 0 || EndPos < m_pElementList.size() - 1 || (m_IsComputed & 0x00800000) == 0)
             {
                 CExpression* tmp1 = new CExpression(nullptr, nullptr, 100);
                 tElementStruct* ts = firstElement1;
                 for (int kk = StartPos; kk <= EndPos; kk++, ts++)
-                    tmp1->InsertElement(*ts, tmp1->m_NumElements);
+                    tmp1->InsertElement(*ts, tmp1->m_pElementList.size());
 
                 tmp1->FactorizeExpression();
-                if (StartPos == 0 && EndPos == m_NumElements - 1) m_IsComputed |= 0x00800000;
+                if (StartPos == 0 && EndPos == m_pElementList.size() - 1) m_IsComputed |= 0x00800000;
 
                 Level = tmp1->FindLowestOperatorLevel(0xD7);
                 if (Level > PlusLevel)
@@ -23152,15 +23141,15 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
         if (Level2 == PlusLevel && (firstElement2->IsSelected & 0x44) == 0)
         {
             //try to factorize second expression
-            if (StartPos2 > 0 || EndPos2 < Other->m_NumElements - 1 || (Other->m_IsComputed & 0x00800000) == 0)
+            if (StartPos2 > 0 || EndPos2 < Other->m_pElementList.size() - 1 || (Other->m_IsComputed & 0x00800000) == 0)
             {
                 CExpression* tmp1 = new CExpression(nullptr, nullptr, 100);
                 tElementStruct* ts = firstElement2;
                 for (int kk = StartPos2; kk <= EndPos2; kk++, ts++)
-                    tmp1->InsertElement(*ts, tmp1->m_NumElements);
+                    tmp1->InsertElement(*ts, tmp1->m_pElementList.size());
 
                 tmp1->FactorizeExpression();
-                if (StartPos2 == 0 && EndPos2 == Other->m_NumElements - 1) Other->m_IsComputed |= 0x00800000;
+                if (StartPos2 == 0 && EndPos2 == Other->m_pElementList.size() - 1) Other->m_IsComputed |= 0x00800000;
 
                 Level2 = tmp1->FindLowestOperatorLevel(0xD7);
                 if (Level2 > PlusLevel)
@@ -23181,8 +23170,8 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
             //neither expression can be factorized 
             //we are going to try convert to polynomes and divide
             if (inv == inv2)
-                if (StartPos > 0 || EndPos < m_NumElements - 1 || (m_IsComputed & 0x00800000) != 0 ||
-                    StartPos2 > 0 || EndPos2 < Other->m_NumElements - 1 || (Other->m_IsComputed & 0x00800000) !=
+                if (StartPos > 0 || EndPos < m_pElementList.size() - 1 || (m_IsComputed & 0x00800000) != 0 ||
+                    StartPos2 > 0 || EndPos2 < Other->m_pElementList.size() - 1 || (Other->m_IsComputed & 0x00800000) !=
                     0)
                 {
                     //first we check if both expressions are the same
@@ -23264,18 +23253,18 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                     ts = firstElement1;
 
                     for (int kk = StartPos; kk <= EndPos; kk++, ts++)
-                        first->InsertElement(*ts, first->m_NumElements);
+                        first->InsertElement(*ts, first->m_pElementList.size());
                     CExpression* second = new CExpression(nullptr, nullptr, 100);
                     ts = firstElement2;
                     for (int kk = StartPos2; kk <= EndPos2; kk++, ts++)
-                        second->InsertElement(*ts, second->m_NumElements);
+                        second->InsertElement(*ts, second->m_pElementList.size());
 
                     char tmpstr[3];
                     tmpstr[0] = ImaginaryUnit;
                     tmpstr[1] = 0;
-                    if (first->ContainsVariable(0, first->m_NumElements - 1, nullptr, 0, 0, tmpstr, 0))
+                    if (first->ContainsVariable(0, first->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, 0))
                         is_first_complex = 1;
-                    if (second->ContainsVariable(0, second->m_NumElements - 1, nullptr, 0, 0, tmpstr, 0))
+                    if (second->ContainsVariable(0, second->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, 0))
                         is_second_complex = 1;
 
                     CExpression* variable = new CExpression(nullptr, nullptr, 100);
@@ -23517,7 +23506,7 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                                     if (first)
                                     {
                                         start1 = 0;
-                                        end1 = first->m_NumElements - 1;
+                                        end1 = first->m_pElementList.size() - 1;
                                     }
                                     else
                                     {
@@ -23528,7 +23517,7 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                                     if (second)
                                     {
                                         start2 = 0;
-                                        end2 = second->m_NumElements - 1;
+                                        end2 = second->m_pElementList.size() - 1;
                                     }
                                     else
                                     {
@@ -23556,22 +23545,22 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                                         if (exp1 && exp2)
                                         {
                                             rval = exp1->StrikeoutCommonFactors(
-                                                0, exp1->m_NumElements - 1, 1, exp2, 0, exp2->m_NumElements - 1, 1,
+                                                0, exp1->m_pElementList.size() - 1, 1, exp2, 0, exp2->m_pElementList.size() - 1, 1,
                                                 &PF);
-                                            exp1->StrikeoutRemove(0, exp1->m_NumElements - 1);
-                                            exp2->StrikeoutRemove(0, exp2->m_NumElements - 1);
+                                            exp1->StrikeoutRemove(0, exp1->m_pElementList.size() - 1);
+                                            exp2->StrikeoutRemove(0, exp2->m_pElementList.size() - 1);
                                         }
                                         else if (exp1)
                                         {
                                             rval = exp1->StrikeoutCommonFactors(
-                                                0, exp1->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-                                            exp1->StrikeoutRemove(0, exp1->m_NumElements - 1);
+                                                0, exp1->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+                                            exp1->StrikeoutRemove(0, exp1->m_pElementList.size() - 1);
                                         }
                                         else if (exp2)
                                         {
                                             rval = exp2->StrikeoutCommonFactors(
-                                                0, exp2->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-                                            exp2->StrikeoutRemove(0, exp2->m_NumElements - 1);
+                                                0, exp2->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+                                            exp2->StrikeoutRemove(0, exp2->m_pElementList.size() - 1);
                                             PF.is_frac2 = PF.is_frac1;
                                             PF.prec2 = PF.prec1;
                                             PF.N3 = PF.N1;
@@ -23675,17 +23664,17 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                         if (firstElement2->Type == 5 && invert == invert2)
                         {
                             CExpression* tmp = firstElement2->pElementObject->Expression1;
-                            StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp, 0, tmp->m_NumElements - 1,
+                            StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp, 0, tmp->m_pElementList.size() - 1,
                                                    invert2, PureFactors, UseDeepCalculation);
                             bool all_pures = true;
                             int kk;
-                            for (kk = 0; kk < tmp->m_NumElements; kk++)
+                            for (kk = 0; kk < tmp->m_pElementList.size(); kk++)
                             {
                                 tElementStruct* ts = &tmp->m_pElementList[kk];
                                 if ((ts->IsSelected & 0x40) == 0) break;
                                 if ((ts->IsSelected & 0x20) == 0) all_pures = false;
                             }
-                            if (kk == tmp->m_NumElements)
+                            if (kk == tmp->m_pElementList.size())
                             {
                                 for (int kk = 0; kk < l2; kk++)
                                     tmp->m_pElementList[pos2 + kk].IsSelected |=
@@ -23697,29 +23686,29 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                             if (PureFactors) PureFactors->is_frac2 = 1;
                             CExpression* tmp = firstElement2->pElementObject->Expression1;
                             CExpression* tmp2 = firstElement2->pElementObject->Expression2;
-                            StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp, 0, tmp->m_NumElements - 1,
+                            StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp, 0, tmp->m_pElementList.size() - 1,
                                                    invert2, PureFactors, UseDeepCalculation);
-                            StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp2, 0, tmp2->m_NumElements - 1,
+                            StrikeoutCommonFactors(pos + p, pos + l - 1, invert, tmp2, 0, tmp2->m_pElementList.size() - 1,
                                                    -invert2, PureFactors, UseDeepCalculation);
 
                             bool all_pures = true;
                             int kk;
-                            for (kk = 0; kk < tmp->m_NumElements; kk++)
+                            for (kk = 0; kk < tmp->m_pElementList.size(); kk++)
                             {
                                 tElementStruct* ts = &tmp->m_pElementList[kk];
                                 if ((ts->IsSelected & 0x40) == 0) break;
                                 if ((ts->IsSelected & 0x20) == 0) all_pures = false;
                             }
-                            if (kk == tmp->m_NumElements)
+                            if (kk == tmp->m_pElementList.size())
                             {
                                 int kk2;
-                                for (kk2 = 0; kk2 < tmp2->m_NumElements; kk2++)
+                                for (kk2 = 0; kk2 < tmp2->m_pElementList.size(); kk2++)
                                 {
                                     tElementStruct& ts = tmp2->m_pElementList[kk2];
                                     if ((ts.IsSelected & 0x40) == 0) break;
                                     if ((ts.IsSelected & 0x20) == 0) all_pures = false;
                                 }
-                                if (kk2 == tmp2->m_NumElements)
+                                if (kk2 == tmp2->m_pElementList.size())
                                 {
                                     for (int kk = 0; kk < l2; kk++)
                                         Other->m_pElementList[pos2 + kk2].IsSelected |=
@@ -23744,18 +23733,18 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                     if (firstElement1->Type == 5 && invert == invert2)
                     {
                         CExpression* tmp = firstElement1->pElementObject->Expression1;
-                        tmp->StrikeoutCommonFactors(0, tmp->m_NumElements - 1, invert, Other, pos2 + p2, pos2 + l2 - 1,
+                        tmp->StrikeoutCommonFactors(0, tmp->m_pElementList.size() - 1, invert, Other, pos2 + p2, pos2 + l2 - 1,
                                                     invert2, PureFactors, UseDeepCalculation);
                         bool all_pures = true;
 
                         int kk;
-                        for (kk = 0; kk < tmp->m_NumElements; kk++)
+                        for (kk = 0; kk < tmp->m_pElementList.size(); kk++)
                         {
                             tElementStruct* ts = &tmp->m_pElementList[kk];
                             if ((ts->IsSelected & 0x40) == 0) break;
                             if ((ts->IsSelected & 0x20) == 0) all_pures = false;
                         }
-                        if (kk == tmp->m_NumElements)
+                        if (kk == tmp->m_pElementList.size())
                         {
                             for (int kk = 0; kk < l; kk++)
                                 m_pElementList[pos + kk].IsSelected |= 0x40 | (all_pures ? 0x20 : 0x00);
@@ -23768,30 +23757,30 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                         CExpression* tmp = firstElement1->pElementObject->Expression1;
                         CExpression* tmp2 = firstElement1->pElementObject->Expression2;
 
-                        tmp->StrikeoutCommonFactors(0, tmp->m_NumElements - 1, invert, Other, pos2 + p2, pos2 + l2 - 1,
+                        tmp->StrikeoutCommonFactors(0, tmp->m_pElementList.size() - 1, invert, Other, pos2 + p2, pos2 + l2 - 1,
                                                     invert2, PureFactors, UseDeepCalculation);
-                        tmp2->StrikeoutCommonFactors(0, tmp2->m_NumElements - 1, -invert, Other, pos2 + p2,
+                        tmp2->StrikeoutCommonFactors(0, tmp2->m_pElementList.size() - 1, -invert, Other, pos2 + p2,
                                                      pos2 + l2 - 1, invert2, PureFactors, UseDeepCalculation);
 
                         bool all_pures = true;
                         int kk;
-                        for (kk = 0; kk < tmp->m_NumElements; kk++)
+                        for (kk = 0; kk < tmp->m_pElementList.size(); kk++)
                         {
                         
                             tElementStruct* ts = &tmp->m_pElementList[kk];
                             if ((ts->IsSelected & 0x40) == 0) break;
                             if ((ts->IsSelected & 0x20) == 0) all_pures = false;
                         }
-                        if (kk == tmp->m_NumElements)
+                        if (kk == tmp->m_pElementList.size())
                         {
                             int kk2;
-                            for (kk2 = 0; kk2 < tmp2->m_NumElements; kk2++)
+                            for (kk2 = 0; kk2 < tmp2->m_pElementList.size(); kk2++)
                             {
                                 tElementStruct& ts = tmp2->m_pElementList[kk2];
                                 if ((ts.IsSelected & 0x40) == 0) break;
                                 if ((ts.IsSelected & 0x20) == 0) all_pures = false;
                             }
-                            if (kk2 == tmp2->m_NumElements)
+                            if (kk2 == tmp2->m_pElementList.size())
                             {
                                 for (int kk = 0; kk < l; kk++)
                                     tmp2->m_pElementList[kk2].IsSelected |= 0x40 | (all_pures ? 0x20 : 0x00);
@@ -23851,9 +23840,9 @@ int CExpression::StrikeoutRemove(int StartPos, int EndPos, char test_value)
     //              3 - only remove factors that are not pure numbers (also delete all strikeout flags)
 
 
-    if (EndPos < 0 || EndPos >= m_NumElements) EndPos = m_NumElements - 1;
+    if (EndPos < 0 || EndPos >= m_pElementList.size()) EndPos = m_pElementList.size() - 1;
     if (StartPos < 0) StartPos = 0;
-    if (StartPos >= m_NumElements)
+    if (StartPos >= m_pElementList.size())
         xreturn(0);
     tElementStruct* theElement = &m_pElementList[StartPos];
 
@@ -23863,15 +23852,15 @@ int CExpression::StrikeoutRemove(int StartPos, int EndPos, char test_value)
         CExpression* tmp1 = *(CExpression**)&theElement->pElementObject->Data3[0];
         if (tmp1)
         {
-            if (tmp1->StrikeoutRemove(0, tmp1->m_NumElements - 1, test_value))
+            if (tmp1->StrikeoutRemove(0, tmp1->m_pElementList.size() - 1, test_value))
                 retval = 1;
             if (test_value == 1 || test_value == 3)
             {
                 for (int kk = StartPos; kk <= EndPos; kk++)
                     DeleteElement(StartPos);
-                for (int kk = 0; kk < tmp1->m_NumElements; kk++)
+                for (int kk = 0; kk < tmp1->m_pElementList.size(); kk++)
                     InsertElement(tmp1->m_pElementList[kk], StartPos + kk);
-                EndPos = StartPos + tmp1->m_NumElements - 1;
+                EndPos = StartPos + tmp1->m_pElementList.size() - 1;
             }
             delete tmp1;
         }
@@ -23902,8 +23891,8 @@ int CExpression::StrikeoutRemove(int StartPos, int EndPos, char test_value)
                 PF.prec1 = PF.prec2 = 0;
                 PF.is_frac1 = PF.is_frac2 = 0;
                 CExpression* exp = theElement->pElementObject->Expression2;
-                exp->StrikeoutCommonFactors(0, exp->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-                exp->StrikeoutRemove(0, exp->m_NumElements - 1, 2);
+                exp->StrikeoutCommonFactors(0, exp->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+                exp->StrikeoutRemove(0, exp->m_pElementList.size() - 1, 2);
                 int pp = 0;
                 if (exp->m_pElementList[0].Type == 2 &&
                     GetOperatorLevel(exp->m_pElementList[0].pElementObject->Data1[0]) == PlusLevel)
@@ -23960,7 +23949,7 @@ int CExpression::StrikeoutRemove(int StartPos, int EndPos, char test_value)
             GetOperatorLevel(m_pElementList[StartPos].pElementObject->Data1[0]) == PlusLevel)
             InsertEmptyElement(StartPos + 1, 1, '1');
 
-        if (StartPos == 0 && m_NumElements == 1 && m_pElementList[0].Type == 0)
+        if (StartPos == 0 && m_pElementList.size() == 1 && m_pElementList[0].Type == 0)
             InsertEmptyElement(0, 1, '1');
     }
 
@@ -23997,7 +23986,7 @@ int CExpression::MakeExpressionBeautiful()
     int retval = 0;
 
     //remove parenthese if the whole expression is inside it: (a+b+c)
-    if (this->m_pPaternalElement == nullptr && this->m_NumElements == 1 && this->m_pElementList[0].Type == 5 &&
+    if (this->m_pPaternalElement == nullptr && this->m_pElementList.size() == 1 && this->m_pElementList[0].Type == 5 &&
         m_pElementList[0].pElementObject->Expression2 == nullptr &&
         m_pElementList[0].pElementObject->Expression1->m_ParentheseShape != 'c' && //not for ceiling
         m_pElementList[0].pElementObject->Expression1->m_ParentheseShape != 'f' && //not for floor
@@ -24005,7 +23994,7 @@ int CExpression::MakeExpressionBeautiful()
     {
         CExpression* arg = m_pElementList[0].pElementObject->Expression1;
         int istable = 0;
-        for (int j = 0; j < arg->m_NumElements; j++)
+        for (int j = 0; j < arg->m_pElementList.size(); j++)
             if (arg->m_pElementList[j].Type > 8)
             {
                 istable = 1;
@@ -24013,25 +24002,25 @@ int CExpression::MakeExpressionBeautiful()
             }
         if (!istable)
         {
-            for (int i = 0; i < arg->m_NumElements; i++)
+            for (int i = 0; i < arg->m_pElementList.size(); i++)
                 InsertElement(arg->m_pElementList[i], i + 1);
             DeleteElement(0);
         }
     }
 
     //if any single element within parentheses, remove the parentheses
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct* ts = &m_pElementList[i];
         if (ts->Type == 5 && ts->pElementObject && ts->pElementObject->Expression2 == nullptr &&
-            ts->pElementObject->Expression1->m_NumElements == 1 &&
+            ts->pElementObject->Expression1->m_pElementList.size() == 1 &&
             ts->pElementObject->Expression1->m_ParentheseShape != 'c' && //not for ceiling
             ts->pElementObject->Expression1->m_ParentheseShape != 'f' && //not for floor
             (ts->pElementObject->Expression1->m_ParenthesesFlags & 0x1C) == 0)
         {
             CExpression* arg = ts->pElementObject->Expression1;
             int istable = 0;
-            for (int j = 0; j < arg->m_NumElements; j++)
+            for (int j = 0; j < arg->m_pElementList.size(); j++)
                 if (arg->m_pElementList[j].Type > 8)
                 {
                     istable = 1;
@@ -24046,7 +24035,7 @@ int CExpression::MakeExpressionBeautiful()
     }
 
     //move constants at the front
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct* ts = &m_pElementList[i];
 
@@ -24076,10 +24065,10 @@ int CExpression::MakeExpressionBeautiful()
                 continue;
             }
             if (ts->Type == 2 && ts->pElementObject->Data1[0] == '-')
-                if (m_NumElements > i + 1 && (ts + 1)->Type == 1)
+                if (m_pElementList.size() > i + 1 && (ts + 1)->Type == 1)
                 {
                     char et, p;
-                    if (GetElementLen(i, m_NumElements - 1, PlusLevel, &et, &p) == 2)
+                    if (GetElementLen(i, m_pElementList.size() - 1, PlusLevel, &et, &p) == 2)
                     {
                         double N;
                         int prec;
@@ -24098,7 +24087,7 @@ int CExpression::MakeExpressionBeautiful()
         double N;
         int prec;
         if (IsPureNumber(i, 1, &N, &prec))
-            if (i >= m_NumElements - 1 || (ts + 1)->Type != 2 || GetOperatorLevel((ts+1)->pElementObject->Data1[0])
+            if (i >= m_pElementList.size() - 1 || (ts + 1)->Type != 2 || GetOperatorLevel((ts+1)->pElementObject->Data1[0])
                 <= MulLevel)
             {
                 int has_preop = 0;
@@ -24146,7 +24135,7 @@ int CExpression::MakeExpressionBeautiful()
                 else
                 {
                     int j;
-                    for (j = i + 1; j < m_NumElements; j++)
+                    for (j = i + 1; j < m_pElementList.size(); j++)
                     {
                         tElementStruct* ts2 = &m_pElementList[j];
                         if (ts2->Type == 11) { break; }
@@ -24180,7 +24169,7 @@ int CExpression::MakeExpressionBeautiful()
         while (true)
         {
             char et, p;
-            int l = GetElementLen(pos, m_NumElements - 1, lvl, &et, &p);
+            int l = GetElementLen(pos, m_pElementList.size() - 1, lvl, &et, &p);
             if (l == 0) break;
 
             double N;
@@ -24192,19 +24181,19 @@ int CExpression::MakeExpressionBeautiful()
                 retval = 1;
             }
             pos += l;
-            if (pos >= m_NumElements) break;
+            if (pos >= m_pElementList.size()) break;
         }
     }
 
     //check if there is multiplication of a constants with fraction that has constant numerator (like: 2*3/5 )but without multiplication sign in between
     //this is to prevent confustion where the result looks like a mixed fraction
-    for (int i = 0; i < m_NumElements - 1; i++)
+    for (int i = 0; i < m_pElementList.size() - 1; i++)
     {
         tElementStruct* ts1 = &m_pElementList[i];
         tElementStruct* ts2 = &m_pElementList[i + 1];
 
         if (ts1->Type == 1 && ts2->Type == 4 &&
-            (i + 2 == m_NumElements || (ts2 + 1)->Type != 2 || (ts2 + 1)->pElementObject->Data1[0] != '!'))
+            (i + 2 == m_pElementList.size() || (ts2 + 1)->Type != 2 || (ts2 + 1)->pElementObject->Data1[0] != '!'))
         //not a factoriel behind fraction
         {
             double N1, N2;
@@ -24212,14 +24201,14 @@ int CExpression::MakeExpressionBeautiful()
             if (IsPureNumber(i, 1, &N1, &p1)) //only if the first number is an integer
             {
                 CExpression* num = ts2->pElementObject->Expression1;
-                if (num->m_NumElements >= 1 && num->m_NumElements <= 2 && num->m_pElementList[0].Type >= 1 && num->
-                    m_pElementList[0].Type <= 2 && num->IsPureNumber(0, num->m_NumElements, &N2, &p2))
+                if (num->m_pElementList.size() >= 1 && num->m_pElementList.size() <= 2 && num->m_pElementList[0].Type >= 1 && num->
+                    m_pElementList[0].Type <= 2 && num->IsPureNumber(0, num->m_pElementList.size(), &N2, &p2))
                 {
                     if (fabs(N1 - (int)N1) < 1e-100)
                     {
                         //the first number is an integer so we will multiply and put everything into the numerator
                         N1 = N1 * N2;
-                        int iii = num->m_NumElements;
+                        int iii = num->m_pElementList.size();
                         for (int ii = 0; ii < iii; ii++)
                             num->DeleteElement(0);
 
@@ -24262,7 +24251,7 @@ int CExpression::IsSuitableForComputation(int autocorrect)
     int math_var_counter = 0;
     //if (m_IsText) return 0;
 
-    for (int i = 0; i < m_NumElements; i++)
+    for (size_t i = 0; i < m_pElementList.size(); i++)
     {
         tElementStruct* ts = &m_pElementList[i];
 
@@ -24334,7 +24323,7 @@ int CExpression::IsSuitableForComputation(int autocorrect)
             if (lvl == PlusLevel || lvl == MulLevel)
             {
                 if (PrevOperLevel == lvl) return 0; //not two operators of the plus level nor mul level
-                if (i == m_NumElements - 1) return 0; //should not end with plus level or mul level operator
+                if (i == m_pElementList.size() - 1) return 0; //should not end with plus level or mul level operator
             }
 
             PrevOperLevel = lvl;
@@ -24403,13 +24392,13 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
     if (arg)
     {
         int cnt = 0;
-        while (arg->Compute(0, arg->m_NumElements - 1, ComputationType) && cnt < 50) cnt++;
+        while (arg->Compute(0, arg->m_pElementList.size() - 1, ComputationType) && cnt < 50) cnt++;
         if (cnt) return -1;
     }
     if (base)
     {
         int cnt = 0;
-        while (base->Compute(0, base->m_NumElements - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
+        while (base->Compute(0, base->m_pElementList.size() - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
         if (cnt) return -1;
     }
     //logarithm of pure number
@@ -24420,9 +24409,9 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
         PF.prec1 = 0;
         double NN;
         int pr;
-        int ret = arg->StrikeoutCommonFactors(0, arg->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
-        arg->StrikeoutRemove(0, arg->m_NumElements - 1);
-        //if (arg->IsPureNumber(0,arg->m_NumElements,&NN,&pr))
+        int ret = arg->StrikeoutCommonFactors(0, arg->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
+        arg->StrikeoutRemove(0, arg->m_pElementList.size() - 1);
+        //if (arg->IsPureNumber(0,arg->m_pElementList.size(),&NN,&pr))
         if (ret)
         {
             //logarithm of 1
@@ -24439,7 +24428,7 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
             {
                 double baseN;
                 int base_prec;
-                if (base == nullptr || base->IsPureNumber(0, base->m_NumElements, &baseN, &base_prec))
+                if (base == nullptr || base->IsPureNumber(0, base->m_pElementList.size(), &baseN, &base_prec))
                 {
                     if (base == nullptr && is_log) NN = log10(NN);
                     if (base == nullptr && is_ln) NN = log(NN);
@@ -24466,14 +24455,14 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
     if (ComputationType == 3) return 0;
 
     //make blind compare of logharitm base and argument
-    if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 3)
+    if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 3)
     {
         CExpression* a = arg->m_pElementList[0].pElementObject->Expression1;
         CExpression* e = arg->m_pElementList[0].pElementObject->Expression2;
-        if ((base && base->CompareExpressions(0, base->m_NumElements - 1, a, 0, a->m_NumElements - 1)) ||
-            (is_log && a->m_NumElements == 1 && a->m_pElementList[0].Type == 1 && strcmp(
+        if ((base && base->CompareExpressions(0, base->m_pElementList.size() - 1, a, 0, a->m_pElementList.size() - 1)) ||
+            (is_log && a->m_pElementList.size() == 1 && a->m_pElementList[0].Type == 1 && strcmp(
                 a->m_pElementList[0].pElementObject->Data1, "10") == 0) ||
-            (is_ln && a->m_NumElements == 1 && a->m_pElementList[0].Type == 1 && strcmp(
+            (is_ln && a->m_pElementList.size() == 1 && a->m_pElementList[0].Type == 1 && strcmp(
                 a->m_pElementList[0].pElementObject->Data1, "e") == 0 && (a->m_pElementList[0].pElementObject->
                 Data2[0] & 0xE0) != 0x60))
         {
@@ -24485,10 +24474,10 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
             return 1;
         }
     }
-    if ((base && base->CompareExpressions(0, base->m_NumElements - 1, arg, 0, arg->m_NumElements - 1)) ||
-        (is_log && arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 1 && strcmp(
+    if ((base && base->CompareExpressions(0, base->m_pElementList.size() - 1, arg, 0, arg->m_pElementList.size() - 1)) ||
+        (is_log && arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 1 && strcmp(
             arg->m_pElementList[0].pElementObject->Data1, "10") == 0) ||
-        (is_ln && arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 1 && strcmp(
+        (is_ln && arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 1 && strcmp(
             arg->m_pElementList[0].pElementObject->Data1, "e") == 0 && (arg->m_pElementList[0].pElementObject->
             Data2[0] & 0xE0) != 0x60))
     {
@@ -24505,7 +24494,7 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
         //prepare sturcture that will hold list of all variables in this expression
         tVariableList* VarList;
         int summand_no;
-        VarList = (tVariableList*)arg->GenerateVariableList(0, arg->m_NumElements - 1, &summand_no);
+        VarList = (tVariableList*)arg->GenerateVariableList(0, arg->m_pElementList.size() - 1, &summand_no);
 
         /*VarList=(tVariableList*)HeapAlloc(ProcessHeap,HEAP_ZERO_MEMORY,sizeof(tVariableList));
         for (int i=0;i<MAX_SUMMANDS;i++) VarList->Constants[i].N1=VarList->Constants[i].N2=1.0;
@@ -24516,7 +24505,7 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
 
         //creating the varible list
         ExtractVariablesMode=1;
-        arg->ExtractVariables((has_sign)?1:0,arg->m_NumElements-1,1.0,0,VarList);
+        arg->ExtractVariables((has_sign)?1:0,arg->m_pElementList.size()-1,1.0,0,VarList);
         ExtractVariablesMode=0;*/
 
         CExpression* solution = nullptr;
@@ -24540,10 +24529,10 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
                         double N = VarList->Constants[0].N1 / VarList->Constants[0].N2;
 
                         if (base)
-                            solution->InsertEmptyElement(solution->m_NumElements, 6, 18); //log10
+                            solution->InsertEmptyElement(solution->m_pElementList.size(), 6, 18); //log10
                         else
-                            solution->InsertEmptyElement(solution->m_NumElements, 6, 19); //log
-                        tElementStruct* t = &solution->m_pElementList[solution->m_NumElements - 1];
+                            solution->InsertEmptyElement(solution->m_pElementList.size(), 6, 19); //log
+                        tElementStruct* t = &solution->m_pElementList[solution->m_pElementList.size() - 1];
                         tElementStruct* t2 = &m_pElementList[Position];
 
                         memcpy(t->pElementObject->Data1, t2->pElementObject->Data1, 4);
@@ -24566,7 +24555,7 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
 
                     if (solution->m_pElementList[0].Type || x < 0)
                     {
-                        solution->InsertEmptyElement(solution->m_NumElements, 2, x < 0 ? '-' : '+');
+                        solution->InsertEmptyElement(solution->m_pElementList.size(), 2, x < 0 ? '-' : '+');
                     }
 
                     int anything_added = 0;
@@ -24581,7 +24570,7 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
                             xx *= 10;
                             if (prec > 8) break;
                         }
-                        int pp = solution->m_NumElements;
+                        int pp = solution->m_pElementList.size();
                         if (solution->m_pElementList[0].Type == 0) pp = 0;
                         solution->GenerateASCIINumber(x, (long long)(x + (x > 0 ? 0.01 : -0.01)),
                                                       fabs(x - (long long)x) < 1e-100 ? 1 : 0, prec, pp);
@@ -24590,8 +24579,8 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
 
                     if (VarList->Variables[i].exponent)
                     {
-                        solution->InsertSequence(0xD7, solution->m_NumElements, VarList->Variables[i].exponent, 0,
-                                                 VarList->Variables[i].exponent->m_NumElements - 1);
+                        solution->InsertSequence(0xD7, solution->m_pElementList.size(), VarList->Variables[i].exponent, 0,
+                                                 VarList->Variables[i].exponent->m_pElementList.size() - 1);
                         anything_added = 1;
                     }
 
@@ -24618,17 +24607,17 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
                             add_log = 0;
                     }
 
-                    if (base && base->CompareExpressions(0, base->m_NumElements - 1, var, varpos,
+                    if (base && base->CompareExpressions(0, base->m_pElementList.size() - 1, var, varpos,
                                                          varpos + varlen - 1))
                         add_log = 0;
 
                     if (add_log)
                     {
                         if (base)
-                            solution->InsertEmptyElement(solution->m_NumElements, 6, 18); //log10
+                            solution->InsertEmptyElement(solution->m_pElementList.size(), 6, 18); //log10
                         else
-                            solution->InsertEmptyElement(solution->m_NumElements, 6, 19); //log
-                        tElementStruct* t = &solution->m_pElementList[solution->m_NumElements - 1];
+                            solution->InsertEmptyElement(solution->m_pElementList.size(), 6, 19); //log
+                        tElementStruct* t = &solution->m_pElementList[solution->m_pElementList.size() - 1];
                         const tElementStruct* t2 = &m_pElementList[Position];
 
                         memcpy(t->pElementObject->Data1, t2->pElementObject->Data1, 4);
@@ -24643,11 +24632,11 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
 
                         for (int k = VarList->Variables[i].pos; k < VarList->Variables[i].pos + VarList->Variables[i].
                              len; k++)
-                            a->InsertElement(VarList->Variables[i].variable->m_pElementList[k], a->m_NumElements);
+                            a->InsertElement(VarList->Variables[i].variable->m_pElementList[k], a->m_pElementList.size());
                     }
                     else if (!anything_added)
                     {
-                        solution->InsertEmptyElement(solution->m_NumElements, 1, '1');
+                        solution->InsertEmptyElement(solution->m_pElementList.size(), 1, '1');
                     }
                 }
             }
@@ -24678,9 +24667,9 @@ int CExpression::ContainsVariable(int StartPos, int EndPos, CExpression* variabl
     if (StartPos < 0) return 0;
     if (EndPos < 0) return 0;
     if (EndPos < StartPos) return 0;
-    if (EndPos >= m_NumElements) return 0;
+    if (EndPos >= m_pElementList.size()) return 0;
     if (variable && VarPos < 0) return 0;
-    if (variable && VarPos + VarLen > variable->m_NumElements) return 0;
+    if (variable && VarPos + VarLen > variable->m_pElementList.size()) return 0;
     if (variable && VarLen == 0 && (m_pElementList[0].pElementObject + VarPos)->Data1[0] <= '9') return 0;
 
     for (int i = StartPos; i <= EndPos; i++)
@@ -24720,21 +24709,21 @@ int CExpression::ContainsVariable(int StartPos, int EndPos, CExpression* variabl
         if (ts->pElementObject->Expression1)
         {
             if (ts->pElementObject->Expression1->ContainsVariable(
-                0, ts->pElementObject->Expression1->m_NumElements - 1, variable, VarPos, VarLen,
+                0, ts->pElementObject->Expression1->m_pElementList.size() - 1, variable, VarPos, VarLen,
                 alternative_variable, is_greek))
                 return 1;
         }
         if (ts->pElementObject->Expression2)
         {
             if (ts->pElementObject->Expression2->ContainsVariable(
-                0, ts->pElementObject->Expression2->m_NumElements - 1, variable, VarPos, VarLen,
+                0, ts->pElementObject->Expression2->m_pElementList.size() - 1, variable, VarPos, VarLen,
                 alternative_variable, is_greek))
                 return 1;
         }
         if (ts->pElementObject->Expression3)
         {
             if (ts->pElementObject->Expression3->ContainsVariable(
-                0, ts->pElementObject->Expression3->m_NumElements - 1, variable, VarPos, VarLen,
+                0, ts->pElementObject->Expression3->m_pElementList.size() - 1, variable, VarPos, VarLen,
                 alternative_variable, is_greek))
                 return 1;
         }
@@ -24756,23 +24745,23 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
     //now find the first part of the equation (Start1 ... End1)
     char et, p;
-    int l = GetElementLen(0, m_NumElements - 1, EqLevel, &et, &p);
+    int l = GetElementLen(0, m_pElementList.size() - 1, EqLevel, &et, &p);
     Start1 = p;
     End1 = l - 1;
-    if (End1 >= m_NumElements) return 0;
+    if (End1 >= m_pElementList.size()) return 0;
 
     //find the last part of the equation (Start2 ... End2)
     int pos = l;
     while (true)
     {
-        l = GetElementLen(pos, m_NumElements - 1, EqLevel, &et, &p);
+        l = GetElementLen(pos, m_pElementList.size() - 1, EqLevel, &et, &p);
         if (l == 0) return 0;
 
         Start2 = pos + p;
         End2 = pos + l - 1;
 
         pos += l;
-        if (pos > m_NumElements - 1) break;
+        if (pos > m_pElementList.size() - 1) break;
     }
 
     if (ComputationLevel < 1) ComputationLevel = 1;
@@ -24856,7 +24845,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                         for (int ii = pos + p; ii < pos + l; ii++)
                         {
-                            tmp->InsertElement(m_pElementList[ii], tmp->m_NumElements);
+                            tmp->InsertElement(m_pElementList[ii], tmp->m_pElementList.size());
                         }
                         for (int ii = pos; ii < pos + l; ii++)
                         {
@@ -24867,9 +24856,9 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                         double N;
                         int prec;
-                        if (!tmp->IsPureNumber(0, tmp->m_NumElements, &N, &prec) || fabs(N) > 1e-100)
-                            for (int ii = 0; ii < tmp->m_NumElements; ii++)
-                                InsertElement(tmp->m_pElementList[ii], m_NumElements);
+                        if (!tmp->IsPureNumber(0, tmp->m_pElementList.size(), &N, &prec) || fabs(N) > 1e-100)
+                            for (int ii = 0; ii < tmp->m_pElementList.size(); ii++)
+                                InsertElement(tmp->m_pElementList[ii], m_pElementList.size());
 
                         delete tmp;
                         return 1;
@@ -24902,7 +24891,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                         for (int ii = pos + p; ii < pos + l; ii++)
                         {
-                            tmp->InsertElement(m_pElementList[ii], tmp->m_NumElements);
+                            tmp->InsertElement(m_pElementList[ii], tmp->m_pElementList.size());
                         }
                         for (int ii = pos; ii < pos + l; ii++)
                         {
@@ -24913,8 +24902,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                         double N;
                         int prec;
-                        if (!tmp->IsPureNumber(0, tmp->m_NumElements, &N, &prec) || fabs(N) > 1e-100)
-                            for (int ii = 0; ii < tmp->m_NumElements; ii++)
+                        if (!tmp->IsPureNumber(0, tmp->m_pElementList.size(), &N, &prec) || fabs(N) > 1e-100)
+                            for (int ii = 0; ii < tmp->m_pElementList.size(); ii++)
                                 InsertElement(tmp->m_pElementList[ii], End1 + 1 + ii);
 
                         delete tmp;
@@ -24954,7 +24943,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                             VarList->Variables[i].pos, VarList->Variables[i].pos + VarList->Variables[i].len - 1,
                             variable, VarPos, VarLen) ||
                         (VarList->Variables[i].exponent && VarList->Variables[i].exponent->ContainsVariable(
-                            0, VarList->Variables[i].exponent->m_NumElements - 1, variable, VarPos, VarLen)))
+                            0, VarList->Variables[i].exponent->m_pElementList.size() - 1, variable, VarPos, VarLen)))
                         contains_variable = 1;
                     if (contains_variable && VarList->Variables[i].summand[2].dorder > 0)
                     {
@@ -24979,12 +24968,12 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 if (found_any)
                 {
                     CExpression* tmp = new CExpression(nullptr, nullptr, 100);
-                    tmp->InsertElement(*(&m_pElementList[End1 + 1]), 0);
+                    tmp->InsertElement((m_pElementList[End1 + 1]), 0);
                     tmp->InsertEmptyElement(1, 5, '(');
                     CExpression* a = tmp->m_pElementList[1].pElementObject->Expression1;
 
                     for (int i = Start2; i <= End2; i++)
-                        a->InsertElement(m_pElementList[i], a->m_NumElements);
+                        a->InsertElement(m_pElementList[i], a->m_pElementList.size());
 
                     tmp->SynthetizeExpression(1, VarList, 2);
 
@@ -25022,7 +25011,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
             CExpression* tmp = m_pElementList[Start2].pElementObject->Expression1;
             for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
             {
-                tmp->InsertElement(m_pElementList[Start2 + 1], tmp->m_NumElements);
+                tmp->InsertElement(m_pElementList[Start2 + 1], tmp->m_pElementList.size());
                 DeleteElement(Start2 + 1);
             }
             InsertEmptyElement(Start2, 2, '-');
@@ -25056,8 +25045,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 {
                     CExpression* b = ts->pElementObject->Expression2;
                     CExpression* a = ts->pElementObject->Expression1;
-                    if (a->ContainsVariable(0, a->m_NumElements - 1, variable, VarPos, VarLen) &&
-                        (b == nullptr || !b->ContainsVariable(0, b->m_NumElements - 1, variable, VarPos, VarLen)))
+                    if (a->ContainsVariable(0, a->m_pElementList.size() - 1, variable, VarPos, VarLen) &&
+                        (b == nullptr || !b->ContainsVariable(0, b->m_pElementList.size() - 1, variable, VarPos, VarLen)))
                     {
                         if (ComputationLevel == 3) goto extract_variable_midstep_exit;
 
@@ -25073,10 +25062,10 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                         for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                         {
-                            ee->InsertElement(m_pElementList[Start2 + 1], ee->m_NumElements);
+                            ee->InsertElement(m_pElementList[Start2 + 1], ee->m_pElementList.size());
                             DeleteElement(Start2 + 1);
                         }
-                        for (int ii = 0; ii < a->m_NumElements; ii++)
+                        for (int ii = 0; ii < a->m_pElementList.size(); ii++)
                             InsertElement(a->m_pElementList[ii], Start1 + ii + 1);
                         DeleteElement(Start1);
                         return 1;
@@ -25088,8 +25077,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
             {
                 CExpression* b = ts->pElementObject->Expression2;
                 CExpression* a = ts->pElementObject->Expression1;
-                if (a->ContainsVariable(0, a->m_NumElements - 1, variable, VarPos, VarLen) &&
-                    (b == nullptr || !b->ContainsVariable(0, b->m_NumElements - 1, variable, VarPos, VarLen)))
+                if (a->ContainsVariable(0, a->m_pElementList.size() - 1, variable, VarPos, VarLen) &&
+                    (b == nullptr || !b->ContainsVariable(0, b->m_pElementList.size() - 1, variable, VarPos, VarLen)))
                 {
                     if (ComputationLevel == 3) goto extract_variable_midstep_exit;
 
@@ -25103,10 +25092,10 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                     for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                     {
-                        aa->InsertElement(m_pElementList[Start2 + 1], aa->m_NumElements);
+                        aa->InsertElement(m_pElementList[Start2 + 1], aa->m_pElementList.size());
                         DeleteElement(Start2 + 1);
                     }
-                    for (int ii = 0; ii < a->m_NumElements; ii++)
+                    for (int ii = 0; ii < a->m_pElementList.size(); ii++)
                         InsertElement(a->m_pElementList[ii], Start1 + ii + 1);
                     DeleteElement(Start1);
                     return 1;
@@ -25118,8 +25107,8 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 CExpression* n = ts->pElementObject->Expression1;
 
                 //variable is in denominator
-                if (d->ContainsVariable(0, d->m_NumElements - 1, variable, VarPos, VarLen) &&
-                    !n->ContainsVariable(0, n->m_NumElements - 1, variable, VarPos, VarLen))
+                if (d->ContainsVariable(0, d->m_pElementList.size() - 1, variable, VarPos, VarLen) &&
+                    !n->ContainsVariable(0, n->m_pElementList.size() - 1, variable, VarPos, VarLen))
                 {
                     if (ComputationLevel == 3) goto extract_variable_midstep_exit;
 
@@ -25129,11 +25118,11 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                     for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                     {
-                        dd->InsertElement(m_pElementList[Start2 + 1], dd->m_NumElements);
+                        dd->InsertElement(m_pElementList[Start2 + 1], dd->m_pElementList.size());
                         DeleteElement(Start2 + 1);
                     }
                     nn->CopyExpression(n, 0);
-                    for (int ii = 0; ii < d->m_NumElements; ii++)
+                    for (int ii = 0; ii < d->m_pElementList.size(); ii++)
                         InsertElement(d->m_pElementList[ii], Start1 + ii + 1);
                     DeleteElement(Start1);
                     return 1;
@@ -25145,16 +25134,16 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 CExpression* e = ts->pElementObject->Expression2;
                 CExpression* a = ts->pElementObject->Expression1;
 
-                if (e->ContainsVariable(0, a->m_NumElements - 1, variable, VarPos, VarLen))
+                if (e->ContainsVariable(0, a->m_pElementList.size() - 1, variable, VarPos, VarLen))
                 {
                     if (ComputationLevel == 3) goto extract_variable_midstep_exit;
 
                     int p;
                     double N;
                     int type = 18;
-                    if (a->IsPureNumber(0, a->m_NumElements, &N, &p) && fabs(N - 10.0) < 1e-100)
+                    if (a->IsPureNumber(0, a->m_pElementList.size(), &N, &p) && fabs(N - 10.0) < 1e-100)
                         type = 19;
-                    if (a->m_NumElements == 1 && a->m_pElementList[0].Type == 1 &&
+                    if (a->m_pElementList.size() == 1 && a->m_pElementList[0].Type == 1 &&
                         strcmp(a->m_pElementList[0].pElementObject->Data1, "e") == 0 &&
                         (a->m_pElementList[0].pElementObject->Data2[0] & 0xE0) != 0x60)
                         type = 17;
@@ -25163,7 +25152,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                     CExpression* tmp = m_pElementList[Start2].pElementObject->Expression1;
                     for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                     {
-                        tmp->InsertElement(m_pElementList[Start2 + 1], tmp->m_NumElements);
+                        tmp->InsertElement(m_pElementList[Start2 + 1], tmp->m_pElementList.size());
                         DeleteElement(Start2 + 1);
                     }
                     if (type == 18)
@@ -25180,13 +25169,13 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                     tmp = m_pElementList[Start1].pElementObject->Expression1;
                     for (int ii = Start1 + 1; ii <= End1 + 1; ii++)
                     {
-                        tmp->InsertElement(*(&m_pElementList[Start1 + 1]), tmp->m_NumElements);
+                        tmp->InsertElement((m_pElementList[Start1 + 1]), tmp->m_pElementList.size());
                         DeleteElement(Start1 + 1);
                     }
 
                     return 1;
                 }
-                if (a->ContainsVariable(0, a->m_NumElements - 1, variable, VarPos, VarLen))
+                if (a->ContainsVariable(0, a->m_pElementList.size() - 1, variable, VarPos, VarLen))
                 {
                     //if exponent is negative ( a^(-b) )
                     if (e->FindLowestOperatorLevel(0xD7) == MulLevel)
@@ -25202,7 +25191,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                             n->InsertEmptyElement(0, 1, '1');
                             for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                             {
-                                d->InsertElement(m_pElementList[Start2 + 1], d->m_NumElements);
+                                d->InsertElement(m_pElementList[Start2 + 1], d->m_pElementList.size());
                                 DeleteElement(Start2 + 1);
                             }
                             return 1;
@@ -25211,7 +25200,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                     int p;
                     double N;
-                    if (e->IsPureNumber(0, e->m_NumElements, &N, &p) && N > 0 &&
+                    if (e->IsPureNumber(0, e->m_pElementList.size(), &N, &p) && N > 0 &&
                         fabs(N - (long long)N) < 1e-100)
                     {
                         if (ComputationLevel == 3) goto extract_variable_midstep_exit;
@@ -25227,10 +25216,10 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                         CExpression* t = m_pElementList[Start2].pElementObject->Expression1;
                         for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                         {
-                            t->InsertElement(m_pElementList[Start2 + 1], t->m_NumElements);
+                            t->InsertElement(m_pElementList[Start2 + 1], t->m_pElementList.size());
                             DeleteElement(Start2 + 1);
                         }
-                        for (int ii = 0; ii < a->m_NumElements; ii++)
+                        for (int ii = 0; ii < a->m_pElementList.size(); ii++)
                             InsertElement(a->m_pElementList[ii], Start1 + ii + 1);
                         DeleteElement(Start1);
                         return 1;
@@ -25250,10 +25239,10 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                         for (int ii = Start2 + 1; ii <= End2 + 1; ii++)
                         {
-                            aa->InsertElement(m_pElementList[Start2 + 1], aa->m_NumElements);
+                            aa->InsertElement(m_pElementList[Start2 + 1], aa->m_pElementList.size());
                             DeleteElement(Start2 + 1);
                         }
-                        for (int ii = 0; ii < a->m_NumElements; ii++)
+                        for (int ii = 0; ii < a->m_pElementList.size(); ii++)
                             InsertElement(a->m_pElementList[ii], Start1 + ii + 1);
                         DeleteElement(Start1);
                         return 1;
@@ -25269,7 +25258,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
             {
                 CExpression* tmp = new CExpression(nullptr, nullptr, 100);
                 for (int ii = Start1; ii <= End1; ii++)
-                    tmp->InsertElement(m_pElementList[ii], tmp->m_NumElements);
+                    tmp->InsertElement(m_pElementList[ii], tmp->m_pElementList.size());
 
 
                 int was_done = 0;
@@ -25281,7 +25270,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 if (!was_done)
                 {
                     int cnt = 0;
-                    while (tmp->Compute(0, tmp->m_NumElements - 1, 1) && cnt < 50) cnt++;
+                    while (tmp->Compute(0, tmp->m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
                     if (tmp->FindLowestOperatorLevel(0xD7) >= MulLevel)
                     {
                         was_done = 2;
@@ -25293,7 +25282,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                     //now we will check if any of the multiplication factors doesn't contain the variable
                     int summand_no;
                     tVariableList* VarList = (tVariableList*)tmp->GenerateVariableList(
-                        0, tmp->m_NumElements - 1, &summand_no);
+                        0, tmp->m_pElementList.size() - 1, &summand_no);
                     if (VarList /*&& (was_done==2)*/) //removed 08.09.2010.
                     {
                         int kkk = 0;
@@ -25312,7 +25301,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                             tmp->FreeVariableList(VarList);
                             for (int ii = Start1; ii <= End1; ii++) DeleteElement(0);
 
-                            for (int ii = 0; ii < tmp->m_NumElements; ii++)
+                            for (int ii = 0; ii < tmp->m_pElementList.size(); ii++)
                                 InsertElement(tmp->m_pElementList[ii], Start1 + ii);
                             delete tmp;
                             return 2;
@@ -25335,11 +25324,11 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
                     if (ContainsVariable(pos + p, pos + l - 1, variable, VarPos, VarLen))
                     {
-                        int prev = m_NumElements;
+                        int prev = m_pElementList.size();
                         if (Compute(pos + p, pos + l - 1, 0))
                         {
                             //change sign if needed
-                            l += m_NumElements - prev;
+                            l += m_pElementList.size() - prev;
                             if (et == '-')
                                 for (int ii = pos + p; ii < pos + l; ii++)
                                     if (m_pElementList[ii].Type == 2)
@@ -25364,7 +25353,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 
 
         int cnt = 0;
-        while (Compute(Start2, m_NumElements - 1, 3) && cnt < 50) cnt++;
+        while (Compute(Start2, m_pElementList.size() - 1, 3) && cnt < 50) cnt++;
         if (m_pElementList[Start2].Type == 2 && m_pElementList[Start2].pElementObject->Data1[0] == '+')
         {
             DeleteElement(Start2);
@@ -25377,7 +25366,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
 extract_variable_midstep_exit:
 
     int cnt = 0;
-    while (Compute(Start2, m_NumElements - 1, 3) && cnt < 50) cnt++;
+    while (Compute(Start2, m_pElementList.size() - 1, 3) && cnt < 50) cnt++;
     if (m_pElementList[Start2].Type == 2 && m_pElementList[Start2].pElementObject->Data1[0] == '+')
     {
         DeleteElement(Start2);
@@ -25485,7 +25474,7 @@ int CExpression::SynthetizeExpression(int Position, void* VList, int summand_no)
                 CExpression* ee = dest->m_pElementList[*destpos - 1].pElementObject->Expression2;
                 for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                     aa->InsertElement(VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos + kk],
-                                      aa->m_NumElements);
+                                      aa->m_pElementList.size());
                 if (VarList->Variables[i].exponent)
                     ee->CopyExpression(VarList->Variables[i].exponent, 0);
                 if (fabs(ord - 1.0) > 1e-100)
@@ -25513,7 +25502,7 @@ int CExpression::SynthetizeExpression(int Position, void* VList, int summand_no)
                     for (int kk = 0; kk < VarList->Variables[i].len; kk++)
                         aa->InsertElement(
                             VarList->Variables[i].variable->m_pElementList[VarList->Variables[i].pos + kk],
-                            aa->m_NumElements);
+                            aa->m_pElementList.size());
                 }
                 else
                     for (int kk = 0; kk < VarList->Variables[i].len; kk++)
@@ -25556,34 +25545,34 @@ int CExpression::ComputeMatrixDeterminant(int ComputationType)
         CExpression* aa = a->m_pElementList[0].pElementObject->Expression1;
 
         int pos = FindMatrixElement(0, 0, 0);
-        while (pos < m_NumElements && m_pElementList[pos].Type < 11)
+        while (pos < m_pElementList.size() && m_pElementList[pos].Type < 11)
         {
-            aa->InsertElement(m_pElementList[pos], aa->m_NumElements);
+            aa->InsertElement(m_pElementList[pos], aa->m_pElementList.size());
             pos++;
         }
         a->InsertEmptyElement(1, 5, '(');
         aa = a->m_pElementList[1].pElementObject->Expression1;
         pos = FindMatrixElement(1, 1, 0);
-        while (pos < m_NumElements && m_pElementList[pos].Type < 11)
+        while (pos < m_pElementList.size() && m_pElementList[pos].Type < 11)
         {
-            aa->InsertElement(m_pElementList[pos], aa->m_NumElements);
+            aa->InsertElement(m_pElementList[pos], aa->m_pElementList.size());
             pos++;
         }
         a->InsertEmptyElement(2, 2, '-');
         a->InsertEmptyElement(3, 5, '(');
         aa = a->m_pElementList[3].pElementObject->Expression1;
         pos = FindMatrixElement(0, 1, 0);
-        while (pos < m_NumElements && m_pElementList[pos].Type < 11)
+        while (pos < m_pElementList.size() && m_pElementList[pos].Type < 11)
         {
-            aa->InsertElement(m_pElementList[pos], aa->m_NumElements);
+            aa->InsertElement(m_pElementList[pos], aa->m_pElementList.size());
             pos++;
         }
         a->InsertEmptyElement(4, 5, '(');
         aa = a->m_pElementList[4].pElementObject->Expression1;
         pos = FindMatrixElement(1, 0, 0);
-        while (pos < m_NumElements && m_pElementList[pos].Type < 11)
+        while (pos < m_pElementList.size() && m_pElementList[pos].Type < 11)
         {
-            aa->InsertElement(m_pElementList[pos], aa->m_NumElements);
+            aa->InsertElement(m_pElementList[pos], aa->m_pElementList.size());
             pos++;
         }
 
@@ -25599,38 +25588,38 @@ int CExpression::ComputeMatrixDeterminant(int ComputationType)
     for (int i = 0; i < rows; i++)
     {
         if (i % 2)
-            a->InsertEmptyElement(a->m_NumElements, 2, '-');
+            a->InsertEmptyElement(a->m_pElementList.size(), 2, '-');
         else if (i)
-            a->InsertEmptyElement(a->m_NumElements, 2, '+');
+            a->InsertEmptyElement(a->m_pElementList.size(), 2, '+');
 
-        a->InsertEmptyElement(a->m_NumElements, 5, '(');
-        CExpression* aa = a->m_pElementList[a->m_NumElements - 1].pElementObject->Expression1;
+        a->InsertEmptyElement(a->m_pElementList.size(), 5, '(');
+        CExpression* aa = a->m_pElementList[a->m_pElementList.size() - 1].pElementObject->Expression1;
         int pos = FindMatrixElement(0, i, 0);
-        while (pos < m_NumElements && m_pElementList[pos].Type < 11)
+        while (pos < m_pElementList.size() && m_pElementList[pos].Type < 11)
         {
-            aa->InsertElement(m_pElementList[pos], aa->m_NumElements);
+            aa->InsertElement(m_pElementList[pos], aa->m_pElementList.size());
             pos++;
         }
 
-        a->InsertEmptyElement(a->m_NumElements, 5, '|');
-        aa = a->m_pElementList[a->m_NumElements - 1].pElementObject->Expression1;
+        a->InsertEmptyElement(a->m_pElementList.size(), 5, '|');
+        aa = a->m_pElementList[a->m_pElementList.size() - 1].pElementObject->Expression1;
         for (int ii = 1; ii < rows; ii++)
         {
             for (int jj = 0; jj < cols; jj++)
             {
                 if (jj != i)
                 {
-                    if (aa->m_pElementList[0].Type && aa->m_pElementList[aa->m_NumElements - 1].Type != 12)
-                        aa->InsertEmptyElement(aa->m_NumElements, 11, 0);
+                    if (aa->m_pElementList[0].Type && aa->m_pElementList[aa->m_pElementList.size() - 1].Type != 12)
+                        aa->InsertEmptyElement(aa->m_pElementList.size(), 11, 0);
                     pos = FindMatrixElement(ii, jj, 0);
-                    while (pos < m_NumElements && m_pElementList[pos].Type < 11)
+                    while (pos < m_pElementList.size() && m_pElementList[pos].Type < 11)
                     {
-                        aa->InsertElement(m_pElementList[pos], aa->m_NumElements);
+                        aa->InsertElement(m_pElementList[pos], aa->m_pElementList.size());
                         pos++;
                     }
                 }
             }
-            if (ii < rows - 1) aa->InsertEmptyElement(aa->m_NumElements, 12, 0);
+            if (ii < rows - 1) aa->InsertEmptyElement(aa->m_pElementList.size(), 12, 0);
         }
     }
 
@@ -25673,20 +25662,20 @@ int CExpression::MatrixInvert(int ComputationType)
         det->ComputeMatrixDeterminant(2);
 
         int cntr = 0;
-        while (det->Compute(0, det->m_NumElements - 1, 2) && cntr < 50) cntr++;
+        while (det->Compute(0, det->m_pElementList.size() - 1, 2) && cntr < 50) cntr++;
 
         CExpression* C = new CExpression(nullptr, nullptr, 100);
 
         for (int i = 0; i < rows; i++)
         {
-            if (i != 0) C->InsertEmptyElement(C->m_NumElements, 12, 0);
+            if (i != 0) C->InsertEmptyElement(C->m_pElementList.size(), 12, 0);
             for (int j = 0; j < columns; j++)
             {
-                if (j != 0) C->InsertEmptyElement(C->m_NumElements, 11, 0);
-                if ((i + j) % 2) C->InsertEmptyElement(C->m_NumElements, 2, '-');
-                C->InsertEmptyElement(C->m_NumElements, 4, 0);
-                CExpression* n = C->m_pElementList[C->m_NumElements - 1].pElementObject->Expression1;
-                CExpression* d = C->m_pElementList[C->m_NumElements - 1].pElementObject->Expression2;
+                if (j != 0) C->InsertEmptyElement(C->m_pElementList.size(), 11, 0);
+                if ((i + j) % 2) C->InsertEmptyElement(C->m_pElementList.size(), 2, '-');
+                C->InsertEmptyElement(C->m_pElementList.size(), 4, 0);
+                CExpression* n = C->m_pElementList[C->m_pElementList.size() - 1].pElementObject->Expression1;
+                CExpression* d = C->m_pElementList[C->m_pElementList.size() - 1].pElementObject->Expression2;
                 n->InsertEmptyElement(0, 5, columns > 2 ? '|' : '(');
                 CExpression* subdet = n->m_pElementList[0].pElementObject->Expression1;
                 d->CopyExpression(det, 0);
@@ -25696,7 +25685,7 @@ int CExpression::MatrixInvert(int ComputationType)
                     {
                         if (!first_row)
                         {
-                            subdet->InsertEmptyElement(subdet->m_NumElements, 12, 0);
+                            subdet->InsertEmptyElement(subdet->m_pElementList.size(), 12, 0);
                             first_row = 0;
                         }
                         int first_col = 1;
@@ -25705,28 +25694,28 @@ int CExpression::MatrixInvert(int ComputationType)
                             {
                                 if (!first_col)
                                 {
-                                    subdet->InsertEmptyElement(subdet->m_NumElements, 11, 0);
+                                    subdet->InsertEmptyElement(subdet->m_pElementList.size(), 11, 0);
                                     first_col = 0;
                                 }
                                 first_col = 0;
                                 first_row = 0;
                                 int pos = this->FindMatrixElement(ii, jj, 0);
                                 char et, p;
-                                int l = this->GetElementLen(pos, this->m_NumElements - 1,GetOperatorLevel((char)0xFF),
+                                int l = this->GetElementLen(pos, this->m_pElementList.size() - 1, GetOperatorLevel((char)0xFF),
                                                             &et, &p);
                                 for (int k = pos; k < pos + l; k++)
-                                    subdet->InsertElement(*(&this->m_pElementList[k]), subdet->m_NumElements);
+                                    subdet->InsertElement((this->m_pElementList[k]), subdet->m_pElementList.size());
                             }
                     }
 
                 cntr = 0;
 
-                while (n->Compute(0, n->m_NumElements - 1, 2) && cntr < 50) cntr++;
+                while (n->Compute(0, n->m_pElementList.size() - 1, 2) && cntr < 50) cntr++;
             }
         }
 
         cntr = 0;
-        while (C->Compute(0, C->m_NumElements - 1, 2) && cntr < 50) cntr++;
+        while (C->Compute(0, C->m_pElementList.size() - 1, 2) && cntr < 50) cntr++;
 
 
         int ps = this->m_ParentheseShape;
@@ -25752,7 +25741,7 @@ int CExpression::MatrixInvert(int ComputationType)
     //expand matrix M with diagonal matrix I
     for (int i=0;i<rows;i++)
     {
-        int pos=M->m_NumElements;
+        int pos=M->m_pElementList.size();
         if (i<rows-1) pos=M->FindMatrixElement(i+1,0)-1;
 
         for (int j=0;j<columns;j++)
@@ -25775,7 +25764,7 @@ int CExpression::MatrixInvert(int ComputationType)
 
         char et;
         char p;
-        int len=M->GetElementLen(pos,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+        int len=M->GetElementLen(pos,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
         if (len<=0) goto matrix_invert_end;
 
         int prec;
@@ -25790,7 +25779,7 @@ int CExpression::MatrixInvert(int ComputationType)
             {
                 int pos2=M->FindMatrixElement(ii,i);
                 if (pos2<0) goto matrix_invert_end;
-                int len2=M->GetElementLen(pos2,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+                int len2=M->GetElementLen(pos2,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
                 if (len2<=0) goto matrix_invert_end;
                 if ((!M->IsPureNumber(pos2,len2,&N,&prec)) || (fabs(N)>1e-100))
                     break;
@@ -25802,25 +25791,25 @@ int CExpression::MatrixInvert(int ComputationType)
                 CExpression *tmpb=new CExpression(nullptr,nullptr,100);
 
                 int posa=M->FindMatrixElement(i,0);
-                for (int jj=posa;jj<M->m_NumElements;jj++)
+                for (int jj=posa;jj<M->m_pElementList.size();jj++)
                 {
-                    tmpa->InsertElement((M->m_pElementList+posa),tmpa->m_NumElements);
+                    tmpa->InsertElement((M->m_pElementList+posa),tmpa->m_pElementList.size());
                     M->DeleteElement(posa);
                     if ((M->m_pElementList+posa)->Type==12) break;
                 }
 
                 int posb=M->FindMatrixElement(ii-1,0);
-                for (int jj=posb;jj<M->m_NumElements;jj++)
+                for (int jj=posb;jj<M->m_pElementList.size();jj++)
                 {
-                    tmpb->InsertElement((M->m_pElementList+posb),tmpb->m_NumElements);
+                    tmpb->InsertElement((M->m_pElementList+posb),tmpb->m_pElementList.size());
                     M->DeleteElement(posb);
                     if ((M->m_pElementList+posb)->Type==12) break;
                 }
 
-                for (int jj=0;jj<tmpa->m_NumElements;jj++)
+                for (int jj=0;jj<tmpa->m_pElementList.size();jj++)
                     M->InsertElement(tmpa->m_pElementList+jj,posb++);
 
-                for (int jj=0;jj<tmpb->m_NumElements;jj++)
+                for (int jj=0;jj<tmpb->m_pElementList.size();jj++)
                     M->InsertElement(tmpb->m_pElementList+jj,posa++);
 
                 delete tmpa;
@@ -25837,7 +25826,7 @@ int CExpression::MatrixInvert(int ComputationType)
         pos=M->FindMatrixElement(i,i);
         if (pos<0) goto matrix_invert_end;
 
-        len=M->GetElementLen(pos,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+        len=M->GetElementLen(pos,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
         if (len<=0) goto matrix_invert_end;
 
         if ((!M->IsPureNumber(pos,len,&N,&prec)) || (fabs(N-1.0)>1e-100))
@@ -25848,13 +25837,13 @@ int CExpression::MatrixInvert(int ComputationType)
             CExpression *tmp=new CExpression(nullptr,nullptr,100);
 
             for (int jj=pos;jj<pos+len;jj++)
-                tmp->InsertElement(M->m_pElementList+jj,tmp->m_NumElements);
+                tmp->InsertElement(M->m_pElementList+jj,tmp->m_pElementList.size());
 
             for (int jj=0;jj<columns;jj++)
             {
                 int pos2=M->FindMatrixElement(i,jj);
                 if (pos2<0) goto matrix_invert_end;
-                int len2=M->GetElementLen(pos2,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+                int len2=M->GetElementLen(pos2,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
                 if (len2<=0) goto matrix_invert_end;
 
                 if (jj==i)
@@ -25873,7 +25862,7 @@ int CExpression::MatrixInvert(int ComputationType)
 
                     for (int kk=pos2+1;kk<pos2+1+len2;kk++)
                     {
-                        n->InsertElement((M->m_pElementList+pos2+1),n->m_NumElements);
+                        n->InsertElement((M->m_pElementList+pos2+1),n->m_pElementList.size());
                         M->DeleteElement(pos2+1);
                     }
                     d->CopyExpression(tmp,0);
@@ -25883,7 +25872,7 @@ int CExpression::MatrixInvert(int ComputationType)
                     {
                         cntr++;
                         pos3=M->FindMatrixElement(i,jj);
-                        len3=M->GetElementLen(pos3,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+                        len3=M->GetElementLen(pos3,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
                     } while ((M->Compute(pos3,pos3+len3-1,1)) && (cntr<50));
                 }
             }
@@ -25902,7 +25891,7 @@ int CExpression::MatrixInvert(int ComputationType)
             {
                 int pos2=M->FindMatrixElement(j,i);
                 if (pos2<0) goto matrix_invert_end;
-                int len2=M->GetElementLen(pos2,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+                int len2=M->GetElementLen(pos2,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
                 if (len2<=0) goto matrix_invert_end;
 
                 if ((!M->IsPureNumber(pos2,len2,&N,&prec)) || (fabs(N)>1e-100))
@@ -25912,7 +25901,7 @@ int CExpression::MatrixInvert(int ComputationType)
                     CExpression *a=(CExpression*)(tmp->m_pElementList[0].pElementObject->Expression1);
                     for (int kk=pos2;kk<pos2+len2;kk++)
                     {
-                        a->InsertElement(M->m_pElementList+pos2,a->m_NumElements);
+                        a->InsertElement(M->m_pElementList+pos2,a->m_pElementList.size());
                         M->DeleteElement(pos2);
                     }
                     M->InsertEmptyElement(pos2,1,'0');
@@ -25922,12 +25911,12 @@ int CExpression::MatrixInvert(int ComputationType)
                         tmp->InsertEmptyElement(0,5,'(');
                         a=(CExpression*)(tmp->m_pElementList[0].pElementObject->Expression1);
                         int pos3=M->FindMatrixElement(i,k);
-                        int len3=M->GetElementLen(pos3,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+                        int len3=M->GetElementLen(pos3,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
                         for (int kk=pos3;kk<pos3+len3;kk++)
-                            a->InsertElement(M->m_pElementList+kk,a->m_NumElements);
+                            a->InsertElement(M->m_pElementList+kk,a->m_pElementList.size());
 
                         pos3=M->FindMatrixElement(j,k);
-                        len3=M->GetElementLen(pos3,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+                        len3=M->GetElementLen(pos3,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
                         M->InsertEmptyElement(pos3+len3,2,'-');
                         M->InsertElement(tmp->m_pElementList,pos3+len3+1);
                         M->InsertElement(tmp->m_pElementList+1,pos3+len3+2);
@@ -25938,7 +25927,7 @@ int CExpression::MatrixInvert(int ComputationType)
                         {
                             cntr++;
                             pos3=M->FindMatrixElement(j,k);
-                            len3=M->GetElementLen(pos3,M->m_NumElements-1,GetOperatorLevel((char)0xFF),&et,&p);
+                            len3=M->GetElementLen(pos3,M->m_pElementList.size()-1,GetOperatorLevel((char)0xFF),&et,&p);
                         } while ((M->Compute(pos3,pos3+len3-1,2)) && (cntr<50));
                     
                     }
@@ -25988,12 +25977,12 @@ int CExpression::GetMatrixSize(int* rows, int* columns)
     *columns = 1;
     int retval = 1;
     int first_columns = 0;
-    for (int ii = 0; ii < m_NumElements; ii++)
+    for (int ii = 0; ii < m_pElementList.size(); ii++)
     {
         tElementStruct* ts = &m_pElementList[ii];
         //tElementStruct *ts=m_pElementList+ii;
         if (ts->Type == 11) (*columns)++;
-        if (ts->Type == 12 && ii < m_NumElements - 1)
+        if (ts->Type == 12 && ii < m_pElementList.size() - 1)
         {
             (*rows)++;
             if (first_columns && first_columns != *columns) retval = 0;
@@ -26029,7 +26018,7 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
 
     //calculate parenthese content
     int cntr = 0;
-    while (argument->Compute(0, argument->m_NumElements - 1, ComputationType) && cntr < 50) cntr++;
+    while (argument->Compute(0, argument->m_pElementList.size() - 1, ComputationType) && cntr < 50) cntr++;
     if (cntr > 0) retval = -1;
 
     //for parentheses where single bracket is missing, we are finished
@@ -26111,18 +26100,18 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
         PF.N2 = 1.0;
         PF.is_frac1 = 0;
         PF.prec1 = 0;
-        int ret = argument->StrikeoutCommonFactors(0, argument->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+        int ret = argument->StrikeoutCommonFactors(0, argument->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
 
         if (fabs(PF.N1 - 1.0) > 1e-100 || fabs(PF.N2 - 1.0) > 1e-100)
         {
-            argument->StrikeoutRemove(0, argument->m_NumElements - 1, 2);
+            argument->StrikeoutRemove(0, argument->m_pElementList.size() - 1, 2);
             PF.N1 = fabs(PF.N1);
             PF.N2 = fabs(PF.N2);
             ReduceTwoNumbers(PF.N1, PF.N2);
             this->GenerateASCIIFraction(Position, PF.N1, PF.N2, PF.prec1, PF.is_frac1);
             return 1;
         }
-        argument->StrikeoutRemove(0, argument->m_NumElements - 1);
+        argument->StrikeoutRemove(0, argument->m_pElementList.size() - 1);
         return retval;
     }
 
@@ -26133,7 +26122,7 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
 
         double N = 1.0;
         int p = 0;
-        if (argument->IsPureNumber(0, argument->m_NumElements, &N, &p))
+        if (argument->IsPureNumber(0, argument->m_pElementList.size(), &N, &p))
         {
             if (argument->m_ParentheseShape == 'c')
                 N = ceil(N); //(int)((N>0)?(N+1):(N));
@@ -26154,15 +26143,14 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
             if (argument->m_pElementList[0].Type != 2)
             {
                 CElement* element = m_pElementList[Position].pElementObject;
-                int num_units = argument->m_NumElements;
-                m_NumElements += num_units - 1;
+                int num_units = argument->m_pElementList.size();
                 for (int i=0; i< num_units - 1; i++)
                     m_pElementList.push_back({});
                 
                 memmove(&m_pElementList[Position + num_units - 1],
                         &m_pElementList[Position],
-                        (m_NumElements - Position - num_units + 1) * sizeof(tElementStruct));
-                for (int ii = 0; ii < argument->m_NumElements; ii++)
+                        (m_pElementList.size() - Position - num_units + 1) * sizeof(tElementStruct));
+                for (int ii = 0; ii < argument->m_pElementList.size(); ii++)
                 {
                     if (argument->m_pElementList[ii].pElementObject)
                     {
@@ -26174,16 +26162,15 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
                         if (argument->m_pElementList[ii].pElementObject->Expression3)
                             argument->m_pElementList[ii].pElementObject->Expression3->m_pPaternalExpression = this;
                     }
-                    *(&m_pElementList[ii + Position]) = *(&argument->m_pElementList[ii]);
+                    (m_pElementList[ii + Position]) = argument->m_pElementList[ii];
                 }
-                element->Expression1->m_NumElements = 0; //to suppres deletion of sub-elements
                 delete element;
                 this->m_IsComputed = 0;
                 return 1;
             }
 
         if (InsideLevel > Level ||
-            (InsideLevel == Level && Level >= PlusLevel && (ComputationType != 1 || argument->m_NumElements ==
+            (InsideLevel == Level && Level >= PlusLevel && (ComputationType != 1 || argument->m_pElementList.size() ==
                 1)))
         {
             int pos = 0;
@@ -26191,7 +26178,7 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
             while (true)
             {
                 char et, p;
-                int l = argument->GetElementLen(pos, argument->m_NumElements - 1, InsideLevel, &et, &p);
+                int l = argument->GetElementLen(pos, argument->m_pElementList.size() - 1, InsideLevel, &et, &p);
                 if (l == 0) break;
 
                 if (element_type == 0xD7)
@@ -26226,7 +26213,7 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
 
 
                 pos += l;
-                if (pos > argument->m_NumElements - 1) break;
+                if (pos > argument->m_pElementList.size() - 1) break;
             }
 
             DeleteElement(Position); //delete the parenthese element
@@ -26268,7 +26255,7 @@ int CExpression::GenerateASCIIFraction(int Position, double num, double denom, i
                 (ts->Type != 2 || GetOperatorLevel(ts->pElementObject->Data1[0]) >= MulLevel))
                 level = MulLevel;
         }
-        if (Position < m_NumElements)
+        if (Position < m_pElementList.size())
         {
             tElementStruct& ts = m_pElementList[Position];
             if (ts.Type != 11 && ts.Type != 12 && ts.Type != 0 &&
@@ -26284,9 +26271,9 @@ int CExpression::GenerateASCIIFraction(int Position, double num, double denom, i
             //serch for the last position
             while (true)
             {
-                if (Position >= m_NumElements)
+                if (Position >= m_pElementList.size())
                 {
-                    Position = m_NumElements;
+                    Position = m_pElementList.size();
                     break;
                 }
                 if (this->m_pElementList[Position].Type == 11) break;
@@ -26316,7 +26303,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
 {
     int retval = 0;
     if (Position < 0) return 0;
-    if (Position > m_NumElements - 1) return 0;
+    if (Position > m_pElementList.size() - 1) return 0;
     if (m_pElementList[Position].Type != 6) return 0;
 
     int function_type = 0;
@@ -26335,7 +26322,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
 
     {
         int cnt = 0;
-        while (arg->Compute(0, arg->m_NumElements - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
+        while (arg->Compute(0, arg->m_pElementList.size() - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
         if (cnt) retval = -1;
     }
 
@@ -26346,11 +26333,11 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
         PF.N1 = PF.N2 = 1.0;
         PF.is_frac1 = 0;
         PF.prec1 = 0;
-        arg->StrikeoutCommonFactors(0, arg->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+        arg->StrikeoutCommonFactors(0, arg->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
         if (PF.N1 * PF.N2 < 0)
         {
-            arg->StrikeoutRemove(0, arg->m_NumElements - 1, 2);
-            if (arg->m_NumElements == 1 && arg->m_pElementList[0].Type == 1 && strcmp(
+            arg->StrikeoutRemove(0, arg->m_pElementList.size() - 1, 2);
+            if (arg->m_pElementList.size() == 1 && arg->m_pElementList[0].Type == 1 && strcmp(
                 arg->m_pElementList[0].pElementObject->Data1, "1") == 0)
                 arg->DeleteElement(0); //if the StrikeoutRemove left only '1' then we are deleting it
             arg->GenerateASCIIFraction(0, -PF.N1, PF.N2, PF.prec1, PF.is_frac1);
@@ -26359,13 +26346,13 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
                 InsertEmptyElement(Position, 5, '(');
                 CExpression* a = m_pElementList[Position].pElementObject->Expression1;
                 a->InsertEmptyElement(0, 2, '-');
-                a->InsertElement(*(&m_pElementList[Position + 1]), 1);
+                a->InsertElement((m_pElementList[Position + 1]), 1);
                 DeleteElement(Position + 1);
             }
             return 1;
         }
         else
-            arg->StrikeoutRemove(0, arg->m_NumElements - 1);
+            arg->StrikeoutRemove(0, arg->m_pElementList.size() - 1);
     }
 
     if (lvl >= PlusLevel)
@@ -26381,7 +26368,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
         while (true)
         {
             char et, p;
-            int l = arg->GetElementLen(pos, arg->m_NumElements - 1, PlusLevel, &et, &p);
+            int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, PlusLevel, &et, &p);
             if (l == 0) break;
 
             if (arg->ContainsVariable(pos + p, pos + l - 1, nullptr, 0, 0, "p", 1))
@@ -26398,7 +26385,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
             if (summand_no >= MAX_SUMMANDS) break;
 
             pos += l;
-            if (pos > arg->m_NumElements - 1) break;
+            if (pos > arg->m_pElementList.size() - 1) break;
         }
 
         if (VarList && VarList->NumVariables)
@@ -26579,16 +26566,16 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
                                             n->InsertEmptyElement(0, 2, '-');
                                         if (is_sqrt && up > 1)
                                         {
-                                            n->InsertEmptyElement(n->m_NumElements, 8, 1);
-                                            n->m_pElementList[n->m_NumElements - 1].pElementObject->Expression1
+                                            n->InsertEmptyElement(n->m_pElementList.size(), 8, 1);
+                                            n->m_pElementList[n->m_pElementList.size() - 1].pElementObject->Expression1
                                                 ->InsertEmptyElement(0, 1, '0' + up);
                                         }
                                         else
-                                            n->InsertEmptyElement(n->m_NumElements, 1, '0' + up);
+                                            n->InsertEmptyElement(n->m_pElementList.size(), 1, '0' + up);
                                         if (is_sqrt && up == 1)
                                         {
-                                            d->InsertEmptyElement(d->m_NumElements, 8, 1);
-                                            CExpression* a = d->m_pElementList[n->m_NumElements - 1].
+                                            d->InsertEmptyElement(d->m_pElementList.size(), 8, 1);
+                                            CExpression* a = d->m_pElementList[n->m_pElementList.size() - 1].
                                                              pElementObject->Expression1;
                                             a->InsertEmptyElement(0, 1, '0' + down);
                                         }
@@ -26652,13 +26639,13 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
                                         else
                                         {
                                             if (N1 + N2 < 0)
-                                                arg->InsertEmptyElement(arg->m_NumElements, 2, '-');
+                                                arg->InsertEmptyElement(arg->m_pElementList.size(), 2, '-');
                                             else
-                                                arg->InsertEmptyElement(arg->m_NumElements, 2, '+');
-                                            arg->GenerateASCIIFraction(arg->m_NumElements, fabs(N1), fabs(N2),
+                                                arg->InsertEmptyElement(arg->m_pElementList.size(), 2, '+');
+                                            arg->GenerateASCIIFraction(arg->m_pElementList.size(), fabs(N1), fabs(N2),
                                                                        VarList->Constants[j].prec,
                                                                        fabs(N2 - 1.0) > 0 ? 1 : 0);
-                                            arg->InsertEmptyElement(arg->m_NumElements, 1, 5);
+                                            arg->InsertEmptyElement(arg->m_pElementList.size(), 1, 5);
 
                                             int pos2 = VarList->Constants[j].summand_pos;
                                             arg->RemoveSequence(PlusLevel, pos2);
@@ -26671,7 +26658,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
                                             CExpression* a = m_pElementList[Position].pElementObject
                                                 ->Expression1;
                                             a->InsertEmptyElement(0, 2, '-');
-                                            a->InsertElement(*(&m_pElementList[Position + 1]), 1);
+                                            a->InsertElement((m_pElementList[Position + 1]), 1);
                                             DeleteElement(Position + 1);
                                             retval = 1;
                                             goto computesincos_end;
@@ -26704,7 +26691,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
         PF.N1 = PF.N2 = 1.0;
         PF.is_frac1 = 0;
         PF.prec1 = 0;
-        int rval = arg->StrikeoutCommonFactors(0, arg->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+        int rval = arg->StrikeoutCommonFactors(0, arg->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
         if (rval)
         {
             double N = PF.N1 / PF.N2;
@@ -26783,7 +26770,7 @@ int CExpression::ComputeASinCos(int Position, char element_type, int Computation
 {
     int retval = 0;
     if (Position < 0) return 0;
-    if (Position > m_NumElements - 1) return 0;
+    if (Position > m_pElementList.size() - 1) return 0;
     if (m_pElementList[Position].Type != 6) return 0;
 
     int function_type = 0;
@@ -26801,7 +26788,7 @@ int CExpression::ComputeASinCos(int Position, char element_type, int Computation
 
     {
         int cnt = 0;
-        while (arg->Compute(0, arg->m_NumElements - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
+        while (arg->Compute(0, arg->m_pElementList.size() - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
         if (cnt) retval = -1;
     }
 
@@ -26813,7 +26800,7 @@ int CExpression::ComputeASinCos(int Position, char element_type, int Computation
         PF.N1 = PF.N2 = 1.0;
         PF.is_frac1 = 0;
         PF.prec1 = 0;
-        int rval = arg->StrikeoutCommonFactors(0, arg->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+        int rval = arg->StrikeoutCommonFactors(0, arg->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
         if (rval)
         {
             double N = PF.N1 / PF.N2;
@@ -26879,7 +26866,7 @@ int CExpression::ComputeHSinCos(int Position, char element_type, int Computation
 {
     int retval = 0;
     if (Position < 0) return 0;
-    if (Position > m_NumElements - 1) return 0;
+    if (Position > m_pElementList.size() - 1) return 0;
     if (m_pElementList[Position].Type != 6) return 0;
 
     int function_type = 0;
@@ -26893,7 +26880,7 @@ int CExpression::ComputeHSinCos(int Position, char element_type, int Computation
 
     {
         int cnt = 0;
-        while (arg->Compute(0, arg->m_NumElements - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
+        while (arg->Compute(0, arg->m_pElementList.size() - 1, ComputationType == 10 ? 10 : 0) && cnt < 50) cnt++;
         if (cnt) retval = -1;
     }
 
@@ -26905,7 +26892,7 @@ int CExpression::ComputeHSinCos(int Position, char element_type, int Computation
         PF.N1 = PF.N2 = 1.0;
         PF.is_frac1 = 0;
         PF.prec1 = 0;
-        int rval = arg->StrikeoutCommonFactors(0, arg->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+        int rval = arg->StrikeoutCommonFactors(0, arg->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
         if (rval)
         {
             double N = PF.N1 / PF.N2;
@@ -26973,7 +26960,7 @@ int CExpression::ComputeHSinCos(int Position, char element_type, int Computation
 int CExpression::Derivate(CExpression* variable, int internal_call)
 {
     //if not function of the 'variable' then the derivation is zero
-    if (ContainsVariable(0, m_NumElements - 1, variable, 0, variable->m_NumElements) == 0)
+    if (ContainsVariable(0, m_pElementList.size() - 1, variable, 0, variable->m_pElementList.size()) == 0)
     {
         Delete();
         InsertEmptyElement(0, 1, '0');
@@ -26983,7 +26970,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
     int level = FindLowestOperatorLevel();
     if (level == -1)
     {
-        int pos = 0;
+        size_t pos = 0;
         int minus_sign = 0;
         if (m_pElementList[0].Type == 2 && GetOperatorLevel(m_pElementList[0].pElementObject->Data1[0]) == PlusLevel)
         {
@@ -26991,13 +26978,13 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
             pos = 1;
         }
 
-        if (m_NumElements - pos == 1)
+        if (m_pElementList.size() - pos == 1)
         {
             //single element
 
             tElementStruct* ts = &m_pElementList[pos];
 
-            if (ts->Type == 1 && CompareExpressions(pos, pos, variable, 0, variable->m_NumElements - 1))
+            if (ts->Type == 1 && CompareExpressions(pos, pos, variable, 0, variable->m_pElementList.size() - 1))
             {
                 //derivation of the 'variable' (dx/dx)
                 Delete();
@@ -27010,7 +26997,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                 CExpression* arg = ts->pElementObject->Expression1;
                 CExpression* exp = ts->pElementObject->Expression2;
 
-                if (exp->ContainsVariable(0, exp->m_NumElements - 1, variable, 0, variable->m_NumElements) == 0)
+                if (exp->ContainsVariable(0, exp->m_pElementList.size() - 1, variable, 0, variable->m_pElementList.size()) == 0)
                 {
                     //derivation of exponent f(x)^y
 
@@ -27018,13 +27005,13 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                     CExpression* a2 = m_pElementList[pos].pElementObject->Expression1;
                     a2->CopyExpression(exp, 0);
                     a2->m_ParenthesesFlags = 0x02;
-                    exp->InsertEmptyElement(exp->m_NumElements, 2, '-');
-                    exp->InsertEmptyElement(exp->m_NumElements, 1, '1');
+                    exp->InsertEmptyElement(exp->m_pElementList.size(), 2, '-');
+                    exp->InsertEmptyElement(exp->m_pElementList.size(), 1, '1');
                     CExpression* tmp = new CExpression(nullptr, nullptr, 100);
                     tmp->CopyExpression(arg, 0);
                     tmp->Derivate(variable, 1);
-                    InsertEmptyElement(m_NumElements, 5, '(');
-                    CExpression* a = m_pElementList[m_NumElements - 1].pElementObject->Expression1;
+                    InsertEmptyElement(m_pElementList.size(), 5, '(');
+                    CExpression* a = m_pElementList[m_pElementList.size() - 1].pElementObject->Expression1;
                     a->CopyExpression(tmp, 0);
                     a->m_ParenthesesFlags = 0x02;
                     delete tmp;
@@ -27077,15 +27064,14 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
             if (ts->Type == 5)
             {
                 //derivation of parentheses
-                CExpression* arg = ts->pElementObject->Expression1;
-                arg->Derivate(variable, 1);
+                ts->pElementObject->Expression1->Derivate(variable, 1);
                 return 1;
             }
 
             if (ts->Type == 6)
             {
                 //derivation of function
-                int done = 0;
+                bool done = false;
                 CExpression* arg = ts->pElementObject->Expression1;
                 CExpression* tmp = new CExpression(nullptr, nullptr, 100);
                 tmp->CopyExpression(arg, 0);
@@ -27125,7 +27111,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                         DeleteElement(pos + 1);
 
                         if (is_base_null) delete base;
-                        done = 1;
+                        done = true;
                     }
                     else if (_strnicmp(ts->pElementObject->Data1, "sin", 3) == 0)
                     {
@@ -27134,7 +27120,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                         a1->CopyExpression(arg, 0);
                         a1->m_ParenthesesFlags = 0x02;
                         DeleteElement(pos + 1);
-                        done = 1;
+                        done = true;
                     }
                     else if (_strnicmp(ts->pElementObject->Data1, "cos", 3) == 0)
                     {
@@ -27146,7 +27132,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                         a3->CopyExpression(arg, 0);
                         a3->m_ParenthesesFlags = 0x02;
                         DeleteElement(pos + 1);
-                        done = 1;
+                        done = true;
                     }
                     else if (_strnicmp(ts->pElementObject->Data1, "tg", 2) == 0 ||
                         strnicmp(ts->pElementObject->Data1, "tan", 3) == 0)
@@ -27159,7 +27145,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                         a3->CopyExpression(arg, 0);
                         a3->m_ParenthesesFlags = 0x02;
                         DeleteElement(pos + 1);
-                        done = 1;
+                        done = true;
                     }
                     else if (_strnicmp(ts->pElementObject->Data1, "cot", 3) == 0)
                     {
@@ -27171,7 +27157,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                         a3->CopyExpression(arg, 0);
                         a3->m_ParenthesesFlags = 0x02;
                         DeleteElement(pos + 1);
-                        done = 1;
+                        done = true;
                     }
                 }
                 if (done)
@@ -27191,8 +27177,8 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                 CExpression* base = ts->pElementObject->Expression2;
                 CExpression* arg = ts->pElementObject->Expression1;
 
-                if (base == nullptr || base->ContainsVariable(0, base->m_NumElements - 1, variable, 0,
-                                                              variable->m_NumElements) == 0)
+                if (base == nullptr || base->ContainsVariable(0, base->m_pElementList.size() - 1, variable, 0,
+                                                              variable->m_pElementList.size()) == 0)
                 {
                     int is_base_null = 0;
                     if (base == nullptr)
@@ -27230,8 +27216,8 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                     a4->CopyExpression(arg, 0);
                     a4->m_ParenthesesFlags = 0x02;
                     a5->CopyExpression(base, 0);
-                    a5->InsertEmptyElement(a5->m_NumElements, 2, '-');
-                    a5->InsertEmptyElement(a5->m_NumElements, 1, '1');
+                    a5->InsertEmptyElement(a5->m_pElementList.size(), 2, '-');
+                    a5->InsertEmptyElement(a5->m_pElementList.size(), 1, '1');
 
                     if (is_base_null) delete base;
                     delete tmp;
@@ -27244,13 +27230,13 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
     else if (level == MulLevel)
     {
         char et, p;
-        int l = GetElementLen(0, m_NumElements - 1, MulLevel, &et, &p);
+        int l = GetElementLen(0, m_pElementList.size() - 1, MulLevel, &et, &p);
         CExpression* tmp1 = new CExpression(nullptr, nullptr, 100);
         CExpression* tmp2 = new CExpression(nullptr, nullptr, 100);
         for (int k = 0; k < l; k++)
-            tmp1->InsertElement(m_pElementList[k], tmp1->m_NumElements);
-        for (int k = l; k < m_NumElements; k++)
-            tmp2->InsertElement(m_pElementList[k], tmp2->m_NumElements);
+            tmp1->InsertElement(m_pElementList[k], tmp1->m_pElementList.size());
+        for (int k = l; k < m_pElementList.size(); k++)
+            tmp2->InsertElement(m_pElementList[k], tmp2->m_pElementList.size());
 
         Delete();
         InsertEmptyElement(0, 5, '(');
@@ -27276,7 +27262,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
         a4->CopyExpression(tmp2, 0);
         a4->m_ParenthesesFlags = 0x02;
 
-        int ccc = m_NumElements;
+        int ccc = m_pElementList.size();
         for (int k = 5; k < ccc; k++)
             DeleteElement(5);
 
@@ -27292,25 +27278,25 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
         while (true)
         {
             char et, p;
-            int l = GetElementLen(pos, m_NumElements - 1, level, &et, &p);
+            int l = GetElementLen(pos, m_pElementList.size() - 1, level, &et, &p);
             if (l == 0) break;
 
             CExpression* tmp = new CExpression(nullptr, nullptr, 100);
             for (int k = pos + p; k < pos + l; k++)
-                tmp->InsertElement(m_pElementList[k], tmp->m_NumElements);
+                tmp->InsertElement(m_pElementList[k], tmp->m_pElementList.size());
 
             tmp->Derivate(variable, 1);
             if (p)
-                res->InsertEmptyElement(res->m_NumElements, 2, et);
-            res->InsertEmptyElement(res->m_NumElements, 5, '(');
-            CExpression* a = res->m_pElementList[res->m_NumElements - 1].pElementObject->Expression1;
+                res->InsertEmptyElement(res->m_pElementList.size(), 2, et);
+            res->InsertEmptyElement(res->m_pElementList.size(), 5, '(');
+            CExpression* a = res->m_pElementList[res->m_pElementList.size() - 1].pElementObject->Expression1;
             a->CopyExpression(tmp, 0);
             a->m_ParenthesesFlags = 0x02;
 
             delete tmp;
 
             pos += l;
-            if (pos > m_NumElements - 1) break;
+            if (pos > m_pElementList.size() - 1) break;
         }
 
         CopyExpression(res, 0);
@@ -27325,10 +27311,10 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
     CExpression* d = m_pElementList[0].pElementObject->Expression2;
     CExpression* narg = n->m_pElementList[0].pElementObject->Expression1;
     CExpression* darg = d->m_pElementList[0].pElementObject->Expression1;
-    int ccc = m_NumElements;
-    for (int kk = 1; kk < ccc; kk++)
+    size_t ccc = m_pElementList.size();
+    for (size_t kk = 1; kk < ccc; kk++)
     {
-        narg->InsertElement(m_pElementList[1], narg->m_NumElements);
+        narg->InsertElement(m_pElementList[1], narg->m_pElementList.size());
         DeleteElement(1);
     }
     darg->CopyExpression(variable, 0);
@@ -27371,10 +27357,10 @@ int CExpression::PlotterGetEquationInfo(CExpression** variable, int* position, i
         if (level == EqLevel)
         {
             char et, p;
-            int l = GetElementLen(0, m_NumElements - 1, level, &et, &p);
+            int l = GetElementLen(0, m_pElementList.size() - 1, level, &et, &p);
             if (l == 0) { return 0; }
             if (p == 1) l = 0; //in the case the equation starts with '='  (example:  =x^2)
-            if (l >= m_NumElements - 1) { return 0; }
+            if (l >= m_pElementList.size() - 1) { return 0; }
             *starting_point = l + 1;
             *equation_type = et;
         }
@@ -27387,7 +27373,7 @@ int CExpression::PlotterGetEquationInfo(CExpression** variable, int* position, i
 
     if (variable == nullptr || position == nullptr) { return 1; }
 
-    for (int i = sp; i < m_NumElements; i++)
+    for (int i = sp; i < m_pElementList.size(); i++)
     {
         tElementStruct* ts = &m_pElementList[i];
         if (ts->Type == 1)
@@ -27466,13 +27452,14 @@ void* CExpression::PlotterPrepareVariablePositions(void* VP)
             VarPos->equation_type = type;
         }
 
-        for (int i = starting_point; i < m_NumElements; i++)
+        for (size_t i = starting_point; i < m_pElementList.size(); i++)
         {
             tElementStruct* ts = &m_pElementList[i];
             if (ts->Type == 1)
             {
-                if (ts->pElementObject->Data1[1] == 0 && ts->pElementObject->Data1[0] == 'e' && (ts->pElementObject
-                    ->Data2[0] & 0xE0) != 0x60)
+                if (ts->pElementObject->Data1[1] == 0 &&
+                    ts->pElementObject->Data1[0] == 'e' &&
+                    (ts->pElementObject->Data2[0] & 0xE0) != 0x60)
                 {
                     VarPos->positions[VarPos->NumPositions].position = i;
                     VarPos->positions[VarPos->NumPositions].expr = this;
@@ -27621,8 +27608,8 @@ double CExpression::PlotterCalculateFunctionValue(double X, void* VP) const
             tmp->m_ParenthesesFlags = this->m_ParenthesesFlags;
             tmp->m_ParentheseShape = this->m_ParentheseShape;
         }
-        for (int i = VarPos->starting_point; i < m_NumElements; i++)
-            tmp->InsertElement(this->m_pElementList[i], tmp->m_NumElements);
+        for (size_t i = VarPos->starting_point; i < m_pElementList.size(); i++)
+            tmp->InsertElement(this->m_pElementList[i], tmp->m_pElementList.size());
     }
     catch (...)
     {
@@ -27634,7 +27621,7 @@ double CExpression::PlotterCalculateFunctionValue(double X, void* VP) const
     try
     {
         int cntr = 0;
-        while (tmp->Compute(0, tmp->m_NumElements - 1, 10) && cntr < 50) cntr++;
+        while (tmp->Compute(0, tmp->m_pElementList.size() - 1, 10) && cntr < 50) cntr++;
     }
     catch (...)
     {
@@ -27651,7 +27638,7 @@ double CExpression::PlotterCalculateFunctionValue(double X, void* VP) const
     int rval = 0;
     try
     {
-        rval = tmp->StrikeoutCommonFactors(0, tmp->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF);
+        rval = tmp->StrikeoutCommonFactors(0, tmp->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF);
         delete tmp;
     }
     catch (...)
@@ -27749,16 +27736,16 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
     if (Substitute->FindLowestOperatorLevel() != EqLevel) return 0;
 
     //transform the Substitute into simple equation - delete all medium elements (leave first and last only)
-    int first_end = 0;
-    while (first_end < Substitute->m_NumElements)
+    size_t first_end = 0;
+    while (first_end < Substitute->m_pElementList.size())
     {
         if (Substitute->m_pElementList[first_end].Type == 2 &&
             GetOperatorLevel(Substitute->m_pElementList[first_end].pElementObject->Data1[0]) == EqLevel)
             break;
         first_end++;
     }
-    if (first_end >= Substitute->m_NumElements) { return 0; } //strange error
-    int last_start = Substitute->m_NumElements - 1;
+    if (first_end >= Substitute->m_pElementList.size()) { return 0; } //strange error
+    int last_start = Substitute->m_pElementList.size() - 1;
     while (last_start >= 0)
     {
         if (Substitute->m_pElementList[last_start].Type == 2 &&
@@ -27790,10 +27777,10 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
         tPureFactors PF;
         PF.N1 = PF.N2 = 1.0;
         PF.is_frac1 = PF.prec1 = 0;
-        if (!Variable->StrikeoutCommonFactors(0, Variable->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF))
+        if (!Variable->StrikeoutCommonFactors(0, Variable->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF))
         {
             //we are going to use the variable as defined
-            Variable->StrikeoutRemove(0, Variable->m_NumElements - 1);
+            Variable->StrikeoutRemove(0, Variable->m_pElementList.size() - 1);
             var->CopyExpression(Variable, 0);
         }
         else
@@ -27813,7 +27800,7 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
             delete var;
             return 0;
         } //strange error
-        if (Substitute->FindLowestOperatorLevel(first_end + 1, Substitute->m_NumElements - 1, 0xD7) < PlusLevel)
+        if (Substitute->FindLowestOperatorLevel(first_end + 1, Substitute->m_pElementList.size() - 1, 0xD7) < PlusLevel)
         {
             delete var;
             return 0;
@@ -27823,7 +27810,7 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
         //variable if it is also present in the Base
         int summand_no = 0;
         tVariableList* VarList = (tVariableList*)Substitute->GenerateVariableList(
-            0, Substitute->m_NumElements - 1, &summand_no);
+            0, Substitute->m_pElementList.size() - 1, &summand_no);
         if (VarList == nullptr)
         {
             delete var;
@@ -27835,7 +27822,7 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
         int fnd = 0;
         for (int i = 0; i < VarList->NumVariables; i++)
         {
-            if (this->ContainsVariable(0, this->m_NumElements - 1, VarList->Variables[i].variable,
+            if (this->ContainsVariable(0, this->m_pElementList.size() - 1, VarList->Variables[i].variable,
                                        VarList->Variables[i].pos, VarList->Variables[i].len))
             {
                 founds++;
@@ -27848,7 +27835,7 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
             //we will use it
             for (int i = 0; i < VarList->Variables[fnd].len; i++)
                 var->InsertElement(VarList->Variables[fnd].variable->m_pElementList[VarList->Variables[fnd].pos + i],
-                                   var->m_NumElements);
+                                   var->m_pElementList.size());
         }
 
         //we can now delete the variable list
@@ -27858,8 +27845,8 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
         //of the Substitute equation
         if (var->m_pElementList[0].Type == 0)
         {
-            for (int i = 0; i < first_end; i++)
-                var->InsertElement(Substitute->m_pElementList[i], var->m_NumElements);
+            for (size_t i = 0; i < first_end; i++)
+                var->InsertElement(Substitute->m_pElementList[i], var->m_pElementList.size());
         }
 
         if (var->m_pElementList[0].Type == 0)
@@ -27887,8 +27874,8 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
         {
             if (cnt)
             {
-                ret = Substitute->ExtractVariable(var, 0, var->m_NumElements, ret);
-                if (Substitute->ContainsVariable(0, Substitute->m_NumElements - 1, var, 0, var->m_NumElements) == 0)
+                ret = Substitute->ExtractVariable(var, 0, var->m_pElementList.size(), ret);
+                if (Substitute->ContainsVariable(0, Substitute->m_pElementList.size() - 1, var, 0, var->m_pElementList.size()) == 0)
                 {
                     //an error - variable cannot be extracted
                     delete var;
@@ -27900,8 +27887,8 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
                 //if there are no variables on the right side, try substitution
                 //(otherwise, extract)
                 char et, p;
-                int l = Substitute->GetElementLen(0, Substitute->m_NumElements - 1, EqLevel, &et, &p);
-                if (Substitute->ContainsVariable(l + 1, Substitute->m_NumElements - 1, var, 0, var->m_NumElements))
+                int l = Substitute->GetElementLen(0, Substitute->m_pElementList.size() - 1, EqLevel, &et, &p);
+                if (Substitute->ContainsVariable(l + 1, Substitute->m_pElementList.size() - 1, var, 0, var->m_pElementList.size()))
                 {
                     cnt++;
                     continue;
@@ -27911,14 +27898,14 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
             if (ret == 0 || cnt == 0 || (ret == 4 && prev_ret != ret))
             {
                 char et, p;
-                int l = Substitute->GetElementLen(0, Substitute->m_NumElements - 1, EqLevel, &et, &p);
-                if (l == 0 || l == Substitute->m_NumElements)
+                int l = Substitute->GetElementLen(0, Substitute->m_pElementList.size() - 1, EqLevel, &et, &p);
+                if (l == 0 || l == Substitute->m_pElementList.size())
                 {
                     delete var;
                     return 0;
                 } //strange error
-                int l2 = Substitute->GetElementLen(l + 1, Substitute->m_NumElements - 1, EqLevel, &et, &p);
-                if (l2 == 0 || l2 + l + 1 != Substitute->m_NumElements)
+                int l2 = Substitute->GetElementLen(l + 1, Substitute->m_pElementList.size() - 1, EqLevel, &et, &p);
+                if (l2 == 0 || l2 + l + 1 != Substitute->m_pElementList.size())
                 {
                     delete var;
                     return 0;
@@ -27926,14 +27913,14 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
 
                 CExpression* Find = new CExpression(nullptr, nullptr, 100);
                 for (int i = 0; i < l; i++)
-                    Find->InsertElement(Substitute->m_pElementList[i], Find->m_NumElements);
+                    Find->InsertElement(Substitute->m_pElementList[i], Find->m_pElementList.size());
 
                 CExpression* Replace = new CExpression(nullptr, nullptr, 100);
-                for (int i = l + 1; i < Substitute->m_NumElements; i++)
-                    Replace->InsertElement(Substitute->m_pElementList[i], Replace->m_NumElements);
+                for (size_t i = l + 1; i < Substitute->m_pElementList.size(); i++)
+                    Replace->InsertElement(Substitute->m_pElementList[i], Replace->m_pElementList.size());
 
                 //we will try to find the left part of the Substitute
-                if (this->FindReplace(0, this->m_NumElements - 1, Find, Replace))
+                if (this->FindReplace(0, this->m_pElementList.size() - 1, Find, Replace))
                     retval = 1;
 
                 delete Find;
@@ -28068,9 +28055,9 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     {
                         Replace->InsertEmptyElement(0, 5, '(');
                         CExpression* a = Replace->m_pElementList[0].pElementObject->Expression1;
-                        while (Replace->m_NumElements > 1)
+                        while (Replace->m_pElementList.size() > 1)
                         {
-                            a->InsertElement(Replace->m_pElementList[1], a->m_NumElements);
+                            a->InsertElement(Replace->m_pElementList[1], a->m_pElementList.size());
                             Replace->DeleteElement(1);
                         }
                     }
@@ -28092,17 +28079,17 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
 
             CExpression* tmp = new CExpression(nullptr, nullptr, 100);
             for (int i = pos + p; i < pos + l; i++)
-                tmp->InsertElement(m_pElementList[i], tmp->m_NumElements);
+                tmp->InsertElement(m_pElementList[i], tmp->m_pElementList.size());
 
-            int tt = tmp->FindReplace(0, tmp->m_NumElements - 1, Find, Replace);
+            int tt = tmp->FindReplace(0, tmp->m_pElementList.size() - 1, Find, Replace);
             occr += tt;
             if (tt && Replace)
             {
-                int delta = m_NumElements;
+                int delta = m_pElementList.size();
                 for (int i = pos; i < pos + l; i++)
                     DeleteElement(pos);
-                pos = InsertSequence(et, pos, tmp, 0, tmp->m_NumElements - 1);
-                EndPos += m_NumElements - delta;
+                pos = InsertSequence(et, pos, tmp, 0, tmp->m_pElementList.size() - 1);
+                EndPos += m_pElementList.size() - delta;
                 l = 0;
             }
 
@@ -28124,13 +28111,13 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
         {
             if (ts->pElementObject->Expression1)
                 occr += ts->pElementObject->Expression1->FindReplace(
-                    0, ts->pElementObject->Expression1->m_NumElements - 1, Find, Replace);
+                    0, ts->pElementObject->Expression1->m_pElementList.size() - 1, Find, Replace);
             if (ts->pElementObject->Expression2)
                 occr += ts->pElementObject->Expression2->FindReplace(
-                    0, ts->pElementObject->Expression2->m_NumElements - 1, Find, Replace);
+                    0, ts->pElementObject->Expression2->m_pElementList.size() - 1, Find, Replace);
             if (ts->pElementObject->Expression3)
                 occr += ts->pElementObject->Expression3->FindReplace(
-                    0, ts->pElementObject->Expression3->m_NumElements - 1, Find, Replace);
+                    0, ts->pElementObject->Expression3->m_pElementList.size() - 1, Find, Replace);
         }
     }
 
@@ -28142,7 +28129,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
         {
             //first make markings on Replace variables, beacuse we don't want to
             //make infinite loop by replacing already replaced variables
-            for (int i = 0; i < Replace->m_NumElements; i++)
+            for (int i = 0; i < Replace->m_pElementList.size(); i++)
                 (int&)Replace->m_pElementList[i].Decoration |= 0x40;
 
 
@@ -28169,7 +28156,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                 while (true)
                 {
                     char et2, p2, et3, p3;
-                    int l2 = Find->GetElementLen(pos2, Find->m_NumElements - 1, BaseLvl, &et2, &p2);
+                    int l2 = Find->GetElementLen(pos2, Find->m_pElementList.size() - 1, BaseLvl, &et2, &p2);
                     if (l2 == 0) break;
                     int l3 = GetElementLen(pos3, EndPos, BaseLvl, &et3, &p3);
                     if (l3 == 0) break;
@@ -28209,18 +28196,18 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     if (CompareExpressions(pos3 + p3, pos3 + l3 - 1, Find, pos2 + p2, pos2 + l2 - 1) == 0) break;
 
                     pos2 += l2;
-                    if (pos2 > Find->m_NumElements - 1)
+                    if (pos2 > Find->m_pElementList.size() - 1)
                     {
                         if (Replace)
                         {
-                            int delta = m_NumElements;
+                            int delta = m_pElementList.size();
                             for (int i = pos; i < pos3 + l3; i++)
                                 DeleteElement(pos);
                             char ett = et;
                             if (BaseLvl == MulLevel) ett = inverted ? '/' : 0xD7;
                             if (BaseLvl == PlusLevel) ett = inverted ? '-' : '+';
-                            pos = InsertSequence(ett, pos, Replace, 0, Replace->m_NumElements - 1);
-                            delta = m_NumElements - delta;
+                            pos = InsertSequence(ett, pos, Replace, 0, Replace->m_pElementList.size() - 1);
+                            delta = m_pElementList.size() - delta;
                             EndPos += delta;
                             l = 0;
                         }
@@ -28242,13 +28229,13 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
             fnd->CopyExpression(Find, 0);
             CExpression* base = new CExpression(nullptr, nullptr, 100);
             for (int i = StartPos; i <= EndPos; i++)
-                base->InsertElement(m_pElementList[i], base->m_NumElements);
+                base->InsertElement(m_pElementList[i], base->m_pElementList.size());
 
             int cnt = 0;
-            while (base->Compute(0, base->m_NumElements - 1, 0) && cnt < 50) cnt++;
+            while (base->Compute(0, base->m_pElementList.size() - 1, 0) && cnt < 50) cnt++;
 
             cnt = 0;
-            while (fnd->Compute(0, fnd->m_NumElements - 1, 0) && cnt < 50) cnt++;
+            while (fnd->Compute(0, fnd->m_pElementList.size() - 1, 0) && cnt < 50) cnt++;
 
             int is_factor_defined = 0;
             double factorN, factorD;
@@ -28257,7 +28244,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
             while (true)
             {
                 char et, p;
-                int l = fnd->GetElementLen(pos, fnd->m_NumElements - 1, PlusLevel, &et, &p);
+                int l = fnd->GetElementLen(pos, fnd->m_pElementList.size() - 1, PlusLevel, &et, &p);
                 if (l == 0) break;
 
 
@@ -28266,7 +28253,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                 while (true)
                 {
                     char et2, p2;
-                    int l2 = base->GetElementLen(pos2, base->m_NumElements - 1, PlusLevel, &et2, &p2);
+                    int l2 = base->GetElementLen(pos2, base->m_pElementList.size() - 1, PlusLevel, &et2, &p2);
                     if (l2 == 0) break;
 
                     tPureFactors PF;
@@ -28323,13 +28310,13 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     }
 
                     pos2 += l2;
-                    if (pos2 > base->m_NumElements - 1) break;
+                    if (pos2 > base->m_pElementList.size() - 1) break;
                 }
 
                 if (found == 0) break;
 
                 pos += l;
-                if (pos > fnd->m_NumElements - 1)
+                if (pos > fnd->m_pElementList.size() - 1)
                 {
                     if (Replace)
                     {
@@ -28345,12 +28332,12 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                             factorN = -factorN;
                         }
 
-                        base->InsertEmptyElement(base->m_NumElements, 2, minus ? '-' : '+');
-                        int t = base->GenerateASCIIFraction(base->m_NumElements, factorN, factorD, factorPrec,
+                        base->InsertEmptyElement(base->m_pElementList.size(), 2, minus ? '-' : '+');
+                        int t = base->GenerateASCIIFraction(base->m_pElementList.size(), factorN, factorD, factorPrec,
                                                             factorFrac);
-                        base->InsertSequence(0xD7, base->m_NumElements, Replace, 0, Replace->m_NumElements - 1);
+                        base->InsertSequence(0xD7, base->m_pElementList.size(), Replace, 0, Replace->m_pElementList.size() - 1);
 
-                        for (int i = 0; i < base->m_NumElements; i++)
+                        for (int i = 0; i < base->m_pElementList.size(); i++)
                             if (base->m_pElementList[i].IsSelected & 0x01)
                             {
                                 base->DeleteElement(i);
@@ -28359,7 +28346,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
 
                         for (int i = StartPos; i <= EndPos; i++)
                             DeleteElement(StartPos);
-                        InsertSequence('+', StartPos, base, 0, base->m_NumElements - 1);
+                        InsertSequence('+', StartPos, base, 0, base->m_pElementList.size() - 1);
                     }
 
                     occr++;
@@ -28375,14 +28362,14 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
             //check if there is any variable in 'Find' (the VarList will be generated only when there is)
             int summand_no;
             tVariableList* VarList = (tVariableList*)Find->
-                GenerateVariableList(0, Find->m_NumElements - 1, &summand_no);
+                GenerateVariableList(0, Find->m_pElementList.size() - 1, &summand_no);
             if (VarList)
             {
                 Find->FreeVariableList(VarList);
                 CExpression* fnd = new CExpression(nullptr, nullptr, 100);
                 CExpression* base = new CExpression(nullptr, nullptr, 100);
                 for (int i = StartPos; i <= EndPos; i++)
-                    base->InsertElement(m_pElementList[i], base->m_NumElements);
+                    base->InsertElement(m_pElementList[i], base->m_pElementList.size());
 
                 int powert = 0;
                 double N1 = 1.0;
@@ -28397,14 +28384,14 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     PF.N1 = PF.N2 = PF.N3 = PF.N4 = 1.0;
                     PF.is_frac1 = PF.is_frac2 = 0;
                     PF.prec1 = PF.prec2 = 0;
-                    int res = base->StrikeoutCommonFactors(0, base->m_NumElements - 1, 1, fnd, 0,
-                                                           fnd->m_NumElements - 1, 1, &PF);
-                    fnd->StrikeoutRemove(0, fnd->m_NumElements - 1, 1);
+                    int res = base->StrikeoutCommonFactors(0, base->m_pElementList.size() - 1, 1, fnd, 0,
+                                                           fnd->m_pElementList.size() - 1, 1, &PF);
+                    fnd->StrikeoutRemove(0, fnd->m_pElementList.size() - 1, 1);
                     double N;
                     int prec;
-                    if (fnd->m_pElementList[0].Type == 0 || fnd->IsPureNumber(0, fnd->m_NumElements, &N, &prec))
+                    if (fnd->m_pElementList[0].Type == 0 || fnd->IsPureNumber(0, fnd->m_pElementList.size(), &N, &prec))
                     {
-                        base->StrikeoutRemove(0, base->m_NumElements - 1, 1);
+                        base->StrikeoutRemove(0, base->m_pElementList.size() - 1, 1);
                         N1 *= PF.N1 * PF.N4;
                         N2 *= PF.N2 * PF.N3;
                         if (PF.is_frac1 || PF.is_frac2) isfrac = 1;
@@ -28416,7 +28403,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     }
                     else
                     {
-                        base->StrikeoutRemove(0, base->m_NumElements - 1);
+                        base->StrikeoutRemove(0, base->m_pElementList.size() - 1);
                         break;
                     }
                 }
@@ -28428,14 +28415,14 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     PF.N1 = PF.N2 = PF.N3 = PF.N4 = 1.0;
                     PF.is_frac1 = PF.is_frac2 = 0;
                     PF.prec1 = PF.prec2 = 0;
-                    int res = base->StrikeoutCommonFactors(0, base->m_NumElements - 1, 1, fnd, 0,
-                                                           fnd->m_NumElements - 1, -1, &PF);
-                    fnd->StrikeoutRemove(0, fnd->m_NumElements - 1, 1);
+                    int res = base->StrikeoutCommonFactors(0, base->m_pElementList.size() - 1, 1, fnd, 0,
+                                                           fnd->m_pElementList.size() - 1, -1, &PF);
+                    fnd->StrikeoutRemove(0, fnd->m_pElementList.size() - 1, 1);
                     double N;
                     int prec;
-                    if (fnd->m_pElementList[0].Type == 0 || fnd->IsPureNumber(0, fnd->m_NumElements, &N, &prec))
+                    if (fnd->m_pElementList[0].Type == 0 || fnd->IsPureNumber(0, fnd->m_pElementList.size(), &N, &prec))
                     {
-                        base->StrikeoutRemove(0, base->m_NumElements - 1, 1);
+                        base->StrikeoutRemove(0, base->m_pElementList.size() - 1, 1);
                         N1 *= PF.N1 * PF.N4;
                         N2 *= PF.N2 * PF.N3;
                         if (PF.is_frac1 || PF.is_frac2) isfrac = 1;
@@ -28447,7 +28434,7 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                     }
                     else
                     {
-                        base->StrikeoutRemove(0, base->m_NumElements - 1);
+                        base->StrikeoutRemove(0, base->m_pElementList.size() - 1);
                         break;
                     }
                 }
@@ -28465,29 +28452,29 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                         b->m_ParentheseShape = '(';
                         e->GenerateASCIINumber(powert, powert, true, 0, 0);
                         if (base->m_pElementList[0].Type)
-                            for (int i = 0; i < base->m_NumElements; i++)
+                            for (int i = 0; i < base->m_pElementList.size(); i++)
                                 InsertElement(base->m_pElementList[i], StartPos + 1 + i);
                         GenerateASCIIFraction(StartPos, N1, N2, maxprec, isfrac);
                     }
                     else
                     {
                         base->InsertSequence(GetDefaultElementType(MulLevel), 0, Replace, 0,
-                                             Replace->m_NumElements - 1);
+                                             Replace->m_pElementList.size() - 1);
                         base->GenerateASCIIFraction(0, N1, N2, maxprec, isfrac);
-                        InsertSequence(GetDefaultElementType(MulLevel), StartPos, base, 0, base->m_NumElements - 1);
+                        InsertSequence(GetDefaultElementType(MulLevel), StartPos, base, 0, base->m_pElementList.size() - 1);
                     }
                 }
                 delete fnd;
                 delete base;
             }
         }
-        else if (CompareExpressions(StartPos, EndPos, Find, 0, Find->m_NumElements - 1))
+        else if (CompareExpressions(StartPos, EndPos, Find, 0, Find->m_pElementList.size() - 1))
         {
             if (Replace)
             {
-                for (int i = StartPos; i <= EndPos; i++)
+                for (size_t i = StartPos; i <= EndPos; i++)
                     DeleteElement(StartPos);
-                for (int i = 0; i < Replace->m_NumElements; i++)
+                for (size_t i = 0; i < Replace->m_pElementList.size(); i++)
                     InsertElement(Replace->m_pElementList[i], StartPos + i);
             }
         }
@@ -28495,15 +28482,15 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
         //delete markings from replace variables
         if (Replace)
         {
-            for (int i = 0; i < Replace->m_NumElements; i++)
+            for (int i = 0; i < Replace->m_pElementList.size(); i++)
                 (int&)Replace->m_pElementList[i].Decoration &= 0x3F;
-            for (int i = 0; i < m_NumElements; i++)
+            for (size_t i = 0; i < m_pElementList.size(); i++)
             {
                 (int&)m_pElementList[i].Decoration &= 0x3F;
                 if (m_pElementList[i].Type == 5)
                 {
                     CExpression* a = m_pElementList[i].pElementObject->Expression1;
-                    for (int j = 0; j < a->m_NumElements; j++)
+                    for (int j = 0; j < a->m_pElementList.size(); j++)
                         (int&)a->m_pElementList[j].Decoration &= 0x3F;
                 }
             }
@@ -28573,7 +28560,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
                     int ret = 1;
                     while (cnt < 50)
                     {
-                        ret = System[i]->ExtractVariable(variable, 0, variable->m_NumElements, ret);
+                        ret = System[i]->ExtractVariable(variable, 0, variable->m_pElementList.size(), ret);
                         if (ret == 0) break;
                         cnt++;
                     }
@@ -28606,7 +28593,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
                     memcpy(variable->m_pElementList[0].pElementObject->Data2, VS[j].font, strlen(VS[j].name));
 
                     //for (int k=0;k<VarList->Variables[j].len;k++)
-                    //	variable->InsertElement(VarList->Variables[j].variable->m_pElementList+VarList->Variables[j].pos+k,variable->m_NumElements);
+                    //	variable->InsertElement(VarList->Variables[j].variable->m_pElementList+VarList->Variables[j].pos+k,variable->m_pElementList.size());
 
 
                     //make copy of current equations - the temporary system
@@ -28650,7 +28637,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
                         for (int k = 0; k < NEq; k++)
                         {
                             int cnt = 0;
-                            while (S[k]->Compute(0, S[k]->m_NumElements - 1, 0) && cnt < 50) cnt++;
+                            while (S[k]->Compute(0, S[k]->m_pElementList.size() - 1, 0) && cnt < 50) cnt++;
                             System[k] = S[k];
                         }
                         System[NEq] = S[NEq];
@@ -28696,7 +28683,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
 
             tRawVariableStorage* VS2 = (tRawVariableStorage*)calloc(sizeof(tRawVariableStorage), 24);
             int tmp_cnt = CountVariablesInSystem(&System[i], 1, VS2);
-            if (tmp_cnt == 1 && System[i]->ContainsVariable(0, System[i]->m_NumElements - 1, nullptr, 0, 0, VS2->name,
+            if (tmp_cnt == 1 && System[i]->ContainsVariable(0, System[i]->m_pElementList.size() - 1, nullptr, 0, 0, VS2->name,
                                                             (VS2->font[0] & 0xE0) == 0x60 ? 1 : 0))
             {
                 CExpression* var = new CExpression(nullptr, nullptr, 100);
@@ -28716,7 +28703,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
             free(VS2);
 
             cnt = 0;
-            while (System[i]->Compute(0, System[i]->m_NumElements - 1, 0) && cnt < 50) cnt++;
+            while (System[i]->Compute(0, System[i]->m_pElementList.size() - 1, 0) && cnt < 50) cnt++;
             if (!((PopupMenu*)ThePopupMenu)->AddMathMenuOption(System[i]))
                 delete System[i];
         }
@@ -28745,7 +28732,7 @@ int CExpression::CountVariablesInSystem(CExpression* System[], int NumEquations,
     else if (NumEquations == 1)
     {
         CExpression* tmp = System[0];
-        for (int i = 0; i < tmp->m_NumElements; i++)
+        for (size_t i = 0; i < tmp->m_pElementList.size(); i++)
         {
             tElementStruct* ts = &tmp->m_pElementList[i];
 
@@ -28757,7 +28744,7 @@ int CExpression::CountVariablesInSystem(CExpression* System[], int NumEquations,
                 int prec;
                 if (tmp->IsPureNumber(i, 1, &N, &prec)) continue;
 
-                int fnd = 1;
+                bool fnd = true;
                 tRawVariableStorage* VS = (tRawVariableStorage*)VariableStorage;
                 int cnt = 0;
                 while (VS->name[0])
@@ -28765,7 +28752,7 @@ int CExpression::CountVariablesInSystem(CExpression* System[], int NumEquations,
                     if (strcmp(VS->name, ts->pElementObject->Data1) == 0 &&
                         memcmp(VS->font, ts->pElementObject->Data2, strlen(VS->name)) == 0)
                     {
-                        fnd = 0;
+                        fnd = false;
                         break;
                     }
                     VS++;
@@ -28820,7 +28807,7 @@ int CExpression::CountVariablesInSystem(CExpression* System[], int NumEquations,
 int CExpression::CodeDecodeUnitsOfMeasurement(int StartPos, int EndPos)
 {
     int retval = 0;
-    if (EndPos == -1) EndPos = m_NumElements - 1;
+    if (EndPos == -1) EndPos = m_pElementList.size() - 1;
     int lvl = FindLowestOperatorLevel(StartPos, EndPos);
     if (lvl == -1 || lvl > MulLevel) return retval;
 
@@ -28918,7 +28905,7 @@ NOT FINISHED!!!
 	if (this->FindLowestOperatorLevel((char)0xD7)!=MulLevel) return 0;
 
 	int summand_no=0;
-	tVariableList *VarList=(tVariableList*)this->GenerateVariableList(0,this->m_NumElements-1,&summand_no);
+	tVariableList *VarList=(tVariableList*)this->GenerateVariableList(0,this->m_pElementList.size()-1,&summand_no);
 	if (VarList==nullptr) {return 0;} //unexpected error
 
 	//check if there is any physical unit

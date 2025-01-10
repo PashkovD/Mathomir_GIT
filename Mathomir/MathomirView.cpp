@@ -1615,7 +1615,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 tDocumentStruct* dsx = TheDocument + i;
                 if (dsx->absolute_Y < -1000)
                 {
-                    if (dsx->Type == EXPRESSION && dsx->Object.exp->m_NumElements == 1)
+                    if (dsx->Type == EXPRESSION && dsx->Object.exp->m_pElementList.size() == 1)
                     {
                         NumRullerGuidelines++;
                         //this is a valid guideline object
@@ -1780,7 +1780,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 /*else if ((ClipboardExpression) && (ds->Type==1) && (ds->MovingDotState!=5) && (!ViewOnlyMode)) 
                 {
                     //if clipboard is non-empty
-                    if ((ClipboardExpression->m_NumElements>1) || (ClipboardExpression->m_pElementList[0].Type))
+                    if ((ClipboardExpression->m_pElementList.size()>1) || (ClipboardExpression->m_pElementList[0].Type))
                     {
                         UndoSave("insert into",20303);
                         int X=point.x-(ds->absolute_X-ViewX)*ViewZoom/100;
@@ -1803,11 +1803,11 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                             GentlyPaintObject(ds, DC);
     
                         //if we were inserting a empty text box /T/, we start keyboard entry.
-                        if ((ClipboardExpression->m_NumElements==1) && (ClipboardExpression->m_pElementList[0].Type==5))
+                        if ((ClipboardExpression->m_pElementList.size()==1) && (ClipboardExpression->m_pElementList[0].Type==5))
                         {
                             if (((CExpression*)(ClipboardExpression->m_pElementList[0].pElementObject->Expression1))->m_StartAsText)
                             {
-                                for (int kkk=0;kkk<dst->m_NumElements;kkk++)
+                                for (int kkk=0;kkk<dst->m_pElementList.size();kkk++)
                                     if (dst->CompareElement(ClipboardExpression->m_pElementList,(dst->m_pElementList+kkk)))
                                     {
                                         dst=((CExpression*)((dst->m_pElementList+kkk)->pElementObject->Expression1));
@@ -2052,8 +2052,8 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         CExpression* expr = KeyboardEntryObject;
                         if (expr->m_pPaternalExpression == nullptr)
-                            if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->
-                                m_NumElements == 0)
+                            if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->
+                                m_pElementList.size() == 0)
                             {
                                 expr->KeyboardStop();
                                 KeyboardEntryObject = nullptr;
@@ -2086,27 +2086,27 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     ClipboardExpression->AddToStackClipboard(0);
 
                     CExpression* e = TheDocument[NewlineAddObject & 0x3FFFFFFF].Object.exp;
-                    int last_obj = e->m_NumElements - 1;
+                    int last_obj = e->m_pElementList.size() - 1;
                     if (e->m_pElementList[last_obj].Type != 2 || e->m_pElementList[last_obj].pElementObject->
                         Data1[0] != (char)0xFF)
                     {
                         //we will add line wrap to this object
-                        e->InsertEmptyElement(e->m_NumElements, 2, (char)0xFF);
+                        e->InsertEmptyElement(e->m_pElementList.size(), 2, (char)0xFF);
                     }
                     e->m_Alignment = 1;
-                    for (int i = 0; i < ClipboardExpression->m_NumElements; i++)
+                    for (const tElementStruct& element : ClipboardExpression->m_pElementList)
                     {
-                        e->InsertElement(ClipboardExpression->m_pElementList[i], e->m_NumElements);
+                        e->InsertElement(element, e->m_pElementList.size());
                     }
                     delete ClipboardExpression;
                     ClipboardExpression = nullptr;
                     short l, a, b;
                     e->CalculateSize(DC, ViewZoom, l, &a, &b);
-                    tDocumentStruct* ds = &TheDocument[NewlineAddObject & 0x3FFFFFFF];
-                    ds->Above = (int)a * 100 / ViewZoom;
-                    ds->Below = (int)b * 100 / ViewZoom;
-                    ds->Length = (int)l * 100 / ViewZoom;
-                    this->GentlyPaintObject(*ds, DC);
+                    tDocumentStruct& ds = TheDocument[NewlineAddObject & 0x3FFFFFFF];
+                    ds.Above = (int)a * 100 / ViewZoom;
+                    ds.Below = (int)b * 100 / ViewZoom;
+                    ds.Length = (int)l * 100 / ViewZoom;
+                    this->GentlyPaintObject(ds, DC);
 
 
                     goto on_lbuttondown_end;
@@ -2127,12 +2127,12 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
 
 
                 //if clipboard holds an empty expression then simply start the keyboard entry mode
-                if ((ClipboardExpression->m_NumElements == 1 && ClipboardExpression->m_pElementList[0].Type == 0) || ClipboardExpression->m_NumElements == 0)
+                if ((ClipboardExpression->m_pElementList.size() == 1 && ClipboardExpression->m_pElementList[0].Type == 0) || ClipboardExpression->m_pElementList.size() == 0)
                 {
                     StartKeyboardEntryAt(AbsoluteX, AbsoluteY, make_text);
                     goto on_lbuttondown_end;
                 }
-                if (ClipboardExpression->m_NumElements == 1 && ClipboardExpression->m_pElementList[0].Type == 5)
+                if (ClipboardExpression->m_pElementList.size() == 1 && ClipboardExpression->m_pElementList[0].Type == 5)
                 {
                     CExpression* expr = ClipboardExpression->m_pElementList[0].pElementObject->
                                                              Expression1;
@@ -3723,15 +3723,14 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                         bool is_multiline = false;
                         bool is_text = false;
                         CExpression* e = ds->Object.exp;
-                        for (int ii = 0; ii < e->m_NumElements; ii++)
-                            if (e->m_pElementList[ii].Type == 2 && e->m_pElementList[ii].pElementObject->
-                                Data1[0] == (char)0xFF)
+                        for (const tElementStruct& element : e->m_pElementList)
+                            if (element.Type == 2 && element.pElementObject->Data1[0] == (char)0xFF)
                             {
                                 is_multiline = true;
                                 break;
                             }
 
-                        if ((e->m_NumElements > 1 || (e->m_pElementList[0].Type == 1 &&
+                        if ((e->m_pElementList.size() > 1 || (e->m_pElementList[0].Type == 1 &&
                             strlen(e->m_pElementList[0].pElementObject->Data1) > 2)) && e->m_IsHeadline == 0 && e->
                             IsTextContained(0))
                             is_text = true;
@@ -5480,7 +5479,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 nChar == 'X' ? UndoSave("pick up", 20202) : UndoSave("delete", 20203);
                                 CExpression* parent = expr->m_pPaternalExpression;
                                 if (expr->DeleteSelection() == 2) expr = parent;
-                                if (expr->m_NumElements == 0) expr->InsertEmptyElement(0, 0, 0);
+                                if (expr->m_pElementList.size() == 0) expr->InsertEmptyElement(0, 0, 0);
                             }
 
                             if (ClipboardExpression) ClipboardExpression->CopyToWindowsClipboard();
@@ -5490,8 +5489,8 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 //check if the expression is left copletely empty, if yes, delete it
                                 expr = TheDocument[i].Object.exp;
                                 if (expr->m_pPaternalExpression == nullptr)
-                                    if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->
-                                        m_NumElements == 0)
+                                    if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->
+                                        m_pElementList.size() == 0)
                                     {
                                         DeleteDocumentObject(&TheDocument[i]);
                                     }
@@ -5563,7 +5562,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                         if (ClipboardExpression)
                         {
                             int adjust_for_text = 0;
-                            if (ClipboardExpression->m_NumElements == 1 && ClipboardExpression->m_pElementList[0].Type
+                            if (ClipboardExpression->m_pElementList.size() == 1 && ClipboardExpression->m_pElementList[0].Type
                                 == 5 &&
                                 ClipboardExpression->m_pElementList[0].pElementObject->Expression1->
                                                      m_StartAsText &&
@@ -5704,9 +5703,9 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 {
                     CExpression* e = KeyboardEntryObject;
                     int i = 0;
-                    for (; i < e->m_NumElements; i++)
+                    for (; i < e->m_pElementList.size(); i++)
                         if (e->m_pElementList[i].IsSelected == 2) break;
-                    if (i >= e->m_NumElements)
+                    if (i >= e->m_pElementList.size())
                     {
                         delete ClipboardExpression;
                         ClipboardExpression = new CExpression(nullptr,nullptr, 100);
@@ -5878,7 +5877,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             if (KeyboardEntryBaseObject->Object.v == nullptr) return;
             if (KeyboardEntryBaseObject->Type > 10) return;
-            if (KeyboardEntryObject->m_NumElements < 0) return;
+            if (KeyboardEntryObject->m_pElementList.size() < 0) return;
         }
         catch (...)
         {
@@ -5923,7 +5922,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
             if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
             {
                 CExpression* expr = KeyboardEntryBaseObject->Object.exp;
-                if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->m_NumElements == 0)
+                if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->m_pElementList.size() == 0)
                 {
                     DeleteDocumentObject(KeyboardEntryBaseObject);
                 }
@@ -5945,8 +5944,8 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                 if (prevBaseObject && prevBaseObject->Type == EXPRESSION)
                 {
                     CExpression* expr = prevBaseObject->Object.exp;
-                    if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) ||
-                        expr->m_NumElements == 0)
+                    if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) ||
+                        expr->m_pElementList.size() == 0)
                     {
                         DeleteDocumentObject(prevBaseObject);
                     }
@@ -6122,7 +6121,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     for (int ii = 0; ii < NumDocumentElements; ii++, ds++)
                     {
                         if (ds->Type == EXPRESSION)
-                            if (KeyboardEntryBaseObject->Object.exp->m_NumElements > 1 || KeyboardEntryBaseObject->Object.exp->m_pElementList[0].Type != 1)
+                            if (KeyboardEntryBaseObject->Object.exp->m_pElementList.size() > 1 || KeyboardEntryBaseObject->Object.exp->m_pElementList[0].Type != 1)
                             {
                                 if (ds->absolute_Y + ds->Below < KeyboardEntryBaseObject->absolute_Y +
                                     KeyboardEntryBaseObject->Below &&
@@ -6213,16 +6212,16 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 {
                                     //clicked just below a multiline or text object - we will append a new line to that object
                                     CExpression* e = ds->Object.exp;
-                                    int last_obj = e->m_NumElements - 1;
+                                    int last_obj = e->m_pElementList.size() - 1;
                                     if (e->m_pElementList[last_obj].Type != 2 ||
                                         e->m_pElementList[last_obj].pElementObject->Data1[0] != (char)0xFF)
                                     {
                                         //we will add line wrap to this object
-                                        e->InsertEmptyElement(e->m_NumElements, 2, (char)0xFF);
+                                        e->InsertEmptyElement(e->m_pElementList.size(), 2, (char)0xFF);
                                     }
                                     e->m_Alignment = 1;
                                     e->DeselectExpression();
-                                    e->m_Selection = e->m_NumElements + 1;
+                                    e->m_Selection = e->m_pElementList.size() + 1;
                                     tmp = e;
                                 }
                                 else
@@ -6251,7 +6250,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("insert into", 20303);
 
                                         int ii;
-                                        for (ii = 0; ii < tmp->m_NumElements; ii++)
+                                        for (ii = 0; ii < tmp->m_pElementList.size(); ii++)
                                             if (tmp->m_pElementList[ii].IsSelected) break;
                                         if (tmp->DeleteSelection() != 2) tmp->m_Selection = ii + 1;
                                         //(the DeleteSelection returns 2 if the whole expression is deleted)
@@ -6396,7 +6395,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         */
                                         //***************************************
                                     }
-                                    if (ds->Object.exp->m_NumElements == 1 &&
+                                    if (ds->Object.exp->m_pElementList.size() == 1 &&
                                         ds->Object.exp->m_pElementList[0].Type == 0)
                                         DeleteDocumentObject(ds);
                                 }
@@ -6922,7 +6921,7 @@ void CMathomirView::OnTimer(UINT nIDEvent)
 
                     OnLButtonUp(0, cpos);
                     LongClickObject->DeleteSelection();
-                    /*for (int j=0;j<LongClickObject->m_NumElements;j++)
+                    /*for (int j=0;j<LongClickObject->m_pElementList.size();j++)
                     {
                         tElementStruct *ts=LongClickObject->m_pElementList+j;
                         if (ts->IsSelected)
@@ -6938,7 +6937,7 @@ void CMathomirView::OnTimer(UINT nIDEvent)
                     }*/
                     //if ((LongClickObject->m_ParenthesesSelected) && (LongClickObject->m_pPaternalElement)) LongClickObject=LongClickObject->m_pPaternalExpression;
 
-                    if (parent->m_NumElements == 1 && parent->m_pElementList[0].Type == 0)
+                    if (parent->m_pElementList.size() == 1 && parent->m_pElementList[0].Type == 0)
                     {
                         DeleteDocumentObject(TheDocument + i);
                     }
@@ -7495,7 +7494,7 @@ void CMathomirView::OnSysKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             //this code allows Space+Alt to be interpreted as Alt+Space (changing the math/text typing mode)
             CExpression* exp = KeyboardEntryObject;
-            if (exp->m_NumElements != 1 || exp->m_pElementList[0].Type != 1 || exp->m_pElementList[0].pElementObject->
+            if (exp->m_pElementList.size() != 1 || exp->m_pElementList[0].Type != 1 || exp->m_pElementList[0].pElementObject->
                 Data1[0] != 0)
                 if (GetKeyState(VK_SPACE) & 0xFFFE && nChar == VK_MENU)
                     SendKeyStroke(' ', 0, Flags);
@@ -7907,12 +7906,12 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
 
                                                     //determine the 'level'
                                                     int level = MulLevel;
-                                                    if (start == 0 || start == obj->m_NumElements) level = 0;
+                                                    if (start == 0 || start == obj->m_pElementList.size()) level = 0;
                                                     if (start > 0 && obj->m_pElementList[start - 1].Type == 2)
                                                         level = min(
                                                             GetOperatorLevel(obj->m_pElementList[start-1]
                                                                 .pElementObject->Data1[0]), level);
-                                                    if (start < obj->m_NumElements &&
+                                                    if (start < obj->m_pElementList.size() &&
                                                         obj->m_pElementList[start].Type == 2)
                                                         level = min(
                                                             GetOperatorLevel(obj->m_pElementList[start].pElementObject
@@ -7931,7 +7930,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                                             break;
                                                         start--;
                                                     }
-                                                    while (end < obj->m_NumElements)
+                                                    while (end < obj->m_pElementList.size())
                                                     {
                                                         if (obj->m_pElementList[end].Type == 11 ||
                                                             obj->m_pElementList[end].Type == 12)
@@ -8071,8 +8070,8 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                 KeyboardEntryObject->KeyboardStop();
                                 CExpression* expr = KeyboardEntryObject;
                                 if (expr->m_pPaternalExpression == nullptr)
-                                    if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->
-                                        m_NumElements == 0)
+                                    if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->
+                                        m_pElementList.size() == 0)
                                         if (KeyboardEntryBaseObject->Type == EXPRESSION)
                                             DeleteDocumentObject(KeyboardEntryBaseObject);
                                 KeyboardEntryObject = nullptr;
@@ -8197,7 +8196,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                     {
                         CDC* DC = this->GetDC();
                         //if clipboard is non-empty, place down
-                        if (ClipboardExpression->m_NumElements > 1 || ClipboardExpression->m_pElementList[0].Type)
+                        if (ClipboardExpression->m_pElementList.size() > 1 || ClipboardExpression->m_pElementList[0].Type)
                         {
                             UndoSave("insert into", 20303);
                             int X = point.x - (ds->absolute_X - ViewX) * ViewZoom / 100;
@@ -8250,7 +8249,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         }
 
                         //special handling - when clicked on a HTML link element (we execute the link instead of copy)
-                        if (ClipboardExpression->m_NumElements == 1 && ClipboardExpression->m_pElementList[0].Type ==
+                        if (ClipboardExpression->m_pElementList.size() == 1 && ClipboardExpression->m_pElementList[0].Type ==
                             9)
                         {
                             CElement* elm = ClipboardExpression->m_pElementList[0].pElementObject;
@@ -8308,8 +8307,8 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                                 expr->KeyboardStop();
                                 KeyboardEntryObject = nullptr;
                                 if (expr->m_pPaternalExpression == nullptr)
-                                    if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->
-                                        m_NumElements == 0)
+                                    if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->
+                                        m_pElementList.size() == 0)
                                         if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
                                         {
                                             if (obj != (CObject*)KeyboardEntryBaseObject->Object.v)
@@ -8352,8 +8351,8 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
                             KeyboardEntryObject = nullptr;
                             if (expr->m_pPaternalExpression == nullptr)
-                                if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->
-                                    m_NumElements == 0)
+                                if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->
+                                    m_pElementList.size() == 0)
                                     if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
                                     {
                                         if (obj != (CObject*)KeyboardEntryBaseObject->Object.v)
@@ -8363,7 +8362,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             KeyboardEntryBaseObject = nullptr;
                             //RepaintTheView();
                         }
-                        if (((CExpression*)obj)->m_StartAsText && ((CExpression*)obj)->m_NumElements == 1 &&
+                        if (((CExpression*)obj)->m_StartAsText && ((CExpression*)obj)->m_pElementList.size() == 1 &&
                             ((CExpression*)obj)->m_pElementList[0].Type == 0)
                             ((CExpression*)obj)->m_Alignment = 1;
 
@@ -8510,7 +8509,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
             {
                 if (SelectedDocumentObject && SelectedDocumentObject->MovingDotState == 2)
                     if (SelectedDocumentObject->Type == EXPRESSION &&
-                        (SelectedDocumentObject->Object.exp->m_NumElements > 1 ||
+                        (SelectedDocumentObject->Object.exp->m_pElementList.size() > 1 ||
                             SelectedDocumentObject->Object.exp->m_pElementList[0].Type))
                     {
                         delete ClipboardExpression;
@@ -8721,7 +8720,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                             mark_for_redraw = 1;
                             CExpression* ee = KeyboardEntryObject;
                             if (KeyboardEntryBaseObject->Object.exp == KeyboardEntryObject &&
-                                ee->m_NumElements == 1 &&
+                                ee->m_pElementList.size() == 1 &&
                                 (ee->m_pElementList[0].Type == 0 || (ee->m_pElementList[0].Type == 1 && ee->
                                     m_pElementList[0].pElementObject->Data1[0] == 0)))
                             {
@@ -8737,17 +8736,17 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
                         //clicked just below a multiline or text object - we will append a new line to that object
                         CExpression* e = TheDocument[NewlineAddObject & 0x3FFFFFFF].Object.exp;
-                        int last_obj = e->m_NumElements - 1;
+                        int last_obj = e->m_pElementList.size() - 1;
                         if (e->m_pElementList[last_obj].Type != 2 || e->m_pElementList[last_obj].
                                                                          pElementObject->Data1[0] != (char)0xFF)
                         {
                             //we will add line wrap to this object
-                            e->InsertEmptyElement(e->m_NumElements, 2, (char)0xFF);
+                            e->InsertEmptyElement(e->m_pElementList.size(), 2, (char)0xFF);
                         }
-                        e->InsertEmptyElement(e->m_NumElements, 1, 0);
+                        e->InsertEmptyElement(e->m_pElementList.size(), 1, 0);
                         if (NewlineAddObject & 0x40000000)
-                            e->m_pElementList[e->m_NumElements - 1].pElementObject-> m_Text = 1;
-                        e->m_IsKeyboardEntry = e->m_NumElements;
+                            e->m_pElementList[e->m_pElementList.size() - 1].pElementObject-> m_Text = 1;
+                        e->m_IsKeyboardEntry = e->m_pElementList.size();
                         e->m_Alignment = 1;
                         KeyboardEntryObject = e;
                         KeyboardEntryBaseObject = &TheDocument[NewlineAddObject & 0x3FFFFFFF];
@@ -8854,7 +8853,7 @@ int CMathomirView::PopupCloses(int UserParam, int ExitCode)
             {
                 //check if the object is entriely empty. If yes, delete the object
                 CExpression* expr = m_PopupMenuObject->Object.exp;
-                if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->m_NumElements == 0)
+                if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->m_pElementList.size() == 0)
                 {
                     DeleteDocumentObject(m_PopupMenuObject);
                     m_PopupMenuObject = nullptr;
@@ -9352,7 +9351,7 @@ void CMathomirView::OnTextend()
         CExpression* expr = KeyboardEntryObject;
         expr->KeyboardStop();
         KeyboardEntryObject = nullptr;
-        if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->m_NumElements == 0)
+        if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->m_pElementList.size() == 0)
         {
             DeleteDocumentObject(KeyboardEntryBaseObject);
             //RepaintTheView();
@@ -10065,7 +10064,7 @@ void CMathomirView::OnEditUndo()
         KeyboardEntryObject->KeyboardStop();
         CExpression* expr = KeyboardEntryObject;
         if (expr->m_pPaternalExpression == nullptr)
-            if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->m_NumElements == 0)
+            if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->m_pElementList.size() == 0)
             {
                 DeleteDocumentObject(KeyboardEntryBaseObject);
             }
@@ -10479,7 +10478,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
         expr->KeyboardStop();
         KeyboardEntryObject = nullptr;
         if (expr->m_pPaternalExpression == nullptr)
-            if ((expr->m_NumElements == 1 && expr->m_pElementList[0].Type == 0) || expr->m_NumElements == 0)
+            if ((expr->m_pElementList.size() == 1 && expr->m_pElementList[0].Type == 0) || expr->m_pElementList.size() == 0)
                 if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION)
                 {
                     DeleteDocumentObject(KeyboardEntryBaseObject);
@@ -10992,7 +10991,7 @@ void CMathomirView::KeyboardSelectionCut(bool no_copy)
 
     int mi = 0;
     int i;
-    for (i = 0; i < e->m_NumElements; i++)
+    for (i = 0; i < e->m_pElementList.size(); i++)
     {
         if (e->m_pElementList[i].IsSelected == 2)
         {
@@ -11000,7 +10999,7 @@ void CMathomirView::KeyboardSelectionCut(bool no_copy)
             break;
         }
     }
-    if (i >= e->m_NumElements)
+    if (i >= e->m_pElementList.size())
     {
         return;
     }
@@ -11011,7 +11010,7 @@ void CMathomirView::KeyboardSelectionCut(bool no_copy)
     e->DeleteSelection(2);
 
     if (mi) if (e->m_pElementList[mi - 1].Type == 0) mi--;
-    if (mi > e->m_NumElements) mi = e->m_NumElements;
+    if (mi > e->m_pElementList.size()) mi = e->m_pElementList.size();
     e->m_IsKeyboardEntry = mi + 1;
     e->InsertEmptyElement(mi, 1, 0);
     e->m_KeyboardCursorPos = 0;
@@ -11036,7 +11035,7 @@ void CMathomirView::KeyboardSelectionCopy(bool no_deselect)
         //TheKeyboardClipboard->m_FontSizeHQ=e->m_FontSizeHQ;	
     }
     if (!no_deselect) e->DeselectExpression();
-    if (TheKeyboardClipboard->m_NumElements == 1 && TheKeyboardClipboard->m_pElementList[0].Type == 0)
+    if (TheKeyboardClipboard->m_pElementList.size() == 1 && TheKeyboardClipboard->m_pElementList[0].Type == 0)
     {
         delete TheKeyboardClipboard;
         TheKeyboardClipboard = nullptr;
@@ -11186,8 +11185,8 @@ void CMathomirView::KeyboardSelectionPaste()
         }
     }
     if (TheKeyboardClipboard && !text_pasted &&
-        ((TheKeyboardClipboard->m_NumElements == 1 && TheKeyboardClipboard->m_pElementList[0].Type) ||
-            TheKeyboardClipboard->m_NumElements > 1))
+        ((TheKeyboardClipboard->m_pElementList.size() == 1 && TheKeyboardClipboard->m_pElementList[0].Type) ||
+            TheKeyboardClipboard->m_pElementList.size() > 1))
     {
         //UndoSave("paste");
 
@@ -11236,14 +11235,14 @@ void CMathomirView::KeyboardSelectionPaste()
             //add new rows and collumns if needed
             for (int i = 0; i < TheKeyboardClipboard->m_MaxNumColumns - (e->m_MaxNumColumns - col); i++)
             {
-                e->InsertEmptyElement(e->m_NumElements, 11, 0);
-                e->InsertEmptyElement(e->m_NumElements, 0, 0);
+                e->InsertEmptyElement(e->m_pElementList.size(), 11, 0);
+                e->InsertEmptyElement(e->m_pElementList.size(), 0, 0);
             }
             e->AdjustMatrix();
             for (int i = 0; i < TheKeyboardClipboard->m_MaxNumRows - (e->m_MaxNumRows - row); i++)
             {
-                e->InsertEmptyElement(e->m_NumElements, 12, 0);
-                e->InsertEmptyElement(e->m_NumElements, 0, 0);
+                e->InsertEmptyElement(e->m_pElementList.size(), 12, 0);
+                e->InsertEmptyElement(e->m_pElementList.size(), 0, 0);
             }
 
             //preselect them (the function CopyAtPoint will replace the selection)

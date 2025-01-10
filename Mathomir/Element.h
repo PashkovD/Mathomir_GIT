@@ -35,7 +35,7 @@ public:
     CElement();
     ~CElement();
     void CalculateSize(CDC& DC, short int zoom, short int& length, short int& above, short int& below,
-                       short paternal_position, char HQR);
+                       size_t paternal_position, char HQR);
     void PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlue, int ActualSize, RECT* ClipReg = nullptr,
                          COLORREF color = 0);
     void Empty(char oper);
@@ -43,13 +43,13 @@ public:
     int FontSizeForType(int subelement_no) const;
 
     CObject* SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
-                           short paternal_position);
+                           size_t paternal_position);
     void XML_output(std::ostream &output, int num_tabs);
     void LaTeX_output(std::ostream& output) const;
     char* XML_input(char* file, void* element_struct);
     int CalcChecksum() const;
 
-    int IsMeasurementUnit() const;
+    bool IsMeasurementUnit() const;
     int SetColor(int color);
     int IsDifferential(int only_nonparentheses = 0) const;
 

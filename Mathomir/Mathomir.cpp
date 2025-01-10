@@ -383,7 +383,7 @@ BOOL CMathomirApp::InitInstance()
         //adjusting the window size for the view-only mode
         int maxy = 100;
         int maxx = 150;
-        for (int jj = 0; jj < NumDocumentElements; jj++)
+        for (size_t jj = 0; jj < NumDocumentElements; jj++)
         {
             if (TheDocument[jj].absolute_Y + TheDocument[jj].Below > maxy)
                 maxy = TheDocument[jj].absolute_Y + TheDocument[jj].Below;

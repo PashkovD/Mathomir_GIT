@@ -351,23 +351,23 @@ int CDrawingBox::MouseClick(int X, int Y)
         float posy = (float)(-Y - starty) / (float)unit_size_y;
         tElementStruct& ts = CommandLine->m_pElementList[CommandLine->m_IsKeyboardEntry - 1];
         if (ts.pElementObject->Data1[0] == 0) CommandLine->DeleteElement(CommandLine->m_IsKeyboardEntry - 1);
-        ts = CommandLine->m_pElementList[CommandLine->m_NumElements - 1];
+        ts = CommandLine->m_pElementList[CommandLine->m_pElementList.size() - 1];
         if (ts.Type == 1)
         {
             char ch = ts.pElementObject->Data1[0];
             if ((ch >= 0 && ch <= '9') || ch == '.') CommandLine->InsertEmptyElement(
-                CommandLine->m_NumElements, 2, ',');
+                CommandLine->m_pElementList.size(), 2, ',');
         }
-        if (ts.Type == 5) CommandLine->InsertEmptyElement(CommandLine->m_NumElements, 2, ',');
+        if (ts.Type == 5) CommandLine->InsertEmptyElement(CommandLine->m_pElementList.size(), 2, ',');
         CommandLine->GenerateASCIINumber(posx, (long long)(posx + (posx >= 0) ? 0.01 : -0.01),
                                          posx - (long long)(posx + (posx >= 0) ? 0.01 : -0.01) < 1e-100, 2,
-                                         ts.Type == 0 ? false : CommandLine->m_NumElements);
-        CommandLine->InsertEmptyElement(CommandLine->m_NumElements, 2, ',');
+                                         ts.Type == 0 ? false : CommandLine->m_pElementList.size());
+        CommandLine->InsertEmptyElement(CommandLine->m_pElementList.size(), 2, ',');
         CommandLine->GenerateASCIINumber(posy, (long long)(posy + (posy >= 0) ? 0.01 : -0.01),
                                          posy - (long long)(posy + (posy >= 0) ? 0.01 : -0.01) < 1e-100, 2,
-                                         CommandLine->m_NumElements);
-        CommandLine->InsertEmptyElement(CommandLine->m_NumElements, 1, 0);
-        CommandLine->m_IsKeyboardEntry = CommandLine->m_NumElements;
+                                         CommandLine->m_pElementList.size());
+        CommandLine->InsertEmptyElement(CommandLine->m_pElementList.size(), 1, 0);
+        CommandLine->m_IsKeyboardEntry = CommandLine->m_pElementList.size();
         CommandLine->m_KeyboardCursorPos = 0;
         return 0;
     }
@@ -393,7 +393,7 @@ int CDrawingBox::MouseClick(int X, int Y)
         {
             KeyboardEntryObject->KeyboardStop();
             if (KeyboardEntryBaseObject &&
-                KeyboardEntryBaseObject->Object.exp->m_NumElements == 1 &&
+                KeyboardEntryBaseObject->Object.exp->m_pElementList.size() == 1 &&
                 KeyboardEntryBaseObject->Object.exp->m_pElementList[0].Type == 0)
                 pMainView->DeleteDocumentObject(KeyboardEntryBaseObject);
         }
@@ -778,20 +778,20 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
                 (Base->Items + Base->NumItems - 1)->pSubdrawing = new CExpression(nullptr,nullptr, 100);
             }
             tDrawingItem* di = Base->Items + 4;
-            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type) ((CExpression*)di->pSubdrawing)->
-                DeleteElement(0);
+            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type)
+                ((CExpression*)di->pSubdrawing)->DeleteElement(0);
             ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(startx, startx, true, 0, 0);
             di++;
-            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type) ((CExpression*)di->pSubdrawing)->
-                DeleteElement(0);
+            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type)
+                ((CExpression*)di->pSubdrawing)->DeleteElement(0);
             ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(starty, starty, true, 0, 0);
             di++;
-            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type) ((CExpression*)di->pSubdrawing)->
-                DeleteElement(0);
+            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type)
+                ((CExpression*)di->pSubdrawing)->DeleteElement(0);
             ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(unit_size_x, unit_size_x, true, 0, 0);
             di++;
-            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type) ((CExpression*)di->pSubdrawing)->
-                DeleteElement(0);
+            while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type)
+                ((CExpression*)di->pSubdrawing)->DeleteElement(0);
             ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(unit_size_y, unit_size_y, true, 0, 0);
             pMainView->RepaintTheView();
         }
@@ -876,19 +876,19 @@ void CDrawingBox::GetDrawingBoxGrid(int* unit_size_x, int* unit_size_y, int* sta
         double N;
         int prec;
         if (di->Type == 2 && ((CExpression*)di->pSubdrawing)->IsPureNumber(
-            0, ((CExpression*)di->pSubdrawing)->m_NumElements, &N, &prec))
+            0, ((CExpression*)di->pSubdrawing)->m_pElementList.size(), &N, &prec))
             *startx = (int)(N + (N >= 0 ? 0.01 : -0.01));
         di++;
         if (di->Type == 2 && ((CExpression*)di->pSubdrawing)->IsPureNumber(
-            0, ((CExpression*)di->pSubdrawing)->m_NumElements, &N, &prec))
+            0, ((CExpression*)di->pSubdrawing)->m_pElementList.size(), &N, &prec))
             *starty = (int)(N + (N >= 0 ? 0.01 : -0.01));
         di++;
         if (di->Type == 2 && ((CExpression*)di->pSubdrawing)->IsPureNumber(
-            0, ((CExpression*)di->pSubdrawing)->m_NumElements, &N, &prec))
+            0, ((CExpression*)di->pSubdrawing)->m_pElementList.size(), &N, &prec))
             *unit_size_x = (int)(N + (N >= 0 ? 0.01 : -0.01));
         di++;
         if (di->Type == 2 && ((CExpression*)di->pSubdrawing)->IsPureNumber(
-            0, ((CExpression*)di->pSubdrawing)->m_NumElements, &N, &prec))
+            0, ((CExpression*)di->pSubdrawing)->m_pElementList.size(), &N, &prec))
             *unit_size_y = (int)(N + (N >= 0 ? 0.01 : -0.01));
     }
 }
@@ -896,8 +896,8 @@ void CDrawingBox::GetDrawingBoxGrid(int* unit_size_x, int* unit_size_y, int* sta
 #pragma optimize("s",on)
 int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
 {
-    int kk = 0;
-    while (kk < CommandLine->m_NumElements)
+    size_t kk = 0;
+    while (kk < CommandLine->m_pElementList.size())
     {
         const tElementStruct& ts = CommandLine->m_pElementList[kk];
         if (ts.Type == 1)
@@ -925,9 +925,9 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
             if (_strnicmp(ts.pElementObject->Data1, "green", 6) == 0) cmd = 18;
 
             kk++;
-            int opos = kk;
+            size_t opos = kk;
             int params = 0;
-            while (kk < CommandLine->m_NumElements)
+            while (kk < CommandLine->m_pElementList.size())
             {
                 int okk = 2;
                 double N;
@@ -936,7 +936,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                 char chh = 0;
                 if (ts.pElementObject) chh = ts.pElementObject->Data1[0];
                 if (ts.Type == 1 && ((chh < '0' || chh > '9') && chh != '.')) break;
-                if (kk == CommandLine->m_NumElements - 1) okk = 0;
+                if (kk == CommandLine->m_pElementList.size() - 1) okk = 0;
                 if (ts.Type == 2 && (ts.pElementObject->Data1[0] == ',' || ts.pElementObject->Data1[0] == ';'))
                     okk = 1;
                 if (ts.Type == 11 || ts.Type == 12) okk = 1;
@@ -959,7 +959,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                 int k = 0;
                 while (k < 20)
                 {
-                    int ii;
+                    size_t ii;
                     for (ii = 0; ii < NumDocumentElements; ii++)
                         if (TheDocument[ii].absolute_X == InsertPositionX && TheDocument[ii].absolute_Y ==
                             InsertPositionY)

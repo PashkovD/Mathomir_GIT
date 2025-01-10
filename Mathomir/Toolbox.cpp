@@ -1698,7 +1698,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     }
                     if (m_SelectedTextControl >= 5 && m_SelectedTextControl <= 9)
                     {
-                        if (exp->m_IsKeyboardEntry > 0 && exp->m_IsKeyboardEntry <= exp->m_NumElements)
+                        if (exp->m_IsKeyboardEntry > 0 && exp->m_IsKeyboardEntry <= exp->m_pElementList.size())
                         {
                             tElementStruct* e = &exp->m_pElementList[exp->m_IsKeyboardEntry - 1];
                             if (exp->m_IsKeyboardEntry > 1 && exp->m_KeyboardCursorPos == 0) e--;
@@ -2117,9 +2117,8 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                         if (icon >= 28 && icon <= 31 && exp)
                         {
-                            for (int i = 0; i < exp->m_NumElements; i++)
+                            for (tElementStruct& ts : exp->m_pElementList)
                             {
-                                tElementStruct& ts = exp->m_pElementList[i];
                                 if (ts.IsSelected == 2)
                                 {
                                     if (icon == 28 || icon == 29)
@@ -3543,9 +3542,8 @@ int CToolbox::ConfigureToolbar()
         m_IsKeyboardEntry)
     {
         //check if there is a keyboard selection
-        CExpression* e = KeyboardEntryObject;
-        for (int i = 0; i < e->m_NumElements; i++)
-            if (e->m_pElementList[i].IsSelected == 2)
+        for (const tElementStruct& element : KeyboardEntryObject->m_pElementList)
+            if (element.IsSelected == 2)
             {
                 has_selection = 2;
                 break;
@@ -3610,7 +3608,7 @@ int CToolbox::ConfigureToolbar()
         }
         if (NumSelectedObjects == 1 && KeyboardEntryObject == nullptr)
         {
-            tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+            tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
             for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
             {
                 if (ds->MovingDotState == 3)
@@ -3645,7 +3643,7 @@ int CToolbox::ConfigureToolbar()
         if (exp && has_selection != 2)
         {
             int align = exp->m_Alignment;
-            int add_align_options = 0;
+            bool add_align_options = 0;
 
             if (exp->m_MaxNumRows > 1 || exp->m_MaxNumColumns > 1)
             {
@@ -3673,9 +3671,9 @@ int CToolbox::ConfigureToolbar()
             }
             else
             {
-                for (int i = 0; i < exp->m_NumElements; i++)
-                    if (exp->m_pElementList[i].Type == 2 &&
-                        exp->m_pElementList[i].pElementObject->Data1[0] == (char)0xFF)
+                for (const tElementStruct& element : exp->m_pElementList)
+                    if (element.Type == 2 &&
+                        element.pElementObject->Data1[0] == (char)0xFF)
                     {
                         add_align_options = 1;
                         break;
@@ -4452,7 +4450,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                             ToolboxMembers[help_element].CreationCode[help_subelement]);
                         if (cmd) command = (char*)cmd;
 
-                        if (command[0] == 0 && e && e->m_NumElements == 1 && (ToolboxMembers[help_element].
+                        if (command[0] == 0 && e && e->m_pElementList.size() == 1 && (ToolboxMembers[help_element].
                                 userdef_mask & 1 << help_subelement) == 0 &&
                             e->m_pElementList[0].Type == 6 && e->m_pElementList[0].pElementObject->Data2[0] == 0x20 &&
                             e->m_pElementList[0].pElementObject->Expression2 == nullptr)
@@ -4641,7 +4639,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                     if ((KeyboardEntryBaseObject) && (KeyboardEntryBaseObject->Type==1))
                     {
                         CExpression *expr=((CExpression*)(KeyboardEntryBaseObject->Object));
-                        if (((expr->m_NumElements==1) && (expr->m_pElementList[0].Type==0)) || (expr->m_NumElements==0))
+                        if (((expr->m_pElementList.size()==1) && (expr->m_pElementList[0].Type==0)) || (expr->m_pElementList.size()==0))
                         {
                             pMainView->DeleteDocumentObject(KeyboardEntryBaseObject);
                         }
@@ -4887,7 +4885,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
     }
 
     CExpression* ee = KeyboardEntryObject;
-    if (ee && ee->m_IsKeyboardEntry > 0 && ee->m_IsKeyboardEntry <= ee->m_NumElements &&
+    if (ee && ee->m_IsKeyboardEntry > 0 && ee->m_IsKeyboardEntry <= ee->m_pElementList.size() &&
         ee->m_pElementList[ee->m_IsKeyboardEntry - 1].pElementObject &&
         ee->m_pElementList[ee->m_IsKeyboardEntry - 1].pElementObject->m_Text)
     //(((ee->DetermineInsertionPointType(ee->m_IsKeyboardEntry-1)))
@@ -5175,16 +5173,14 @@ void CToolbox::ReformatKeyboardSelection()
         }
         else return;
 
-        CExpression* e = KeyboardEntryObject;
         bool any = false;
-        for (int kk = 0; kk < e->m_NumElements; kk++)
+        for (tElementStruct& ts : KeyboardEntryObject->m_pElementList)
         {
-            tElementStruct& ts = e->m_pElementList[kk];
             if (ts.pElementObject && ts.IsSelected == 2) ts.pElementObject->m_Color = fcolor;
             if (ts.Type == 1 && ts.pElementObject && ts.IsSelected == 2 && ts.pElementObject->Data1[0])
             {
                 if (!any) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("font formatting", 20218);
-                for (int jj = 0; jj < 24; jj++)
+                for (size_t jj = 0; jj < 24; jj++)
                     ts.pElementObject->Data2[jj] = format;
                 ts.IsSelected = 0;
                 any = true;

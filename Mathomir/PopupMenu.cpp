@@ -309,7 +309,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             tDocumentStruct* dsx = TheDocument + i;
             if (dsx->absolute_Y < -1000)
             {
-                if (dsx->Type == EXPRESSION && dsx->Object.exp->m_NumElements == 1)
+                if (dsx->Type == EXPRESSION && dsx->Object.exp->m_pElementList.size() == 1)
                 {
                     NumRullerGuidelines++;
                     //this is a valid guideline object
@@ -753,7 +753,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
         StartExtendedSelection = 0x7FFF;
         EndExtendedSelection = 0;
-        for (int i = 0; i < m_Expression->m_NumElements; i++)
+        for (int i = 0; i < m_Expression->m_pElementList.size(); i++)
         {
             tElementStruct& theElement = m_Expression->m_pElementList[i];
             if (!theElement.IsSelected)
@@ -770,12 +770,12 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             No++;
         }
 
-        LevelExtendedSelection = ExtractSelection(0, m_Expression->m_NumElements - 1, &StartExtendedSelection,
+        LevelExtendedSelection = ExtractSelection(0, m_Expression->m_pElementList.size() - 1, &StartExtendedSelection,
                                                   &EndExtendedSelection);
         if (LevelExtendedSelection == -1) ExtractedSelection->Delete();
             /*if (m_Expression->m_IsText==1) 
                 ExtractedSelection->Delete();*/
-        else if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->m_NumElements - 1)
+        else if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->m_pElementList.size() - 1)
         {
             //ExtractedSelection->m_ParentheseData=m_Expression->m_ParentheseData;
             //ExtractedSelection->m_ParentheseHeightFactor=m_Expression->m_ParentheseHeightFactor;
@@ -810,12 +810,12 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                     m_MenuType = 7; //HTML link menu
             }
 
-            if (ClipboardExpression && ClipboardExpression->m_NumElements > 0)
+            if (ClipboardExpression && ClipboardExpression->m_pElementList.size() > 0)
             {
                 //if there is something in the clipboard, we may wish to open "paste special - implanting paste" menu
                 //that is, posibility to insert selected element into clipboard expression
 
-                if (ClipboardExpression->m_NumElements > 1)
+                if (ClipboardExpression->m_pElementList.size() > 1)
                     AddPasteSpecial = 1;
                 else if (!ClipboardExpression->m_pElementList.empty())
                 {
@@ -979,7 +979,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                     is_label = true;
                 }
                 e->ConvertToPlainText(100, buff, is_label);
-                if (e->m_NumElements == 1 && e->m_pElementList[0].Type == 0)
+                if (e->m_pElementList.size() == 1 && e->m_pElementList[0].Type == 0)
                     if (is_label) sprintf_s(buff, "(#%d)", EasycastListStart + 1);
                     else sprintf_s(buff, "#%d", EasycastListStart + 1);
                 buff[39] = 0;
@@ -1005,13 +1005,12 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         bool found_selected = false;
         bool found_spacer = false;
         bool has_internallines = false;
-        for (int i = 0; i < m_Expression->m_NumElements; i++)
+        for (tElementStruct& ts : m_Expression->m_pElementList)
         {
-            tElementStruct& ts = m_Expression->m_pElementList[i];
             if (ts.IsSelected) found_selected = true;
             if ((ts.Type == 11 || ts.Type == 12) && found_selected)
             {
-                found_spacer = 1;
+                found_spacer = true;
                 continue;
             }
             if (ts.IsSelected && found_spacer)
@@ -1034,7 +1033,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         if (m_MenuType != 1 && m_MenuType != 4)
         {
             /*int isMultiline=0;
-            for (int ii=0;ii<m_Expression->m_NumElements;ii++)
+            for (int ii=0;ii<m_Expression->m_pElementList.size();ii++)
                 if (((m_Expression->m_pElementList+ii)->Type==12) || 
                 (((m_Expression->m_pElementList+ii)->Type==2) && ((m_Expression->m_pElementList+ii)->pElementObject->Data1[0]==(char)0xFF)))
                 {isMultiline=1;break;}
@@ -1205,10 +1204,9 @@ int PopupMenu::PrepareParenthesesMenu(int y)
     //bit 2 represents automatic (bits 1 and 8 represent forcing)
     char Shape = theexp->m_ParentheseShape;
     //Height=theexp->m_ParentheseHeightFactor;
-    for (int ii = 0; ii < theexp->m_NumElements; ii++)
-        if (theexp->m_pElementList[ii].Type == 12 ||
-            (theexp->m_pElementList[ii].Type == 2 &&
-                theexp->m_pElementList[ii].pElementObject->Data1[0] == (char)0xFF))
+    for (const tElementStruct& element : theexp->m_pElementList)
+        if (element.Type == 12 ||
+            (element.Type == 2 && element.pElementObject->Data1[0] == (char)0xFF))
         {
             isMultiline = true;
             break;
@@ -1293,7 +1291,7 @@ int PopupMenu::PrepareParenthesesMenu(int y)
         }
     if (haveParentheses)
         if (m_Expression->m_pPaternalElement && m_Expression->m_pPaternalElement->m_Type == 5 && m_Expression->
-            m_pPaternalExpression->m_NumElements == 1)
+            m_pPaternalExpression->m_pElementList.size() == 1)
         {
             AddMenuOption(TSize / 3, 2 * TSize, "Condense outside", 95, true);
         }
@@ -2023,9 +2021,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 int orderno = LocalLinks[dataval - 850] & 0x7FFFFFFF;
 
                 if (TheDocument[orderno].Type == EXPRESSION)
-                    for (int i = 0; i < m_Expression->m_NumElements; i++)
+                    for (tElementStruct& ts : m_Expression->m_pElementList)
                     {
-                        tElementStruct& ts = m_Expression->m_pElementList[i];
                         if (ts.IsSelected && ts.Type == 9 && ts.pElementObject)
                         {
                             CElement* elm = ts.pElementObject;
@@ -2059,7 +2056,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 strcpy(*(char**)elm->Data3, buff);
 
                                 if (swap_all || ((exp->m_pElementList[0].Type == 0 || (exp->m_pElementList[0].Type ==
-                                        1 && exp->m_pElementList[0].pElementObject->Data1[0] == 0)) && exp->m_NumElements
+                                        1 && exp->m_pElementList[0].pElementObject->Data1[0] == 0)) && exp->m_pElementList.size()
                                     == 1))
                                 {
                                     //empty, fill it inside
@@ -2927,7 +2924,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                             CExpression* exp = dsx->Object.exp;
                                             tElementStruct* ts;
                                             int iij;
-                                            for (iij = 0; iij < exp->m_NumElements; iij++)
+                                            for (iij = 0; iij < exp->m_pElementList.size(); iij++)
                                             {
                                                 ts = &exp->m_pElementList[iij];
                                                 if (ts->Type == 2)
@@ -2946,9 +2943,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                                 }
                                             }
                                             int equalpos = ts->X_pos;
-                                            if (iij == exp->m_NumElements)
-                                                equalpos = exp->m_pElementList[exp->m_NumElements - 1].X_pos
-                                                    + exp->m_pElementList[exp->m_NumElements - 1].Length
+                                            if (iij == exp->m_pElementList.size())
+                                                equalpos = exp->m_pElementList[exp->m_pElementList.size() - 1].X_pos
+                                                    + exp->m_pElementList[exp->m_pElementList.size() - 1].Length
                                                     + exp->m_MarginX;
                                             equalpos = equalpos * 100 / ViewZoom;
                                             if (pass == 0)
@@ -3402,9 +3399,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("decoration", 20200);
                 int data = Options[m_SelectedOption].Data;
 
-                for (int ii = 0; ii < m_Expression->m_NumElements; ii++)
+                for (tElementStruct& ts : m_Expression->m_pElementList)
                 {
-                    tElementStruct& ts = m_Expression->m_pElementList[ii];
                     if (!ts.IsSelected)
                         continue;
                     if (ts.Type == 11 || ts.Type == 12) //vertical and horizontal separators cannot be decorated
@@ -3478,7 +3474,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             m_Expression = parent;
                             is_keyboard_entry = 0;
                         }
-                        if (m_Expression->m_NumElements == 0)
+                        if (m_Expression->m_pElementList.size() == 0)
                         {
                             m_Expression->InsertEmptyElement(0, 0, 0);
                             is_keyboard_entry = 0;
@@ -3486,7 +3482,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (is_keyboard_entry && m_Expression == KeyboardEntryObject)
                         {
                             //change the keyboard entry focus point to the element that is marked
-                            for (int kk = 0; kk < m_Expression->m_NumElements; kk++)
+                            for (int kk = 0; kk < m_Expression->m_pElementList.size(); kk++)
                                 if (m_Expression->m_pElementList[kk].Decoration & 0x40)
                                 {
                                     (int&)m_Expression->m_pElementList[kk].Decoration &= 0x3F;
@@ -3526,9 +3522,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     exp->m_FontSize = m_Expression->m_FontSize;
                     //exp->m_FontSizeHQ=m_Expression->m_FontSizeHQ;
                     exp->m_Color = m_Expression->m_Color;
-                    while (m_Expression->m_NumElements > 1)
+                    while (m_Expression->m_pElementList.size() > 1)
                     {
-                        exp->InsertElement(m_Expression->m_pElementList[1], exp->m_NumElements);
+                        exp->InsertElement(m_Expression->m_pElementList[1], exp->m_pElementList.size());
                         m_Expression->DeleteElement(1);
                     }
                     m_Expression->m_MaxNumColumns = 1;
@@ -3546,10 +3542,10 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 if (kaka == 95) //condense outside
                 {
-                    for (int ii = 0; ii < m_Expression->m_NumElements; ii++)
+                    for (const tElementStruct& ii : m_Expression->m_pElementList)
                     {
                         m_Expression->m_pPaternalExpression->InsertElement(
-                            m_Expression->m_pElementList[ii], m_Expression->m_pPaternalExpression->m_NumElements);
+                            ii, m_Expression->m_pPaternalExpression->m_pElementList.size());
                     }
                     m_Expression->m_pPaternalExpression->m_ParentheseShape = m_Expression->m_ParentheseShape;
                     m_Expression->m_pPaternalExpression->m_ParenthesesFlags = m_Expression->m_ParenthesesFlags;
@@ -3579,9 +3575,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else if (m_theSelectedElement)
                 {
-                    for (int ii = 0; ii < m_Expression->m_NumElements; ii++)
+                    for (tElementStruct& ts : m_Expression->m_pElementList)
                     {
-                        tElementStruct& ts = m_Expression->m_pElementList[ii];
                         if (ts.IsSelected && ts.pElementObject) //types 0,12,11 don't have objects
                             ts.pElementObject->SetColor(data - 81);
                     }
@@ -3648,7 +3643,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                 if (data == 78) //converting to hyperlink
                 {
-                    int l = m_Expression->m_NumElements;
+                    int l = m_Expression->m_pElementList.size();
                     for (int i = 0; i < l; i++)
                     {
                         if (m_Expression->m_pElementList[i].IsSelected)
@@ -3662,7 +3657,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 tElementStruct& ts = m_Expression->m_pElementList[j];
                                 if (ts.IsSelected == 0) break;
                                 ts.IsSelected = 0;
-                                e->InsertElement(ts, e->m_NumElements);
+                                e->InsertElement(ts, e->m_pElementList.size());
                                 m_Expression->DeleteElement(j);
                                 j--;
                                 l--;
@@ -3898,7 +3893,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             else
                             {
                                 if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->
-                                    m_NumElements - 1)
+                                    m_pElementList.size() - 1)
                                 {
                                     int prnth = m_Expression->m_ParenthesesFlags;
                                     m_Expression->CopyExpression(Options[m_SelectedOption].Graphics, 0);
@@ -3912,7 +3907,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     m_Expression->InsertSequence(
                                         m_Expression->GetDefaultElementType(LevelExtendedSelection),
                                         StartExtendedSelection, Options[m_SelectedOption].Graphics, 0,
-                                        Options[m_SelectedOption].Graphics->m_NumElements - 1);
+                                        Options[m_SelectedOption].Graphics->m_pElementList.size() - 1);
                                 }
                             }
                             copy2 = new CExpression(nullptr, nullptr, fs);
@@ -3948,7 +3943,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             CDC* DC;
                             DC = pMainView->GetDC();
                             copy2->CalculateSize(DC, 100, l, &a, &b);
-                            copy2->m_Selection = copy2->m_NumElements + 1;
+                            copy2->m_Selection = copy2->m_pElementList.size() + 1;
                             copy2->KeyboardStart(DC, ViewZoom);
                             pMainView->ReleaseDC(DC);
                         }
@@ -4033,7 +4028,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     }
                     else
                     {
-                        if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->m_NumElements - 1)
+                        if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->m_pElementList.size() - 1)
                         {
                             int prnth = m_Expression->m_ParenthesesFlags;
                             m_Expression->CopyExpression(Options[m_SelectedOption].Graphics, 0);
@@ -4048,7 +4043,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             Options[m_SelectedOption].Graphics->AddToStackClipboard(1);
                             m_Expression->InsertSequence(m_Expression->GetDefaultElementType(LevelExtendedSelection),
                                                          StartExtendedSelection, Options[m_SelectedOption].Graphics, 0,
-                                                         Options[m_SelectedOption].Graphics->m_NumElements - 1);
+                                                         Options[m_SelectedOption].Graphics->m_pElementList.size() - 1);
                         }
                     }
                 }
@@ -4276,15 +4271,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("font format", 20218);
                     char font_first = 0;
                     if (m_theSelectedElement && m_theSelectedElement->pElementObject)
-                        font_first =
-                            m_theSelectedElement->pElementObject->Data2[0];
+                        font_first = m_theSelectedElement->pElementObject->Data2[0];
 
-                    for (int ii = 0; ii < m_Expression->m_NumElements; ii++)
+                    for (tElementStruct& ts : m_Expression->m_pElementList)
                     {
-                        tElementStruct& ts = m_Expression->m_pElementList[ii];
                         if ((ts.Type == 1 || ts.Type == 6) && ts.IsSelected)
                         {
-                            for (int i = 0; i < 24; i++) //for every character
+                            for (size_t i = 0; i < 24; i++) //for every character
                             {
                                 char font = ts.pElementObject->Data2[i];
                                 char vmods = ts.pElementObject->m_VMods;
@@ -4744,7 +4737,7 @@ int PopupMenu::ExtractSelection(int StartPos, int EndPos, int* StartSel, int* En
         for (int i = *StartSel; i <= *EndSel; i++)
         {
             if (m_Expression->m_pElementList[i].Type == 12) found_nl = 1;
-            ExtractedSelection->InsertElement(m_Expression->m_pElementList[i], ExtractedSelection->m_NumElements);
+            ExtractedSelection->InsertElement(m_Expression->m_pElementList[i], ExtractedSelection->m_pElementList.size());
         }
         if (found_nl)
         {
@@ -4781,7 +4774,7 @@ int PopupMenu::SymbolicComputation()
                 //check if this expression is valid for inclusion into system
                 CExpression* tmp = TheDocument[i].Object.exp;
                 if (tmp->IsTextContained(-1)) continue;
-                if (tmp->m_NumElements == 1 &&
+                if (tmp->m_pElementList.size() == 1 &&
                     (tmp->m_pElementList[0].Type == 0 || tmp->m_pElementList[0].Type == 1 || tmp->m_pElementList[0].Type
                         == 2 ||
                         tmp->m_pElementList[0].Type == 11 || tmp->m_pElementList[0].Type == 12))
@@ -4805,7 +4798,7 @@ int PopupMenu::SymbolicComputation()
                     while (true)
                     {
                         char et, p;
-                        int l = tmp->GetElementLen(pos, tmp->m_NumElements - 1,min(lvl, EqLevel-1), &et, &p);
+                        int l = tmp->GetElementLen(pos, tmp->m_pElementList.size() - 1, min(lvl, EqLevel-1), &et, &p);
                         if (l == 0) break;
                         int lvl2 = tmp->FindLowestOperatorLevel(pos + p, pos + l - 1, (char)0xD7);
                         if (lvl2 == EqLevel)
@@ -4824,14 +4817,14 @@ int PopupMenu::SymbolicComputation()
                                     System[NumEquations] = new CExpression(nullptr, nullptr, 100);
                                     for (int kk = ppos; kk < pos2; kk++)
                                         System[NumEquations]->InsertElement(
-                                            tmp->m_pElementList[kk], System[NumEquations]->m_NumElements);
+                                            tmp->m_pElementList[kk], System[NumEquations]->m_pElementList.size());
                                     for (int kk = pos2; kk < pos2 + l2; kk++)
                                         System[NumEquations]->InsertElement(
-                                            tmp->m_pElementList[kk], System[NumEquations]->m_NumElements);
+                                            tmp->m_pElementList[kk], System[NumEquations]->m_pElementList.size());
                                     NumEquations++;
                                     if (NumEquations > 16)
                                     {
-                                        pos2 = tmp->m_NumElements;
+                                        pos2 = tmp->m_pElementList.size();
                                         break;
                                     }
                                 }
@@ -4841,7 +4834,7 @@ int PopupMenu::SymbolicComputation()
                             }
                         }
                         pos += l;
-                        if (pos > tmp->m_NumElements - 1) break;
+                        if (pos > tmp->m_pElementList.size() - 1) break;
                     }
                 }
             }
@@ -4902,7 +4895,7 @@ int PopupMenu::SymbolicComputation()
             //we will replace the Base elements in a 'stupid' manner			
             try
             {
-                if (Base->FindReplace(0, Base->m_NumElements - 1, ExtractedSelection, tmp_clipboard))
+                if (Base->FindReplace(0, Base->m_pElementList.size() - 1, ExtractedSelection, tmp_clipboard))
                 {
                     if (AddMathMenuOption(Base, parent))
                     {
@@ -4933,7 +4926,7 @@ int PopupMenu::SymbolicComputation()
     }
 
     //we work on extracted selection
-    ExtractedSelection->CodeDecodeUnitsOfMeasurement(0, ExtractedSelection->m_NumElements - 1);
+    ExtractedSelection->CodeDecodeUnitsOfMeasurement(0, ExtractedSelection->m_pElementList.size() - 1);
     is_suitable = ExtractedSelection->IsSuitableForComputation();
     // is_suitable==2 if only pure numbers are contained in expression
     if (!is_suitable)
@@ -4960,7 +4953,7 @@ int PopupMenu::SymbolicComputation()
         }
     }
 
-    if (ExtractedSelection->m_NumElements == 1)
+    if (ExtractedSelection->m_pElementList.size() == 1)
     {
         // handling for pure numbers - rounding and format
         double N;
@@ -4968,16 +4961,16 @@ int PopupMenu::SymbolicComputation()
         int is_pi = 0;
         int is_e = 0;
         int is_pure = 0;
-        if (ExtractedSelection->IsPureNumber(0, ExtractedSelection->m_NumElements, &N, &prec))
+        if (ExtractedSelection->IsPureNumber(0, ExtractedSelection->m_pElementList.size(), &N, &prec))
             is_pure = 1;
-        if (ExtractedSelection->m_NumElements == 1 && ExtractedSelection->m_pElementList[0].Type == 1 &&
+        if (ExtractedSelection->m_pElementList.size() == 1 && ExtractedSelection->m_pElementList[0].Type == 1 &&
             strcmp(ExtractedSelection->m_pElementList[0].pElementObject->Data1, "p") == 0 &&
             (ExtractedSelection->m_pElementList[0].pElementObject->Data2[0] & 0xE0) == 0x60)
         {
             is_pi = 1;
             is_pure = 1;
         }
-        if (ExtractedSelection->m_NumElements == 1 && ExtractedSelection->m_pElementList[0].Type == 1 &&
+        if (ExtractedSelection->m_pElementList.size() == 1 && ExtractedSelection->m_pElementList[0].Type == 1 &&
             strcmp(ExtractedSelection->m_pElementList[0].pElementObject->Data1, "e") == 0 &&
             (ExtractedSelection->m_pElementList[0].pElementObject->Data2[0] & 0xE0) != 0x60 &&
             ExtractedSelection->m_pElementList[0].pElementObject->m_VMods == 0)
@@ -4985,7 +4978,7 @@ int PopupMenu::SymbolicComputation()
             is_e = 1;
             is_pure = 1;
         }
-        if (ExtractedSelection->m_NumElements == 1 && is_pure)
+        if (ExtractedSelection->m_pElementList.size() == 1 && is_pure)
         {
             if (is_pi)
             {
@@ -5005,7 +4998,7 @@ int PopupMenu::SymbolicComputation()
                 CExpression* E1 = new CExpression(nullptr, nullptr, 100);
                 E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
                                         fabs(N - (long long)N) < 1e-100, prec + prec_increase, 0);
-                int last = E1->m_NumElements - 1;
+                int last = E1->m_pElementList.size() - 1;
                 tElementStruct& ts = E1->m_pElementList[last];
                 int ln = (int)strlen(ts.pElementObject->Data1);
                 while (ln)
@@ -5067,10 +5060,10 @@ int PopupMenu::SymbolicComputation()
                     if (ts.pElementObject->Data1[ln - 1] == '.') ts.pElementObject->Data1[--ln] = 0;
                     break;
                 }
-                E1->InsertEmptyElement(E1->m_NumElements, 2, (char)0xD7);
-                E1->InsertEmptyElement(E1->m_NumElements, 3, 0);
-                CExpression* a = E1->m_pElementList[E1->m_NumElements - 1].pElementObject->Expression1;
-                CExpression* e = E1->m_pElementList[E1->m_NumElements - 1].pElementObject->Expression2;
+                E1->InsertEmptyElement(E1->m_pElementList.size(), 2, (char)0xD7);
+                E1->InsertEmptyElement(E1->m_pElementList.size(), 3, 0);
+                CExpression* a = E1->m_pElementList[E1->m_pElementList.size() - 1].pElementObject->Expression1;
+                CExpression* e = E1->m_pElementList[E1->m_pElementList.size() - 1].pElementObject->Expression2;
                 a->GenerateASCIINumber(10.0, 10, true, 0, 0);
                 if (exp < 0)
                 {
@@ -5099,7 +5092,7 @@ int PopupMenu::SymbolicComputation()
             }
 
             //making factorization of integer numbers
-            if (ExtractedSelection->IsPureNumber(0, ExtractedSelection->m_NumElements, &N, &prec))
+            if (ExtractedSelection->IsPureNumber(0, ExtractedSelection->m_pElementList.size(), &N, &prec))
             {
                 if (fabs(N - (long long)N) < 1e-100 && fabs(N) > 2.9)
                 {
@@ -5124,18 +5117,18 @@ int PopupMenu::SymbolicComputation()
                         if (cnt == 1)
                         {
                             if (result->m_pElementList[0].Type)
-                                result->InsertEmptyElement(result->m_NumElements, 2, (char)0xD7);
-                            int pos = result->m_NumElements;
+                                result->InsertEmptyElement(result->m_pElementList.size(), 2, (char)0xD7);
+                            int pos = result->m_pElementList.size();
                             if (result->m_pElementList[0].Type == 0) pos = 0;
                             result->GenerateASCIINumber((double)z, z, true, 0, pos);
                         }
                         else if (cnt > 1)
                         {
                             if (result->m_pElementList[0].Type)
-                                result->InsertEmptyElement(result->m_NumElements, 2, (char)0xD7);
-                            result->InsertEmptyElement(result->m_NumElements, 3, 0);
-                            CExpression* a = result->m_pElementList[result->m_NumElements - 1].pElementObject->Expression1;
-                            CExpression* e = result->m_pElementList[result->m_NumElements - 1].pElementObject->Expression2;
+                                result->InsertEmptyElement(result->m_pElementList.size(), 2, (char)0xD7);
+                            result->InsertEmptyElement(result->m_pElementList.size(), 3, 0);
+                            CExpression* a = result->m_pElementList[result->m_pElementList.size() - 1].pElementObject->Expression1;
+                            CExpression* e = result->m_pElementList[result->m_pElementList.size() - 1].pElementObject->Expression2;
                             a->GenerateASCIINumber((double)z, z, true, 0, 0);
                             e->GenerateASCIINumber(cnt, cnt, true, 0, 0);
                         }
@@ -5146,8 +5139,8 @@ int PopupMenu::SymbolicComputation()
 
                     if (n > 1 && result->m_pElementList[0].Type)
                     {
-                        result->InsertEmptyElement(result->m_NumElements, 2, (char)0xD7);
-                        result->GenerateASCIINumber((double)n, n, true, 0, result->m_NumElements);
+                        result->InsertEmptyElement(result->m_pElementList.size(), 2, (char)0xD7);
+                        result->GenerateASCIINumber((double)n, n, true, 0, result->m_pElementList.size());
                     }
                     if (minus && result->m_pElementList[0].Type)
                         result->InsertEmptyElement(0, 2, '-');
@@ -5177,11 +5170,11 @@ int PopupMenu::SymbolicComputation()
             {
                 int ret = 1;
                 int prev_ret = 1;
-                while ((ret = tmp->ExtractVariable(ExtractedSelection, 0, ExtractedSelection->m_NumElements, ret)) &&
+                while ((ret = tmp->ExtractVariable(ExtractedSelection, 0, ExtractedSelection->m_pElementList.size(), ret)) &&
                     cnt < 50)
                 {
-                    if (tmp->ContainsVariable(0, tmp->m_NumElements - 1, ExtractedSelection, 0,
-                                              ExtractedSelection->m_NumElements) == 0)
+                    if (tmp->ContainsVariable(0, tmp->m_pElementList.size() - 1, ExtractedSelection, 0,
+                                              ExtractedSelection->m_pElementList.size()) == 0)
                     {
                         //error - variable cannot be extracted
                         delete tmp;
@@ -5266,7 +5259,7 @@ int PopupMenu::SymbolicComputation()
         try
         {
             if (i == -1 && is_suitable == 2)
-                while (E1->Compute(0, E1->m_NumElements - 1, 10) && cntr < 50)
+                while (E1->Compute(0, E1->m_pElementList.size() - 1, 10) && cntr < 50)
                 {
                     cntr++;
                     if (!IsWindowVisible())
@@ -5277,7 +5270,7 @@ int PopupMenu::SymbolicComputation()
                 }
 
             if (i == 0)
-                while (E1->Compute(0, E1->m_NumElements - 1, 0) && cntr < 50)
+                while (E1->Compute(0, E1->m_pElementList.size() - 1, 0) && cntr < 50)
                 {
                     cntr++;
                     if (!IsWindowVisible())
@@ -5288,7 +5281,7 @@ int PopupMenu::SymbolicComputation()
                 }
 
             if (i == 1)
-                while (E1->Compute(0, E1->m_NumElements - 1, 1) && cntr < 50)
+                while (E1->Compute(0, E1->m_pElementList.size() - 1, 1) && cntr < 50)
                 {
                     cntr++;
                     if (!IsWindowVisible())
@@ -5299,7 +5292,7 @@ int PopupMenu::SymbolicComputation()
                 }
 
             if (i == 2)
-                while (E1->Compute(0, E1->m_NumElements - 1, 2) && cntr < 50)
+                while (E1->Compute(0, E1->m_pElementList.size() - 1, 2) && cntr < 50)
                 {
                     cntr++;
                     if (!IsWindowVisible())
@@ -5337,7 +5330,7 @@ int PopupMenu::SymbolicComputation()
 
     //here we are checking if we clicked at some kind of vector of pure numbers (calculating its average and sum)
 
-    if (ExtractedSelection->m_NumElements >= 3)
+    if (ExtractedSelection->m_pElementList.size() >= 3)
     {
         int level = ExtractedSelection->FindLowestOperatorLevel();
         if (level >= 0 && GetOperatorLevel('=') > level)
@@ -5350,7 +5343,7 @@ int PopupMenu::SymbolicComputation()
             while (true)
             {
                 char et, p;
-                int l = ExtractedSelection->GetElementLen(pos, ExtractedSelection->m_NumElements - 1, level, &et, &p);
+                int l = ExtractedSelection->GetElementLen(pos, ExtractedSelection->m_pElementList.size() - 1, level, &et, &p);
                 if (l == 0) break;
 
                 tPureFactors PF;
@@ -5359,8 +5352,8 @@ int PopupMenu::SymbolicComputation()
                 PF.prec1 = 0;
                 CExpression* ex1 = new CExpression(nullptr, nullptr, 100);
                 for (int i = pos + p; i < pos + l; i++)
-                    ex1->InsertElement(ExtractedSelection->m_pElementList[i], ex1->m_NumElements);
-                if (ex1->StrikeoutCommonFactors(0, ex1->m_NumElements - 1, 1, nullptr, 0, 0, 1, &PF))
+                    ex1->InsertElement(ExtractedSelection->m_pElementList[i], ex1->m_pElementList.size());
+                if (ex1->StrikeoutCommonFactors(0, ex1->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF))
                 {
                     number++;
                     sum += PF.N1 / PF.N2;
@@ -5372,7 +5365,7 @@ int PopupMenu::SymbolicComputation()
 
 
                 pos += l;
-                if (pos > ExtractedSelection->m_NumElements - 1) break;
+                if (pos > ExtractedSelection->m_pElementList.size() - 1) break;
             }
             if (is_numbers)
             {

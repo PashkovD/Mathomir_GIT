@@ -909,7 +909,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
                             if (start_point > 1)
                             {
                                 for (int i = 0; i < start_point - 1; i++)
-                                    tmp->InsertElement(func->m_pElementList[i], tmp->m_NumElements);
+                                    tmp->InsertElement(func->m_pElementList[i], tmp->m_pElementList.size());
                                 short l, a, b;
                                 tmp->CalculateSize(DC, zoom * 3 / 4 * MX / 50, l, &a, &b);
                                 DC->FillSolidRect(X + 1, Y + 1, l, a + b + 2,RGB(200, 200, 200));
@@ -1480,7 +1480,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         KeyboardEntryObject->m_FontSize = 100;
         KeyboardEntryObject->DeselectExpression();
         KeyboardEntryObject->m_Selection = KeyboardEntryObject->m_pElementList[0].Type
-                                                   ? KeyboardEntryObject->m_NumElements + 1 : 1;
+                                                   ? KeyboardEntryObject->m_pElementList.size() + 1 : 1;
 
         for (int i = 0; i < NumDocumentElements; i++)
             if (TheDocument[i].Object.draw == Base)
@@ -2347,15 +2347,15 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
         int prec2;
         CExpression* x = (CExpression*)(Base->Items + 5)->pSubdrawing;
         if (x->m_pElementList[0].Type)
-            if (!x->IsPureNumber(0, x->m_NumElements, Xmax, &prec2))
+            if (!x->IsPureNumber(0, x->m_pElementList.size(), Xmax, &prec2))
             {
                 tPureFactors PF;
                 PF.N1 = 1.0;
                 PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
-                x->StrikeoutRemove(0, x->m_NumElements - 1);
+                x->StrikeoutCommonFactors(0, x->m_pElementList.size() - 1, 1,nullptr, 0, 0, 1, &PF);
+                x->StrikeoutRemove(0, x->m_pElementList.size() - 1);
                 *Xmax = PF.N1 / PF.N2;
             }
     }
@@ -2364,15 +2364,15 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
         int prec2;
         CExpression* x = (CExpression*)(Base->Items + 4)->pSubdrawing;
         if (x->m_pElementList[0].Type)
-            if (!x->IsPureNumber(0, x->m_NumElements, Xmin, &prec2))
+            if (!x->IsPureNumber(0, x->m_pElementList.size(), Xmin, &prec2))
             {
                 tPureFactors PF;
                 PF.N1 = 1.0;
                 PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
-                x->StrikeoutRemove(0, x->m_NumElements - 1);
+                x->StrikeoutCommonFactors(0, x->m_pElementList.size() - 1, 1,nullptr, 0, 0, 1, &PF);
+                x->StrikeoutRemove(0, x->m_pElementList.size() - 1);
                 *Xmin = PF.N1 / PF.N2;
             }
     }
@@ -2381,15 +2381,15 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
         int prec2;
         CExpression* x = (CExpression*)(Base->Items + 7)->pSubdrawing;
         if (x->m_pElementList[0].Type)
-            if (!x->IsPureNumber(0, x->m_NumElements, Ymax, &prec2))
+            if (!x->IsPureNumber(0, x->m_pElementList.size(), Ymax, &prec2))
             {
                 tPureFactors PF;
                 PF.N1 = 1.0;
                 PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
-                x->StrikeoutRemove(0, x->m_NumElements - 1);
+                x->StrikeoutCommonFactors(0, x->m_pElementList.size() - 1, 1,nullptr, 0, 0, 1, &PF);
+                x->StrikeoutRemove(0, x->m_pElementList.size() - 1);
                 *Ymax = PF.N1 / PF.N2;
             }
     }
@@ -2398,15 +2398,15 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
         int prec2;
         CExpression* x = (CExpression*)(Base->Items + 6)->pSubdrawing;
         if (x->m_pElementList[0].Type)
-            if (!x->IsPureNumber(0, x->m_NumElements, Ymin, &prec2))
+            if (!x->IsPureNumber(0, x->m_pElementList.size(), Ymin, &prec2))
             {
                 tPureFactors PF;
                 PF.N1 = 1.0;
                 PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                x->StrikeoutCommonFactors(0, x->m_NumElements - 1, 1,nullptr, 0, 0, 1, &PF);
-                x->StrikeoutRemove(0, x->m_NumElements - 1);
+                x->StrikeoutCommonFactors(0, x->m_pElementList.size() - 1, 1,nullptr, 0, 0, 1, &PF);
+                x->StrikeoutRemove(0, x->m_pElementList.size() - 1);
                 *Ymin = PF.N1 / PF.N2;
             }
     }
