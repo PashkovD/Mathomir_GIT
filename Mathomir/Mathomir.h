@@ -43,7 +43,7 @@ enum doc_type:byte
 };
 
 //The main document strcture (the main document is stored as an array of these structures)
-typedef struct THE_DOCUMENT
+struct tDocumentStruct
 {
     union
     {
@@ -60,21 +60,21 @@ typedef struct THE_DOCUMENT
     short Below;
     byte MovingDotState;
     doc_type Type; //1-expression, 2-drawing
-} tDocumentStruct;
+};
 
 
 // *************************************
 // initializes Undo memory
 #define NUM_UNDO_LEVELS 5
 
-typedef struct UNDO1
+struct tUndoStruct
 {
     void* data;
     int NumElements;
     char text[32];
-} tUndoStruct;
+};
 
-typedef struct UNDO2
+struct tUndoObjectStruct
 {
     union
     {
@@ -85,7 +85,7 @@ typedef struct UNDO2
     doc_type Type;
     int UsedInLevel; //bitmask that tells us this object is used at what undo level
     int Checksum;
-} tUndoObjectStruct;
+};
 
 extern tUndoStruct UndoStruct[];
 extern int UndoNumLevels;
@@ -173,11 +173,11 @@ extern char NoImageAutogeneration;
 #define PALE_RGB(x) ((((0xFF-((x>>16)&0xFF))/2+((x>>16)&0xFF))<<16)+(((0xFF-((x>>8)&0xFF))/2+((x>>8)&0xFF))<<8)+((0xFF-(x&0xFF))/2+(x&0xFF)))
 
 #ifdef TEACHER_VERSION
-typedef struct PUBLIC_KEY
+struct tPublicKey
 {
     int64_t N;
     int64_t X;
-} tPublicKey;
+};
 
 extern tPublicKey* PublicKey;
 extern unsigned char TheTimeLimit;
@@ -187,7 +187,7 @@ extern unsigned char DisableEditing;
 extern unsigned char WarningDisplayed;
 #endif
 
-typedef struct PASSWORD_DLG_STRUCT
+struct tPasswordDlgStruct
 {
     bool is_exam;
     char password[24];
@@ -195,7 +195,7 @@ typedef struct PASSWORD_DLG_STRUCT
     bool disable_symbolic_math;
     bool disable_math;
     bool canceled;
-} tPasswordDlgStruct;
+};
 
 extern tPasswordDlgStruct* PasswordDlgStruct;
 extern char TheFileType;
@@ -211,7 +211,7 @@ int AddDocumentObject(doc_type type, int X, int Y);
 int CopyTranslatedString(char* dest, const std::string& defstr, int id, size_t destlen);
 extern "C++" {
     template <size_t Size>
-    int CopyTranslatedString(char (&dest)[Size], const std::string& defstr, int id)
+    int CopyTranslatedString(char (&dest)[Size], const std::string& defstr, const int id)
     {
         return CopyTranslatedString(dest, defstr, id, Size-1);
     }

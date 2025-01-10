@@ -130,7 +130,7 @@ extern int AutocompleteTriggered;
 extern CExpression* BackspaceStorage;
 extern CExpression* LastCursorPositionExpression;
 
-int ExecuteLink(char* command);
+int ExecuteLink(const char* command);
 unsigned int LongClickStartTime;
 CPoint LongClickPosition;
 CExpression* LongClickObject;
@@ -381,13 +381,11 @@ CMathomirView::~CMathomirView()
         delete ClipboardBackground.bmp;
     }
 
-    if (TheKeyboardClipboard)
-    {
-        delete TheKeyboardClipboard;
-    }
+
+    delete TheKeyboardClipboard;
 }
 
-int CMathomirView::InitSpecific(void)
+int CMathomirView::InitSpecific()
 {
     UndoInit();
     return 0;
@@ -770,7 +768,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                 int RelativeY = (ds->absolute_Y - ViewY) * ViewZoom / 100;
                 if (ds->MovingDotState == 3 && ((MouseMode != 9 && MouseMode != 11) || SelectedHandle != 5))
                 {
-                    GentlyPaintObject(ds, &bitmapDC);
+                    GentlyPaintObject(*ds, &bitmapDC);
                 }
                 else if (ds->MovingDotState != 6) //prepared for moving
                 {
@@ -1171,7 +1169,7 @@ void CMathomirView::OnDraw(CDC* pDC)
                         lasttillen = tillen;
                         bitmapDC.SelectClipRgn(nullptr);
 
-                        if (myrgn) delete myrgn;
+                        delete myrgn;
                         myrgn = new CRgn();
                         myrgn->CreateRectRgn(TillenRelativeX, TillenRelativeY, TillenRelativeX + Tillens.Width,
                                              TillenRelativeY + Tillens.Height);
@@ -2108,7 +2106,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     ds->Above = (int)a * 100 / ViewZoom;
                     ds->Below = (int)b * 100 / ViewZoom;
                     ds->Length = (int)l * 100 / ViewZoom;
-                    this->GentlyPaintObject(ds, DC);
+                    this->GentlyPaintObject(*ds, DC);
 
 
                     goto on_lbuttondown_end;
@@ -2183,7 +2181,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 if (ds->absolute_Y + ds->Below + PaperHeight > ViewMaxY) ViewMaxY = ds->absolute_Y + ds->Below +
                     PaperHeight;
 
-                GentlyPaintObject(ds, DC);
+                GentlyPaintObject(*ds, DC);
             }
 
         if (!ViewOnlyMode)
@@ -2268,7 +2266,7 @@ void PaintNewlineAddMark(CDC* DC)
     prevNewlineAddObject = nlo;
 }
 
-void CMathomirView::AdjustPosition(void)
+void CMathomirView::AdjustPosition()
 {
     RECT cr;
     if (theApp.m_pMainWnd == nullptr)
@@ -3193,7 +3191,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                     }
                     else
                     {
-                        GentlyPaintObject(ds2, DC);
+                        GentlyPaintObject(*ds2, DC);
                         this->ReleaseDC(DC);
                     }
                     return;
@@ -3938,7 +3936,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 else if (TouchedObject == prevTouchedObject && any_drawing_touched < 2 && prev_any_drawing_touched
                     < 2)
                 {
-                    if (TouchedObject) !Tillens.Show ? GentlyPaintObject(TouchedObject, DC) : RepaintTheView();
+                    if (TouchedObject) !Tillens.Show ? GentlyPaintObject(*TouchedObject, DC) : RepaintTheView();
                 }
                 else
                 {
@@ -3947,9 +3945,9 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                         try
                         {
                             if (prevTouchedObject)
-                                !Tillens.Show ? GentlyPaintObject(prevTouchedObject, DC) : RepaintTheView();
+                                !Tillens.Show ? GentlyPaintObject(*prevTouchedObject, DC) : RepaintTheView();
                             if (TouchedObject)
-                                !Tillens.Show ? GentlyPaintObject(TouchedObject, DC) : RepaintTheView();
+                                !Tillens.Show ? GentlyPaintObject(*TouchedObject, DC) : RepaintTheView();
                             else
                                 RepaintViewTimer = 2;
                         }
@@ -4296,7 +4294,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                                                         absolute_Y,
                                                                         nFlags);
 
-                        if (redraw) GentlyPaintObject(ds, DC);
+                        if (redraw) GentlyPaintObject(*ds, DC);
                     }
                 }
         }
@@ -4989,7 +4987,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                     //inserting from internal stack-clipboard
                     if (prevClipboardExpression && KeyboardEntryObject && KeyboardEntryBaseObject)
                     {
-                        if (ClipboardExpression) delete ClipboardExpression;
+                        delete ClipboardExpression;
                         ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                         ClipboardExpression->CopyExpression(prevClipboardExpression, 0, 0, 0);
                         short l, a, b;
@@ -5710,7 +5708,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                         if (e->m_pElementList[i].IsSelected == 2) break;
                     if (i >= e->m_NumElements)
                     {
-                        if (ClipboardExpression) delete ClipboardExpression;
+                        delete ClipboardExpression;
                         ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                         ClipboardExpression->InsertEmptyElement(0, 2, (char)0xB4);
                         CDC* DC = this->GetDC();
@@ -6111,7 +6109,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                 }
                 else
                 {
-                    GentlyPaintObject(KeyboardEntryBaseObject, DC);
+                    GentlyPaintObject(*KeyboardEntryBaseObject, DC);
                 }
 
                 if (nChar > 6)
@@ -6953,7 +6951,7 @@ void CMathomirView::OnTimer(UINT nIDEvent)
                         TheDocument[i].Above = a * 100 / ViewZoom;
                         TheDocument[i].Below = b * 100 / ViewZoom;
 
-                        GentlyPaintObject(TheDocument + i, DC);
+                        GentlyPaintObject(*(TheDocument + i), DC);
                         this->ReleaseDC(DC);
                     }
                     InvalidateRect(nullptr, 0);
@@ -7560,7 +7558,7 @@ void CMathomirView::OnHqRend()
 }
 
 
-int CMathomirView::AdjustMenu(void)
+int CMathomirView::AdjustMenu()
 {
     ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
     return 0;
@@ -7607,20 +7605,20 @@ CDC* GentlyPaintBitmapDC;
 int GentlyPaintBitmapX;
 int GentlyPaintBitmapY;
 
-int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
+int CMathomirView::GentlyPaintObject(const tDocumentStruct& ds, CDC* DC)
 {
     int borderY = 3 + ViewZoom / 256;
     int borderX = 3 + ViewZoom / 256;
     int borderXsupplement = 0;
-    if (ds->Type == EXPRESSION && ds->Object.exp)
+    if (ds.Type == EXPRESSION && ds.Object.exp)
     {
-        borderXsupplement = ds->Object.exp->m_MarginX / 2;
+        borderXsupplement = ds.Object.exp->m_MarginX / 2;
         borderX += borderXsupplement;
     }
     RECT rct;
     rct.left = rct.top = 0;
-    rct.right = ds->Length * ViewZoom / 100 + 2 * borderX;
-    rct.bottom = (ds->Above + ds->Below) * ViewZoom / 100 + 2 * borderY;
+    rct.right = ds.Length * ViewZoom / 100 + 2 * borderX;
+    rct.bottom = (ds.Above + ds.Below) * ViewZoom / 100 + 2 * borderY;
 
     RestoreClipboardBackground();
 
@@ -7651,13 +7649,13 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
 
     //drawing page borders (if at the border)
     if (!ViewOnlyMode)
-        if (ds->Type != DRAWING)
+        if (ds.Type != DRAWING)
         {
-            int RelativeLeft = (15 - ViewX) * ViewZoom / 100 + (ViewX - ds->absolute_X) * ViewZoom / 100;
-            int RelativeRight = (15 - ViewX + PaperWidth) * ViewZoom / 100 + (ViewX - ds->absolute_X) * ViewZoom / 100;
+            int RelativeLeft = (15 - ViewX) * ViewZoom / 100 + (ViewX - ds.absolute_X) * ViewZoom / 100;
+            int RelativeRight = (15 - ViewX + PaperWidth) * ViewZoom / 100 + (ViewX - ds.absolute_X) * ViewZoom / 100;
             int RelativeHeight = PaperHeight * ViewZoom / 100;
-            int RelativeStart = -(ViewY % PaperHeight) * ViewZoom / 100 + (ViewY - ds->absolute_Y) % PaperHeight *
-                ViewZoom / 100 + ds->Above * ViewZoom / 100;
+            int RelativeStart = -(ViewY % PaperHeight) * ViewZoom / 100 + (ViewY - ds.absolute_Y) % PaperHeight *
+                ViewZoom / 100 + ds.Above * ViewZoom / 100;
 
             if (RelativeLeft > 0) bitmapDC->FillSolidRect(0, 0, RelativeLeft + borderX, rct.bottom,
                                                           DOCUMENT_AREA_BACKGROUND);
@@ -7675,20 +7673,20 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
 
     //drawing frame around selected objects
     if (MouseMode != 9 && MouseMode != 11) //not stretching nor rotating
-        if (ds->MovingDotState == 3)
+        if (ds.MovingDotState == 3)
         {
-            if (ds->Type == EXPRESSION)
-                ds->Object.exp->SelectExpression(TemporaryShowColoredSelection ? 0 : 1);
-            else if (ds->Type == DRAWING)
-                ds->Object.draw->SelectDrawing(TemporaryShowColoredSelection ? false : true);
+            if (ds.Type == EXPRESSION)
+                ds.Object.exp->SelectExpression(TemporaryShowColoredSelection ? 0 : 1);
+            else if (ds.Type == DRAWING)
+                ds.Object.draw->SelectDrawing(TemporaryShowColoredSelection ? false : true);
         }
 
     //paint the object
-    int inY = ds->Above * ViewZoom / 100;
-    int x = (ds->absolute_X - ViewX) * ViewZoom / 100 - borderX;
-    int y = (ds->absolute_Y - ViewY) * ViewZoom / 100 - inY - borderY;
+    int inY = ds.Above * ViewZoom / 100;
+    int x = (ds.absolute_X - ViewX) * ViewZoom / 100 - borderX;
+    int y = (ds.absolute_Y - ViewY) * ViewZoom / 100 - inY - borderY;
 
-    if ((MouseMode != 9 && MouseMode != 11) || ds->MovingDotState != 3)
+    if ((MouseMode != 9 && MouseMode != 11) || ds.MovingDotState != 3)
     {
         RECT tmpr = TheClientRect;
         tmpr.left = max(0, -x);
@@ -7696,23 +7694,23 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
         tmpr.top = max(0, -y);
         tmpr.bottom = min(TheClientRect.bottom-y, rct.bottom);
 
-        if (ds->Type == EXPRESSION)
-            ds->Object.exp->PaintExpression(bitmapDC, ViewZoom, borderX, inY + borderY, &tmpr);
-        else if (ds->Type == DRAWING)
-            ds->Object.draw->PaintDrawing(bitmapDC, -ViewZoom, borderX, inY + borderY, ds->absolute_X,
-                                          ds->absolute_Y, &tmpr);
+        if (ds.Type == EXPRESSION)
+            ds.Object.exp->PaintExpression(bitmapDC, ViewZoom, borderX, inY + borderY, &tmpr);
+        else if (ds.Type == DRAWING)
+            ds.Object.draw->PaintDrawing(bitmapDC, -ViewZoom, borderX, inY + borderY, ds.absolute_X,
+                                          ds.absolute_Y, &tmpr);
 
         //also paint the special drawing objects
-        if (SpecialDrawingHover && ds != SpecialDrawingHover &&
-            SpecialDrawingHover->absolute_X + SpecialDrawingHover->Length >= ds->absolute_X &&
-            SpecialDrawingHover->absolute_X <= ds->absolute_X + ds->Length &&
-            SpecialDrawingHover->absolute_Y + SpecialDrawingHover->Below >= ds->absolute_Y - ds->Above &&
-            SpecialDrawingHover->absolute_Y <= ds->absolute_Y + ds->Below)
+        if (SpecialDrawingHover && &ds != SpecialDrawingHover &&
+            SpecialDrawingHover->absolute_X + SpecialDrawingHover->Length >= ds.absolute_X &&
+            SpecialDrawingHover->absolute_X <= ds.absolute_X + ds.Length &&
+            SpecialDrawingHover->absolute_Y + SpecialDrawingHover->Below >= ds.absolute_Y - ds.Above &&
+            SpecialDrawingHover->absolute_Y <= ds.absolute_Y + ds.Below)
         {
             if (SpecialDrawingHover->Object.draw->IsSpecialDrawing == 50) //drawing box
             {
-                short deltaX = (SpecialDrawingHover->absolute_X - ds->absolute_X) * ViewZoom / 100;
-                short deltaY = (SpecialDrawingHover->absolute_Y - ds->absolute_Y - ds->Above) * ViewZoom / 100;
+                short deltaX = (SpecialDrawingHover->absolute_X - ds.absolute_X) * ViewZoom / 100;
+                short deltaY = (SpecialDrawingHover->absolute_Y - ds.absolute_Y - ds.Above) * ViewZoom / 100;
                 SpecialDrawingHover->Object.draw->PaintDrawing(
                     bitmapDC, -ViewZoom, borderX + deltaX, 2 * inY + borderY + deltaY, SpecialDrawingHover->absolute_X,
                     SpecialDrawingHover->absolute_Y);
@@ -7724,21 +7722,21 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
     PaintDrawingHotspot(1);
 
     //painting the moving dot
-    if (ds->Type == EXPRESSION)
+    if (ds.Type == EXPRESSION)
     {
         int mds = max(MovingDotSize, MovingDotSize*(ViewZoom+420)/512);
-        if (ds->MovingDotState == 2 /*|| (ds->MovingDotState==3)*/)
+        if (ds.MovingDotState == 2 /*|| (ds->MovingDotState==3)*/)
         {
             if (MouseMode != 9 && MouseMode != 11 && MouseMode != 2 && MouseMode != 102)
             {
-                bitmapDC->FillSolidRect(borderX, (ds->Above + ds->Below) * ViewZoom / 100 - mds + 2 * borderY, mds, mds,
+                bitmapDC->FillSolidRect(borderX, (ds.Above + ds.Below) * ViewZoom / 100 - mds + 2 * borderY, mds, mds,
                                         RGB(0, 0, 0));
             }
         }
-        else if (ds->MovingDotState == 1 || MovingDotPermanent)
+        else if (ds.MovingDotState == 1 || MovingDotPermanent)
         {
             int xx = borderX;
-            int yy = (ds->Above + ds->Below) * ViewZoom / 100 - mds + 2 * borderY;
+            int yy = (ds.Above + ds.Below) * ViewZoom / 100 - mds + 2 * borderY;
             bitmapDC->FillSolidRect(xx + 1, yy + 1, mds - 2, mds - 2,RGB(176, 176, 176));
             bitmapDC->FillSolidRect(xx + 2, yy + 2, mds - 4, mds - 4,RGB(240, 240, 240));
         }
@@ -7746,7 +7744,7 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
 
 
     //bit-blt or transparent blt of the object to the window
-    if (ds->Type == DRAWING && ds->Object.draw && ds->Object.draw->IsSpecialDrawing != 51)
+    if (ds.Type == DRAWING && ds.Object.draw && ds.Object.draw->IsSpecialDrawing != 51)
     {
         DC->TransparentBlt(x, y, rct.right, rct.bottom, bitmapDC, 0, 0, rct.right, rct.bottom,RGB(255, 255, 255));
     }
@@ -7756,12 +7754,12 @@ int CMathomirView::GentlyPaintObject(tDocumentStruct* ds, CDC* DC)
     }
 
     if (MouseMode != 9 && MouseMode != 11)
-        if (ds->MovingDotState == 3)
+        if (ds.MovingDotState == 3)
         {
             int prop = DC->SetROP2(R2_MASKPEN);
 
             HBRUSH br = CreateSolidBrush(RGB(224, 224, 255));
-            HPEN pn = GetPenFromPool(1, false, ds->Type == EXPRESSION ? PALE_RGB(BLUE_COLOR) : RGB(240, 240, 255));
+            HPEN pn = GetPenFromPool(1, false, ds.Type == EXPRESSION ? PALE_RGB(BLUE_COLOR) : RGB(240, 240, 255));
             HBRUSH obr = (HBRUSH)DC->SelectObject(br);
             DC->SelectObject(pn);
 
@@ -7958,7 +7956,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                                         }
                                                         obj->m_Selection = 0;
                                                         CDC* DC = this->GetDC();
-                                                        GentlyPaintObject(ds, DC);
+                                                        GentlyPaintObject(*ds, DC);
                                                         this->ReleaseDC(DC);
                                                         QuickSelectActive = 1;
                                                         selection = ds->Object.exp->AdjustSelection();
@@ -8223,7 +8221,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                                 UpdateWindow();
                             }
                             else
-                                GentlyPaintObject(ds, DC);
+                                GentlyPaintObject(*ds, DC);
                             ClipboardExpression->AddToStackClipboard(0);
                         }
                         if (ClipboardExpression)
@@ -8515,7 +8513,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                         (SelectedDocumentObject->Object.exp->m_NumElements > 1 ||
                             SelectedDocumentObject->Object.exp->m_pElementList[0].Type))
                     {
-                        if (ClipboardExpression) delete ClipboardExpression;
+                        delete ClipboardExpression;
                         ClipboardExpression = new CExpression(nullptr,nullptr, 100);
                         ClipboardExpression->CopyExpression(SelectedDocumentObject->Object.exp, 1);
                         ClipboardExpression->m_InternalInsertionPoint = 0;
@@ -9136,7 +9134,7 @@ int CMathomirView::PaintClipboard(int X, int Y)
     return 0;
 }
 
-int CMathomirView::RestoreClipboardBackground(void)
+int CMathomirView::RestoreClipboardBackground()
 {
     if (ClipboardBackground.Restored) return 0;
     if (ClipboardBackground.bmp == nullptr) return 0;
@@ -9150,7 +9148,7 @@ int CMathomirView::RestoreClipboardBackground(void)
     return 0;
 }
 
-int CMathomirView::DeleteDocumentObject(tDocumentStruct* object)
+int CMathomirView::DeleteDocumentObject(const tDocumentStruct* object)
 {
     LastQuickTypeObject = nullptr;
 
@@ -10123,7 +10121,7 @@ int CMathomirView::UndoRestore()
     return ((CMainFrame*)theApp.m_pMainWnd)->UndoRestore();
 }
 
-int CMathomirView::UndoSave(char* undo_text, int unique_ID)
+int CMathomirView::UndoSave(const char* undo_text, int unique_ID)
 {
     return ((CMainFrame*)theApp.m_pMainWnd)->UndoSave(undo_text, unique_ID);
 }
@@ -10317,7 +10315,7 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
             if (ds->absolute_Y + ds->Below + PaperHeight > ViewMaxY) ViewMaxY = ds->absolute_Y + ds->Below +
                 PaperHeight;
 
-            GentlyPaintObject(ds, DC);
+            GentlyPaintObject(*ds, DC);
         }
         if (di->Type == 2 && di->pSubdrawing)
         {
@@ -10345,7 +10343,7 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
             if (ds->absolute_Y + ds->Below + PaperHeight > ViewMaxY) ViewMaxY = ds->absolute_Y + ds->Below +
                 PaperHeight;
 
-            GentlyPaintObject(ds, DC);
+            GentlyPaintObject(*ds, DC);
         }
     }
 
@@ -10527,7 +10525,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
     KeyboardEntryObject = ds->Object.exp;
     KeyboardEntryBaseObject = ds;
     MultipleStartX = MultipleStartY = -1;
-    GentlyPaintObject(ds, DC);
+    GentlyPaintObject(*ds, DC);
     this->ReleaseDC(DC);
     CDC* mdc = Toolbox->GetDC();
     Toolbox->PaintTextcontrolbox(mdc);
@@ -11022,7 +11020,7 @@ void CMathomirView::KeyboardSelectionCut(bool no_copy)
 #pragma optimize("s",on)
 void CMathomirView::KeyboardSelectionCopy(bool no_deselect)
 {
-    if (TheKeyboardClipboard) delete TheKeyboardClipboard;
+    delete TheKeyboardClipboard;
     TheKeyboardClipboard = new CExpression(nullptr,nullptr, DefaultFontSize);
 
     CExpression* e = (CExpression*)KeyboardEntryObject;
@@ -11209,7 +11207,7 @@ void CMathomirView::KeyboardSelectionPaste()
         {
             KeyboardSelectionCut(true);
 
-            if (ClipboardExpression) delete ClipboardExpression;
+            delete ClipboardExpression;
             ClipboardExpression = new CExpression(nullptr,nullptr, 100);
             ClipboardExpression->CopyExpression(TheKeyboardClipboard, 0, 1, 0);
             short l, a, b;

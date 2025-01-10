@@ -6,13 +6,13 @@
 #define halfDRWZOOM 16
 #define tDrwXY int
 
-typedef struct DRAWING_ITEM
+struct tDrawingItem
 {
     void* pSubdrawing;
     tDrwXY X1, Y1, X2, Y2;
     short LineWidth;
     char Type; //0-subdrawing, 1-line, 2-subexpression
-} tDrawingItem;
+};
 
 
 class CDrawing
@@ -30,18 +30,18 @@ public:
     char OriginalForm; //used from toolbox (to store the purpose of this drawing)
     char IsSpecialDrawing;
 
-    CDrawing(void);
-    ~CDrawing(void);
+    CDrawing();
+    ~CDrawing();
     int StartCreatingItem(int ItemForm);
     int EndCreatingItem(int* X, int* Y, int absX = 0x7FFFFFFF, int absY = 0x7FFFFFFF);
     //return X and Y coordinates of the upper left corner
     int UpdateCreatingItem(int X, int Y, int absX, int absY);
-    int Delete(void);
+    int Delete();
     int InsertEmptyElement(int form, int Cx, int Cy);
     int CalculateSize(CDC* DC, short zoom, short* width, short* height) const;
     void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = nullptr, COLORREF color = 0);
     void SelectDrawing(bool select);
-    int CalcChecksum(void) const;
+    int CalcChecksum() const;
     int CopyDrawing(CDrawing* Original);
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, int* NodeEdit, int internal_call = 0);
     void XML_output(std::ostream &output, int num_tabs) const;
@@ -50,9 +50,9 @@ public:
     // Erases the square drawing part
     int EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent);
     // finds crospoint of an drawing item with vertical line
-    int FindCrosspointX(tDrawingItem* di, int X, int Y1, int Y2, int* pX, int* pY);
+    int FindCrosspointX(const tDrawingItem& di, int X, int Y1, int Y2, int* pX, int* pY);
     // finds crosspoint of an drawing item with horizontal line
-    int FindCrosspointY(tDrawingItem* di, int Y, int X1, int X2, int* pX, int* pY);
+    int FindCrosspointY(const tDrawingItem& di, int Y, int X1, int X2, int* pX, int* pY);
     int InsertItemAt(int pos);
     int Combine();
     int BreakApart(tDrawingItem* di, CDrawing* parent);
@@ -67,7 +67,7 @@ public:
     int AnyNodeSelected() const;
     // returns coordinates of the real upper left corner
     int FindRealCorner(int* X, int* Y, int* X2 = nullptr, int* Y2 = nullptr) const;
-    auto CopyToWindowsClipboard(void) const -> int;
+    int CopyToWindowsClipboard() const;
     int SplitLineAtPos(int X, int Y);
     int MouseClick(int X, int Y) const;
     int MouseMove(CDC* DC, int X, int Y, UINT flags) const;
@@ -78,7 +78,7 @@ public:
     int MakeDashed(char dash_dot);
     int FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X0, int Y0, int X1, int Y1);
     void FindBottomRightDrawingPoint(int* X, int* Y) const;
-    int AllowQuickEditNodes(void) const;
+    int AllowQuickEditNodes() const;
 };
 
 
@@ -97,11 +97,11 @@ public:
     int prevDrawingBoxData;
 
     CDrawingBox(CDrawing* BaseItem);
-    ~CDrawingBox(void);
+    ~CDrawingBox();
 
     int Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg, int no_background);
     int MouseMove(CDC* DC, int X, int Y, UINT flags);
-    int CopyFrom(CDrawing* Original);
+    int CopyFrom(const CDrawing* Original);
     int MouseClick(int X, int Y);
     int XML_output(char* output, int num_tabs, char only_calculate);
     char* XML_input(char* file);
@@ -129,11 +129,11 @@ public:
     int MX, MY; //size of the gray areas
 
     CFunctionPlotter(CDrawing* BaseItem);
-    ~CFunctionPlotter(void);
+    ~CFunctionPlotter();
 
     int Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg);
     int MouseMove(CDC* DC, int X, int Y, UINT flags);
-    int CopyFrom(CDrawing* Original);
+    int CopyFrom(const CDrawing* Original);
     int MouseClick(int X, int Y);
     int XML_output(char* output, int num_tabs, char only_calculate);
     char* XML_input(char* file);
@@ -158,11 +158,11 @@ public:
 
     int Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg);
     int MouseMove(CDC* DC, int X, int Y, UINT flags);
-    int CopyFrom(CDrawing* Original);
+    int CopyFrom(const CDrawing* Original);
     int MouseClick(int X, int Y);
     int XML_output(char* output, int num_tabs, char only_calculate) const;
     char* XML_input(char* file);
 
-    int LoadImageFromFile(CObject* dwg, char* fname);
+    int LoadImageFromFile(CObject* dwg, const char* fname);
     int SaveImageToFileForEditing(CObject* dwg);
 };

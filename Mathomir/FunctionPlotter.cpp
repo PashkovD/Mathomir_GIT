@@ -131,16 +131,16 @@ CFunctionPlotter::CFunctionPlotter(CDrawing* BaseItem)
 }
 
 //destructor (should release all previously reserved memory)
-CFunctionPlotter::~CFunctionPlotter(void)
+CFunctionPlotter::~CFunctionPlotter()
 {
     abort_request = 1;
     while (ThreadHandle) Sleep(10);
-    if (Plot) delete Plot;
+    delete Plot;
 }
 
 //Copies relevant data from another object of the same type (this is used
 //when a copy of an existing object is to be made)
-int CFunctionPlotter::CopyFrom(CDrawing* Original)
+int CFunctionPlotter::CopyFrom(const CDrawing* Original)
 {
     if (Original->IsSpecialDrawing != 51) return 0;
     CFunctionPlotter* org = (CFunctionPlotter*)Original->SpecialData;
@@ -1217,7 +1217,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             if (SpecialDrawingHover && this->any_function_defined == 0) //draw the object
             {
                 CDC* DC = pMainView->GetDC();
-                pMainView->GentlyPaintObject(SpecialDrawingHover, DC);
+                pMainView->GentlyPaintObject(*SpecialDrawingHover, DC);
                 pMainView->ReleaseDC(DC);
             }
 

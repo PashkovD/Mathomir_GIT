@@ -2242,10 +2242,10 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     for (int j = 0; j < 2; j++)
                                     {
                                         ShadowSelection = 1;
-                                        pMainView->GentlyPaintObject(ds, DC);
+                                        pMainView->GentlyPaintObject(*ds, DC);
                                         Sleep(100);
                                         ShadowSelection = 0;
-                                        pMainView->GentlyPaintObject(ds, DC);
+                                        pMainView->GentlyPaintObject(*ds, DC);
                                         Sleep(100);
                                     }
                                     pMainView->ReleaseDC(DC);

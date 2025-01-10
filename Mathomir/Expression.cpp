@@ -284,13 +284,13 @@ extern CExpression* TheKeyboardClipboard;
 
 #ifdef PROFILE_ON
 
-	typedef struct
+	struct tProfiler
 	{
 		unsigned int cnt;
 		unsigned int time;
 		int atime;
 		unsigned int from[20];
-	} tProfiler;
+	};
 
 	struct
 	{
@@ -11616,7 +11616,7 @@ keyboardquicktype_end:
 // 'spacing' is input/output array of X coordinates for characters
 // returns overall length of the string
 // THIS FUNCTION MUST BE FAST!
-int CalculateText(CDC* DC, const char* text, char* font, short* spacing, short TheFontSize, bool& IsHigh, bool& IsLow,
+int CalculateText(CDC* DC, const char* text, const char* font, short* spacing, short TheFontSize, bool& IsHigh, bool& IsLow,
                   bool IsText, bool IsFirst, char VMods)
 {
     if (TheFontSize < 4)
@@ -13752,7 +13752,7 @@ CExpression* CExpression::KeyboardFindEntryPos()
 
 //inserts new equation just below the current expression
 #pragma optimize("s",on)
-int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExpression* orig, int TypingMode)
+int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, const CExpression* orig, int TypingMode)
 {
     //find the root parent of this equation, and then check if it equals to edited object
     CExpression* parent = this;
@@ -15951,12 +15951,12 @@ compare_expressions_earlyexit:
 }
 
 
-typedef struct
+struct tElementStorage
 {
     unsigned short position;
     char et;
     char p;
-} tElementStorage;
+};
 
 
 //Calculates the given equation. Returns non-zero if any computation is done.
@@ -22805,7 +22805,7 @@ int CExpression::RemoveSequence(int Level, int StartPos, int EndPos)
     return sStartPos - StartPos;
 }
 
-int CExpression::InsertSequence(char element_type, int Position, CExpression* Source, int StartPos, int EndPos)
+int CExpression::InsertSequence(char element_type, int Position, const CExpression* Source, int StartPos, int EndPos)
 {
     int Level = -1;
     if (element_type == '+' || element_type == '-') Level = PlusLevel;
@@ -23022,7 +23022,7 @@ int CExpression::InsertSequence(char element_type, int Position, CExpression* So
 #ifdef PROFILE_ON
 DWORD profiler_overall_start;
 #endif
-int CExpression::PROFILERClear(void)
+int CExpression::PROFILERClear()
 {
 #ifdef PROFILE_ON
 	memset(&PROFILER,0,sizeof(PROFILER));
@@ -23032,7 +23032,7 @@ int CExpression::PROFILERClear(void)
     return 0;
 }
 
-int CExpression::PROFILEREnd(void)
+int CExpression::PROFILEREnd()
 {
 #ifdef PROFILE_ON
 	tProfiler *profilerid=&PROFILER.OVERALL;
@@ -27339,7 +27339,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
 
 
 //Functions and structures to support function plotting
-typedef struct
+struct tVariablePositions
 {
     int NumPositions;
 
@@ -27352,7 +27352,7 @@ typedef struct
 
     int starting_point; //where the right side of expression actually starts
     char equation_type; //type of equation ('=', '<', '>'...)
-} tVariablePositions;
+};
 
 CRITICAL_SECTION section3;
 int wwwwxxxx = 0;
@@ -28514,11 +28514,11 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
 }
 
 
-typedef struct
+struct tRawVariableStorage
 {
     char name[24];
     char font[24];
-} tRawVariableStorage;
+};
 
 int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations, CObject* ThePopupMenu)
 {

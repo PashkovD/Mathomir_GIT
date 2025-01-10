@@ -56,7 +56,7 @@ CBitmapImage::~CBitmapImage()
 
 //Copies relevant data from another object of the same type (this is used
 //when a copy of an existing object is to be made)
-int CBitmapImage::CopyFrom(CDrawing* Original)
+int CBitmapImage::CopyFrom(const CDrawing* Original)
 {
     if (Original->IsSpecialDrawing != 52) return 0;
     CBitmapImage* org = (CBitmapImage*)Original->SpecialData;
@@ -203,7 +203,7 @@ int CBitmapImage::MouseClick(int X, int Y)
                 }
                 else //cancel
                 {
-                    const std::string filter = "BMP files|*.BMP|JPG files|*.jpg|PNG files|*.PNG|All files|*.*||\0";
+                    const std::string filter = "BMP files|*.BMP|JPG files|*.jpg|PNG files|*.PNG|All files|*.*||";
                     CFileDialog fd(TRUE, "bmp",nullptr,OFN_HIDEREADONLY, filter.c_str(), theApp.m_pMainWnd, 0);
                     if (fd.DoModal() == IDOK)
                     {
@@ -493,7 +493,7 @@ char* CBitmapImage::XML_input(char* file)
 }
 
 #pragma optimize("s",on)
-int CBitmapImage::LoadImageFromFile(CObject* dwg, char* fname)
+int CBitmapImage::LoadImageFromFile(CObject* dwg, const char* fname)
 {
     //this function loads an bitmap from file and stories it into CDrawing object (SpecialData=52 -> bitmap image object)
     CImage img;

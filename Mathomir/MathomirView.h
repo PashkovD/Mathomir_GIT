@@ -45,7 +45,7 @@ protected:
 
 public:
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-    void AdjustPosition(void);
+    void AdjustPosition();
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
     afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
@@ -70,11 +70,11 @@ public:
     //afx_msg void OnParentheseheightEverincreasing();
     //afx_msg void OnParentheseheightNormal();
     //afx_msg void OnParentheseheightSmall();
-    int AdjustMenu(void);
-    void SetMousePointer(void);
+    int AdjustMenu();
+    void SetMousePointer();
     //afx_msg void OnViewCenterparenthesecontent();
     afx_msg void OnSysKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
-    int GentlyPaintObject(tDocumentStruct* ds, CDC* DC);
+    int GentlyPaintObject(const tDocumentStruct& ds, CDC* DC);
     afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
     afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
     int PopupCloses(int UserParam, int ExitCode);
@@ -87,9 +87,9 @@ public:
     //afx_msg void OnKeyboardAltforexponents();
     //int CheckDocumentMemoryReservations(void);
     int PaintClipboard(int X, int Y);
-    int RestoreClipboardBackground(void);
+    int RestoreClipboardBackground();
     void PaintDrawingHotspot(char erase_only = 0);
-    int DeleteDocumentObject(tDocumentStruct* object);
+    int DeleteDocumentObject(const tDocumentStruct* object);
 
 protected:
     virtual void OnPrint(CDC* pDC, CPrintInfo* pInfo);
@@ -127,9 +127,9 @@ public:
     afx_msg void OnFontsizeNormal();
     afx_msg void OnFontsizeSmall();
     // initializes Undo memory
-    int UndoInit(void);
-    int UndoSave(char* text, int unique_ID = -1);
-    int UndoRestore(void);
+    int UndoInit();
+    int UndoSave(const char* text, int unique_ID = -1);
+    int UndoRestore();
     afx_msg void OnEditUndo();
     afx_msg void OnMovingdotLarge();
     afx_msg void OnMovingdotMedium();
@@ -146,7 +146,7 @@ public:
     afx_msg void OnViewShowgrid();
     CObject* ComposeDrawing(int* X, int* Y, int compose_from_selection, int select_for_moving);
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-    int InitSpecific(void);
+    int InitSpecific();
     afx_msg void OnKeyboardSimplevariablemode();
     afx_msg void OnKeyboardVerysimplevariablemode();
     int StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int is_textmode = 0);
@@ -187,8 +187,8 @@ public:
     afx_msg void OnGridandguidelinesSnaptoguidelines();
     afx_msg void OnZoomUsectrlforwheelzoom();
 
-    int ScrollCursorIntoView(void);
-    void SelectLastOrTouchedObject(void);
+    int ScrollCursorIntoView();
+    void SelectLastOrTouchedObject();
     afx_msg void OnNcRButtonDown(UINT nHitTest, CPoint point);
 
 public:

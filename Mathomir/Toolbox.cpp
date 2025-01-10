@@ -1337,7 +1337,7 @@ void CToolbox::ToolboxChangeIndividualKeyFont()
         vmods = ToolboxKeyboardElements.FormatingSmallGreek2[key];
         symbol = tolower(prevsymbol);
     }
-    if (ToolboxCharacter) delete ToolboxCharacter;
+    delete ToolboxCharacter;
     ToolboxCharacter = new CExpression(nullptr,nullptr, 100);
     ToolboxCharacter->InsertEmptyElement(0, 1, symbol);
     ToolboxCharacter->m_pElementList[0].pElementObject->Data2[0] = fdata;
@@ -3342,7 +3342,7 @@ int CToolbox::PaintToolbar(CDC* dc)
     pdc.CreateCompatibleDC(dc);
     if (ToolbarBitmapSizeX < r.right + 150 || ToolbarBitmapSizeY < r.bottom)
     {
-        if (ToolbarBitmap) delete ToolbarBitmap;
+        delete ToolbarBitmap;
         ToolbarBitmap = new CBitmap();
         ToolbarBitmapSizeX = r.right + 150;
         ToolbarBitmapSizeY = r.bottom;
@@ -3795,7 +3795,7 @@ int CToolbox::ConfigureToolbar()
     return 1;
 }
 
-int CToolbox::HideSubtoolbox(void)
+int CToolbox::HideSubtoolbox()
 {
     if (m_IsMain)
     {
@@ -4802,7 +4802,7 @@ UINT CToolbox::GetUppercaseFormatting(int key_code, UINT formatting) const
 #pragma optimize("",on)
 int prevAltData = 0;
 
-UINT CToolbox::GetUniformFormatting(void)
+UINT CToolbox::GetUniformFormatting()
 {
     UINT rv = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject
         ->m_VMods;
@@ -4812,7 +4812,7 @@ UINT CToolbox::GetUniformFormatting(void)
     return rv;
 }
 
-int CToolbox::GetUniformFormattingColor(void)
+int CToolbox::GetUniformFormattingColor()
 {
     return ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject->
         m_Color;
@@ -5654,7 +5654,7 @@ extern char FontAdjustedSizes[4];
 extern unsigned char FontCharSet[4];
 extern unsigned int FontWeight[4];
 #pragma optimize("s",on)
-int CToolbox::SaveSettings(char* filename) const
+int CToolbox::SaveSettings(const char* filename) const
 {
     //saves toolbox setings and menu options
 
@@ -6312,7 +6312,7 @@ void CToolbox::OnSysKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 unsigned int DoublestrokesTimer;
 
-CExpression* CToolbox::CheckForKeycodes(char* keystrokes, int* len)
+CExpression* CToolbox::CheckForKeycodes(const char* keystrokes, int* len)
 {
     //first we check for double-strokes
     int l2 = *len;

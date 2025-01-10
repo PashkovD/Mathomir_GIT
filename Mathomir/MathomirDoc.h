@@ -40,8 +40,8 @@ public:
     afx_msg void OnFileSaveAs();
     afx_msg BOOL SaveModified();
     virtual BOOL OnOpenDocument(LPCTSTR lpszPathName);
-    int OpenMOMFile(char* filename);
-    int SaveMOMFile(char* filename, char filetype);
+    int OpenMOMFile(const char* filename);
+    int SaveMOMFile(const char* filename, char filetype);
     int ScrambleMOMFile(char** bufer, int len, char type);
     int UnscrambleMOMFile(char** bufer, int len);
 };

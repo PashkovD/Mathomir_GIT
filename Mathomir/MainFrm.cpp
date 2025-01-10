@@ -222,7 +222,7 @@ void CMainFrame::SetFontsToDefaults()
 }
 
 #pragma optimize("s",on)
-void CMainFrame::GetLogicalFont(int font_no, LOGFONT* lf, CDC* DC)
+void CMainFrame::GetLogicalFont(int font_no, LOGFONT* lf, const CDC* DC)
 {
     ZeroMemory(lf, sizeof(LOGFONT));
     lf->lfWeight = FontWeight[font_no];
@@ -234,7 +234,7 @@ void CMainFrame::GetLogicalFont(int font_no, LOGFONT* lf, CDC* DC)
 }
 
 #pragma optimize("s",on)
-void CMainFrame::SetLogicalFont(int font_no, LOGFONT* lf, CDC* DC)
+void CMainFrame::SetLogicalFont(int font_no, LOGFONT* lf, const CDC* DC)
 {
     FontWeight[font_no] = min(600, lf->lfWeight);
     int r = DC->GetDeviceCaps(LOGPIXELSY);
@@ -249,13 +249,13 @@ void CMainFrame::SetLogicalFont(int font_no, LOGFONT* lf, CDC* DC)
 
 #define MAX_NUM_FONTS 30
 
-typedef struct FONT_POOL
+struct tFontPool
 {
     HFONT Font;
     int NumRequests;
     unsigned short Size;
     byte Combination;
-} tFontPool;
+};
 
 int NumFontsInPool;
 tFontPool FontPoolList[MAX_NUM_FONTS];
@@ -2134,7 +2134,7 @@ std::string GetTranslatedString(const std::string& eng_defstr, int id)
 }
 
 #pragma optimize("s",on)
-int ExecuteLink(char* command)
+int ExecuteLink(const char* command)
 {
     char buff[512];
     int match = 0;

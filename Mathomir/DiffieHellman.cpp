@@ -115,7 +115,7 @@ uint64_t CDiffieHellman::GeneratePrime()
 //generates two important numbers  'N' and 'a'(the last one is derived from password and is 
 //kept secret). It then calculates number 'X'. Numbers 'N' and 'X' make public key 
 //and are transferred to the other side to be used for encription.
-void CDiffieHellman::DerivePublicKey(char* password, int64_t* N, int64_t* X)
+void CDiffieHellman::DerivePublicKey(const char* password, int64_t* N, int64_t* X)
 {
     *N = GeneratePrime();
     while (*N < DH_G_NUMBER) *N = GeneratePrime();

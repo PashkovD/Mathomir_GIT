@@ -15,7 +15,7 @@ enum tDecoration: int
     UNDERBRACE = 5,
 };
 //#pragma pack(1)
-typedef struct ELEMENT_STRUCT
+struct tElementStruct
 {
     /* element types:
                         0 - empty frame (just a visible placeholder; frame)
@@ -41,29 +41,29 @@ typedef struct ELEMENT_STRUCT
     char IsSelected;
     tDecoration Decoration;
     char Type;
-} tElementStruct;
+} ;
 
-typedef struct MATRIX_ROWS
+struct tMatrixRows
 {
     short above, below;
     short y;
-} tMatrixRows;
+};
 
-typedef struct MATRIX_COLUMNS
+struct tMatrixColumns
 {
     short length;
     short x;
-} tMatrixColumns;
+};
 
-typedef struct PURE_FACTORS
+struct tPureFactors
 {
     double N1, N2;
     double N3, N4;
     int prec1, prec2;
     char is_frac1, is_frac2;
-} tPureFactors;
+};
 
-typedef struct CELL_ATTRIBUTES
+struct tCellAttributes
 {
     char* top_border;
     char* bottom_border;
@@ -71,7 +71,7 @@ typedef struct CELL_ATTRIBUTES
     char* right_border;
     char* alignment;
     char* data_known;
-} tCellAttributes;
+};
 
 
 #define MAX_VARIABLES 20
@@ -82,36 +82,36 @@ class CExpression
 {
     // structure VARIABLE_LIST holds all elements of an expression (it is filled by function
     // 'ExtractVariables'). It contains enough data so that the expression can be reconstructed from it
-    typedef struct SUMMAND
+    struct tSummand
     {
         double dorder;
         char order; //order (power) of the variable (can be positive or negative)
         char style; //how was variable written (bit 0-as a part of fraction; bit 1-has '/' preoperator)
-    } tSummand;
+    };
 
-    typedef struct VARIABLE
+    struct tVariable
     {
         CExpression* exponent; //residuum of the exponent (temporary created object)
         CExpression* variable; //pointer to object that holds the variable
         int pos; //position of the variable in the object
         int len; //length of the variable
         tSummand summand[MAX_SUMMANDS]; //for every summand in original expression holds order and style         
-    } tVariable;
+    };
 
-    typedef struct CONSTANT
+    struct tConstant
     {
         double N1; //numerator
         double N2; //denominator
         int prec; //precision
         int summand_pos;
-    } tConstant;
+    };
 
-    typedef struct VARIABLE_LIST
+    struct tVariableList
     {
         int NumVariables;
         tVariable Variables[MAX_VARIABLES]; //all variables in an expression are listed here
         tConstant Constants[MAX_SUMMANDS]; //constant factors of all summands of an expression are listed here
-    } tVariableList;
+    };
 
 public:
     CElement* m_pPaternalElement;
@@ -171,7 +171,7 @@ public:
     short GetActualFontSize(short zoom) const;
     int InsertEmptyElement(short position, short Type, char Operator, int color = -1);
     void SelectExpression(char Select);
-    void DeselectExpressionExceptKeyboardSelection(void/*char preserve_keyboard_selection*/);
+    void DeselectExpressionExceptKeyboardSelection(/*char preserve_keyboard_selection*/);
     void DeselectExpression();
 
     void SelectElement(char Select, int position);
@@ -179,9 +179,9 @@ public:
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
                                  char ForceInsertionPoint = 0);
     // Copies all data from original expression
-    int CopyExpression(CExpression* Original, const char OnlySelected, const char selection_type = 1,
-                       const char update_clipboard = 1);
-    void Delete(void);
+    int CopyExpression(CExpression* Original, char OnlySelected, char selection_type = 1,
+                       char update_clipboard = 1);
+    void Delete();
     int InsertElement(const tElementStruct& Element, int position);
     int MoveElementInto(const tElementStruct& Element, int position);
     //int MovePortionInto(int destination_pos, CExpression *Original, int source_pos, int num_elements);
@@ -218,14 +218,14 @@ public:
     int FindMatrixElement(int row, int column, int expand_flag);
     int InsertMatrixColumn(int position);
     int InsertMatrixRow(int position);
-    int AdjustMatrix(void);
+    int AdjustMatrix();
     int DeleteSelection(char selection_type = 1);
     int PaintDecoration(CDC* DC, short zoom, int X, int Y, int LastDecorationElement, int i, int LastDecoration,
                         int color = 0) const;
     // direction<0 find positions above x,y;  direction>0 find positions below x,y
     int KeyboardStartAt(int X, int Y, char direction, char between = 0);
     int KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt, UINT nFlags, int fcolor, int* x, int* y);
-    int KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, CExpression* orig, int TypingMode);
+    int KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, const CExpression* orig, int TypingMode);
     int GetKeyboardCursorPos(int* X, int* Y) const;
     int ChangeFontSize(float factor);
     int GetElementLen(const unsigned int StartPos, const unsigned int EndPos, const unsigned int Level,
@@ -262,15 +262,15 @@ public:
                          int ComputationType);
     static int ReduceTwoNumbers(double& N1, double& N2);
     int RemoveSequence(int Level, int StartPos, int EndPos = -1);
-    int InsertSequence(char element_type, int Position, CExpression* Source, int StartPos, int EndPos);
-    int PROFILERClear(void);
-    int PROFILEREnd(void);
+    int InsertSequence(char element_type, int Position, const CExpression* Source, int StartPos, int EndPos);
+    int PROFILERClear();
+    int PROFILEREnd();
     int StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpression* Other, int StartPos2, int EndPos2,
                                int inv2, tPureFactors* PureFactors = nullptr, int UseDeepCalculation = 0);
     int StrikeoutRemove(int StartPos, int EndPos, char test_value = 0);
     char GetDefaultElementType(int Level);
-    static int InitCalculator(void); // can be called only once, before any symbolic-calculator function is used
-    int MakeExpressionBeautiful(void);
+    static int InitCalculator(); // can be called only once, before any symbolic-calculator function is used
+    int MakeExpressionBeautiful();
     // changes the expression so it becomes more beautiful (deletes '+' at the begginig, adds '*' between constants...)
     int IsSuitableForComputation(int autocorrect = 0);
     int ComputeLog(int Position, char element_type, int ComputationType);

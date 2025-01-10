@@ -233,7 +233,7 @@ BOOL CMathomirDoc::OnOpenDocument(LPCTSTR lpszPathName)
 //opens MOM file from disk or clipboard (reads from clipboard if filename==nullptr)
 extern char dont_empty_clipboard;
 #pragma optimize("s",on)
-int CMathomirDoc::OpenMOMFile(char* filename)
+int CMathomirDoc::OpenMOMFile(const char* filename)
 {
     XMLFileVersion = filename ? 1 : 2;
     int OrigNumElements;
@@ -579,7 +579,7 @@ openMOMfile_end:
 // saves into MOM file or clipboard
 // (if filename==nullptr the saves into clipboard)
 #pragma optimize("s",on)
-int CMathomirDoc::SaveMOMFile(char* filename, char filetype)
+int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
 {
     if (filetype == '2' || filename == nullptr) XMLFileVersion = 2;
     else XMLFileVersion = 1;

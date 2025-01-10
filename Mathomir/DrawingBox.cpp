@@ -55,14 +55,14 @@ CDrawingBox::CDrawingBox(CDrawing* BaseItem)
 }
 
 //destructor (should release all previously reserved memory)
-CDrawingBox::~CDrawingBox(void)
+CDrawingBox::~CDrawingBox()
 {
-    if (CommandLine) delete CommandLine;
+    delete CommandLine;
 }
 
 //Copies relevant data from another object of the same type (this is used
 //when a copy of an existing object is to be made)
-int CDrawingBox::CopyFrom(CDrawing* Original)
+int CDrawingBox::CopyFrom(const CDrawing* Original)
 {
     if (Original->IsSpecialDrawing != 50) return 0;
     CDrawingBox* org = (CDrawingBox*)Original->SpecialData;

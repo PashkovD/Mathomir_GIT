@@ -60,14 +60,14 @@ protected:
 public:
 	afx_msg void OnPaint();
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	int PaintThePopupMenu(void);
+	int PaintThePopupMenu();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	int ShowPopupMenu(CExpression* expression, CWnd *owner, int OwnerType, int UserParam, int no_reposition=0);
 	int PrepareFontMenu(int y);
 	int PrepareSymbolMenu(int y);
 	int PrepareParenthesesMenu(int y);
 	int PrepareConditionListMenu();
-	int HidePopupMenu(void);
+	int HidePopupMenu();
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -82,9 +82,9 @@ protected:
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 public:
 	int ExtractSelection(int StartPos,int EndPos,int * StartSel, int * EndSel);
-	int SymbolicComputation(void);
+	int SymbolicComputation();
 	int AddMathMenuOption(CExpression * E1,CExpression *original=nullptr);
-	int PaintWorkIndicator(void);
+	int PaintWorkIndicator();
 };
 
 

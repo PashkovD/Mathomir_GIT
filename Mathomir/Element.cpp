@@ -40,7 +40,7 @@ extern int MulLevel;
 extern int EqLevel;
 extern unsigned char OperatorLevelTable[256];
 #define GetOperatorLevel(x) ((int)OperatorLevelTable[(unsigned char)(x)])
-int CalculateText(CDC* DC, const char* text, char* font, short* spacing, short TheFontSize, bool& IsHigh, bool& IsLow,
+int CalculateText(CDC* DC, const char* text, const char* font, short* spacing, short TheFontSize, bool& IsHigh, bool& IsLow,
                   bool IsText, bool IsFirst, char VMods);
 int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, short TheFontSize, int IsBlue, int color,
               char isText, char VMods);

@@ -45,7 +45,7 @@ class CDiffieHellman
 public:
     CDiffieHellman();
     ~CDiffieHellman();
-    void DerivePublicKey(char* password, int64_t* N, int64_t* X);
+    void DerivePublicKey(const char* password, int64_t* N, int64_t* X);
     void CreateDecryptionKey(int64_t Y, int64_t N, int64_t* Key);
     void CreateEncryptionKey(int64_t N, int64_t X, int64_t* Key, int64_t* Y);
 

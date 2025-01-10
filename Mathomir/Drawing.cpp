@@ -1899,7 +1899,7 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
 #pragma optimize("",on)
 
 //empties the drawing
-int CDrawing::Delete(void)
+int CDrawing::Delete()
 {
     if (IsSpecialDrawing == 50 && SpecialData)
     {
@@ -3115,10 +3115,10 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
 
         int x1, y1, x2, y2, x3, y3, x4, y4;
         //find crosspoints with edges of the erasing rectangle
-        int a = FindCrosspointY(di, Y1, X1, X2, &x1, &y1);
-        int b = FindCrosspointX(di, X2, Y1, Y2, &x2, &y2);
-        int c = FindCrosspointY(di, Y2, X1, X2, &x3, &y3);
-        int d = FindCrosspointX(di, X1, Y1, Y2, &x4, &y4);
+        int a = FindCrosspointY(*di, Y1, X1, X2, &x1, &y1);
+        int b = FindCrosspointX(*di, X2, Y1, Y2, &x2, &y2);
+        int c = FindCrosspointY(*di, Y2, X1, X2, &x3, &y3);
+        int d = FindCrosspointX(*di, X1, Y1, Y2, &x4, &y4);
         if (a || b || c || d) is_touched = 1;
 
         if (a && b) //crossing upper and right edges
@@ -3322,34 +3322,34 @@ int CDrawing::EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent)
 }
 
 // finds crospoint of an drawing item with vertical line
-int CDrawing::FindCrosspointX(tDrawingItem* di, int X, int Y1, int Y2, int* pX, int* pY)
+int CDrawing::FindCrosspointX(const tDrawingItem& di, int X, int Y1, int Y2, int* pX, int* pY)
 {
-    if (di->X1 < X && di->X2 < X) return 0; //no crosspoint
-    if (di->X1 > X && di->X2 > X) return 0; //no crosspoint
+    if (di.X1 < X && di.X2 < X) return 0; //no crosspoint
+    if (di.X1 > X && di.X2 > X) return 0; //no crosspoint
 
-    if (di->X1 == di->X2) return 0;
-    if (di->Y1 < Y1 && di->Y2 < Y1) return 0;
-    if (di->Y1 > Y2 && di->Y2 > Y2) return 0;
+    if (di.X1 == di.X2) return 0;
+    if (di.Y1 < Y1 && di.Y2 < Y1) return 0;
+    if (di.Y1 > Y2 && di.Y2 > Y2) return 0;
 
-    double a = (double)(di->Y2 - di->Y1) / (double)(di->X2 - di->X1);
-    *pY = (int)(a * (X - di->X1) + di->Y1);
+    double a = (double)(di.Y2 - di.Y1) / (double)(di.X2 - di.X1);
+    *pY = (int)(a * (X - di.X1) + di.Y1);
     *pX = X;
     if (*pY < Y1 || *pY > Y2) return 0;
     return 1;
 }
 
 // finds crosspoint of an drawing item with horizontal line
-int CDrawing::FindCrosspointY(tDrawingItem* di, int Y, int X1, int X2, int* pX, int* pY)
+int CDrawing::FindCrosspointY(const tDrawingItem& di, int Y, int X1, int X2, int* pX, int* pY)
 {
-    if (di->Y1 < Y && di->Y2 < Y) return 0; //no crosspoint
-    if (di->Y1 > Y && di->Y2 > Y) return 0; //no crosspoint
+    if (di.Y1 < Y && di.Y2 < Y) return 0; //no crosspoint
+    if (di.Y1 > Y && di.Y2 > Y) return 0; //no crosspoint
 
-    if (di->Y1 == di->Y2) return 0;
-    if (di->X1 < X1 && di->X2 < X1) return 0;
-    if (di->X1 > X2 && di->X2 > X2) return 0;
+    if (di.Y1 == di.Y2) return 0;
+    if (di.X1 < X1 && di.X2 < X1) return 0;
+    if (di.X1 > X2 && di.X2 > X2) return 0;
 
-    double a = (double)(di->X2 - di->X1) / (double)(di->Y2 - di->Y1);
-    *pX = (int)(a * (Y - di->Y1) + di->X1);
+    double a = (double)(di.X2 - di.X1) / (double)(di.Y2 - di.Y1);
+    *pX = (int)(a * (Y - di.Y1) + di.X1);
     *pY = Y;
     if (*pX < X1 || *pX > X2) return 0;
     return 1;
@@ -4435,17 +4435,20 @@ int CDrawing::SetColor(int color)
 }
 
 //combines all selected drawings into this one
-int CDrawing::Combine(void)
+int CDrawing::Combine()
 {
     int absX, absY;
     int ii;
     for (ii = 0; ii < NumDocumentElements; ii++)
+    {
         if (TheDocument[ii].Object.draw == this)
         {
             absX = TheDocument[ii].absolute_X;
             absY = TheDocument[ii].absolute_Y;
             break;
         }
+    } 
+
     if (ii == NumDocumentElements) return 0;
 
     for (int i = 0; i < NumDocumentElements; i++)

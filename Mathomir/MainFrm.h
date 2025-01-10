@@ -64,12 +64,12 @@ public:
     int UndoCheckText(const std::string& text_def, int unique_ID = -1);
     int UndoDisableSaving();
     int UndoEnableSaving();
-    int ReleaseMyPainting(void);
+    int ReleaseMyPainting();
     int UndoRelease(int exit_application = 0);
     int RearangeObjects(int delta);
-    void SetFontsToDefaults(void);
-    void GetLogicalFont(int font_no, LOGFONT* lf, CDC* DC);
-    void SetLogicalFont(int font_no, LOGFONT* lf, CDC* DC);
+    void SetFontsToDefaults();
+    void GetLogicalFont(int font_no, LOGFONT* lf, const CDC* DC);
+    void SetLogicalFont(int font_no, LOGFONT* lf, const CDC* DC);
 
     afx_msg void OnUpdateEditImage(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEditSaveequationimage(CCmdUI* pCmdUI);
