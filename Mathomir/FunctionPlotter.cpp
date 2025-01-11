@@ -1482,7 +1482,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         KeyboardEntryObject->m_Selection = KeyboardEntryObject->m_pElementList[0].Type
                                                    ? KeyboardEntryObject->m_pElementList.size() + 1 : 1;
 
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
             if (TheDocument[i].Object.draw == Base)
             {
                 KeyboardEntryBaseObject = TheDocument + i;

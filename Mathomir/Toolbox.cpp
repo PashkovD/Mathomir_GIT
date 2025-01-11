@@ -1822,7 +1822,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     //check if there is any selected object (drawing) and change color and line size of it
                     int repaint = 0;
                     int any = 0;
-                    for (int i = 0; i < NumDocumentElements; i++)
+                    for (size_t i = 0; i < NumDocumentElements; i++)
                     {
                         tDocumentStruct* ds = TheDocument + i;
 
@@ -6446,7 +6446,7 @@ void CToolbox::ShowHelptext(const std::string& text, const std::string& command,
     {
         DC->SelectObject(GetFontFromPool(4, false, false, 4 + ToolboxSize / 7));
         size_t len = strlen(buff);
-        int i = 0;
+        size_t i = 0;
         int last = 0;
         while (i <= len)
         {

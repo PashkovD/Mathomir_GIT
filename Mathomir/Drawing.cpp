@@ -1003,7 +1003,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                 int l11 = sz * DRWZOOM;
                 int sabsX = absX / 10;
                 int sabsY = absY / 10;
-                for (int i = 0; i < NumDocumentElements; i++)
+                for (size_t i = 0; i < NumDocumentElements; i++)
                 {
                     tDocumentStruct* ds = TheDocument + i;
                     if (ds->Type == DRAWING && ds->absolute_X <= sabsX + sz && ds->absolute_X + ds->Length >= sabsX - sz
@@ -1112,7 +1112,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
 
         sz /= DRWZOOM;
         if (absX != 0 && absY != 0)
-            for (int i = 0; i < NumDocumentElements; i++)
+            for (size_t i = 0; i < NumDocumentElements; i++)
             {
                 tDocumentStruct* ds = TheDocument + i;
                 if (ds->Type == DRAWING && ds->absolute_X <= absX && ds->absolute_X + ds->Length >= absX - sz
@@ -1789,7 +1789,7 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
     if (Drawing_temp_form == 6 || Drawing_temp_form == 7) //eraser, large and small
     {
         //rearange sizes and positions of all drawing objects (erased objects can be smaller)
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* ds = TheDocument + i;
 
@@ -2472,7 +2472,7 @@ int CDrawing::CopyToWindowsClipboard() const
         std::ostringstream ostr;
         this->XML_output(ostr, 0);
         std::string str = ostr.str();
-        if (str.size() > 0 && str.size() < 1000 * DRWZOOM)
+        if (!str.empty() && str.size() < 1000 * DRWZOOM)
         {
             EmptyClipboard();
             HANDLE hmem = GlobalAlloc(GMEM_ZEROINIT, str.size() + 256);
@@ -4451,7 +4451,7 @@ int CDrawing::Combine()
 
     if (ii == NumDocumentElements) return 0;
 
-    for (int i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = TheDocument + i;
         if (ds->Type == DRAWING && ds->Object.draw && ds->Object.draw != this &&

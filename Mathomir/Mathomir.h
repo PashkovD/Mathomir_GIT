@@ -95,8 +95,8 @@ extern int UndoNumLevels;
 #define NUM_COLORS 4
 extern const COLORREF ColorTable[];
 
-extern int NumDocumentElements;
-extern int NumDocumentElementsReserved;
+extern size_t NumDocumentElements;
+extern size_t NumDocumentElementsReserved;
 extern tDocumentStruct* TheDocument;
 extern int ViewX;
 extern int ViewY;

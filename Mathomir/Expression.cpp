@@ -423,10 +423,9 @@ CExpression::~CExpression()
 //this will insert an empty element into the expression
 //this is primarely used in toolboxes (to create toolbox elements)
 //shouf be fast
-int CExpression::InsertEmptyElement(short position, short type, char Operator, int color)
+int CExpression::InsertEmptyElement(size_t position, short type, char Operator, int color)
 {
     //if (type<0) return 0;
-    if (position < 0) return 0;
     if (position > m_pElementList.size()) return 0;
 
     tElementStruct myElement;
@@ -3250,12 +3249,11 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
             if (X <= xHighLimit && X >= xLowLimit
                 && Y > theElement.Y_pos - ActualSize / 2 && Y < theElement.Y_pos + ActualSize / 2)
                 if (this->m_IsKeyboardEntry != i + 1 || theElement.pElementObject->Data1[0])
-                    if (this->m_IsKeyboardEntry != i || m_pElementList[m_IsKeyboardEntry - 1].pElementObject->
-                        Data1[0])
+                    if (this->m_IsKeyboardEntry != i || m_pElementList[m_IsKeyboardEntry - 1].pElementObject->Data1[0])
                     {
                         if (ClipboardExpression == nullptr)
-                            if (prevElement.Type == 1 && prevElement.pElementObject->m_Text && X <= theElement.
-                                X_pos - m_MarginX / 2 - m_MarginX / 8)
+                            if (prevElement.Type == 1 && prevElement.pElementObject->m_Text
+                                && X <= theElement.X_pos - m_MarginX / 2 - m_MarginX / 8)
                             {
                                 //babaluj
                                 CObject* obj = prevElement.pElementObject->SelectAtPoint(
@@ -3265,8 +3263,8 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                             }
                         //if (!insertion_points_only)
                         if (ClipboardExpression == nullptr)
-                            if (theElement.Type == 1 && theElement.pElementObject->m_Text && X > theElement.
-                                X_pos - m_MarginX / 2 - m_MarginX / 8)
+                            if (theElement.Type == 1 && theElement.pElementObject->m_Text
+                                && X > theElement.X_pos - m_MarginX / 2 - m_MarginX / 8)
                             {
                                 //babaluj
                                 CObject* obj = theElement.pElementObject->SelectAtPoint(
@@ -3375,10 +3373,9 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
 
     //now copy data from original
     size_t j = 0;
-    const int num_elements = Original->m_pElementList.size();
-
     if (OnlySelected != 1)
     {
+        const int num_elements = Original->m_pElementList.size();
         for (size_t i = 0; i < num_elements; i++)
         {
             if (!InsertElement(Original->m_pElementList[i], j++))
@@ -3397,23 +3394,22 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
         tmp_data[0] = 0;
         int data_copied = 0;
         bool is_matrix = false;
-        for (size_t i = 0; i < num_elements; i++)
+        for (tElementStruct& theElement : Original->m_pElementList)
         {
-            tElementStruct* theElement = &Original->m_pElementList[i];
-            if (theElement->Type == 11)
+            if (theElement.Type == 11)
             {
                 column++;
-                if (data_copied && !tmp_data[0]) memcpy(tmp_data, theElement->pElementObject->Data1, 24);
-                if (OnlySelected == 1) theElement->IsSelected = 0;
+                if (data_copied && !tmp_data[0]) memcpy(tmp_data, theElement.pElementObject->Data1, 24);
+                if (OnlySelected == 1) theElement.IsSelected = 0;
             }
-            if (theElement->Type == 12)
+            else if (theElement.Type == 12)
             {
                 row++;
                 column = 0;
-                if (data_copied && !tmp_data[0]) memcpy(tmp_data, theElement->pElementObject->Data1, 24);
-                if (OnlySelected == 1) theElement->IsSelected = 0;
+                if (data_copied && !tmp_data[0]) memcpy(tmp_data, theElement.pElementObject->Data1, 24);
+                if (OnlySelected == 1) theElement.IsSelected = 0;
             }
-            if (theElement->IsSelected == selection_type || OnlySelected != 1)
+            if (theElement.IsSelected == selection_type || OnlySelected != 1)
             {
                 if (OnlySelected == 1)
                 {
@@ -3439,10 +3435,10 @@ int CExpression::CopyExpression(CExpression* Original, const char OnlySelected, 
                         }
                     }
                 }
-                if (OnlySelected != 1 || theElement->Type != 1 || theElement->pElementObject->Data1[0])
+                if (OnlySelected != 1 || theElement.Type != 1 || theElement.pElementObject->Data1[0])
                 {
                     data_copied = 1;
-                    if (!InsertElement(*theElement, j))
+                    if (!InsertElement(theElement, j))
                     {
                         //some unexpected error (return)
                         if (OnlySelected == 2) CopyExpressionSpecialFlag = 0;
@@ -3585,9 +3581,8 @@ void CExpression::Delete()
 
 //this function inserts the given element at the given position into this expression
 //if neccessary, te function expands memory list (note: the copy of original object is made and inserted)
-int CExpression::InsertElement(const tElementStruct& Element, int position)
+int CExpression::InsertElement(const tElementStruct& Element, size_t position)
 {
-    if (position < 0) return 0;
     if (position > m_pElementList.size()) return 0;
     //if (Element->Type<0) return 0;
     if (m_pElementList.size() > 0x7FFF - 2) return 0; //0x7FFF-2 elements is the maximum for an expression
@@ -3600,8 +3595,9 @@ int CExpression::InsertElement(const tElementStruct& Element, int position)
     }
     while (ccc);
 
-    if (m_pElementList.size() >= position && position > 0 && m_pElementList[position - 1].Type == 0
-        && Element.Type != 11 && Element.Type != 12)
+    if (m_pElementList.size() >= position && position > 0 &&
+        m_pElementList[position - 1].Type == 0 &&
+        Element.Type != 11 && Element.Type != 12)
         position--;
 
     if (m_pElementList.size() > position && m_pElementList[position].Type == 0)
@@ -3657,9 +3653,8 @@ int CExpression::InsertElement(const tElementStruct& Element, int position)
 
 //this function moves the given element at the given position into this expression
 //if neccessary, te function expands memory list. (note - the original element object is inserted, not it's copy)
-int CExpression::MoveElementInto(const tElementStruct& Element, int position)
+int CExpression::MoveElementInto(const tElementStruct& Element, size_t position)
 {
-    if (position < 0) return 0;
     if (position > m_pElementList.size()) return 0;
     if (Element.Type < 0) return 0;
     if (m_pElementList.size() > 0x7FFF - 2) return 0; //0x7FFF-2 elements is the maximum for an expression
@@ -4111,7 +4106,8 @@ int CExpression::ContainsBlinkingCursor() const
 }
 
 
-CElement* CExpression::DecodeInternalInsertionPoint() //babaluj
+CElement* CExpression::DecodeInternalInsertionPoint() const
+//babaluj
 {
     int ns = 0;
     int fp = -1;
@@ -4132,10 +4128,9 @@ CElement* CExpression::DecodeInternalInsertionPoint() //babaluj
 }
 
 //deletes an element of the expression
-int CExpression::DeleteElement(short position)
+int CExpression::DeleteElement(size_t position)
 {
     if (position >= m_pElementList.size()) return 0;
-    if (position < 0) return 0;
 
     //first delete element itself
     if (tElementStruct& theElement = m_pElementList[position]; theElement.Type > 0)
@@ -4673,7 +4668,7 @@ int CExpression::InsertTabSpacer(int position, char stop_on_equality)
         //we are at the beginning of an object - check if there is another object just above us
         int mindelta = 0x7FFFFFFF;
         int ffound = -1;
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
             if (KeyboardEntryBaseObject != TheDocument + i)
             {
                 if (TheDocument[i].absolute_X == KeyboardEntryBaseObject->absolute_X)
@@ -6388,7 +6383,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         GuidlineElement = -1;
                         SizeNerbyList = 0;
                         int range = KeyboardEntryBaseObject->absolute_X - x_pos + 1;
-                        for (int i = 0; i < NumDocumentElements; i++)
+                        for (size_t i = 0; i < NumDocumentElements; i++)
                         {
                             tDocumentStruct* ds = TheDocument + i;
                             if (ds != KeyboardEntryBaseObject)
@@ -6826,7 +6821,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         SizeNerbyList = 0;
                         int range = x_pos - prev_x_pos + 1;
 
-                        for (int i = 0; i < NumDocumentElements; i++)
+                        for (size_t i = 0; i < NumDocumentElements; i++)
                         {
                             if (&TheDocument[i] != KeyboardEntryBaseObject)
                                 if (CheckForGuidlines(i, (x_pos + prev_x_pos) / 2, y_pos, range / 2))
@@ -12407,7 +12402,7 @@ int CExpression::Autocomplete(bool is_internal)
     int Y = KeyboardEntryBaseObject->absolute_Y;
     int L = KeyboardEntryBaseObject->Length;
 
-    for (int i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = TheDocument + i;
         if (ds->Type == EXPRESSION && ds->absolute_X + ds->Length > X - 100 && ds->absolute_X < X + L + 100 &&
@@ -13376,8 +13371,9 @@ void CExpression::LaTeX_output(std::ostream& output) const
     bool is_table = false;
     while (true)
     {
-        char et, p;
-        int l = GetElementLen(pos, m_pElementList.size() - 1, GetOperatorLevel((char)0xFF), &et, &p);
+        char et;
+        bool p;
+        int l = GetElementLen(pos, m_pElementList.size() - 1, GetOperatorLevel((char)0xFF), &et, p);
 
         if (pos > 0 || l < m_pElementList.size())
         {
@@ -15637,7 +15633,7 @@ char CExpression::GetDefaultElementType(const int Level)
 // for example in expression  -a*b*c+g-h*d and for Level that equals '+' operator
 // the function will return 6 (length of '-a*b*c') and will set element_type to '-' and has_preoperator to 1)
 size_t CExpression::GetElementLen(const size_t StartPos, const size_t EndPos, const unsigned int Level,
-                                  char* element_type, char* has_preoperator) const
+                                  char* element_type, bool& has_preoperator) const
 {
     unsigned char oper_type;
     unsigned char ll;
@@ -15667,13 +15663,13 @@ size_t CExpression::GetElementLen(const size_t StartPos, const size_t EndPos, co
     if (ll == Level)
     {
         *element_type = oper_type;
-        *has_preoperator = 1;
+        has_preoperator = 1;
     }
     else
     {
     getelementlen_continue:
         *element_type = Operators[Level].default_operator;
-        *has_preoperator = 0;
+        has_preoperator = 0;
     }
 
     size_t i = StartPos + 1;
@@ -15872,9 +15868,9 @@ int CExpression::CompareExpressions(int StartPos, int EndPos, CExpression* Other
         while (true)
         {
             char element_type, element_type2;
-            char preoperator, preoperator2;
-            int l1 = GetElementLen(i, EndPos, Level, &element_type, &preoperator);
-            int l2 = Other->GetElementLen(j, EndPos2, Level, &element_type2, &preoperator2);
+            bool preoperator, preoperator2;
+            int l1 = GetElementLen(i, EndPos, Level, &element_type, preoperator);
+            int l2 = Other->GetElementLen(j, EndPos2, Level, &element_type2, preoperator2);
             //if ((l1==0) || (l2==0)) xreturn (0);  //removed for speed
             if (element_type != element_type2)
                 xreturn(0);
@@ -15898,15 +15894,17 @@ int CExpression::CompareExpressions(int StartPos, int EndPos, CExpression* Other
         int OtherLenSum = 0;
         while (true)
         {
-            char element_type, preoperator;
-            int l1 = GetElementLen(i, EndPos, Level, &element_type, &preoperator);
+            char element_type;
+            bool preoperator;
+            int l1 = GetElementLen(i, EndPos, Level, &element_type, preoperator);
             //if (l1==0) goto compare_expressions_earlyexit; //removed for speed
             int j = StartPos2;
             while (true)
             {
-                char element_type2, preoperator2;
+                char element_type2;
+                bool preoperator2;
                 tElementStruct* theElement = &Other->m_pElementList[j];
-                int l2 = Other->GetElementLen(j, EndPos2, Level, &element_type2, &preoperator2);
+                int l2 = Other->GetElementLen(j, EndPos2, Level, &element_type2, preoperator2);
                 //if (l2==0) goto compare_expressions_earlyexit; //removed for speed
                 if (element_type == element_type2 && (theElement->IsSelected & 0x08) == 0)
                 {
@@ -16029,7 +16027,7 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
 
     while (true)
     {
-        int l = GetElementLen(pos, EndPos, tmpLevel, &es->et, &es->p);
+        int l = GetElementLen(pos, EndPos, tmpLevel, &es->et, (bool&)(es->p));
         if (l == 0) goto compute_exit;
         es->position = (unsigned short)pos;
         es++;
@@ -16072,7 +16070,7 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
                         EndPos = m_pElementList.size() - 1;
                         while (true)
                         {
-                            int l = GetElementLen(pos, EndPos, Level, &es3->et, &es3->p);
+                            int l = GetElementLen(pos, EndPos, Level, &es3->et, (bool&)(es3->p));
                             if (l == 0) goto compute_finish;
                             es3->position = (unsigned short)pos;
                             num_factors++;
@@ -16906,8 +16904,9 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                 int pos = 0;
                 while (true)
                 {
-                    char p, et;
-                    int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, InsideLevel, &et, &p);
+                    bool p;
+                    char et;
+                    int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, InsideLevel, &et, p);
                     if (l == 0) break;
 
                     int lv2 = arg->FindLowestOperatorLevel(pos + p, pos + l - 1, (char)0xD7);
@@ -16970,10 +16969,8 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
                         else
                         {
                             arg->InsertEmptyElement(pos + l, 4, 0);
-                            CExpression* n = arg->m_pElementList[pos + l].pElementObject->
-                                                                          Expression1;
-                            CExpression* d = arg->m_pElementList[pos + l].pElementObject->
-                                                                          Expression2;
+                            CExpression* n = arg->m_pElementList[pos + l].pElementObject->Expression1;
+                            CExpression* d = arg->m_pElementList[pos + l].pElementObject->Expression2;
                             n->InsertEmptyElement(0, 1, '1');
                             l++;
                             for (int kk = start; kk <= end; kk++)
@@ -17046,8 +17043,9 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             int pos = StartPos;
             while (true)
             {
-                char et, p;
-                int l = GetElementLen(pos, EndPos, Level1, &et, &p);
+                char et;
+                bool p;
+                int l = GetElementLen(pos, EndPos, Level1, &et, p);
                 if (l == 0) break;
 
                 int rval = MultiplyElements(pos + p, pos + l - 1, et == '/' ? -inv : inv, Other, StartPos2, EndPos2,
@@ -17070,8 +17068,9 @@ int CExpression::MultiplyElements(int StartPos, int EndPos, int inv, CExpression
             int pos = StartPos2;
             while (true)
             {
-                char et, p;
-                int l = Other->GetElementLen(pos, EndPos2, Level2, &et, &p);
+                char et;
+            bool p;
+                int l = Other->GetElementLen(pos, EndPos2, Level2, &et, p);
                 if (l == 0) break;
 
                 int rval = MultiplyElements(StartPos, EndPos, inv, Other, pos + p, pos + l - 1,
@@ -17759,8 +17758,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 int pos = StartPos;
                 while (true)
                 {
-                    char et, p;
-                    int l = GetElementLen(pos, EndPos, MulLevel, &et, &p);
+                    char et;
+            bool p;
+                    int l = GetElementLen(pos, EndPos, MulLevel, &et, p);
                     if (l == 0) break;
 
                     if (l - p == 1 && m_pElementList[pos + p].Type == 4)
@@ -17790,8 +17790,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 int pos = StartPos2;
                 while (true)
                 {
-                    char et, p;
-                    int l = GetElementLen(pos, EndPos2, MulLevel, &et, &p);
+                    char et;
+                    bool p;
+                    int l = GetElementLen(pos, EndPos2, MulLevel, &et, p);
                     if (l == 0) break;
 
                     if (l - p == 1 && m_pElementList[pos + p].Type == 4)
@@ -17839,8 +17840,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 int pos = StartPos;
                 while (true)
                 {
-                    char et, p;
-                    int l = GetElementLen(pos, EndPos, MulLevel, &et, &p);
+                    char et;
+            bool p;
+                    int l = GetElementLen(pos, EndPos, MulLevel, &et, p);
                     if (l == 0) break;
 
                     if (l - p == 1 && m_pElementList[pos + p].Type == 4)
@@ -17878,8 +17880,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 pos = StartPos2;
                 while (true)
                 {
-                    char et, p;
-                    int l = GetElementLen(pos, EndPos2, MulLevel, &et, &p);
+                    char et;
+                    bool p;
+                    int l = GetElementLen(pos, EndPos2, MulLevel, &et, p);
                     if (l == 0) break;
 
                     if (l - p == 1 && m_pElementList[pos + p].Type == 4)
@@ -17921,8 +17924,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 int pos = StartPos;
                 while (true)
                 {
-                    char et, p;
-                    int l = GetElementLen(pos, EndPos, MulLevel, &et, &p);
+                    char et;
+            bool p;
+                    int l = GetElementLen(pos, EndPos, MulLevel, &et, p);
                     if (l == 0) break;
 
                     if (l - p == 1 && m_pElementList[pos + p].Type == 4)
@@ -17940,8 +17944,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 int pos = StartPos2;
                 while (true)
                 {
-                    char et, p;
-                    int l = GetElementLen(pos, EndPos2, MulLevel, &et, &p);
+                    char et;
+            bool p;
+                    int l = GetElementLen(pos, EndPos2, MulLevel, &et, p);
                     if (l == 0) break;
 
                     if (l - p == 1 && m_pElementList[pos + p].Type == 4)
@@ -17987,8 +17992,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 int pos = StartPos;
                 while (true)
                 {
-                    char et, p;
-                    int l = GetElementLen(pos, EndPos, MulLevel, &et, &p);
+                    char et;
+                    bool p;
+                    int l = GetElementLen(pos, EndPos, MulLevel, &et, p);
                     if (l == 0) break;
 
                     if (l - p == 1 && m_pElementList[pos + p].Type == 4)
@@ -18057,8 +18063,9 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 pos = StartPos2;
                 while (true)
                 {
-                    char et, p;
-                    int l = GetElementLen(pos, EndPos2, MulLevel, &et, &p);
+                    char et;
+                    bool p;
+                    int l = GetElementLen(pos, EndPos2, MulLevel, &et, p);
                     if (l == 0) break;
 
                     if (l - p == 1 && m_pElementList[pos + p].Type == 4)
@@ -18712,8 +18719,8 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
 
     double ArgVal;
     double ExpVal;
-    int is_argument_pure = 0;
-    int is_exponent_pure = 0;
+    bool is_argument_pure = 0;
+    bool is_exponent_pure = 0;
     int arg_prec;
     int exp_prec;
     if (ComputationType == 10)
@@ -18992,8 +18999,9 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
                     {
                         int pos = a->FindMatrixElement(jj, ii, 0);
                         if (pos < 0) pos = 0;
-                        char et, p;
-                        int l = a->GetElementLen(pos, a->m_pElementList.size() - 1, GetOperatorLevel((char)0xFF), &et, &p);
+                        char et;
+                        bool p;
+                        int l = a->GetElementLen(pos, a->m_pElementList.size() - 1, GetOperatorLevel((char)0xFF), &et, p);
                         for (int k = pos; k < pos + l; k++)
                             M->InsertElement(a->m_pElementList[k], M->m_pElementList.size());
 
@@ -19292,9 +19300,9 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             while (true)
             {
                 char et;
-                char p;
+                bool p;
                 int l;
-                l = marg->GetElementLen(pos, marg->m_pElementList.size() - 1, Level, &et, &p);
+                l = marg->GetElementLen(pos, marg->m_pElementList.size() - 1, Level, &et, p);
                 if (l - p == 0) break;
 
                 if (pos > 0)
@@ -19334,8 +19342,8 @@ int CExpression::ComputeExponent(int Position, char element_type, int Computatio
             while (true)
             {
                 char et;
-                char p;
-                int l = exp->GetElementLen(pos, exp->m_pElementList.size() - 1, lvl, &et, &p);
+                bool p;
+                int l = exp->GetElementLen(pos, exp->m_pElementList.size() - 1, lvl, &et, p);
                 if (l == 0) break;
 
                 zz++;
@@ -19403,8 +19411,9 @@ factorizeexpression_try_again:
         int pos = 0;
         while (true)
         {
-            char et, p;
-            int l = GetElementLen(pos, m_pElementList.size() - 1, Level, &et, &p);
+            char et;
+            bool p;
+            int l = GetElementLen(pos, m_pElementList.size() - 1, Level, &et, p);
             if (l == 0) break;
 
             tElementStruct* ts = &m_pElementList[pos + p];
@@ -20032,8 +20041,9 @@ factorizeexpression_try_again:
         int lvl = tmp->FindLowestOperatorLevel();
         if (lvl == PlusLevel)
         {
-            char et, p;
-            int l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, &p);
+            char et;
+            bool p;
+            int l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, p);
             if (tmp->m_pElementList[l - 1].Type == 3)
             {
                 tPureFactors aPF;
@@ -20064,7 +20074,7 @@ factorizeexpression_try_again:
                         int cntr = 0;
                         while (tmp->Compute(0, tmp->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
                         tmp->Polynomize(variable);
-                        l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, &p);
+                        l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, p);
                         delete variable;
                         //this->CopyExpression(tmp,0);
                         //goto factorizeexpression_finish;
@@ -20077,16 +20087,18 @@ factorizeexpression_try_again:
                 if (arg && exp && exp->IsPureNumber(0, exp->m_pElementList.size(), &N, &prec) &&
                     fabs(N - 2.0) < 1e-100)
                 {
-                    char et2, p2;
-                    int l2 = tmp->GetElementLen(l, tmp->m_pElementList.size() - 1, lvl, &et2, &p2);
+                    char et2;
+                    bool p2;
+                    int l2 = tmp->GetElementLen(l, tmp->m_pElementList.size() - 1, lvl, &et2, p2);
                     if (l2 - p2 >= arg->m_pElementList.size())
                     {
                         if (arg->CompareExpressions(0, arg->m_pElementList.size() - 1, tmp, l2 + l - arg->m_pElementList.size(),
                                                     l2 + l - 1))
                         {
                             //this is factor for x^1
-                            char et3, p3;
-                            int l3 = tmp->GetElementLen(l + l2, tmp->m_pElementList.size() - 1, lvl, &et3, &p3);
+                            char et3;
+                            bool p3;
+                            int l3 = tmp->GetElementLen(l + l2, tmp->m_pElementList.size() - 1, lvl, &et3, p3);
                             if (l3)
                             {
                                 //build tmp2
@@ -20370,9 +20382,9 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
         while (true)
         {
             char et1;
-            char p1;
+            bool p1;
             int l1;
-            l1 = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, Level1, &et1, &p1);
+            l1 = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, Level1, &et1, p1);
             if (l1 == 0) break;
 
             //jump over + or - sign if it exists
@@ -20436,8 +20448,9 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
                         int poss = 0;
                         while (true)
                         {
-                            char et, p;
-                            int l = n->GetElementLen(poss, n->m_pElementList.size() - 1, MulLevel, &et, &p);
+                            char et;
+            bool p;
+                            int l = n->GetElementLen(poss, n->m_pElementList.size() - 1, MulLevel, &et, p);
                             if (l == 0) break;
 
                             if (l - p == 1 && n->m_pElementList[poss + p].Type == 8)
@@ -20975,8 +20988,9 @@ int CExpression::ComputeRoot(int Position, char element_type, int ComputationTyp
             int pos = 0;
             while (true)
             {
-                char et, p;
-                int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, Level, &et, &p);
+                char et;
+                bool p;
+                int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, Level, &et, p);
                 if (l == 0) break;
 
                 if ((element_type == '/' && et != '/') ||
@@ -21057,16 +21071,18 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             int pos = 0;
             while (true)
             {
-                char et, p;
-                int l = nom->GetElementLen(pos, nom->m_pElementList.size() - 1, Level1, &et, &p);
+                char et;
+                bool p;
+                int l = nom->GetElementLen(pos, nom->m_pElementList.size() - 1, Level1, &et, p);
                 if (l == 0) break;
 
                 tElementStruct& ts1 = nom->m_pElementList[pos + p];
                 int pos2 = 0;
                 while (true)
                 {
-                    char et2, p2;
-                    int l2 = denom->GetElementLen(pos2, denom->m_pElementList.size() - 1, Level2, &et2, &p2);
+                    char et2;
+                    bool p2;
+                    int l2 = denom->GetElementLen(pos2, denom->m_pElementList.size() - 1, Level2, &et2, p2);
                     if (l2 == 0) break;
 
                     if (et == et2)
@@ -21155,12 +21171,14 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
                 int order = denom->Polynomize(nullptr, tmpstr, 0);
                 if (order == 1)
                 {
-                    char et, p;
-                    int l = denom->GetElementLen(0, denom->m_pElementList.size() - 1, PlusLevel, &et, &p);
+                    char et;
+                    bool p;
+                    int l = denom->GetElementLen(0, denom->m_pElementList.size() - 1, PlusLevel, &et, p);
                     if (l < denom->m_pElementList.size() && (et == '+' || et == '-'))
                     {
-                        char et2, p2;
-                        int l2 = denom->GetElementLen(l, denom->m_pElementList.size() - 1, PlusLevel, &et2, &p2);
+                        char et2;
+                        bool p2;
+                        int l2 = denom->GetElementLen(l, denom->m_pElementList.size() - 1, PlusLevel, &et2, p2);
                         if (l2 + l == denom->m_pElementList.size() && (et2 == '+' || et2 == '-'))
                         {
                             denom->InsertEmptyElement(0, 5, '(');
@@ -21393,9 +21411,9 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             while (true)
             {
                 char et1;
-                char p1;
+                bool p1;
                 int l_nom;
-                l_nom = nom->GetElementLen(n_pos, nom->m_pElementList.size() - 1, Level1, &et1, &p1);
+                l_nom = nom->GetElementLen(n_pos, nom->m_pElementList.size() - 1, Level1, &et1, p1);
                 if (l_nom - p1 == 0) break;
 
                 if (n_pos == 0 && l_nom > 1 && nom->m_pElementList[0].Type == 2 &&
@@ -21587,8 +21605,9 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
             int jj = 1;
             while (true)
             {
-                char et, p;
-                int l = nom->GetElementLen(pos, nom->m_pElementList.size() - 1, lvl, &et, &p);
+                char et;
+                bool p;
+                int l = nom->GetElementLen(pos, nom->m_pElementList.size() - 1, lvl, &et, p);
                 if (l == 0) break;
 
 
@@ -21653,13 +21672,14 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
     int pos = StartPos;
     while (true)
     {
-        char et, p;
+        char et;
+            bool p;
         int l;
         double ord = order;
         int stl = style;
         if (Level >= MulLevel)
         {
-            l = GetElementLen(pos, EndPos, Level, &et, &p);
+            l = GetElementLen(pos, EndPos, Level, &et, p);
             if (l == 0) break;
 
             //jump over +/- sign
@@ -21875,8 +21895,9 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
     int summand_no = 0;
     while (true)
     {
-        char et, p;
-        int l = GetElementLen(pos, m_pElementList.size() - 1, Level, &et, &p);
+        char et;
+        bool p;
+        int l = GetElementLen(pos, m_pElementList.size() - 1, Level, &et, p);
         if (l == 0) break;
 
         if (et == '-') VarList->Constants[summand_no].N1 = -VarList->Constants[summand_no].N1;
@@ -22392,8 +22413,9 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
     int pos = 0;
     while (true)
     {
-        char et, p;
-        int l = P->GetElementLen(pos, P->m_pElementList.size() - 1, PlusLevel, &et, &p);
+        char et;
+        bool p;
+        int l = P->GetElementLen(pos, P->m_pElementList.size() - 1, PlusLevel, &et, p);
         if (l == 0) goto divide_polynome_exit2;
 
         int fnd = 0;
@@ -22462,11 +22484,12 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
 
 
     //now we have factors extracted into array, begin dividing
-    char p2, et2;
+    bool p2;
+    char et2;
     int LevelQ = Q->FindLowestOperatorLevel();
     if (LevelQ == -1 || LevelQ > PlusLevel) LevelQ = PlusLevel;
     if (LevelQ < PlusLevel) goto divide_polynome_exit2; //strange error - should not happen
-    const int l2 = Q->GetElementLen(0, Q->m_pElementList.size() - 1, LevelQ, &et2, &p2);
+    const int l2 = Q->GetElementLen(0, Q->m_pElementList.size() - 1, LevelQ, &et2, p2);
     int l2f = l2 - 1;
     if (orderQ == 1)
     {
@@ -22529,8 +22552,9 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
             {
                 if (tmpf < 0) goto divide_polynome_exit2; //should never happen
 
-                char et2, p2;
-                int l2 = Q->GetElementLen(pos, Q->m_pElementList.size() - 1, LevelQ, &et2, &p2);
+                char et2;
+                bool p2;
+                int l2 = Q->GetElementLen(pos, Q->m_pElementList.size() - 1, LevelQ, &et2, p2);
                 if (l2 == 0) break;
 
                 char ee = '+';
@@ -22732,8 +22756,9 @@ int CExpression::RemoveSequence(int Level, int StartPos, int EndPos)
             EndPos = m_pElementList.size() - 1;
         else
         {
-            char p, et;
-            int l = GetElementLen(StartPos, m_pElementList.size() - 1, Level, &et, &p);
+            bool p;
+            char et;
+            int l = GetElementLen(StartPos, m_pElementList.size() - 1, Level, &et, p);
             EndPos = StartPos + l - 1;
         }
     }
@@ -22809,8 +22834,9 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
     if (Position && m_pElementList[Position - 1].Type == 0) Position--;
     if (EndPos == -1)
     {
-        char et, p;
-        EndPos = StartPos + Source->GetElementLen(StartPos, Source->m_pElementList.size() - 1, Level, &et, &p) - 1;
+        char et;
+            bool p;
+        EndPos = StartPos + Source->GetElementLen(StartPos, Source->m_pElementList.size() - 1, Level, &et, p) - 1;
     }
     if (EndPos < StartPos) return 0;
 
@@ -22953,8 +22979,9 @@ int CExpression::InsertSequence(char element_type, int Position, const CExpressi
         int pos = StartPos;
         while (true)
         {
-            char et, p;
-            int l = Source->GetElementLen(pos, EndPos, Level, &et, &p);
+            char et;
+            bool p;
+            int l = Source->GetElementLen(pos, EndPos, Level, &et, p);
             if (l == 0) break;
 
             char ch = et;
@@ -23378,12 +23405,13 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
     int pos = StartPos + jumpover;
     while (true)
     {
-        char et, p;
+        char et;
+            bool p;
         int l;
         int invert = inv;
         if (Level >= MulLevel)
         {
-            l = GetElementLen(pos, EndPos, Level, &et, &p);
+            l = GetElementLen(pos, EndPos, Level, &et, p);
             if (l == 0) break;
             if (et == '/') invert = -invert;
         }
@@ -23420,14 +23448,15 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
         while (true)
         {
             int invert2;
-            char et2, p2;
+            char et2;
+            bool p2;
             int l2;
             if (Other)
             {
                 invert2 = inv2;
                 if (Level2 >= MulLevel)
                 {
-                    l2 = Other->GetElementLen(pos2, EndPos2, Level2, &et2, &p2);
+                    l2 = Other->GetElementLen(pos2, EndPos2, Level2, &et2, p2);
                     if (l2 == 0) break;
                     if (et2 == '/') invert2 = -invert2;
                 }
@@ -24067,8 +24096,9 @@ int CExpression::MakeExpressionBeautiful()
             if (ts->Type == 2 && ts->pElementObject->Data1[0] == '-')
                 if (m_pElementList.size() > i + 1 && (ts + 1)->Type == 1)
                 {
-                    char et, p;
-                    if (GetElementLen(i, m_pElementList.size() - 1, PlusLevel, &et, &p) == 2)
+                    char et;
+            bool p;
+                    if (GetElementLen(i, m_pElementList.size() - 1, PlusLevel, &et, p) == 2)
                     {
                         double N;
                         int prec;
@@ -24168,8 +24198,9 @@ int CExpression::MakeExpressionBeautiful()
         int pos = 0;
         while (true)
         {
-            char et, p;
-            int l = GetElementLen(pos, m_pElementList.size() - 1, lvl, &et, &p);
+            char et;
+            bool p;
+            int l = GetElementLen(pos, m_pElementList.size() - 1, lvl, &et, p);
             if (l == 0) break;
 
             double N;
@@ -24744,8 +24775,9 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
     int End2;
 
     //now find the first part of the equation (Start1 ... End1)
-    char et, p;
-    int l = GetElementLen(0, m_pElementList.size() - 1, EqLevel, &et, &p);
+    char et;
+            bool p;
+    int l = GetElementLen(0, m_pElementList.size() - 1, EqLevel, &et, p);
     Start1 = p;
     End1 = l - 1;
     if (End1 >= m_pElementList.size()) return 0;
@@ -24754,7 +24786,7 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
     int pos = l;
     while (true)
     {
-        l = GetElementLen(pos, m_pElementList.size() - 1, EqLevel, &et, &p);
+        l = GetElementLen(pos, m_pElementList.size() - 1, EqLevel, &et, p);
         if (l == 0) return 0;
 
         Start2 = pos + p;
@@ -24829,8 +24861,9 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
             if (End1 > Start1 || m_pElementList[0].Type != 1 || strcmp(m_pElementList[0].pElementObject->Data1, "0"))
                 while (true)
                 {
-                    char p, et;
-                    int l = GetElementLen(pos, End1, PlusLevel, &et, &p);
+                    bool p;
+                    char et;
+                    int l = GetElementLen(pos, End1, PlusLevel, &et, p);
                     if (l == 0) return 0;
 
                     if (!ContainsVariable(pos + p, pos + l - 1, variable, VarPos, VarLen))
@@ -24875,8 +24908,9 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 m_pElementList[Start2].pElementObject->Data1, "0"))
                 while (true)
                 {
-                    char p, et;
-                    int l = GetElementLen(pos, End2, PlusLevel, &et, &p);
+                    bool p;
+                    char et;
+                    int l = GetElementLen(pos, End2, PlusLevel, &et, p);
                     if (l == 0) return 0;
 
                     if (ContainsVariable(pos + p, pos + l - 1, variable, VarPos, VarLen))
@@ -25138,10 +25172,10 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 {
                     if (ComputationLevel == 3) goto extract_variable_midstep_exit;
 
-                    int p;
+                    int precission;
                     double N;
                     int type = 18;
-                    if (a->IsPureNumber(0, a->m_pElementList.size(), &N, &p) && fabs(N - 10.0) < 1e-100)
+                    if (a->IsPureNumber(0, a->m_pElementList.size(), &N, &precission) && fabs(N - 10.0) < 1e-100)
                         type = 19;
                     if (a->m_pElementList.size() == 1 && a->m_pElementList[0].Type == 1 &&
                         strcmp(a->m_pElementList[0].pElementObject->Data1, "e") == 0 &&
@@ -25318,8 +25352,9 @@ int CExpression::ExtractVariable(CExpression* variable, int VarPos, int VarLen, 
                 pos = Start1;
                 while (true)
                 {
-                    char p, et;
-                    int l = GetElementLen(pos, End1, PlusLevel, &et, &p);
+                    bool p;
+                    char et;
+                    int l = GetElementLen(pos, End1, PlusLevel, &et, p);
                     if (l == 0) return 0;
 
                     if (ContainsVariable(pos + p, pos + l - 1, variable, VarPos, VarLen))
@@ -25700,9 +25735,10 @@ int CExpression::MatrixInvert(int ComputationType)
                                 first_col = 0;
                                 first_row = 0;
                                 int pos = this->FindMatrixElement(ii, jj, 0);
-                                char et, p;
+                                char et;
+            bool p;
                                 int l = this->GetElementLen(pos, this->m_pElementList.size() - 1, GetOperatorLevel((char)0xFF),
-                                                            &et, &p);
+                                                            &et, p);
                                 for (int k = pos; k < pos + l; k++)
                                     subdet->InsertElement((this->m_pElementList[k]), subdet->m_pElementList.size());
                             }
@@ -26121,15 +26157,15 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
         if (InsideLevel < MulLevel && InsideLevel != -1) return 1;
 
         double N = 1.0;
-        int p = 0;
-        if (argument->IsPureNumber(0, argument->m_pElementList.size(), &N, &p))
+        int precision = 0;
+        if (argument->IsPureNumber(0, argument->m_pElementList.size(), &N, &precision))
         {
             if (argument->m_ParentheseShape == 'c')
                 N = ceil(N); //(int)((N>0)?(N+1):(N));
             else
                 N = floor(N); //(int)((N>0)?(N):(N-1));
             DeleteElement(Position);
-            this->GenerateASCIINumber(N, (int)N, true, p, Position);
+            this->GenerateASCIINumber(N, (int)N, true, precision, Position);
             return 1;
         }
     }
@@ -26177,8 +26213,9 @@ int CExpression::ComputeParentheses(int Position, char element_type, int Computa
             int jj = 1;
             while (true)
             {
-                char et, p;
-                int l = argument->GetElementLen(pos, argument->m_pElementList.size() - 1, InsideLevel, &et, &p);
+                char et;
+            bool p;
+                int l = argument->GetElementLen(pos, argument->m_pElementList.size() - 1, InsideLevel, &et, p);
                 if (l == 0) break;
 
                 if (element_type == 0xD7)
@@ -26367,8 +26404,9 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
         int summand_no = 0;
         while (true)
         {
-            char et, p;
-            int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, PlusLevel, &et, &p);
+            char et;
+            bool p;
+            int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, PlusLevel, &et, p);
             if (l == 0) break;
 
             if (arg->ContainsVariable(pos + p, pos + l - 1, nullptr, 0, 0, "p", 1))
@@ -27229,8 +27267,9 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
     }
     else if (level == MulLevel)
     {
-        char et, p;
-        int l = GetElementLen(0, m_pElementList.size() - 1, MulLevel, &et, &p);
+        char et;
+            bool p;
+        int l = GetElementLen(0, m_pElementList.size() - 1, MulLevel, &et, p);
         CExpression* tmp1 = new CExpression(nullptr, nullptr, 100);
         CExpression* tmp2 = new CExpression(nullptr, nullptr, 100);
         for (int k = 0; k < l; k++)
@@ -27277,8 +27316,9 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
         int pos = 0;
         while (true)
         {
-            char et, p;
-            int l = GetElementLen(pos, m_pElementList.size() - 1, level, &et, &p);
+            char et;
+            bool p;
+            int l = GetElementLen(pos, m_pElementList.size() - 1, level, &et, p);
             if (l == 0) break;
 
             CExpression* tmp = new CExpression(nullptr, nullptr, 100);
@@ -27356,8 +27396,9 @@ int CExpression::PlotterGetEquationInfo(CExpression** variable, int* position, i
         int level = this->FindLowestOperatorLevel('+');
         if (level == EqLevel)
         {
-            char et, p;
-            int l = GetElementLen(0, m_pElementList.size() - 1, level, &et, &p);
+            char et;
+            bool p;
+            int l = GetElementLen(0, m_pElementList.size() - 1, level, &et, p);
             if (l == 0) { return 0; }
             if (p == 1) l = 0; //in the case the equation starts with '='  (example:  =x^2)
             if (l >= m_pElementList.size() - 1) { return 0; }
@@ -27886,8 +27927,9 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
             {
                 //if there are no variables on the right side, try substitution
                 //(otherwise, extract)
-                char et, p;
-                int l = Substitute->GetElementLen(0, Substitute->m_pElementList.size() - 1, EqLevel, &et, &p);
+                char et;
+            bool p;
+                int l = Substitute->GetElementLen(0, Substitute->m_pElementList.size() - 1, EqLevel, &et, p);
                 if (Substitute->ContainsVariable(l + 1, Substitute->m_pElementList.size() - 1, var, 0, var->m_pElementList.size()))
                 {
                     cnt++;
@@ -27897,14 +27939,15 @@ int CExpression::MakeSubstitution(CExpression* Substitute, CExpression* Variable
 
             if (ret == 0 || cnt == 0 || (ret == 4 && prev_ret != ret))
             {
-                char et, p;
-                int l = Substitute->GetElementLen(0, Substitute->m_pElementList.size() - 1, EqLevel, &et, &p);
+                char et;
+            bool p;
+                int l = Substitute->GetElementLen(0, Substitute->m_pElementList.size() - 1, EqLevel, &et, p);
                 if (l == 0 || l == Substitute->m_pElementList.size())
                 {
                     delete var;
                     return 0;
                 } //strange error
-                int l2 = Substitute->GetElementLen(l + 1, Substitute->m_pElementList.size() - 1, EqLevel, &et, &p);
+                int l2 = Substitute->GetElementLen(l + 1, Substitute->m_pElementList.size() - 1, EqLevel, &et, p);
                 if (l2 == 0 || l2 + l + 1 != Substitute->m_pElementList.size())
                 {
                     delete var;
@@ -27964,8 +28007,9 @@ void* CExpression::GenerateVariableList(int StartPos, int EndPos, int* summand_n
         int pos = StartPos;
         while (true)
         {
-            char et, p;
-            int l = GetElementLen(pos, EndPos, Level, &et, &p);
+            char et;
+            bool p;
+            int l = GetElementLen(pos, EndPos, Level, &et, p);
             if (l == 0) break;
 
             //recursively call
@@ -27983,8 +28027,9 @@ void* CExpression::GenerateVariableList(int StartPos, int EndPos, int* summand_n
     int pos = StartPos;
     while (true)
     {
-        char et, p;
-        int l = GetElementLen(pos, EndPos, PlusLevel, &et, &p);
+        char et;
+            bool p;
+        int l = GetElementLen(pos, EndPos, PlusLevel, &et, p);
         if (l == 0) break;
 
         if (et == '-') VarList->Constants[*summand_no].N1 = -VarList->Constants[*summand_no].N1;
@@ -28073,8 +28118,9 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
         int pos = StartPos;
         while (true)
         {
-            char et, p;
-            int l = GetElementLen(pos, EndPos, BaseLvl, &et, &p);
+            char et;
+            bool p;
+            int l = GetElementLen(pos, EndPos, BaseLvl, &et, p);
             if (l == 0) break;
 
             CExpression* tmp = new CExpression(nullptr, nullptr, 100);
@@ -28136,8 +28182,9 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
             int pos = StartPos;
             while (true)
             {
-                char et, p;
-                int l = GetElementLen(pos, EndPos, BaseLvl, &et, &p);
+                char et;
+            bool p;
+                int l = GetElementLen(pos, EndPos, BaseLvl, &et, p);
                 if (l == 0) break;
 
                 if (BaseLvl > PlusLevel)
@@ -28155,10 +28202,13 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                 int inverted = -1;
                 while (true)
                 {
-                    char et2, p2, et3, p3;
-                    int l2 = Find->GetElementLen(pos2, Find->m_pElementList.size() - 1, BaseLvl, &et2, &p2);
+                    char et2;
+                    char et3;
+                    bool p2;
+                    bool p3;
+                    int l2 = Find->GetElementLen(pos2, Find->m_pElementList.size() - 1, BaseLvl, &et2, p2);
                     if (l2 == 0) break;
-                    int l3 = GetElementLen(pos3, EndPos, BaseLvl, &et3, &p3);
+                    int l3 = GetElementLen(pos3, EndPos, BaseLvl, &et3, p3);
                     if (l3 == 0) break;
 
                     if (inverted == -1)
@@ -28243,8 +28293,9 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
             int pos = 0;
             while (true)
             {
-                char et, p;
-                int l = fnd->GetElementLen(pos, fnd->m_pElementList.size() - 1, PlusLevel, &et, &p);
+                char et;
+            bool p;
+                int l = fnd->GetElementLen(pos, fnd->m_pElementList.size() - 1, PlusLevel, &et, p);
                 if (l == 0) break;
 
 
@@ -28252,8 +28303,9 @@ int CExpression::FindReplace(int StartPos, int EndPos, CExpression* Find, CExpre
                 int pos2 = 0;
                 while (true)
                 {
-                    char et2, p2;
-                    int l2 = base->GetElementLen(pos2, base->m_pElementList.size() - 1, PlusLevel, &et2, &p2);
+                    char et2;
+                    bool p2;
+                    int l2 = base->GetElementLen(pos2, base->m_pElementList.size() - 1, PlusLevel, &et2, p2);
                     if (l2 == 0) break;
 
                     tPureFactors PF;
@@ -28817,8 +28869,9 @@ int CExpression::CodeDecodeUnitsOfMeasurement(int StartPos, int EndPos)
         int pos = StartPos;
         while (true)
         {
-            char et, p;
-            int l = GetElementLen(pos, EndPos, lvl, &et, &p);
+            char et;
+            bool p;
+            int l = GetElementLen(pos, EndPos, lvl, &et, p);
             int tt = CodeDecodeUnitsOfMeasurement(pos + p, pos + l - 1);
             retval += tt;
             l += tt;
@@ -28838,8 +28891,9 @@ int CExpression::CodeDecodeUnitsOfMeasurement(int StartPos, int EndPos)
     int pos = StartPos;
     while (true)
     {
-        char et, p;
-        int l = GetElementLen(pos, EndPos, MulLevel, &et, &p);
+        char et;
+        bool p;
+        int l = GetElementLen(pos, EndPos, MulLevel, &et, p);
         if (l - p == 1)
         {
             tElementStruct& ts = m_pElementList[pos + p];

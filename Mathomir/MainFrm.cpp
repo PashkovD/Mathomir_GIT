@@ -897,7 +897,7 @@ int CMainFrame::ClearDocument()
 {
     if (TheDocument)
     {
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
             if (TheDocument[i].Type == EXPRESSION)
             {
@@ -1599,7 +1599,7 @@ int CMainFrame::UndoRestore()
     //first check what object do we need to delete
     //only objects that were modified are deleted and (latter) recreated,
     //objects that were not modified are not touched by undo restore.
-    for (int i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         if (TheDocument[i].Type == EXPRESSION)
         {
@@ -1670,7 +1670,7 @@ int CMainFrame::UndoRestore()
     memcpy(TheDocument, UndoStruct[UndoNumLevels - 1].data, NumDocumentElements * sizeof(tDocumentStruct));
 
     //go through restored data and adjust pointer to objects
-    for (int i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         //if (TheDocument[i].MovingDotState==4) TheDocument[i].MovingDotState=0;
         if (TheDocument[i].Object.exp)
@@ -1868,7 +1868,7 @@ int CMainFrame::RearangeObjects(int delta)
 {
     //we check how much we need to push objects
     int mx = 0;
-    for (int i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         const tDocumentStruct& ds = TheDocument[i];
         if ((ds.MovingDotState & 0xC0) != 0x80)
@@ -1904,7 +1904,7 @@ int CMainFrame::RearangeObjects(int delta)
     while (fnd)
     {
         fnd = false;
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct& ds = TheDocument[i];
             if ((ds.MovingDotState & 0xC0) != 0x80)
@@ -1939,7 +1939,7 @@ int CMainFrame::RearangeObjects(int delta)
         }
     }
 rearange_end:
-    for (int i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
         TheDocument[i].MovingDotState &= 0x3F;
 
     return 1;
@@ -2140,7 +2140,7 @@ int ExecuteLink(const char* command)
     int match = 0;
     int found = -1;
     int d1 = (int)strlen(command);
-    for (int i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = TheDocument + i;
 

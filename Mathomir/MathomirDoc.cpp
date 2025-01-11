@@ -266,7 +266,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
 
         //first deselect everything 
         //(when reading from clipboard we do not delete previous content, but simply adding to it)
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
             if (TheDocument[i].MovingDotState != 5)
                 TheDocument[i].MovingDotState &= 0x80; //clear everything except msb

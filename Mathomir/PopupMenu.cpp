@@ -304,7 +304,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
         int deletable = 0;
         int NumRullerGuidelines = 0;
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* dsx = TheDocument + i;
             if (dsx->absolute_Y < -1000)
@@ -753,7 +753,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
         StartExtendedSelection = 0x7FFF;
         EndExtendedSelection = 0;
-        for (int i = 0; i < m_Expression->m_pElementList.size(); i++)
+        for (size_t i = 0; i < m_Expression->m_pElementList.size(); i++)
         {
             tElementStruct& theElement = m_Expression->m_pElementList[i];
             if (!theElement.IsSelected)
@@ -810,7 +810,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                     m_MenuType = 7; //HTML link menu
             }
 
-            if (ClipboardExpression && ClipboardExpression->m_pElementList.size() > 0)
+            if (ClipboardExpression && !ClipboardExpression->m_pElementList.empty())
             {
                 //if there is something in the clipboard, we may wish to open "paste special - implanting paste" menu
                 //that is, posibility to insert selected element into clipboard expression
@@ -936,7 +936,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
         int kkk = 0; //babaluj
         tDocumentStruct** list = (tDocumentStruct**)malloc(sizeof(tDocumentStruct*) * 256);
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct& ds = TheDocument[i];
             if (ds.Type == EXPRESSION)
@@ -2195,7 +2195,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         tDocumentStruct** list = (tDocumentStruct**)malloc(
                             sizeof(tDocumentStruct*) * NumDocumentElements);
                         tDocumentStruct* dss = TheDocument;
-                        for (int i = 0; i < NumDocumentElements; i++, dss++)
+                        for (size_t i = 0; i < NumDocumentElements; i++, dss++)
                         {
                             *(list + i) = dss;
                             if (dss->Type == EXPRESSION)
@@ -2491,7 +2491,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 int found = 0;
 
                 int data = dataval;
-                for (int ii = 0; ii < NumDocumentElements; ii++)
+                for (size_t ii = 0; ii < NumDocumentElements; ii++)
                 {
                     tDocumentStruct* ds = TheDocument + ii;
                     if (ds->Object.v && (ds->MovingDotState == 3 ||
@@ -2505,9 +2505,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             StartX = 0x7FFFFFFF;
                             StartY = 0x7FFFFFFF;
                             MaxX = MaxY = 0x80000000;
-                            for (int kkk = ii; kkk < NumDocumentElements; kkk++)
+                            for (size_t kkk = ii; kkk < NumDocumentElements; kkk++)
                             {
-                                tDocumentStruct* ds2 = TheDocument + kkk;
+                                tDocumentStruct* ds2 = &TheDocument[kkk];
                                 if (ds2->Object.v && (ds2->MovingDotState == 3 ||
                                     (ds2->Type == DRAWING && ds2->Object.draw->IsSelected) ||
                                     (ds2->Type == EXPRESSION && ds2->Object.exp->m_Selection == 0x7FFF)))
@@ -2914,7 +2914,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("align", 20113);
 
                             for (; pass < 2; pass++)
-                                for (int indx = 0; indx < NumDocumentElements; indx++)
+                                for (size_t indx = 0; indx < NumDocumentElements; indx++)
                                 {
                                     tDocumentStruct* dsx = TheDocument + indx;
                                     if (dsx->Type == EXPRESSION)
@@ -2923,7 +2923,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                         {
                                             CExpression* exp = dsx->Object.exp;
                                             tElementStruct* ts;
-                                            int iij;
+                                            size_t iij;
                                             for (iij = 0; iij < exp->m_pElementList.size(); iij++)
                                             {
                                                 ts = &exp->m_pElementList[iij];
@@ -2964,8 +2964,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (found == 0)
                             {
                                 ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("v. distribution", 20112);
-                                int numelm = 0;
-                                for (int indx = 0; indx < NumDocumentElements; indx++)
+                                size_t numelm = 0;
+                                for (size_t indx = 0; indx < NumDocumentElements; indx++)
                                 {
                                     tDocumentStruct& dsx = TheDocument[indx];
                                     if (dsx.Object.v && (dsx.MovingDotState == 3 ||
@@ -2982,7 +2982,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                         (dsx->Type == DRAWING && dsx->Object.draw->IsSelected) ||
                                         (dsx->Type == EXPRESSION && dsx->Object.exp->m_Selection == 0x7FFF)))
                                     {
-                                        list[numelm++] = std::pair<int, int>{indx, dsx->absolute_Y};
+                                        list[numelm++] = std::pair{indx, dsx->absolute_Y};
                                     }
                                 }
                                 std::sort(list, list + numelm * 2,
@@ -2990,7 +2990,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                           {
                                               return first.second > second.second;
                                           });
-                                for (int indx = 0; indx < numelm; indx++)
+                                for (size_t indx = 0; indx < numelm; indx++)
                                 {
                                     tDocumentStruct& dsx = TheDocument[list[indx].first];
                                     int theY = StartY;
@@ -3418,7 +3418,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             }
             if (Options[m_SelectedOption].Data == 8) //then "lock" option
             {
-                for (int ii = 0; ii < NumDocumentElements; ii++)
+                for (size_t ii = 0; ii < NumDocumentElements; ii++)
                 {
                     tDocumentStruct& ds = TheDocument[ii];
                     if (ds.Type == EXPRESSION && ds.Object.exp && ds.Object.exp == m_Expression)
@@ -3474,7 +3474,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             m_Expression = parent;
                             is_keyboard_entry = 0;
                         }
-                        if (m_Expression->m_pElementList.size() == 0)
+                        if (m_Expression->m_pElementList.empty())
                         {
                             m_Expression->InsertEmptyElement(0, 0, 0);
                             is_keyboard_entry = 0;
@@ -3482,7 +3482,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (is_keyboard_entry && m_Expression == KeyboardEntryObject)
                         {
                             //change the keyboard entry focus point to the element that is marked
-                            for (int kk = 0; kk < m_Expression->m_pElementList.size(); kk++)
+                            for (size_t kk = 0; kk < m_Expression->m_pElementList.size(); kk++)
                                 if (m_Expression->m_pElementList[kk].Decoration & 0x40)
                                 {
                                     (int&)m_Expression->m_pElementList[kk].Decoration &= 0x3F;
@@ -3784,7 +3784,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                     //search low-left corner
                     int minX = 0x7FFFFFFF, maxY = -0x7FFFFFFF;
-                    for (int i = 0; i < NumDocumentElements; i++)
+                    for (size_t i = 0; i < NumDocumentElements; i++)
                         if (TheDocument[i].MovingDotState == 3)
                         {
                             if (TheDocument[i].absolute_X < minX) minX = TheDocument[i].absolute_X;
@@ -3847,7 +3847,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
                     tDocumentStruct* org_ds;
                     int org_ds_pos = 0;
-                    int i = 0;
+                    size_t i = 0;
                     for (i = 0; i < NumDocumentElements; i++)
                     {
                         org_ds = TheDocument + i;
@@ -3977,7 +3977,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         ds->Above = (short)((int)a * 100 / (int)ViewZoom);
                         ds->Below = (short)((int)b * 100 / (int)ViewZoom);
                         ds->MovingDotState = (char)0x80;
-                        for (int i = 0; i < NumDocumentElements - 1; i++)
+                        for (size_t i = 0; i < NumDocumentElements - 1; i++)
                             if (TheDocument[i].absolute_Y < ds->absolute_Y)
                                 TheDocument[i].MovingDotState |= (char)0x40;
 
@@ -4697,8 +4697,9 @@ int PopupMenu::ExtractSelection(int StartPos, int EndPos, int* StartSel, int* En
     int pos = StartPos;
     while (true)
     {
-        char et, p;
-        int l = m_Expression->GetElementLen(pos, EndPos, Level, &et, &p);
+        char et;
+        bool p;
+        int l = m_Expression->GetElementLen(pos, EndPos, Level, &et, p);
         if (l == 0) return -1;
 
         if (*StartSel >= pos && *EndSel <= pos + l - 1)
@@ -4767,7 +4768,7 @@ int PopupMenu::SymbolicComputation()
         CExpression* System[24];
         int NumEquations = 0;
 
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
             if (TheDocument[i].MovingDotState == 3 && TheDocument[i].Type == EXPRESSION && TheDocument[i].Object.exp)
             {
@@ -4797,8 +4798,9 @@ int PopupMenu::SymbolicComputation()
                     int pos = 0;
                     while (true)
                     {
-                        char et, p;
-                        int l = tmp->GetElementLen(pos, tmp->m_pElementList.size() - 1, min(lvl, EqLevel-1), &et, &p);
+                        char et;
+                        bool p;
+                        int l = tmp->GetElementLen(pos, tmp->m_pElementList.size() - 1, min(lvl, EqLevel-1), &et, p);
                         if (l == 0) break;
                         int lvl2 = tmp->FindLowestOperatorLevel(pos + p, pos + l - 1, (char)0xD7);
                         if (lvl2 == EqLevel)
@@ -4809,8 +4811,9 @@ int PopupMenu::SymbolicComputation()
                             int ppos = pos + p;
                             while (true)
                             {
-                                char et2, p2;
-                                int l2 = tmp->GetElementLen(pos2, pos + l - 1, EqLevel, &et2, &p2);
+                                char et2;
+                                bool p2;
+                                int l2 = tmp->GetElementLen(pos2, pos + l - 1, EqLevel, &et2, p2);
                                 if (l2 == 0) break;
                                 if (pos2 > pos + p)
                                 {
@@ -5342,8 +5345,9 @@ int PopupMenu::SymbolicComputation()
             int pos = 0;
             while (true)
             {
-                char et, p;
-                int l = ExtractedSelection->GetElementLen(pos, ExtractedSelection->m_pElementList.size() - 1, level, &et, &p);
+                char et;
+                bool p;
+                int l = ExtractedSelection->GetElementLen(pos, ExtractedSelection->m_pElementList.size() - 1, level, &et, p);
                 if (l == 0) break;
 
                 tPureFactors PF;
@@ -5412,7 +5416,7 @@ int PopupMenu::AddMathMenuOption(CExpression* E1, CExpression* original)
     else
     {
         //in chase of systems of equations (check if any selected is equal)
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
             if (TheDocument[i].MovingDotState == 3 && TheDocument[i].Type == EXPRESSION)
             {
                 if (S1 == TheDocument[i].Object.exp->CalcChecksum())

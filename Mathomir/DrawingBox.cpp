@@ -374,7 +374,7 @@ int CDrawingBox::MouseClick(int X, int Y)
 
     if (TheState == 101)
     {
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* ds = TheDocument + i;
             if (ds->Type == DRAWING)
@@ -401,7 +401,7 @@ int CDrawingBox::MouseClick(int X, int Y)
         KeyboardEntryObject->DeselectExpression();
         KeyboardEntryObject->m_Selection = 1;
 
-        for (int i = 0; i < NumDocumentElements; i++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
             if (TheDocument[i].Object.draw == Base)
             {
                 *KeyboardEntryBaseObject = TheDocument[i];

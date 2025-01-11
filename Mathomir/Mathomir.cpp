@@ -149,8 +149,8 @@ int ViewY = 0;
 int ViewMaxX = 500;
 int ViewMaxY = 300;
 short ViewZoom = 100;
-int NumDocumentElements = 0;
-int NumDocumentElementsReserved = 0;
+size_t NumDocumentElements = 0;
+size_t NumDocumentElementsReserved = 0;
 tDocumentStruct* TheDocument;
 int MouseMode = 0; //0=free moving, 1=right click moving, (many more)...
 CExpression* ClipboardExpression = nullptr;

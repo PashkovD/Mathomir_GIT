@@ -1376,7 +1376,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                     else if (Data1[0] == 'I' || Data1[0] == 'O')
                     {
                         CExpression* a = Expression1;
-                        if (a->m_pElementList.size())
+                        if (!a->m_pElementList.empty())
                         {
                             tElementStruct& t = a->m_pElementList[a->m_pElementList.size() - 1];
                             if (t.Type != 6 || strcmp(t.pElementObject->Data1, "d"))
@@ -1835,7 +1835,7 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
                 else
                     delta = delta / 2;
 
-                for (int i = 0; i <= l; i++)
+                for (size_t i = 0; i <= l; i++)
                     Data3[i] += delta;
 
 
@@ -2357,7 +2357,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
         {
             if (!IsHighQualityRendering)
             {
-                DC->SelectObject(GetPenFromPool(max(Data3[3]/6+ActualSize/20, 1), IsBlue ? 1 : 0, color));
+                DC->SelectObject(GetPenFromPool(max(Data3[3]/6+ActualSize/20, 1), IsBlue, color));
 
                 int X1, Y1, Y2;
                 X1 = X + Data3[2]; //x_placement
@@ -2400,7 +2400,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                 if (Data2[2] == 2) N = 2;
                 if (Data2[2] == 3) N = 3;
 
-                DC->SelectObject(GetPenFromPool(max(Data3[3]/8+ActualSize/20, 1), IsBlue ? 1 : 0, color));
+                DC->SelectObject(GetPenFromPool(max(Data3[3]/8+ActualSize/20, 1), IsBlue, color));
                 DC->SelectObject(GetStockObject(WHITE_BRUSH));
                 if (Data1[0] == 'O') //circular integral
                     DC->Ellipse(X + Data3[2], Y - Data3[3] / 2,
@@ -2512,7 +2512,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             if (Expression1) h = this->E1_above + this->E1_below;
 
             int penwidth = (ActualSize + h / 24) / 5;
-            DC->SelectObject(GetPenFromPool(max(penwidth/3, 1), IsBlue ? 1 : 0, color));
+            DC->SelectObject(GetPenFromPool(max(penwidth/3, 1), IsBlue, color));
 
             {
                 int before = 0, after = 0, down = 0;
@@ -2553,7 +2553,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             if (Data1[0] == 'H')
             {
                 //hyperlink
-                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, PALE_RGB(color)));
+                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue, PALE_RGB(color)));
                 int l1 = ActualSize / 3 + ActualSize / 20;
                 int off = -ActualSize / 10;
                 int offx = -ActualSize / 20;
@@ -2566,7 +2566,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                 DC->LineTo(X, Y + l1);
                 DC->LineTo(X, Y);
 
-                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, RGB(255, 0, 255)));
+                DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue, RGB(255, 0, 255)));
                 DC->MoveTo(X + l1 / 2, Y + l1 / 2);
                 DC->LineTo(X + l1 / 2 + l2, Y + l1 / 2 - l2);
                 DC->LineTo(X + l1 / 2 + l2, Y + l1 / 2);
@@ -2596,7 +2596,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                 Expression3->PaintExpression(
                     DC, zoom, X + E3_posX, Y + E3_posY, ClipReg, color);
 
-            DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, color));
+            DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue, color));
             DC->MoveTo(X + E1_length + ActualSize / 20, Y - Data3[0]);
             DC->LineTo(X + E1_length + ActualSize / 20, Y + Data3[1]);
         }
@@ -2615,7 +2615,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             Expression3->PaintExpression(DC, zoom, X + E3_posX, Y + E3_posY, ClipReg,
                                          color);
 
-        DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue ? 1 : 0, color));
+        DC->SelectObject(GetPenFromPool(max(ActualSize/20, 1), IsBlue, color));
 
         if (Data1[0] & 0x01)
         {
@@ -3280,8 +3280,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
     {
         int extends = 0;
         int extends2 = 0;
-        if (this->m_Type == 4 || this->m_Type == 7 || this->m_Type == 6 || this->m_Type == 10 || this->m_Type
-            == 8 || this->m_Type == 5)
+        if (this->m_Type == 4 || this->m_Type == 7 || this->m_Type == 6 || this->m_Type == 10
+            || this->m_Type == 8 || this->m_Type == 5)
             extends = 5 * Expression2->m_MarginX / 2;
         if (this->m_Type == 3)
         {
@@ -3293,9 +3293,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
         if (X >= E2_posX - ttt - extends && X <= E2_posX + E2_length + ttt + extends &&
             Y > E2_posY - E2_above && Y < E2_posY + E2_below - extends2)
         {
-            CObject* obj = Expression2->SelectObjectAtPoint(DC, zoom, X - E2_posX, Y - E2_posY, IsExpression,
-                                                            IsParenthese);
-            return obj;
+            return Expression2->SelectObjectAtPoint(DC, zoom, X - E2_posX, Y - E2_posY, IsExpression, IsParenthese);
         }
     }
     if (Expression3)
@@ -3311,10 +3309,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
         if (X >= E3_posX - ttt - extends && X <= E3_posX + E3_length + ttt + extends &&
             Y > E3_posY - E3_above && Y < E3_posY + E3_below)
         {
-            CObject* obj;
-            obj = Expression3->SelectObjectAtPoint(DC, zoom, X - E3_posX, Y - E3_posY, IsExpression,
-                                                     IsParenthese);
-            return obj;
+            return Expression3->SelectObjectAtPoint(DC, zoom, X - E3_posX, Y - E3_posY, IsExpression, IsParenthese);
         }
     }
     if (Expression1) //this is the last subexpression to be checked because in some cases it covers other subexpressions
@@ -3347,10 +3342,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
         if (X >= E1_posX - ttt - extends && X <= E1_posX + E1_length + ttt2 + extends &&
             Y > E1_posY - E1_above + extends2 && Y < E1_posY + E1_below)
         {
-            CObject* obj;
-            obj = Expression1->SelectObjectAtPoint(DC, zoom, X - E1_posX, Y - E1_posY, IsExpression,
-                                                     IsParenthese);
-            return obj;
+            return Expression1->SelectObjectAtPoint(DC, zoom, X - E1_posX, Y - E1_posY, IsExpression, IsParenthese);
         }
     }
 
@@ -4927,7 +4919,7 @@ void CElement::LaTeX_output(std::ostream& output) const
 
     if (m_Type == 8) //root
     {
-        if (Expression2 && Expression2->m_pElementList.size() && Expression2->m_pElementList[0].Type)
+        if (Expression2 && !Expression2->m_pElementList.empty() && Expression2->m_pElementList[0].Type)
         {
             output << "\\sqrt[";
             Expression2->LaTeX_output(output);
@@ -4980,7 +4972,7 @@ void CElement::LaTeX_output(std::ostream& output) const
 //check if the given element is actually measurement unit (or its exponent)
 bool CElement::IsMeasurementUnit() const
 {
-    if (m_Type == 1) return m_VMods == 0x10 ? 1 : 0;
+    if (m_Type == 1) return m_VMods == 0x10;
     if (m_Type == 3)
     {
         const CExpression* base = Expression1;

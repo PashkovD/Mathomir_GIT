@@ -184,7 +184,7 @@ int CBitmapImage::MouseClick(int X, int Y)
 
                     if (SaveImageToFileForEditing((CObject*)Base))
                     {
-                        for (int i = 0; i < NumDocumentElements; i++)
+                        for (size_t i = 0; i < NumDocumentElements; i++)
                             if (TheDocument[i].Type == DRAWING && TheDocument[i].Object.draw)
                             {
                                 CDrawing* d = TheDocument[i].Object.draw;

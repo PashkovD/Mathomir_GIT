@@ -168,7 +168,7 @@ public:
                        char optimize_for_readability = 0);
     void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg = nullptr, COLORREF color = 0);
     short GetActualFontSize(short zoom) const;
-    int InsertEmptyElement(short position, short Type, char Operator, int color = -1);
+    int InsertEmptyElement(size_t position, short type, char Operator, int color = -1);
     void SelectExpression(char Select);
     void DeselectExpressionExceptKeyboardSelection(/*char preserve_keyboard_selection*/);
     void DeselectExpression();
@@ -181,11 +181,11 @@ public:
     int CopyExpression(CExpression* Original, char OnlySelected, char selection_type = 1,
                        char update_clipboard = 1);
     void Delete();
-    int InsertElement(const tElementStruct& Element, int position);
-    int MoveElementInto(const tElementStruct& Element, int position);
+    int InsertElement(const tElementStruct& Element, size_t position);
+    int MoveElementInto(const tElementStruct& Element, size_t position);
     //int MovePortionInto(int destination_pos, CExpression *Original, int source_pos, int num_elements);
     CExpression* CopyAtPoint(CDC* DC, short zoom, short X, short Y, CExpression* Original, int keyboard_select = 1);
-    int DeleteElement(short position);
+    int DeleteElement(size_t position);
     CExpression* AdjustSelection(char keyboard_select = 1);
     int KeyboardStart(CDC* DC, short zoom);
     int KeyboardRefocus(CExpression* new_focus, int position);
@@ -228,13 +228,13 @@ public:
     int GetKeyboardCursorPos(int* X, int* Y) const;
     int ChangeFontSize(float factor);
     size_t GetElementLen(size_t StartPos, size_t EndPos, const unsigned int Level,
-                         char* element_type, char* has_preoperator) const;
+                         char* element_type, bool& has_preoperator) const;
     int FindLowestOperatorLevel(size_t StartPos, size_t EndPos, char default_operator = 0) const;
     int FindLowestOperatorLevel(char default_oper = 0) const;
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position
     int Autocomplete(bool is_internal);
     tElementStruct* GetElementStruct(const CElement* element);
-    CElement* DecodeInternalInsertionPoint();
+    CElement* DecodeInternalInsertionPoint() const;
     //returns nullptr if no insertion point found, otherwise the element (type=1) with the insertion point
     int ContainsBlinkingCursor() const;
     CExpression* GetLabel();
