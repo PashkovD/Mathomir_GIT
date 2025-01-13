@@ -464,14 +464,16 @@ void CMainFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
         //this is needed because the OpenMOMFile will deselect everything
         int maxfnd = -1;
         int minfnd = -1;
-        tDocumentStruct* ds = TheDocument;
-        for (int i = 0; i < NumDocumentElements; i++, ds++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
+        {
+            tDocumentStruct* ds = &TheDocument[i];
             if (ds->MovingDotState == 3)
             {
                 ds->MovingDotState |= 0x80;
                 maxfnd = i;
                 if (minfnd == -1) minfnd = i;
             }
+        }
 
         CMathomirDoc* pDoc = pMainView->GetDocument();
         if (pDoc->OpenMOMFile(nullptr)) //this makes paste from clipboard
@@ -486,18 +488,16 @@ void CMainFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
                 //and we can easily make Image.
                 pMainView->OnEditCopyImage();
 
-                ds = TheDocument + NumDocumentElements - 1;
-                for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
-                    if (ds->MovingDotState == 3)
-                        pMainView->DeleteDocumentObject(ds);
+                for (int i = NumDocumentElements - 1; i >= 0; i--)
+                    if (TheDocument[i].MovingDotState == 3)
+                        pMainView->DeleteDocumentObject(&TheDocument[i]);
                     else break;
             }
         }
 
         //restore eselection by checking if the MovingDotState was marked by high bit
-        ds = TheDocument + minfnd;
-        for (int i = max(minfnd, 0); i <= maxfnd; i++, ds++)
-            if (ds->MovingDotState & 0x80) ds->MovingDotState = 3;
+        for (int i = max(minfnd, 0); i <= maxfnd; i++)
+            if (TheDocument[minfnd].MovingDotState & 0x80) TheDocument[minfnd].MovingDotState = 3;
     }
     dont_empty_clipboard = 0;
 }
@@ -895,23 +895,20 @@ int CMainFrame::MyBitBlt(CDC* DC, int X, int Y, int width, int height, int Xsrc,
 //clears the entire document (like File->New)
 int CMainFrame::ClearDocument()
 {
-    if (TheDocument)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
-        for (size_t i = 0; i < NumDocumentElements; i++)
+        if (TheDocument[i].Type == EXPRESSION)
         {
-            if (TheDocument[i].Type == EXPRESSION)
-            {
-                //((CExpression*)(TheDocument[i].Object))->Delete();
-                delete TheDocument[i].Object.exp;
-            }
-            else if (TheDocument[i].Type == DRAWING)
-            {
-                //((CDrawing*)(TheDocument[i].Object))->Delete();
-                delete TheDocument[i].Object.draw;
-            }
+            //((CExpression*)(TheDocument[i].Object))->Delete();
+            delete TheDocument[i].Object.exp;
         }
-        free(TheDocument);
+        else if (TheDocument[i].Type == DRAWING)
+        {
+            //((CDrawing*)(TheDocument[i].Object))->Delete();
+            delete TheDocument[i].Object.draw;
+        }
     }
+    free(TheDocument);
     NumDocumentElements = 0;
     NumDocumentElementsReserved = 0;
     ViewX = ViewY = 0;
@@ -946,20 +943,23 @@ int AddDocumentObject(doc_type type, int X, int Y)
             long long x4 = -1;
             long long x5 = -1;
             long long x6 = -1;
-            if (prevTouchedObject >= TheDocument && prevTouchedObject < TheDocument + NumDocumentElements)
+            if (prevTouchedObject >= TheDocument
+                && prevTouchedObject <= &TheDocument[NumDocumentElements - 1])
                 x1 = prevTouchedObject - TheDocument;
-            if (SelectedDocumentObject >= TheDocument && SelectedDocumentObject < TheDocument + NumDocumentElements)
+            if (SelectedDocumentObject >= TheDocument
+                && SelectedDocumentObject <= &TheDocument[NumDocumentElements - 1])
                 x2 = SelectedDocumentObject - TheDocument;
-            if (SelectedDocumentObject2 >= TheDocument && SelectedDocumentObject2 < TheDocument +
-                NumDocumentElements)
+            if (SelectedDocumentObject2 >= TheDocument
+                && SelectedDocumentObject2 <= &TheDocument[NumDocumentElements - 1])
                 x3 = SelectedDocumentObject2 - TheDocument;
-            if (SpecialDrawingHover >= TheDocument && SpecialDrawingHover < TheDocument + NumDocumentElements)
+            if (SpecialDrawingHover >= TheDocument
+                && SpecialDrawingHover <= &TheDocument[NumDocumentElements - 1])
                 x4 = SpecialDrawingHover - TheDocument;
-            if (prevSpecialDrawingHover >= TheDocument && prevSpecialDrawingHover < TheDocument +
-                NumDocumentElements)
+            if (prevSpecialDrawingHover >= TheDocument
+                && prevSpecialDrawingHover <= &TheDocument[NumDocumentElements - 1])
                 x5 = prevSpecialDrawingHover - TheDocument;
-            if (KeyboardEntryBaseObject >= TheDocument && KeyboardEntryBaseObject < TheDocument +
-                NumDocumentElements)
+            if (KeyboardEntryBaseObject >= TheDocument
+                && KeyboardEntryBaseObject <= &TheDocument[NumDocumentElements - 1])
                 x6 = KeyboardEntryBaseObject - TheDocument;
             NumDocumentElementsReserved += 20;
             TheDocument = (tDocumentStruct*)realloc(TheDocument, NumDocumentElementsReserved * sizeof(tDocumentStruct));
@@ -2142,7 +2142,7 @@ int ExecuteLink(const char* command)
     int d1 = (int)strlen(command);
     for (size_t i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
 
         if (ds->Type == EXPRESSION)
         {

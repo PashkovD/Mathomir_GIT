@@ -42,8 +42,8 @@ extern unsigned char OperatorLevelTable[256];
 #define GetOperatorLevel(x) ((int)OperatorLevelTable[(unsigned char)(x)])
 int CalculateText(CDC* DC, const char* text, const char* font, short* spacing, short TheFontSize, bool& IsHigh, bool& IsLow,
                   bool IsText, bool IsFirst, char VMods);
-int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, short TheFontSize, int IsBlue, int color,
-              char isText, char VMods);
+int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, short TheFontSize, bool IsBlue, int color,
+              bool isText, char VMods);
 bool IsCharacterHigh(char ch, char font);
 bool IsCharacterLow(char ch, char font);
 extern int PrintRendering;
@@ -2321,7 +2321,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             short spacing[24];
             CalculateText(DC, Data1, font, spacing, max(ActualSize, 1), isHigh, isLow, false, (char)(Data3[0] & 0x02),
                           m_VMods);
-            PaintText(DC, X + Data3[2] + ActualSize / 20, Y + Data3[3], Data1, font, spacing,max(ActualSize, 1),
+            PaintText(DC, X + Data3[2] + ActualSize / 20, Y + Data3[3], Data1, font, spacing, max(ActualSize, 1),
                       IsBlue ? 0xFFFFFFFF : 0, thecolor, 0, m_VMods);
         }
         else

@@ -87,17 +87,17 @@ int CBitmapImage::CopyFrom(const CDrawing* Original)
 #pragma optimize("s",on)
 int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg)
 {
-    X += min(Base->Items->X1, Base->Items->X2) / DRWZOOM * zoom / 100 + 1;
-    Y += min((Base->Items+1)->Y1, (Base->Items+1)->Y2) / DRWZOOM * zoom / 100 + 1;
-    int Xlen = abs(Base->Items->X1 - Base->Items->X2) / DRWZOOM * zoom / 100;
-    int Ylen = abs((Base->Items + 1)->Y1 - (Base->Items + 1)->Y2) / DRWZOOM * zoom / 100;
-    X += Base->Items->LineWidth / DRWZOOM * zoom / 100;
-    Y += Base->Items->LineWidth / DRWZOOM * zoom / 100;
-    Xlen -= Base->Items->LineWidth / DRWZOOM * zoom / 200;
-    Ylen -= Base->Items->LineWidth / DRWZOOM * zoom / 200;
-    MenuX = min(Base->Items->X1, Base->Items->X2) / DRWZOOM * ViewZoom / 100 + 1 + Base->Items->LineWidth / DRWZOOM *
+    X += min(Base->Items[0].X1, Base->Items[0].X2) / DRWZOOM * zoom / 100 + 1;
+    Y += min((Base->Items[1]).Y1, (Base->Items[1]).Y2) / DRWZOOM * zoom / 100 + 1;
+    int Xlen = abs(Base->Items[0].X1 - Base->Items[0].X2) / DRWZOOM * zoom / 100;
+    int Ylen = abs((Base->Items[1]).Y1 - (Base->Items[1]).Y2) / DRWZOOM * zoom / 100;
+    X += Base->Items[0].LineWidth / DRWZOOM * zoom / 100;
+    Y += Base->Items[0].LineWidth / DRWZOOM * zoom / 100;
+    Xlen -= Base->Items[0].LineWidth / DRWZOOM * zoom / 200;
+    Ylen -= Base->Items[0].LineWidth / DRWZOOM * zoom / 200;
+    MenuX = min(Base->Items[0].X1, Base->Items[0].X2) / DRWZOOM * ViewZoom / 100 + 1 + Base->Items[0].LineWidth / DRWZOOM *
         ViewZoom / 100;
-    MenuY = min((Base->Items+1)->Y1, (Base->Items+1)->Y2) / DRWZOOM * ViewZoom / 100 + 1 + Base->Items->LineWidth /
+    MenuY = min((Base->Items[1]).Y1, (Base->Items[1]).Y2) / DRWZOOM * ViewZoom / 100 + 1 + Base->Items[0].LineWidth /
         DRWZOOM * ViewZoom / 100;
 
     if (Image)
@@ -143,10 +143,10 @@ int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int abs
         BITMAPINFOHEADER* bhead = (BITMAPINFOHEADER*)Image;
         if (bhead)
         {
-            if ((Base->Items + 1)->Y2 > 40 * DRWZOOM)
-                if (abs(bhead->biWidth - (Base->Items->X2 - Base->Items->X1 - 2 * Base->Items->LineWidth) / DRWZOOM) >
+            if ((Base->Items[1]).Y2 > 40 * DRWZOOM)
+                if (abs(bhead->biWidth - (Base->Items[0].X2 - Base->Items[0].X1 - 2 * Base->Items[0].LineWidth) / DRWZOOM) >
                     1 ||
-                    abs(bhead->biHeight - ((Base->Items + 1)->Y2 - (Base->Items + 1)->Y1 - 2 * Base->Items->LineWidth)
+                    abs(bhead->biHeight - ((Base->Items[1]).Y2 - (Base->Items[1]).Y1 - 2 * Base->Items[0].LineWidth)
                         / DRWZOOM) > 1)
                 {
                     DC->FillSolidRect(X, Y + 24, 45, 14,RGB(240, 240, 240));
@@ -221,13 +221,13 @@ int CBitmapImage::MouseClick(int X, int Y)
                     int orgx = bhead->biWidth;
                     int orgy = bhead->biHeight;
 
-                    (Base->Items + 0)->X2 = (Base->Items + 0)->X1 + orgx * DRWZOOM + 2 * Base->Items->LineWidth;
-                    (Base->Items + 1)->X1 = (Base->Items + 1)->X2 = (Base->Items + 0)->X2;
-                    (Base->Items + 2)->X1 = (Base->Items + 1)->X2;
+                    (Base->Items[0]).X2 = (Base->Items[0]).X1 + orgx * DRWZOOM + 2 * Base->Items[0].LineWidth;
+                    (Base->Items[1]).X1 = (Base->Items[1]).X2 = (Base->Items[0]).X2;
+                    (Base->Items[2]).X1 = (Base->Items[1]).X2;
 
-                    (Base->Items + 1)->Y2 = (Base->Items + 1)->Y1 + orgy * DRWZOOM + 2 * Base->Items->LineWidth;
-                    (Base->Items + 2)->Y1 = (Base->Items + 2)->Y2 = (Base->Items + 1)->Y2;
-                    (Base->Items + 3)->Y1 = (Base->Items + 2)->Y2;
+                    (Base->Items[1]).Y2 = (Base->Items[1]).Y1 + orgy * DRWZOOM + 2 * Base->Items[0].LineWidth;
+                    (Base->Items[2]).Y1 = (Base->Items[2]).Y2 = (Base->Items[1]).Y2;
+                    (Base->Items[3]).Y1 = (Base->Items[2]).Y2;
                     pMainView->RepaintTheView();
                 }
             }
@@ -262,9 +262,9 @@ int CBitmapImage::MouseMove(CDC* DC, int X, int Y, UINT flags)
                     BITMAPINFOHEADER* bhead = (BITMAPINFOHEADER*)Image;
                     if (bhead)
                     {
-                        if ((Base->Items + 1)->Y2 > 40 * DRWZOOM)
-                            if (abs(bhead->biWidth - (Base->Items->X2 - Base->Items->X1) / DRWZOOM) > 1 ||
-                                abs(bhead->biHeight - ((Base->Items + 1)->Y2 - (Base->Items + 1)->Y1) / DRWZOOM) > 1)
+                        if ((Base->Items[1]).Y2 > 40 * DRWZOOM)
+                            if (abs(bhead->biWidth - (Base->Items[0].X2 - Base->Items[0].X1) / DRWZOOM) > 1 ||
+                                abs(bhead->biHeight - ((Base->Items[1]).Y2 - (Base->Items[1]).Y1) / DRWZOOM) > 1)
                                 SelectedItem = 3;
                     }
                 }
@@ -523,8 +523,8 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, const char* fname)
     }
     else
     {
-        X = max(d->Items->X1, d->Items->X2) / DRWZOOM;
-        Y = max((d->Items+1)->Y1, (d->Items+1)->Y2) / DRWZOOM;
+        X = max(d->Items[0].X1, d->Items[0].X2) / DRWZOOM;
+        Y = max((d->Items[1]).Y1, (d->Items[1]).Y2) / DRWZOOM;
         bpp = GetDeviceCaps(DC->m_hDC,BITSPIXEL);
         bpp = min(bpp, 24);
     }

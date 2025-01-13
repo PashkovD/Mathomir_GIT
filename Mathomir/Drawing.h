@@ -18,7 +18,7 @@ struct tDrawingItem
 class CDrawing
 {
 public:
-    tDrawingItem* Items;
+    std::vector<tDrawingItem> Items;
     void* SpecialData;
     tDrwXY NodeX;
     tDrwXY NodeY;
@@ -38,7 +38,7 @@ public:
     int UpdateCreatingItem(int X, int Y, int absX, int absY);
     int Delete();
     int InsertEmptyElement(int form, int Cx, int Cy);
-    int CalculateSize(CDC* DC, short zoom, short* width, short* height) const;
+    int CalculateSize(CDC* DC, short zoom, short* width, short* height);
     void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = nullptr, COLORREF color = 0);
     void SelectDrawing(bool select);
     int CalcChecksum() const;
@@ -58,7 +58,7 @@ public:
     int BreakApart(tDrawingItem* di, CDrawing* parent);
     int CopyDrawingIntoSubgroup(CDrawing* Original, int x, int y);
     int CopyExpressionIntoSubgroup(CExpression* Original, int x, int y, int widht, int height);
-    int SetLineWidth(int width) const;
+    int SetLineWidth(int width);
     int ScaleForFactor(float factorx, float factory);
     int RotateForAngle(float angle, int centerX, int centerY, int* newX1, int* newY1, int* newW, int* newH);
     int MoveNodeCoordinate(int X, int Y);

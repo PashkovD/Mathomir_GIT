@@ -4328,8 +4328,9 @@ int CExpression::KeyboardStart(CDC* DC, short zoom)
 
     //unselect any selection
     bool found_selection = false;
-    tDocumentStruct* ds = TheDocument;
-    for (int i = 0; i < NumDocumentElements; i++, ds++)
+    for (int i = 0; i < NumDocumentElements; i++)
+    {
+        tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3)
         {
             ds->MovingDotState = 0;
@@ -4342,6 +4343,7 @@ int CExpression::KeyboardStart(CDC* DC, short zoom)
                     ds->Object.draw->SelectDrawing(false);
             }
         }
+    }
     if (found_selection)
     {
         NumSelectedObjects = 0;
@@ -4669,7 +4671,7 @@ int CExpression::InsertTabSpacer(int position, char stop_on_equality)
         int mindelta = 0x7FFFFFFF;
         int ffound = -1;
         for (size_t i = 0; i < NumDocumentElements; i++)
-            if (KeyboardEntryBaseObject != TheDocument + i)
+            if (KeyboardEntryBaseObject != &TheDocument[i])
             {
                 if (TheDocument[i].absolute_X == KeyboardEntryBaseObject->absolute_X)
                 {
@@ -6346,9 +6348,10 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         100 / ViewZoom;
                     int dist = 3 * GRID;
                     if (m_pElementList.size() == 0 || m_pElementList[0].Type == 0) dist = 2 * GRID;
-
-                    tDocumentStruct* ds = TheDocument;
-                    for (int i = 0; i < NumDocumentElements; i++, ds++)
+                    
+                    for (size_t i = 0; i < NumDocumentElements; i++)
+                    {
+                        tDocumentStruct* ds = &TheDocument[i];
                         if (ds->Type == EXPRESSION && ds->Object.exp &&
                             ds->absolute_Y - ds->Above < absY &&
                             ds->absolute_Y + ds->Below > absY &&
@@ -6359,6 +6362,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             candidate_x = ds->absolute_X + ds->Length;
                             candidate = i;
                         }
+                    }
                     if (candidate >= 0)
                     {
                         //found a new equation - set the cursor to it
@@ -6369,7 +6373,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             KeyboardRefocus(c, c->m_pElementList.size());
                         else
                             m_IsKeyboardEntry = 0;
-                        KeyboardEntryBaseObject = TheDocument + candidate;
+                        KeyboardEntryBaseObject = &TheDocument[candidate];
                         return 2; //this forces repaint
                     }
 
@@ -6385,7 +6389,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         int range = KeyboardEntryBaseObject->absolute_X - x_pos + 1;
                         for (size_t i = 0; i < NumDocumentElements; i++)
                         {
-                            tDocumentStruct* ds = TheDocument + i;
+                            tDocumentStruct* ds = &TheDocument[i];
                             if (ds != KeyboardEntryBaseObject)
                                 if (CheckForGuidlines(i, x_pos + range / 2, y_pos, range / 2 + 1))
                                     GuidlineElement = i;
@@ -6431,7 +6435,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             nullptr, nullptr, DefaultFontSize);
                         TheDocument[NumDocumentElements - 1].Object.exp->m_StartAsText = make_text;
                         if (make_text) TheDocument[NumDocumentElements - 1].Object.exp->m_Alignment = 1;
-                        KeyboardEntryBaseObject = TheDocument + NumDocumentElements - 1;
+                        KeyboardEntryBaseObject = &TheDocument[NumDocumentElements - 1];
                         KeyboardRefocus(TheDocument[NumDocumentElements - 1].Object.exp, 0);
                         return 2;
                     }
@@ -6778,19 +6782,20 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         100 / ViewZoom;
                     int dist = 3 * GRID;
                     if (m_pElementList.size() == 0 || m_pElementList[0].Type == 0) dist = 2 * GRID;
-
-                    tDocumentStruct* ds = TheDocument;
-                    for (int i = 0; i < NumDocumentElements; i++, ds++)
-                        if (ds->Type == EXPRESSION && ds->Object.exp &&
-                            ds->absolute_Y - ds->Above < absY &&
-                            ds->absolute_Y + ds->Below > absY &&
-                            ds->absolute_X > absX &&
-                            ds->absolute_X < candidate_x &&
-                            ds->absolute_X - dist < absX)
+                    
+                    for (size_t i = 0; i < NumDocumentElements; i++)
+                    {
+                        if (TheDocument[i].Type == EXPRESSION && TheDocument[i].Object.exp &&
+                            TheDocument[i].absolute_Y - TheDocument[i].Above < absY &&
+                            TheDocument[i].absolute_Y + TheDocument[i].Below > absY &&
+                            TheDocument[i].absolute_X > absX &&
+                            TheDocument[i].absolute_X < candidate_x &&
+                            TheDocument[i].absolute_X - dist < absX)
                         {
-                            candidate_x = ds->absolute_X;
+                            candidate_x = TheDocument[i].absolute_X;
                             candidate = i;
                         }
+                    }
                     if (candidate >= 0)
                     {
                         //found a new equation - try to set the cursor to it
@@ -6801,7 +6806,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                             KeyboardRefocus(c, 0);
                         else
                             m_IsKeyboardEntry = 0;
-                        KeyboardEntryBaseObject = TheDocument + candidate;
+                        KeyboardEntryBaseObject = &TheDocument[candidate];
                         return 2; //this forces repaint
                     }
 
@@ -6858,7 +6863,7 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                         TheDocument[NumDocumentElements - 1].Object.exp->m_StartAsText = make_text;
                         if (make_text) TheDocument[NumDocumentElements - 1].Object.exp->m_Alignment = 1;
 
-                        KeyboardEntryBaseObject = TheDocument + NumDocumentElements - 1;
+                        KeyboardEntryBaseObject = &TheDocument[NumDocumentElements - 1];
                         KeyboardRefocus(TheDocument[NumDocumentElements - 1].Object.exp, 0);
                         return 2;
                     }
@@ -10328,9 +10333,10 @@ keyboardkeyhit_addtoexponent:
                 int absX = X * 100 / ViewZoom + KeyboardEntryBaseObject->absolute_X;
                 int dist = 2 * GRID;
                 if (m_pElementList.size() == 0 || m_pElementList[0].Type == 0) dist = 3 * GRID / 2;
-
-                tDocumentStruct* ds = TheDocument;
-                for (int i = 0; i < NumDocumentElements; i++, ds++)
+                
+                for (size_t i = 0; i < NumDocumentElements; i++)
+                {
+                    tDocumentStruct* ds = &TheDocument[i];
                     if (ds->Type == EXPRESSION && ds->Object.exp &&
                         ds->absolute_X + ds->Length > absX &&
                         ds->absolute_X < absX &&
@@ -10342,6 +10348,7 @@ keyboardkeyhit_addtoexponent:
                         candidate_y = ds->absolute_Y;
                         candidate = i;
                     }
+                }
                 if (candidate >= 0)
                 {
                     //found a new equation - try to set the cursor to it
@@ -10355,7 +10362,7 @@ keyboardkeyhit_addtoexponent:
                         parent->CalculateSize(DC, ViewZoom, l, &a, &b);
 
                         m_IsKeyboardEntry = 0;
-                        KeyboardEntryBaseObject = TheDocument + candidate;
+                        KeyboardEntryBaseObject = &TheDocument[candidate];
                         return 2; //this forces repaint
                     }
                 }
@@ -10390,7 +10397,7 @@ keyboardkeyhit_addtoexponent:
                         CExpression(nullptr, nullptr, DefaultFontSize);
                     TheDocument[NumDocumentElements - 1].Object.exp->m_StartAsText = make_text;
                     if (make_text) TheDocument[NumDocumentElements - 1].Object.exp->m_Alignment = 1;
-                    KeyboardEntryBaseObject = TheDocument + NumDocumentElements - 1;
+                    KeyboardEntryBaseObject = &TheDocument[NumDocumentElements - 1];
                     KeyboardRefocus(TheDocument[NumDocumentElements - 1].Object.exp, 0);
                     if (IsHighQualityRendering) pMainView->RepaintTheView();
                     return 2;
@@ -10484,7 +10491,7 @@ keyboardkeyhit_addtoexponent:
                             parent->CalculateSize(DC, ViewZoom, l, &a, &b);
 
                             m_IsKeyboardEntry = 0;
-                            KeyboardEntryBaseObject = TheDocument + candidate;
+                            KeyboardEntryBaseObject = &TheDocument[candidate];
                             return 2; //this forces repaint
                         }
                     }
@@ -10514,7 +10521,7 @@ keyboardkeyhit_addtoexponent:
                             nullptr, nullptr, DefaultFontSize);
                         TheDocument[NumDocumentElements - 1].Object.exp->m_StartAsText = make_text;
                         if (make_text) TheDocument[NumDocumentElements - 1].Object.exp->m_Alignment = 1;
-                        KeyboardEntryBaseObject = TheDocument + NumDocumentElements - 1;
+                        KeyboardEntryBaseObject = &TheDocument[NumDocumentElements - 1];
                         KeyboardRefocus(TheDocument[NumDocumentElements - 1].Object.exp, 0);
                         if (IsHighQualityRendering) pMainView->RepaintTheView();
                         return 2;
@@ -11735,8 +11742,8 @@ int CalculateText(CDC* DC, const char* text, const char* font, short* spacing, s
 
 //Paints the text - the text must be earlier prepared for painting by call to CalculateText
 //THIS FUNCTION MUST BE VERY FAST!
-int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, short TheFontSize, int IsBlue, int color,
-              char IsText, char VMods)
+int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, short TheFontSize, bool IsBlue, int color,
+              bool IsText, char VMods)
 {
     if (*text == 0) return 0;
     if (TheFontSize < 4)
@@ -12182,10 +12189,8 @@ int CExpression::Autocomplete(bool is_internal)
             for (; i < num_obj; i++)
             {
                 if (i >= m_pElementList.size()) break;
-                tElementStruct* es1 = &org->m_pElementList[i];
-                tElementStruct* es2 = &m_pElementList[i];
-                if (es1 != es2)
-                    if (this->CompareElement(*es2, *es1) == 0) break;
+                if (&org->m_pElementList[i] != &m_pElementList[i])
+                    if (this->CompareElement(m_pElementList[i], org->m_pElementList[i]) == 0) break;
             }
 
         if (i == num_obj)
@@ -12404,7 +12409,7 @@ int CExpression::Autocomplete(bool is_internal)
 
     for (size_t i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
         if (ds->Type == EXPRESSION && ds->absolute_X + ds->Length > X - 100 && ds->absolute_X < X + L + 100 &&
             ds->absolute_Y <= Y + 20 && ds->absolute_Y > Y - 200)
         {
@@ -13801,10 +13806,10 @@ int CExpression::KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, cons
     {
         int i;
         for (i = 0; i < NumDocumentElements; i++)
-            if (TheDocument + i == KeyboardEntryBaseObject) break;
+            if (&TheDocument[i] == KeyboardEntryBaseObject) break;
         AddDocumentObject(EXPRESSION, org_ds->absolute_X, org_ds->absolute_Y + delta);
-        KeyboardEntryBaseObject = org_ds = TheDocument + i;
-        ds = TheDocument + NumDocumentElements - 1;
+        KeyboardEntryBaseObject = org_ds = &TheDocument[i];
+        ds = &TheDocument[NumDocumentElements - 1];
         ds->Object.exp = new CExpression(nullptr, nullptr, fs);
         org_ds->Object.exp->CalculateSize(DC, zoom, l, &a, &b);
         org_ds->Above = (short)((int)a * 100 / (int)ViewZoom);

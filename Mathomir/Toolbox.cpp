@@ -1824,7 +1824,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                     int any = 0;
                     for (size_t i = 0; i < NumDocumentElements; i++)
                     {
-                        tDocumentStruct* ds = TheDocument + i;
+                        tDocumentStruct* ds = &TheDocument[i];
 
                         if (ds->Object.v && ds->MovingDotState == 3)
                         {
@@ -2062,7 +2062,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                                               : nullptr;
                     if (parent == nullptr || exp != nullptr)
                     {
-                        tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                        tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                         for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
                         {
                             if (ds->MovingDotState == 3)
@@ -3721,16 +3721,17 @@ int CToolbox::ConfigureToolbar()
         if (NumSelectedObjects == 1)
         {
             //adding the "Ungroup" option
-            tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
-            for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
+            for (int i = NumDocumentElements - 1; i >= 0; i--)
             {
+                tDocumentStruct* ds = &TheDocument[i];
                 if (ds->MovingDotState == 3)
                 {
                     if (ds->Type == DRAWING)
                     {
                         CDrawing* d = ds->Object.draw;
-                        if (d->NumItems && d->Items->pSubdrawing && (d->Items->Type == 2 || d->Items->Type ==
-                            0))
+                        if (d->NumItems && d->Items[0].pSubdrawing
+                            && (d->Items[0].Type == 2
+                                || d->Items[0].Type == 0))
                             AddToolbarOption(23, 1, pixel_len - tmp, ShortSeparator);
                     }
                     break;
@@ -4592,7 +4593,7 @@ void CToolbox::OnRButtonDown(UINT nFlags, CPoint point)
                     }
                     else if (NumDocumentElements > 0)
                     {
-                        tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                        tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                         if (ds->Object.v)
                         {
                             if (ds->Type == DRAWING)

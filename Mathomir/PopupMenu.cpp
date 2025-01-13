@@ -306,7 +306,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         int NumRullerGuidelines = 0;
         for (size_t i = 0; i < NumDocumentElements; i++)
         {
-            tDocumentStruct* dsx = TheDocument + i;
+            tDocumentStruct* dsx = &TheDocument[i];
             if (dsx->absolute_Y < -1000)
             {
                 if (dsx->Type == EXPRESSION && dsx->Object.exp->m_pElementList.size() == 1)
@@ -474,7 +474,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                         if (common_color == 100) common_color = drw->m_Color;
                         if (drw->m_Color != common_color) common_color = -100;
                         if (drw->IsSpecialDrawing) Any_uncombineable = 1;
-                        if (drw->Items && drw->Items->Type != 1) Any_uncombineable = 1;
+                        if (!drw->Items.empty() && drw->Items[0].Type != 1) Any_uncombineable = 1;
                     }
                     dss = &ds;
                 }
@@ -596,8 +596,9 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             if (NumExpressions == 0 && NumDrawings > 1 && Any_uncombineable == 0)
                 AddMenuOption(TSize / 3, TSize, "Combine ", 514, true);
         }
-        else if (dss->Type == DRAWING && dss->Object.draw && dss->Object.draw->Items &&
-            dss->Object.draw->Items->Type != 1)
+        else if (dss->Type == DRAWING && dss->Object.draw
+            && !dss->Object.draw->Items.empty()
+            && dss->Object.draw->Items[0].Type != 1)
         {
             PopupOption_Y += TSize / 10;
             AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, true);
@@ -698,7 +699,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
                 //if ((((CDrawing*)(dss->Object))->OriginalForm==2) ||  //line
                 //	(((CDrawing*)(dss->Object))->OriginalForm==18))   //section divider
-                if (is_open || (dss->Object.draw->NumItems == 1 && dss->Object.draw->Items->Type ==
+                if (is_open || (dss->Object.draw->NumItems == 1 && dss->Object.draw->Items[0].Type ==
                     1))
                 {
                     //AddMenuOption(TSize/3,TSize*2+TSize_1p2,"Add arrows ",595,1);
@@ -1672,7 +1673,7 @@ int PopupMenu::PaintThePopupMenu()
     //drawing menu
     for (int i = 0; i < m_NumOptions; i++)
     {
-        char is_bold = m_SelectedOption == i ? 1 : 0;
+        bool is_bold = m_SelectedOption == i;
         if (Options[i].IsEnabled)
         {
             char bold = 0;
@@ -2194,12 +2195,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         //create sorted list (on Y coordinate) of document objects
                         tDocumentStruct** list = (tDocumentStruct**)malloc(
                             sizeof(tDocumentStruct*) * NumDocumentElements);
-                        tDocumentStruct* dss = TheDocument;
-                        for (size_t i = 0; i < NumDocumentElements; i++, dss++)
+                        for (size_t i = 0; i < NumDocumentElements; i++)
                         {
-                            *(list + i) = dss;
-                            if (dss->Type == EXPRESSION)
-                                dss->Object.exp->DeselectExpression();
+                            tDocumentStruct& dss = TheDocument[i];
+                            list[i] = &dss;
+                            if (dss.Type == EXPRESSION)
+                                dss.Object.exp->DeselectExpression();
                         }
                         qsort(list, NumDocumentElements, sizeof(tDocumentStruct*), YorderQSort);
 
@@ -2493,7 +2494,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 int data = dataval;
                 for (size_t ii = 0; ii < NumDocumentElements; ii++)
                 {
-                    tDocumentStruct* ds = TheDocument + ii;
+                    tDocumentStruct* ds = &TheDocument[ii];
                     if (ds->Object.v && (ds->MovingDotState == 3 ||
                         (ds->Type == DRAWING && ds->Object.draw->IsSelected) ||
                         (ds->Type == EXPRESSION && ds->Object.exp->m_Selection == 0x7FFF)))
@@ -2527,7 +2528,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             int minx, miny, maxx, maxy;
                             drw->FindRealCorner(&minx, &miny, &maxx, &maxy);
                             drw->InsertItemAt(drw->NumItems);
-                            tDrawingItem* di = drw->Items + drw->NumItems - 1;
+                            tDrawingItem* di = &drw->Items[drw->NumItems - 1];
                             di->LineWidth = DRWZOOM;
                             di->Type = 1;
                             di->pSubdrawing = nullptr;
@@ -2555,16 +2556,16 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             char is_closed;
                             char num_points;
                             int is_open = drw->IsOpenPath(0, &is_closed, &pp[0], &num_points);
-                            if (drw->NumItems == 1 && drw->Items->Type == 1)
+                            if (drw->NumItems == 1 && drw->Items[0].Type == 1)
                             {
                                 //simple straight line
                                 is_closed = 0;
                                 num_points = 2;
                                 is_open = 1;
-                                pp[0].x = drw->Items->X1;
-                                pp[0].y = drw->Items->Y1;
-                                pp[1].x = drw->Items->X2;
-                                pp[1].y = drw->Items->Y2;
+                                pp[0].x = drw->Items[0].X1;
+                                pp[0].y = drw->Items[0].Y1;
+                                pp[1].x = drw->Items[0].X2;
+                                pp[1].y = drw->Items[0].Y2;
                             }
                             if (is_open && num_points >= 2)
                             {
@@ -2578,7 +2579,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 double r = 0;
                                 for (int ii = 0; ii < drw->NumItems; ii++)
                                 {
-                                    tDrawingItem* di = drw->Items + ii;
+                                    tDrawingItem* di = &drw->Items[ii];
                                     if (di->Type == 1)
                                         r += sqrt(
                                             (double)(di->X1 - di->X2) * (double)(di->X1 - di->X2) + (double)(di->Y1 - di
@@ -2609,8 +2610,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 {
                                     dang = 0.17;
                                     r = min(r, 13*DRWZOOM);
-                                    if (drw->Items->LineWidth < 4 * DRWZOOM) r = min(r, 115*DRWZOOM/10);
-                                    if (drw->Items->LineWidth < 2 * DRWZOOM) r = min(r, 10*DRWZOOM);
+                                    if (drw->Items[0].LineWidth < 4 * DRWZOOM) r = min(r, 115*DRWZOOM/10);
+                                    if (drw->Items[0].LineWidth < 2 * DRWZOOM) r = min(r, 10*DRWZOOM);
                                 }
                                 int X =  lround(cos(ang + dang) * r);
                                 int Y =  lround(sin(ang + dang) * r);
@@ -2629,12 +2630,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 for (int i = 0; i < num_lines; i++)
                                 {
                                     drw->InsertItemAt(drw->NumItems);
-                                    (drw->Items + drw->NumItems - 1)->Type = 1;
-                                    (drw->Items + drw->NumItems - 1)->pSubdrawing = 0;
-                                    (drw->Items + drw->NumItems - 1)->LineWidth = drw->Items->LineWidth * 3 / (
+                                    drw->Items[drw->NumItems - 1].Type = 1;
+                                    drw->Items[drw->NumItems - 1].pSubdrawing = nullptr;
+                                    drw->Items[drw->NumItems - 1].LineWidth = drw->Items[0].LineWidth * 3 / (
                                         data == 597 ? 2 : 3);
                                 }
-                                tDrawingItem* di2 = drw->Items + drw->NumItems - num_lines;
+                                tDrawingItem* di2 = &drw->Items[drw->NumItems - num_lines];
 
 
                                 if (arrow_end & 0x01)
@@ -2750,8 +2751,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             int form = 0x0F;
                             if (drw->OriginalForm == 8)
                             {
-                                cx = drw->Items->X1;
-                                cy = drw->Items->Y1;
+                                cx = drw->Items[0].X1;
+                                cy = drw->Items[0].Y1;
                                 cx /= DRWZOOM;
                                 cy /= DRWZOOM;
                                 if (cx > maxx / 2) form &= 0x0E;
@@ -2770,7 +2771,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 if (form & 0x01)
                                 {
                                     drw->InsertItemAt(0);
-                                    di = drw->Items;
+                                    di = &drw->Items[0];
                                     di->LineWidth = g % 5 ? DRWZOOM / 2 : DRWZOOM;
                                     di->Type = 1;
                                     di->pSubdrawing = nullptr;
@@ -2782,7 +2783,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 if (form & 0x02)
                                 {
                                     drw->InsertItemAt(0);
-                                    di = drw->Items;
+                                    di = &drw->Items[0];
                                     di->LineWidth = g % 5 ? DRWZOOM / 2 : DRWZOOM;
                                     di->Type = 1;
                                     di->pSubdrawing = nullptr;
@@ -2800,7 +2801,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 if (form & 0x04)
                                 {
                                     drw->InsertItemAt(0);
-                                    di = drw->Items;
+                                    di = &drw->Items[0];
                                     di->LineWidth = g % 5 ? DRWZOOM / 2 : DRWZOOM;
                                     di->Type = 1;
                                     di->pSubdrawing = nullptr;
@@ -2812,7 +2813,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 if (form & 0x08)
                                 {
                                     drw->InsertItemAt(0);
-                                    di = drw->Items;
+                                    di = &drw->Items[0];
                                     di->LineWidth = g % 5 ? DRWZOOM / 2 : DRWZOOM;
                                     di->Type = 1;
                                     di->pSubdrawing = nullptr;
@@ -2916,7 +2917,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             for (; pass < 2; pass++)
                                 for (size_t indx = 0; indx < NumDocumentElements; indx++)
                                 {
-                                    tDocumentStruct* dsx = TheDocument + indx;
+                                    tDocumentStruct* dsx = &TheDocument[indx];
                                     if (dsx->Type == EXPRESSION)
                                         if (dsx->Object.v && (dsx->MovingDotState == 3 ||
                                             dsx->Object.exp->m_Selection == 0x7FFF))
@@ -2977,7 +2978,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 numelm = 0;
                                 for (int indx = 0; indx < NumDocumentElements; indx++)
                                 {
-                                    tDocumentStruct* dsx = TheDocument + indx;
+                                    tDocumentStruct* dsx = &TheDocument[indx];
                                     if (dsx->Object.v && (dsx->MovingDotState == 3 ||
                                         (dsx->Type == DRAWING && dsx->Object.draw->IsSelected) ||
                                         (dsx->Type == EXPRESSION && dsx->Object.exp->m_Selection == 0x7FFF)))
@@ -3291,7 +3292,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             CDrawing* drw = ds->Object.draw;
                             for (int kk = 0; kk < drw->NumItems; kk++)
                             {
-                                tDrawingItem* di = drw->Items + kk;
+                                tDrawingItem* di = &drw->Items[kk];
                                 if (di->pSubdrawing)
                                 {
                                     short l, a = 0, b;
@@ -3305,8 +3306,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     AddDocumentObject(di->Type == 0 ? DRAWING : EXPRESSION,
                                                       ds->absolute_X + di->X1 / DRWZOOM,
                                                       ds->absolute_Y + di->Y1 / DRWZOOM + a * 100 / ViewZoom);
-                                    ds = TheDocument + ii;
-                                    tDocumentStruct* ds2 = TheDocument + NumDocumentElements - 1;
+                                    ds = &TheDocument[ii];
+                                    tDocumentStruct* ds2 = &TheDocument[NumDocumentElements - 1];
                                     ds2->Above = 0;
                                     ds2->Below = (di->Y2 - di->Y1) / DRWZOOM;
                                     ds2->Length = (di->X2 - di->X1) / DRWZOOM;
@@ -3317,7 +3318,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     else if (di->Type == 2)
                                         ((CExpression*)di->pSubdrawing)->DeselectExpression();
                                     for (int kkk = kk; kkk < drw->NumItems - 1; kkk++)
-                                        *(drw->Items + kkk) = *(drw->Items + kkk + 1);
+                                        (drw->Items[kkk]) = (drw->Items[kkk + 1]);
                                     drw->NumItems--;
                                     kk--;
                                 }
@@ -3359,7 +3360,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 pMainView->DeleteDocumentObject(prevelement);
                                 ii--;
                             }
-                            prevelement = TheDocument + ii;
+                            prevelement = &TheDocument[ii];
                         }
 
 
@@ -3372,7 +3373,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         pMainView->DeleteDocumentObject(prevelement);
                     //CMainFrame *mf=(CMainFrame*)theApp.m_pMainWnd;
                     AddDocumentObject(DRAWING, StartX, StartY);
-                    tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                    tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                     short w = 0, h = 0;
                     CDC* DC = pMainView->GetDC();
                     tmpdrw->CalculateSize(DC, ViewZoom, &w, &h);
@@ -3816,7 +3817,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     }
 
                     AddDocumentObject(EXPRESSION, minX, maxY + a + 5 + a / 6);
-                    ds = TheDocument + NumDocumentElements - 1;
+                    ds = &TheDocument[NumDocumentElements - 1];
                     //ds->absolute_X=minX; 
                     //ds->absolute_Y=maxY+a+5+a/6;
                     //ds->Type=1; //expression
@@ -3850,7 +3851,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     size_t i = 0;
                     for (i = 0; i < NumDocumentElements; i++)
                     {
-                        org_ds = TheDocument + i;
+                        org_ds = &TheDocument[i];
                         org_ds_pos = i;
                         if (org_ds->Object.exp == parent) break;
                     }
@@ -3955,7 +3956,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         //NumDocumentElements++;
                         //pMainView->CheckDocumentMemoryReservations();
 
-                        org_ds = TheDocument + org_ds_pos;
+                        org_ds = &TheDocument[org_ds_pos];
 
                         int delta = org_ds->Below + a + (org_ds->Below + a) / 6 + 5;
                         int delta2 = a + b + 5 + (a + b) / 6;
@@ -3968,7 +3969,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
 
                         AddDocumentObject(EXPRESSION, org_ds->absolute_X, org_ds->absolute_Y + delta);
-                        ds = TheDocument + NumDocumentElements - 1;
+                        ds = &TheDocument[NumDocumentElements - 1];
                         //ds->absolute_X=org_ds->absolute_X; 
                         //ds->absolute_Y=org_ds->absolute_Y+delta;
                         //ds->Type=1; //expression

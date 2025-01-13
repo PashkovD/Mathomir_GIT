@@ -176,10 +176,10 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
     const int LeftMargin = MX * zoom / 100;
     const int BottomMargin = MY * zoom / 100;
 
-    X += min(Base->Items->X1, Base->Items->X2) / DRWZOOM * zoom / 100 + 1;
-    Y += min((Base->Items+1)->Y1, (Base->Items+1)->Y2) / DRWZOOM * zoom / 100 + 1;
-    const int Xlen = abs(Base->Items->X1 - Base->Items->X2) / DRWZOOM * zoom / 100;
-    const int Ylen = abs((Base->Items + 1)->Y1 - (Base->Items + 1)->Y2) / DRWZOOM * zoom / 100;
+    X += min(Base->Items[0].X1, Base->Items[0].X2) / DRWZOOM * zoom / 100 + 1;
+    Y += min(Base->Items[1].Y1, Base->Items[1].Y2) / DRWZOOM * zoom / 100 + 1;
+    const int Xlen = abs(Base->Items[0].X1 - Base->Items[0].X2) / DRWZOOM * zoom / 100;
+    const int Ylen = abs(Base->Items[1].Y1 - Base->Items[1].Y2) / DRWZOOM * zoom / 100;
 
     // we will not paint interior if the window is too small
     if (Xlen < LeftMargin + 10 || Ylen < BottomMargin + 10) return 0;
@@ -213,7 +213,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
 
             if (is_y_log == 0 && TheState == 96)
             {
-                int Ylen = (Base->Items + 1)->Y2 / DRWZOOM - MY;
+                int Ylen = Base->Items[1].Y2 / DRWZOOM - MY;
                 double Ys = Ymax - (Ymax - Ymin) * (double)m_Y1 / (double)Ylen;
                 double Ye = Ymax - (Ymax - Ymin) * (double)m_Y2 / (double)Ylen;
                 double f = (Ye - Ymin) / (Ys - Ymin);
@@ -224,7 +224,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             }
             else if (is_x_log == 0 && TheState == 94)
             {
-                int Xlen = Base->Items->X2 / DRWZOOM - MX;
+                int Xlen = Base->Items[0].X2 / DRWZOOM - MX;
                 double Xs = Xmin + (Xmax - Xmin) * ((double)m_X1 - MX) / (double)Xlen;
                 double Xe = Xmin + (Xmax - Xmin) * ((double)m_X2 - MX) / (double)Xlen;
                 double f = (Xe - Xmin) / (Xs - Xmin);
@@ -234,15 +234,15 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             }
         }
     }
-    else if (Base->NumItems >= 9 && (Base->Items + 8)->Type == 2)
+    else if (Base->NumItems >= 9 && Base->Items[8].Type == 2)
     {
         //we are bit-blting the function image (if the image not exist, or is not right dimensions we start the plotting thread)
         if (!Plot)
         {
             //nasty trick!!! - the lin/log configuration of the function plotter
             //is stored into m_Alignment
-            CExpression* y0 = (CExpression*)(Base->Items + 6)->pSubdrawing;
-            CExpression* x0 = (CExpression*)(Base->Items + 4)->pSubdrawing;
+            CExpression* y0 = (CExpression*)Base->Items[6].pSubdrawing;
+            CExpression* x0 = (CExpression*)Base->Items[4].pSubdrawing;
             if (y0->m_Alignment) is_y_log = 1;
             else is_y_log = 0;
             if (x0->m_Alignment) is_x_log = 1;
@@ -470,7 +470,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             double Xmn = Xmin;
             if (TheState == 3) //window scroll
             {
-                int Xlenn = Base->Items->X2 / DRWZOOM - MX;
+                int Xlenn = Base->Items[0].X2 / DRWZOOM - MX;
                 int DeltaX = m_X2 - m_X1;
                 double fx = pow(10.0, log10(Xmax / Xmin) * DeltaX / Xlenn);
                 Xmx = Xmax / fx;
@@ -478,7 +478,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             }
             if (TheState == 94) //X ranging
             {
-                int Xlenn = Base->Items->X2 / DRWZOOM - MX;
+                int Xlenn = Base->Items[0].X2 / DRWZOOM - MX;
                 double Xs = m_X1 - MX;
                 Xs = Xmin * pow(10.0, log10(Xmax / Xmin) * Xs / Xlenn);
                 double Xe = m_X2 - MX;
@@ -597,7 +597,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             double Ymn = Ymin;
             if (TheState == 3) //window scroll
             {
-                int Ylenn = (Base->Items + 1)->Y2 / DRWZOOM - MY;
+                int Ylenn = Base->Items[1].Y2 / DRWZOOM - MY;
                 int DeltaY = m_Y2 - m_Y1;
                 double fy = pow(10.0, log10(Ymax / Ymin) * DeltaY / Ylenn);
                 Ymx = Ymax * fy;
@@ -605,7 +605,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             }
             if (TheState == 96) //Y ranging
             {
-                int Ylenn = (Base->Items + 1)->Y2 / DRWZOOM - MY;
+                int Ylenn = Base->Items[1].Y2 / DRWZOOM - MY;
                 double Ys = Ylenn - m_Y1;
                 Ys = Ymin * pow(10.0, log10(Ymax / Ymin) * Ys / Ylenn);
                 double Ye = Ylenn - m_Y2;
@@ -723,14 +723,14 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             if (TheState == 3) //ploter window scrolling
             {
                 int DeltaX = m_X2 - m_X1;
-                int Xlenn = Base->Items->X2 / DRWZOOM - MX;
+                int Xlenn = Base->Items[0].X2 / DRWZOOM - MX;
                 double dx = (Xmax - Xmin) / Xlenn * DeltaX;
                 Xmx = Xmax - dx;
                 Xmn = Xmin - dx;
             }
             if (TheState == 94) //X ranging
             {
-                int Xlenn = Base->Items->X2 / DRWZOOM - MX;
+                int Xlenn = Base->Items[0].X2 / DRWZOOM - MX;
                 double Xs = Xmin + (Xmax - Xmin) * ((double)m_X1 - MX) / (double)Xlenn;
                 double Xe = Xmin + (Xmax - Xmin) * ((double)m_X2 - MX) / (double)Xlenn;
                 double f = (Xe - Xmin) / (Xs - Xmin);
@@ -812,14 +812,14 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             if (TheState == 3) //window scroll
             {
                 int DeltaY = m_Y2 - m_Y1;
-                int Ylenn = (Base->Items + 1)->Y2 / DRWZOOM - MY;
+                int Ylenn = Base->Items[1].Y2 / DRWZOOM - MY;
                 double dy = (Ymax - Ymin) / Ylenn * DeltaY;
                 Ymx = Ymax + dy;
                 Ymn = Ymin + dy;
             }
             if (TheState == 96) //Y ranging
             {
-                int Ylenn = (Base->Items + 1)->Y2 / DRWZOOM - MY;
+                int Ylenn = Base->Items[1].Y2 / DRWZOOM - MY;
                 double Ys = Ymax - (Ymax - Ymin) * (double)m_Y1 / (double)Ylenn;
                 double Ye = Ymax - (Ymax - Ymin) * (double)m_Y2 / (double)Ylenn;
                 double f = (Ye - Ymin) / (Ys - Ymin);
@@ -897,7 +897,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             for (int kk = 0; kk < 4; kk++)
                 if (Base->NumItems > 8 + kk)
                 {
-                    CExpression* func = (CExpression*)(Base->Items + 8 + kk)->pSubdrawing;
+                    CExpression* func = (CExpression*)Base->Items[8 + kk].pSubdrawing;
                     if (func && func->m_pElementList[0].Type && Plot)
                     {
                         int position;
@@ -939,7 +939,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
         short l, a, b;
         if (KeyboardEntryObject)
         {
-            CExpression* tmp = (CExpression*)(Base->Items + TheState - 100)->pSubdrawing;
+            CExpression* tmp = (CExpression*)Base->Items[TheState - 100].pSubdrawing;
             tmp->CalculateSize(DC, ViewZoom * MX / 50, l, &a, &b);
             a += 2;
             b += 1;
@@ -1094,7 +1094,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             //Y ranging
             double Xmax, Ymax, Xmin, Ymin;
             this->PlotFunctionGetBondaries(&Xmin, &Xmax, &Ymin, &Ymax);
-            int Ylen = (Base->Items + 1)->Y2 / DRWZOOM - MY;
+            int Ylen = Base->Items[1].Y2 / DRWZOOM - MY;
             if (is_y_log == 0)
             {
                 double Ys = Ymax - (Ymax - Ymin) * (double)m_Y1 / (double)Ylen;
@@ -1109,8 +1109,8 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                 double Ye = Ylen - m_Y2;
                 Ymax = Ymin * pow(10.0, Ylen / Ye * log10(Ys / Ymin));
             }
-            ((CExpression*)(Base->Items + 7)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 7)->pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
+            ((CExpression*)Base->Items[7].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[7].pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
             TheState = 0;
             PlotFunction(1);
             return 0;
@@ -1120,7 +1120,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             //X ranging
             double Xmax, Ymax, Xmin, Ymin;
             this->PlotFunctionGetBondaries(&Xmin, &Xmax, &Ymin, &Ymax);
-            int Xlen = Base->Items->X2 / DRWZOOM - MX;
+            int Xlen = Base->Items[0].X2 / DRWZOOM - MX;
             if (is_x_log == 0)
             {
                 double Xs = Xmin + (Xmax - Xmin) * ((double)m_X1 - MX) / (double)Xlen;
@@ -1135,16 +1135,16 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                 double Xe = m_X2 - MX;
                 Xmax = Xmin * pow(10.0, Xlen / Xe * log10(Xs / Xmin));
             }
-            ((CExpression*)(Base->Items + 5)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 5)->pSubdrawing)->GenerateASCIINumber(Xmax, (long long)Xmax, 0, 5, 0);
+            ((CExpression*)Base->Items[5].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[5].pSubdrawing)->GenerateASCIINumber(Xmax, (long long)Xmax, 0, 5, 0);
             TheState = 0;
             PlotFunction(1);
             return 0;
         }
         if (TheState == 102) //zoom in (+) tool drag finisheed
         {
-            int Xlen = Base->Items->X2 / DRWZOOM - MX;
-            int Ylen = (Base->Items + 1)->Y2 / DRWZOOM - MY;
+            int Xlen = Base->Items[0].X2 / DRWZOOM - MX;
+            int Ylen = Base->Items[1].Y2 / DRWZOOM - MY;
             double Xmax, Ymax, Xmin, Ymin;
             this->PlotFunctionGetBondaries(&Xmin, &Xmax, &Ymin, &Ymax);
             double a, b, c, d;
@@ -1204,14 +1204,14 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                     Ymax = Ymin * pow(10.0, log10(Ymax / Ymin) * y2 / Ylen);
                 }
             }
-            ((CExpression*)(Base->Items + 6)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 6)->pSubdrawing)->GenerateASCIINumber(Ymin, (long long)Ymin, 0, 5, 0);
-            ((CExpression*)(Base->Items + 7)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 7)->pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
-            ((CExpression*)(Base->Items + 4)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 4)->pSubdrawing)->GenerateASCIINumber(Xmin, (long long)Xmin, 0, 5, 0);
-            ((CExpression*)(Base->Items + 5)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 5)->pSubdrawing)->GenerateASCIINumber(Xmax, (long long)Xmax, 0, 5, 0);
+            ((CExpression*)Base->Items[6].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[6].pSubdrawing)->GenerateASCIINumber(Ymin, (long long)Ymin, 0, 5, 0);
+            ((CExpression*)Base->Items[7].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[7].pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
+            ((CExpression*)Base->Items[4].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[4].pSubdrawing)->GenerateASCIINumber(Xmin, (long long)Xmin, 0, 5, 0);
+            ((CExpression*)Base->Items[5].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[5].pSubdrawing)->GenerateASCIINumber(Xmax, (long long)Xmax, 0, 5, 0);
             this->PlotFunction(1);
             TheState = 0;
             if (SpecialDrawingHover && this->any_function_defined == 0) //draw the object
@@ -1227,8 +1227,8 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         if (TheState == 3) //moving the plot with mouse finished
         {
             TheState = 0;
-            int Xlen = Base->Items->X2 / DRWZOOM - MX;
-            int Ylen = (Base->Items + 1)->Y2 / DRWZOOM - MY;
+            int Xlen = Base->Items[0].X2 / DRWZOOM - MX;
+            int Ylen = Base->Items[1].Y2 / DRWZOOM - MY;
             double Xmax, Ymax, Xmin, Ymin;
             this->PlotFunctionGetBondaries(&Xmin, &Xmax, &Ymin, &Ymax);
 
@@ -1262,14 +1262,14 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                 Ymin *= fy;
             }
 
-            ((CExpression*)(Base->Items + 6)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 6)->pSubdrawing)->GenerateASCIINumber(Ymin, (long long)Ymin, 0, 5, 0);
-            ((CExpression*)(Base->Items + 7)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 7)->pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
-            ((CExpression*)(Base->Items + 4)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 4)->pSubdrawing)->GenerateASCIINumber(Xmin, (long long)Xmin, 0, 5, 0);
-            ((CExpression*)(Base->Items + 5)->pSubdrawing)->Delete();
-            ((CExpression*)(Base->Items + 5)->pSubdrawing)->GenerateASCIINumber(Xmax, (long long)Xmax, 0, 5, 0);
+            ((CExpression*)Base->Items[6].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[6].pSubdrawing)->GenerateASCIINumber(Ymin, (long long)Ymin, 0, 5, 0);
+            ((CExpression*)Base->Items[7].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[7].pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
+            ((CExpression*)Base->Items[4].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[4].pSubdrawing)->GenerateASCIINumber(Xmin, (long long)Xmin, 0, 5, 0);
+            ((CExpression*)Base->Items[5].pSubdrawing)->Delete();
+            ((CExpression*)Base->Items[5].pSubdrawing)->GenerateASCIINumber(Xmax, (long long)Xmax, 0, 5, 0);
             this->PlotFunction(1);
         }
 
@@ -1280,14 +1280,15 @@ int CFunctionPlotter::MouseClick(int X, int Y)
     {
         int i;
         //mouse click at formula editing box (changes the keyboard cursor position)
-        tDocumentStruct* ds = TheDocument;
-        for (i = 0; i < NumDocumentElements; i++, ds++)
-            if (ds->Object.draw == Base) break;
+        for (i = 0; i < NumDocumentElements; i++)
+        {
+            if (TheDocument[i].Object.draw == Base) break;
+        }
 
         if (i < NumDocumentElements)
         {
             short l, a, b;
-            CExpression* tmp = (CExpression*)(Base->Items + TheState - 100)->pSubdrawing;
+            CExpression* tmp = (CExpression*)Base->Items[TheState - 100].pSubdrawing;
             CDC* DC = pMainView->GetDC();
             tmp->CalculateSize(DC, ViewZoom, l, &a, &b);
 
@@ -1298,8 +1299,8 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             int BottomMargin = MY * ViewZoom / 100;
             //int Xlen=ds->Length;
             //int Ylen=ds->Below;
-            int Xlen = abs(Base->Items->X1 - Base->Items->X2) / DRWZOOM * ViewZoom / 100;
-            int Ylen = abs((Base->Items + 1)->Y1 - (Base->Items + 1)->Y2) / DRWZOOM * ViewZoom / 100;
+            int Xlen = abs(Base->Items[0].X1 - Base->Items[0].X2) / DRWZOOM * ViewZoom / 100;
+            int Ylen = abs(Base->Items[1].Y1 - Base->Items[1].Y2) / DRWZOOM * ViewZoom / 100;
             if (TheState == 104) // Xmin
             {
                 x0 = LeftMargin + 10;
@@ -1377,8 +1378,8 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             }
 
             //nasty trick - the lin/log configuration is stored into m_Alignment
-            CExpression* y0 = (CExpression*)(Base->Items + 6)->pSubdrawing;
-            CExpression* x0 = (CExpression*)(Base->Items + 4)->pSubdrawing;
+            CExpression* y0 = (CExpression*)Base->Items[6].pSubdrawing;
+            CExpression* x0 = (CExpression*)Base->Items[4].pSubdrawing;
             if (is_x_log) x0->m_Alignment = 1;
             else x0->m_Alignment = 0; //x0->m_FontSize-1; else x0->m_FontSizeHQ=x0->m_FontSize;
             if (is_y_log) y0->m_Alignment = 1;
@@ -1460,10 +1461,13 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             if (Base->NumItemsReserved < 12)
             {
                 Base->NumItemsReserved++;
-                Base->Items = (tDrawingItem*)realloc(Base->Items, Base->NumItemsReserved * sizeof(tDrawingItem));
+                while (Base->Items.size() < Base->NumItemsReserved)
+                {
+                    Base->Items.push_back({});
+                }
             }
-            (Base->Items + Base->NumItems)->pSubdrawing = (void*)new CExpression(nullptr,nullptr, 100);
-            (Base->Items + Base->NumItems)->Type = 2;
+            Base->Items[Base->NumItems].pSubdrawing = (void*)new CExpression(nullptr,nullptr, 100);
+            Base->Items[Base->NumItems].Type = 2;
             Base->NumItems++;
         }
 
@@ -1472,8 +1476,8 @@ int CFunctionPlotter::MouseClick(int X, int Y)
 
         X = -X;
         Y = -Y;
-        int Xlen = Base->Items->X2 / DRWZOOM;
-        int Ylen = (Base->Items + 1)->Y2 / DRWZOOM;
+        int Xlen = Base->Items[0].X2 / DRWZOOM;
+        int Ylen = Base->Items[1].Y2 / DRWZOOM;
 
         //will start the keyboard entry
         KeyboardEntryObject = (CExpression*)Base->Items[edit_at_position].pSubdrawing;
@@ -1485,7 +1489,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         for (size_t i = 0; i < NumDocumentElements; i++)
             if (TheDocument[i].Object.draw == Base)
             {
-                KeyboardEntryBaseObject = TheDocument + i;
+                KeyboardEntryBaseObject = &TheDocument[i];
                 break;
             }
         TheState = edit_at_position + 100;
@@ -1501,8 +1505,8 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         int add_at_position = 0;
         X = -X;
         Y = -Y;
-        int Xlen = Base->Items->X2 / DRWZOOM;
-        int Ylen = (Base->Items + 1)->Y2 / DRWZOOM;
+        int Xlen = Base->Items[0].X2 / DRWZOOM;
+        int Ylen = Base->Items[1].Y2 / DRWZOOM;
         if (TheState == 4) add_at_position = 4;
         if (TheState == 5) add_at_position = 5;
         if (TheState == 6) add_at_position = 6;
@@ -1522,7 +1526,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         //delete the current expression if it exists
         if (Base->NumItems > add_at_position)
         {
-            tDrawingItem* di = Base->Items + add_at_position;
+            tDrawingItem* di = &Base->Items[add_at_position];
             if (di->Type == 2) //expression
                 delete (CExpression*)di->pSubdrawing;
             di->pSubdrawing = ClipboardExpression;
@@ -1675,7 +1679,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
         const int n3 = MX * ViewZoom / 250;
         p[0].x = mx + SpecialDrawingHover->Length * ViewZoom / 100;
         p[0].y = my + SpecialDrawingHover->Below * ViewZoom / 100 - MY * ViewZoom / 100;
-        p[0].x -= Base->Items->LineWidth * ViewZoom / DRWZOOM / 100;
+        p[0].x -= Base->Items[0].LineWidth * ViewZoom / DRWZOOM / 100;
         p[1].x = p[0].x;
         p[1].y = p[0].y + n3;
         p[2].x = p[0].x - n1;
@@ -1707,7 +1711,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
         const int n3 = MX * ViewZoom / 250;
         p[0].x = mx + MX * ViewZoom / 100;
         p[0].y = my + SpecialDrawingHover->Below * ViewZoom / 100 - MY * ViewZoom / 100;
-        p[0].y -= Base->Items->LineWidth * ViewZoom / DRWZOOM / 100;
+        p[0].y -= Base->Items[0].LineWidth * ViewZoom / DRWZOOM / 100;
         p[1].x = p[0].x - n2;
         p[1].y = p[0].y + n2;
         p[2].x = p[0].x - n2;
@@ -1736,7 +1740,7 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
         const int n3 = MX * ViewZoom / 250;
         p[0].x = mx + MX * ViewZoom / 100;
         p[0].y = my;
-        p[0].y += Base->Items->LineWidth * ViewZoom / DRWZOOM / 100;
+        p[0].y += Base->Items[0].LineWidth * ViewZoom / DRWZOOM / 100;
         p[1].x = p[0].x - n2;
         p[1].y = p[0].y + n2;
         p[2].x = p[0].x - n2;
@@ -1869,8 +1873,8 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
         if (reset_plot == 2) calc_y = 1;
 
         //get the dimensions of the function ploter frame
-        Xlen = abs(Base->Items->X1 - Base->Items->X2) / DRWZOOM * ViewZoom / 100;
-        Ylen = abs((Base->Items + 1)->Y1 - (Base->Items + 1)->Y2) / DRWZOOM * ViewZoom / 100;
+        Xlen = abs(Base->Items[0].X1 - Base->Items[0].X2) / DRWZOOM * ViewZoom / 100;
+        Ylen = abs(Base->Items[1].Y1 - Base->Items[1].Y2) / DRWZOOM * ViewZoom / 100;
 
         //reduce for size of 'borders' (coordinate system)
         Xlen -= MX * ViewZoom / 100;
@@ -1924,15 +1928,17 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
 
     //find this object (function plotter) in the main document
     int absX, absY;
-    tDocumentStruct* ds = TheDocument;
     int i_cnt;
-    for (i_cnt = 0; i_cnt < NumDocumentElements; i_cnt++, ds++)
+    for (i_cnt = 0; i_cnt < NumDocumentElements; i_cnt++)
+    {
+        tDocumentStruct* ds = &TheDocument[i_cnt];
         if (ds->Object.draw == Base)
         {
             absX = ds->absolute_X;
             absY = ds->absolute_Y;
             break;
         }
+    }
     if (i_cnt == NumDocumentElements) return 0; //this object was not found
 
 
@@ -1943,7 +1949,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
 
 
     CExpression* Func[4];
-    tDrawingItem* pItem = Base->Items + 8;
+    tDrawingItem* pItem = &Base->Items[8];
     int any_found = 0;
     for (int kk = 0; kk < 4; kk++, *pItem++)
     {
@@ -2112,10 +2118,10 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
                     Ymin *= 0.99;
                 }
 
-                ((CExpression*)(Base->Items + 6)->pSubdrawing)->Delete();
-                ((CExpression*)(Base->Items + 6)->pSubdrawing)->GenerateASCIINumber(Ymin, (long long)Ymin, 0, 5, 0);
-                ((CExpression*)(Base->Items + 7)->pSubdrawing)->Delete();
-                ((CExpression*)(Base->Items + 7)->pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
+                ((CExpression*)Base->Items[6].pSubdrawing)->Delete();
+                ((CExpression*)Base->Items[6].pSubdrawing)->GenerateASCIINumber(Ymin, (long long)Ymin, 0, 5, 0);
+                ((CExpression*)Base->Items[7].pSubdrawing)->Delete();
+                ((CExpression*)Base->Items[7].pSubdrawing)->GenerateASCIINumber(Ymax, (long long)Ymax, 0, 5, 0);
                 start_drawing_point = 0;
                 prevy[2] = prevy[1] = prevy[0] = sqrt(-1.0);
             }
@@ -2345,7 +2351,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
     if (Base->NumItems >= 6)
     {
         int prec2;
-        CExpression* x = (CExpression*)(Base->Items + 5)->pSubdrawing;
+        CExpression* x = (CExpression*)Base->Items[5].pSubdrawing;
         if (x->m_pElementList[0].Type)
             if (!x->IsPureNumber(0, x->m_pElementList.size(), Xmax, &prec2))
             {
@@ -2362,7 +2368,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
     if (Base->NumItems >= 5)
     {
         int prec2;
-        CExpression* x = (CExpression*)(Base->Items + 4)->pSubdrawing;
+        CExpression* x = (CExpression*)Base->Items[4].pSubdrawing;
         if (x->m_pElementList[0].Type)
             if (!x->IsPureNumber(0, x->m_pElementList.size(), Xmin, &prec2))
             {
@@ -2379,7 +2385,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
     if (Base->NumItems >= 8)
     {
         int prec2;
-        CExpression* x = (CExpression*)(Base->Items + 7)->pSubdrawing;
+        CExpression* x = (CExpression*)Base->Items[7].pSubdrawing;
         if (x->m_pElementList[0].Type)
             if (!x->IsPureNumber(0, x->m_pElementList.size(), Ymax, &prec2))
             {
@@ -2396,7 +2402,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
     if (Base->NumItems >= 7)
     {
         int prec2;
-        CExpression* x = (CExpression*)(Base->Items + 6)->pSubdrawing;
+        CExpression* x = (CExpression*)Base->Items[6].pSubdrawing;
         if (x->m_pElementList[0].Type)
             if (!x->IsPureNumber(0, x->m_pElementList.size(), Ymin, &prec2))
             {

@@ -1612,7 +1612,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
             int NumRullerGuidelines = 0;
             for (i = 0; i < NumDocumentElements; i++)
             {
-                tDocumentStruct* dsx = TheDocument + i;
+                tDocumentStruct* dsx = &TheDocument[i];
                 if (dsx->absolute_Y < -1000)
                 {
                     if (dsx->Type == EXPRESSION && dsx->Object.exp->m_pElementList.size() == 1)
@@ -1657,7 +1657,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
         //check if clicked on any object or empty area
         for (int i = NumDocumentElements - 1; i >= 0; i--)
         {
-            ds = TheDocument + i;
+            ds = &TheDocument[i];
             if (ds->MovingDotState == 5 && !AccessLockedObjects) continue; //ignore locked objects
 
             int is_expression_found = 0;
@@ -2153,7 +2153,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 //CheckDocumentMemoryReservations();
                 AddDocumentObject(EXPRESSION, AbsoluteX, AbsoluteY);
 
-                ds = TheDocument + NumDocumentElements - 1;
+                ds = &TheDocument[NumDocumentElements - 1];
 
                 //ds->absolute_X=AbsoluteX; 
                 //ds->absolute_Y=AbsoluteY;
@@ -2693,7 +2693,7 @@ bool CheckForGuidlines(int i, int AbsoluteX, int AbsoluteY, int show_range)
     //if yes, it marks 'GuidlineElement' variable
     //This function is called for every document element (of type 'expression')
 
-    tDocumentStruct* ds = TheDocument + i;
+    tDocumentStruct* ds = &TheDocument[i];
     if (GuidlinesFirstPass)
     {
         GuidlinesMaxDistance = 400;
@@ -3621,7 +3621,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                 if (GuidlinesAreEnabled)
                 {
                     //when not in free-moving mode (multiple-selection mode or object-moving)
-                    tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                    tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                     for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
                     {
                         if (ds->Type == EXPRESSION)
@@ -3654,7 +3654,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
             int SelectionChecksum = 0;
             MouseIsTouchingExpression = 0;
 
-            tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+            tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
             int ccc = 1 + 100 / ViewZoom;
 
             for (i = NumDocumentElements - 1; i >= 0; i--, ds--)
@@ -3859,7 +3859,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                     SelectionChecksum = 0;
                                     if (any_drawing_touched)
                                     {
-                                        tDocumentStruct* ds3 = TheDocument + NumDocumentElements - 1;
+                                        tDocumentStruct* ds3 = &TheDocument[NumDocumentElements - 1];
                                         for (int iii = NumDocumentElements - 1; iii >= 0; iii--, ds3--)
                                             if (iii != i)
                                             {
@@ -4051,7 +4051,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                         msY = tmp;
                     }
 
-                    tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                    tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                     for (int i = NumDocumentElements - 1; i >= 0; i--, ds--)
                         if (ds->MovingDotState != 5)
                             if (ds->absolute_Y - ds->Above >= msY && ds->absolute_Y + ds->Below <= MultipleY &&
@@ -4276,7 +4276,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
 
         try
         {
-            tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+            tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
             for (int ii = NumDocumentElements - 1; ii >= 0; ii--, ds--)
                 if (ds->Type == DRAWING &&
                     ds->absolute_Y + ds->Below > ViewY &&
@@ -5201,7 +5201,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                     int is_deselected = 0;
                     for (i = 0; i < NumDocumentElements; i++)
                     {
-                        tDocumentStruct* ds = TheDocument + i;
+                        tDocumentStruct* ds = &TheDocument[i];
                         if (ds->MovingDotState == 3)
                         {
                             if (ds->Type == EXPRESSION)
@@ -5613,7 +5613,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                                 TheDocument[NumDocumentElements - 1].Above = a * 100 / ViewZoom;
                                 TheDocument[NumDocumentElements - 1].Below = b * 100 / ViewZoom;
                                 TheDocument[NumDocumentElements - 1].MovingDotState = 0;
-                                tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                                tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                                 if (ds->absolute_X + ds->Length + 20 > ViewMaxX) ViewMaxX = ds->absolute_X + ds->
                                     Length + 20;
                                 if (ds->absolute_Y + ds->Below + PaperHeight > ViewMaxY) ViewMaxY = ds->absolute_Y +
@@ -6203,7 +6203,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     int absX = ViewX + cursor.x * 100 / ViewZoom;
                     int absY = ViewY + cursor.y * 100 / ViewZoom;
                     int i;
-                    tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                    tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                     for (i = NumDocumentElements - 1; i >= 0; i--, ds--)
                     {
                         if (((absY >= ds->absolute_Y - ds->Above && absY <= ds->absolute_Y + ds->Below &&
@@ -6505,7 +6505,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                             }
 
                             AddDocumentObject(EXPRESSION, absX, absY);
-                            tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                            tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
 
                             ds->Object.exp = new CExpression(nullptr,nullptr, fontsize);
 
@@ -7832,7 +7832,7 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                 break;
                             }
 #endif
-                            ds = TheDocument + i;
+                            ds = &TheDocument[i];
 
                             int ccc = 1 + 100 / ViewZoom;
                             if (AbsoluteY >= ds->absolute_Y - ds->Above && AbsoluteY <= ds->absolute_Y + ds->Below +
@@ -8184,7 +8184,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
                 int ccc = 1 + 100 / ViewZoom;
                 for (int i = NumDocumentElements - 1; i >= 0; i--)
                 {
-                    ds = TheDocument + i;
+                    ds = &TheDocument[i];
 
 
                     if (IsInsertionPointTouched != ds)
@@ -8475,7 +8475,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
             int iii = 0;
             for (int ii = 0; ii < ClipboardDrawing->NumItems; ii++)
             {
-                tDrawingItem* td = ClipboardDrawing->Items + ii;
+                tDrawingItem* td = &ClipboardDrawing->Items[ii];
                 while (iii < NumDocumentElements && TheDocument[iii].MovingDotState != 6) iii++;
                 int pos = iii;
                 iii++;
@@ -8628,7 +8628,7 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
                     AddDocumentObject(DRAWING, MovingStartX / 10 + x, MovingStartY / 10 + y);
 
-                    tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                    tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                     LastDrawingCreated = NumDocumentElements - 1;
                     ds->Above = 0;
                     ds->Below = h;
@@ -9220,7 +9220,7 @@ BOOL CMathomirView::OnPreparePrinting(CPrintInfo* pInfo)
     int i;
     for (i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
         if (ds->absolute_Y > MaxY) MaxY = ds->absolute_Y + 6;
     }
     MaxPagePrinted = MaxY / PaperHeight + 1;
@@ -9396,7 +9396,7 @@ void CMathomirView::OnEditCut()
         int ok = 0;
         for (i = 0; i < NumDocumentElements; i++)
         {
-            tDocumentStruct* ds = TheDocument + i;
+            tDocumentStruct* ds = &TheDocument[i];
             if (ds->MovingDotState == 3) //selected
             {
                 if (ok == 0) UndoSave("cut selection", 20412);
@@ -9450,8 +9450,10 @@ void CMathomirView::OnEditPaste()
         int minX, minY;
         minX = minY = 0x7FFFFFFF;
         SelectedDocumentObject = SelectedDocumentObject2 = nullptr;
-        tDocumentStruct* ds2 = TheDocument;
-        for (int ii = 0; ii < NumDocumentElements; ii++, ds2++)
+        
+        for (int ii = 0; ii < NumDocumentElements; ii++)
+        {
+            tDocumentStruct* ds2 = &TheDocument[ii];
             if (ds2->MovingDotState == 3)
             {
                 int actX = 0, actY = 0;
@@ -9468,6 +9470,7 @@ void CMathomirView::OnEditPaste()
                     SelectedDocumentObject2 = ds2;
                 }
             }
+        }
         if (minX != 0x7FFFFFFF)
         {
             MouseMode = 102;
@@ -9531,7 +9534,7 @@ void CMathomirView::OnEditPaste()
                     int tablesize = colors * sizeof(RGBQUAD);
                     int isize = tablesize + sizeof(BITMAPINFOHEADER) + bhdr->biSizeImage + 16;
                     if (isize < len) isize = len;
-                    int lw = elem->Items->LineWidth;
+                    int lw = elem->Items[0].LineWidth;
 
                     //TODO - maknuti ovaj dio koda u CBitmapImage
 
@@ -9592,7 +9595,7 @@ void CMathomirView::OnEditDelete()
     int i;
     for (i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3) //selected
         {
             if (ok == 0) UndoSave("delete selection", 20203);
@@ -9746,13 +9749,13 @@ void CMathomirView::OnEditCopyImage()
     int numsel = 0;
     for (i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3 && ds->Type == DRAWING) //selected
             numsel++;
     }
     for (i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3) //selected
         {
             if (ds->Type == EXPRESSION)
@@ -9788,7 +9791,7 @@ void CMathomirView::OnEditCopyImage()
 
     for (i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3) //selected
         {
             int FactX = ds->absolute_X * ImageSize / 100;
@@ -9826,7 +9829,7 @@ void CMathomirView::OnEditCopyImage()
     IsHalftoneRendering = HT;
     for (i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
         a = 0;
         if (ds->Type == EXPRESSION)
             ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
@@ -10104,7 +10107,7 @@ void CMathomirView::OnEditUndo()
                 if (found_keyboard_entry == 0)
                 {
                     KeyboardEntryObject = ret;
-                    KeyboardEntryBaseObject = TheDocument + i;
+                    KeyboardEntryBaseObject = &TheDocument[i];
                     found_keyboard_entry = 1;
                 }
                 else
@@ -10297,14 +10300,14 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
 
     for (int jj = 0; jj < mydrw->NumItems; jj++)
     {
-        tDrawingItem* di = mydrw->Items + jj;
+        tDrawingItem* di = &mydrw->Items[jj];
         if (di->Type == 0 && di->pSubdrawing)
         {
             //NumDocumentElements++;
             //CheckDocumentMemoryReservations();
             AddDocumentObject(DRAWING, 0, 0);
 
-            tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+            tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
             ds->Type = DRAWING; //drawing
             CDrawing* tmp = new CDrawing();
             tmp->CopyDrawing((CDrawing*)di->pSubdrawing);
@@ -10331,7 +10334,7 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
             //CheckDocumentMemoryReservations();
             AddDocumentObject(EXPRESSION, 0, 0);
 
-            tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+            tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
             //ds->Type=1; //expression
             CExpression* tmp = new CExpression(nullptr,nullptr, ((CExpression*)di->pSubdrawing)->m_FontSize);
             //tmp->m_FontSizeHQ=((CExpression*)(di->pSubdrawing))->m_FontSizeHQ;
@@ -10409,9 +10412,9 @@ void CMathomirView::OnViewShowgrid()
 CObject* CMathomirView::ComposeDrawing(int* X, int* Y, int compose_from_selection, int select_for_moving)
 {
     CDrawing* ret = nullptr;
-    for (int iii = 0; iii < NumDocumentElements; iii++)
+    for (size_t iii = 0; iii < NumDocumentElements; iii++)
     {
-        tDocumentStruct* ds2 = TheDocument + iii;
+        tDocumentStruct* ds2 = &TheDocument[iii];
         if (ds2->Object.v == nullptr) continue;
         if (ds2->MovingDotState == 5) continue; //locked object
 
@@ -10506,7 +10509,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
     }*/
     AddDocumentObject(EXPRESSION, AbsoluteX, AbsoluteY);
     tDocumentStruct* ds;
-    ds = TheDocument + NumDocumentElements - 1;
+    ds = &TheDocument[NumDocumentElements - 1];
 
     //ds->absolute_X=AbsoluteX; 
     //int RelativeX=(AbsoluteX-ViewX)*(int)ViewZoom/100;
@@ -10796,7 +10799,7 @@ void CMathomirView::OnViewZoomin()
     tDocumentStruct* center_object = nullptr;
     for (size_t i = 0; i < NumDocumentElements; i++)
     {
-        tDocumentStruct* ds = TheDocument + i;
+        tDocumentStruct* ds = &TheDocument[i];
         int cx = ds->absolute_X + ds->Length / 2;
         int cy = ds->absolute_Y - ds->Above / 2 + ds->Below / 2;
         if (abs(cscrx - cx) + abs(cscry - cy) < mindist)

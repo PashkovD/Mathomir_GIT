@@ -376,7 +376,7 @@ int CDrawingBox::MouseClick(int X, int Y)
     {
         for (size_t i = 0; i < NumDocumentElements; i++)
         {
-            tDocumentStruct* ds = TheDocument + i;
+            tDocumentStruct* ds = &TheDocument[i];
             if (ds->Type == DRAWING)
             {
                 CDrawing* d = ds->Object.draw;
@@ -428,9 +428,9 @@ int CDrawingBox::MouseClick(int X, int Y)
                 int StartX = 0x7FFFFFFF;
                 int StartY = 0x7FFFFFFF;
                 tDocumentStruct* prevelement = nullptr;
-                for (int ii = 0; ii < NumDocumentElements; ii++)
+                for (size_t ii = 0; ii < NumDocumentElements; ii++)
                 {
-                    tDocumentStruct* ds = TheDocument + ii;
+                    tDocumentStruct* ds = &TheDocument[ii];
 
                     if (ds->Object.v && ds->MovingDotState == 3)
                     {
@@ -460,7 +460,7 @@ int CDrawingBox::MouseClick(int X, int Y)
                             pMainView->DeleteDocumentObject(prevelement);
                             ii--;
                         }
-                        prevelement = TheDocument + ii;
+                        prevelement = &TheDocument[ii];
                         found++;
                     }
                 }
@@ -469,7 +469,7 @@ int CDrawingBox::MouseClick(int X, int Y)
                     pMainView->DeleteDocumentObject(prevelement);
                 //CMainFrame *mf=(CMainFrame*)theApp.m_pMainWnd;
                 AddDocumentObject(DRAWING, StartX, StartY);
-                tDocumentStruct* ds = TheDocument + NumDocumentElements - 1;
+                tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
                 short w = 0, h = 0;
                 CDC* DC = pMainView->GetDC();
                 tmpdrw->CalculateSize(DC, ViewZoom, &w, &h);
@@ -488,15 +488,15 @@ int CDrawingBox::MouseClick(int X, int Y)
                 int StartX = 0x7FFFFFFF;
                 int StartY = 0x7FFFFFFF;
                 MaxX = MaxY = 0x80000000;
-                for (int kkk = 0; kkk < NumDocumentElements; kkk++)
+                for (size_t kkk = 0; kkk < NumDocumentElements; kkk++)
                 {
-                    tDocumentStruct* ds2 = TheDocument + kkk;
-                    if (ds2->Object.v && ds2->MovingDotState == 3)
+                    const tDocumentStruct& ds2 =TheDocument[kkk];
+                    if (ds2.Object.v && ds2.MovingDotState == 3)
                     {
-                        if (ds2->absolute_X < StartX) StartX = ds2->absolute_X;
-                        if (ds2->absolute_Y - ds2->Above < StartY) StartY = ds2->absolute_Y - ds2->Above;
-                        if (ds2->absolute_X + ds2->Length > MaxX) MaxX = ds2->absolute_X + ds2->Length;
-                        if (ds2->absolute_Y + ds2->Below > MaxY) MaxY = ds2->absolute_Y + ds2->Below;
+                        if (ds2.absolute_X < StartX) StartX = ds2.absolute_X;
+                        if (ds2.absolute_Y - ds2.Above < StartY) StartY = ds2.absolute_Y - ds2.Above;
+                        if (ds2.absolute_X + ds2.Length > MaxX) MaxX = ds2.absolute_X + ds2.Length;
+                        if (ds2.absolute_Y + ds2.Below > MaxY) MaxY = ds2.absolute_Y + ds2.Below;
                     }
                 }
                 if (StartX == 0x7FFFFFFF) return 1;
@@ -524,9 +524,9 @@ int CDrawingBox::MouseClick(int X, int Y)
                     StartY = MaxY;
                 } //bottom
 
-                for (int kkk = 0; kkk < NumDocumentElements; kkk++)
+                for (size_t kkk = 0; kkk < NumDocumentElements; kkk++)
                 {
-                    tDocumentStruct* ds = TheDocument + kkk;
+                    tDocumentStruct* ds = &TheDocument[kkk];
                     if (ds->Object.v && ds->MovingDotState == 3)
                     {
                         if (ToolboxSelectedItem == 1) ds->absolute_X = StartX;
@@ -768,16 +768,19 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
             {
                 Base->NumItems++;
                 if (Base->NumItems > Base->NumItemsReserved) Base->NumItemsReserved = Base->NumItems;
-                Base->Items = (tDrawingItem*)realloc(Base->Items, Base->NumItemsReserved * sizeof(tDrawingItem));
-                (Base->Items + Base->NumItems - 1)->Type = 2;
-                (Base->Items + Base->NumItems - 1)->X1 = 0;
-                (Base->Items + Base->NumItems - 1)->X2 = 0;
-                (Base->Items + Base->NumItems - 1)->Y1 = 0;
-                (Base->Items + Base->NumItems - 1)->Y2 = 0;
-                (Base->Items + Base->NumItems - 1)->LineWidth = 0;
-                (Base->Items + Base->NumItems - 1)->pSubdrawing = new CExpression(nullptr,nullptr, 100);
+                while (Base->Items.size() < Base->NumItemsReserved)
+                {
+                    Base->Items.push_back({});
+                }
+                (Base->Items[Base->NumItems - 1]).Type = 2;
+                (Base->Items[Base->NumItems - 1]).X1 = 0;
+                (Base->Items[Base->NumItems - 1]).X2 = 0;
+                (Base->Items[Base->NumItems - 1]).Y1 = 0;
+                (Base->Items[Base->NumItems - 1]).Y2 = 0;
+                (Base->Items[Base->NumItems - 1]).LineWidth = 0;
+                (Base->Items[Base->NumItems - 1]).pSubdrawing = new CExpression(nullptr,nullptr, 100);
             }
-            tDrawingItem* di = Base->Items + 4;
+            tDrawingItem* di = &Base->Items[4];
             while (((CExpression*)di->pSubdrawing)->m_pElementList[0].Type)
                 ((CExpression*)di->pSubdrawing)->DeleteElement(0);
             ((CExpression*)di->pSubdrawing)->GenerateASCIINumber(startx, startx, true, 0, 0);
@@ -815,7 +818,7 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
         int y2 = x2;
         for (int i = 0; i < tmpDrawing->NumItems; i++)
         {
-            tDrawingItem* di = tmpDrawing->Items + i;
+            tDrawingItem* di = &tmpDrawing->Items[i];
             if (di->X1 < x1) x1 = di->X1;
             if (di->X2 < x1) x1 = di->X2;
             if (di->Y1 < y1) y1 = di->Y1;
@@ -872,7 +875,7 @@ void CDrawingBox::GetDrawingBoxGrid(int* unit_size_x, int* unit_size_y, int* sta
     *starty = h - 5;
     if (Base->NumItems >= 8)
     {
-        tDrawingItem* di = Base->Items + 4;
+        tDrawingItem* di = &Base->Items[4];
         double N;
         int prec;
         if (di->Type == 2 && ((CExpression*)di->pSubdrawing)->IsPureNumber(
