@@ -14,6 +14,7 @@ enum tDecoration: int
     OVERLINE = 4,
     UNDERBRACE = 5,
 };
+
 //#pragma pack(1)
 struct tElementStruct
 {
@@ -41,7 +42,7 @@ struct tElementStruct
     char IsSelected;
     tDecoration Decoration;
     char Type;
-} ;
+};
 
 struct tMatrixRows
 {
@@ -117,7 +118,6 @@ public:
     CElement* m_pPaternalElement;
     CExpression* m_pPaternalExpression;
 
-public:
     short int m_FontSize; //FontSize is the number in % (100% is default topmost font-size)
     short int m_Selection; //selected insertion point
     short int m_IsKeyboardEntry; //the index of currently edited variable (or 0 if editing mode is not active)
@@ -161,7 +161,6 @@ public:
     unsigned short m_ModeDefinedAt;
     //two high bits represent the mode (0=math, 1=text); rest is the position where it was defined (increased for 1); 0 for undefined
 
-public:
     CExpression(CElement* PaternalElement, CExpression* PaternalExpression, short int FontSize);
     ~CExpression();
     void CalculateSize(CDC* DC, short int zoom, short int& length, short int* above, short int* below, char HQR = -1,
@@ -203,7 +202,7 @@ public:
                                    char Type, short data, char IsBlue, int color = 0) const;
 
     int KeyboardStop();
-    void XML_output(std::ostream &output, int num_tabs);
+    void XML_output(std::ostream& output, int num_tabs);
     char* XML_input(char* file);
     //int MathML_output(char * output, int num_tabs, char only_calculate,char output_type);
     void LaTeX_output(std::ostream& output) const;
@@ -227,7 +226,7 @@ public:
     int KeyboardInsertNewEquation(CDC* DC, short zoom, UINT nChar, const CExpression* orig, int TypingMode);
     int GetKeyboardCursorPos(int* X, int* Y) const;
     int ChangeFontSize(float factor);
-    size_t GetElementLen(size_t StartPos, size_t EndPos, const unsigned int Level,
+    size_t GetElementLen(size_t StartPos, size_t EndPos, unsigned int Level,
                          char* element_type, bool& has_preoperator) const;
     int FindLowestOperatorLevel(size_t StartPos, size_t EndPos, char default_operator = 0) const;
     int FindLowestOperatorLevel(char default_oper = 0) const;

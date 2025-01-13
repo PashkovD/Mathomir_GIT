@@ -22,7 +22,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "stdafx.h"
 #include "Mathomir.h"
 #include "PasswordDlg.h"
-#include ".\passworddlg.h"
+#include "./passworddlg.h"
 
 
 // CPasswordDlg dialog
@@ -65,7 +65,7 @@ BOOL CPasswordDlg::OnInitDialog()
     {
         PasswordDlgStruct->canceled = true;
         PasswordBox.SendMessage(EM_SETPASSWORDCHAR, '*', 0);
-        
+
         this->SetWindowText(GetTranslatedString("Password entry", 5500).c_str());
         this->GetDlgItem(IDC_STATIC1)->SetWindowText(GetTranslatedString("Password:", 5501).c_str());
         this->GetDlgItem(IDC_STATIC2)->SetWindowText(GetTranslatedString("Time limit:", 5502).c_str());

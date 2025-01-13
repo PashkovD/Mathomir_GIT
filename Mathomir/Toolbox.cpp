@@ -24,7 +24,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <sstream>
 
-#include ".\toolbox.h"
+#include "./toolbox.h"
 #include "Mainfrm.h"
 #include "popupmenu.h"
 #include "drawing.h"
@@ -393,11 +393,11 @@ CToolbox::CToolbox(int IsSubtoolbox)
 
         AddSubmember(2, '+');
         AddSubmember(2, '-');
-        AddSubmember(2, (char)0xD7); //multiplying dot
+        AddSubmember(2, static_cast<char>(0xD7)); //multiplying dot
         AddSubmember(2, '/');
-        AddSubmember(2, (char)0xB1); //plus/minus 
-        AddSubmember(2, (char)0xB2); //the minus-plus operator
-        AddSubmember(2, (char)0xB8); //div ?? (like dash with two dots)
+        AddSubmember(2, static_cast<char>(0xB1)); //plus/minus 
+        AddSubmember(2, static_cast<char>(0xB2)); //the minus-plus operator
+        AddSubmember(2, static_cast<char>(0xB8)); //div ?? (like dash with two dots)
         AddSubmember(2, '&');
         AddSubmember(2, 'm'); //mod
         AddSubmember(2, 'a'); //and
@@ -407,49 +407,49 @@ CToolbox::CToolbox(int IsSubtoolbox)
         AddSubmember(2, 'x'); //xor
         AddSubmember(2, 'n'); //not
         AddSubmember(2, '!'); //factoriel
-        AddSubmember(2, (char)0xD9); //and
-        AddSubmember(2, (char)0xDA); //or
+        AddSubmember(2, static_cast<char>(0xD9)); //and
+        AddSubmember(2, static_cast<char>(0xDA)); //or
         AddSubmember(2, '|');
 
 
-        AddSubmember(2, (char)0xD8); //not
+        AddSubmember(2, static_cast<char>(0xD8)); //not
         ToolboxNumMembers++;
 
         AddSubmember(2, '=');
-        AddSubmember(2, (char)0xB9); //non equal
+        AddSubmember(2, static_cast<char>(0xB9)); //non equal
         AddSubmember(2, '<');
         AddSubmember(2, '>');
         AddSubmember(2, 0x01); //  <<
         AddSubmember(2, 0x02); //  >>
-        AddSubmember(2, (char)0xBB);
+        AddSubmember(2, static_cast<char>(0xBB));
         AddAccelerator('A'); //aprox. equal (waved equal)
-        AddSubmember(2, (char)0x9F); //equal with hat
-        AddSubmember(2, (char)0xA3); //less or equal
-        AddSubmember(2, (char)0xB3); //greater or equal
-        AddSubmember(2, (char)0xB5); //proportianal?? (like infinite, but not closed)
+        AddSubmember(2, static_cast<char>(0x9F)); //equal with hat
+        AddSubmember(2, static_cast<char>(0xA3)); //less or equal
+        AddSubmember(2, static_cast<char>(0xB3)); //greater or equal
+        AddSubmember(2, static_cast<char>(0xB5)); //proportianal?? (like infinite, but not closed)
         AddSubmember(2, 0x40); //approx equal?? (equal with a tilda)
         AddSubmember(2, 0x7E); //approx. equal (tilda)
-        AddSubmember(2, (char)0xBA); //triple equal
-        AddSubmember(2, (char)0xA0); //approx equal (equal with dot above)
+        AddSubmember(2, static_cast<char>(0xBA)); //triple equal
+        AddSubmember(2, static_cast<char>(0xA0)); //approx equal (equal with dot above)
         AddSubmember(2, '1'); // :=
         AddSubmember(2, '2'); // =:
         AddSubmember(2, '3'); // :<=>
         ToolboxNumMembers++;
 
-        AddSubmember(2, (char)0xC5); //circled +
-        AddSubmember(2, (char)0xC4); //cyrcled x
+        AddSubmember(2, static_cast<char>(0xC5)); //circled +
+        AddSubmember(2, static_cast<char>(0xC4)); //cyrcled x
         AddSubmember(2, 0x24); //Exists
         AddSubmember(2, 0x22); //All
         AddSubmember(2, 0x27); //??? like 'e' backwards
-        AddSubmember(2, (char)0xCE); //element
-        AddSubmember(2, (char)0xCF); //not element
-        AddSubmember(2, (char)0xC7); //intersection
-        AddSubmember(2, (char)0xC8); //union
-        AddSubmember(2, (char)0xC9); //sub-enum right
-        AddSubmember(2, (char)0xCA); //sub-or-equal-enum right
-        AddSubmember(2, (char)0xCC); //sub-enum left
-        AddSubmember(2, (char)0xCD); //sub-or-equal-enum left
-        AddSubmember(2, (char)0xCB); //not a sub-enum
+        AddSubmember(2, static_cast<char>(0xCE)); //element
+        AddSubmember(2, static_cast<char>(0xCF)); //not element
+        AddSubmember(2, static_cast<char>(0xC7)); //intersection
+        AddSubmember(2, static_cast<char>(0xC8)); //union
+        AddSubmember(2, static_cast<char>(0xC9)); //sub-enum right
+        AddSubmember(2, static_cast<char>(0xCA)); //sub-or-equal-enum right
+        AddSubmember(2, static_cast<char>(0xCC)); //sub-enum left
+        AddSubmember(2, static_cast<char>(0xCD)); //sub-or-equal-enum left
+        AddSubmember(2, static_cast<char>(0xCB)); //not a sub-enum
         AddSubmember(2, 0x5C); //three dots (in triangle formation)
         AddSubmember(2, ']'); //complement? 
         AddSubmember(2, 0x5B); //three dots (in upside-down triangle formation)
@@ -457,28 +457,28 @@ CToolbox::CToolbox(int IsSubtoolbox)
 
         ToolboxNumMembers++;
 
-        AddSubmember(2, (char)0xB4); //vector product 'x'
+        AddSubmember(2, static_cast<char>(0xB4)); //vector product 'x'
         AddSubmember(2, 0x44); //delta operator
-        AddSubmember(2, (char)0xD1); //nabla operator
+        AddSubmember(2, static_cast<char>(0xD1)); //nabla operator
         AddSubmember(2, 'r'); //rotor
         AddSubmember(2, '*'); //convolution
-        AddSubmember(2, (char)0xF0); //D'Alambert operator (empty square)
-        AddSubmember(2, (char)0xB7); //big dot
+        AddSubmember(2, static_cast<char>(0xF0)); //D'Alambert operator (empty square)
+        AddSubmember(2, static_cast<char>(0xB7)); //big dot
         AddSubmember(2, 0x03); //little circle
         AddSubmember(2, 'P'); //the paralel operator
         AddSubmember(2, 'p'); //the perpendicular operator
-        AddSubmember(2, (char)0xDE); //double arrow right 
-        AddSubmember(2, (char)0xDC); //double arrow left
-        AddSubmember(2, (char)0xDD); //double arrow up
-        AddSubmember(2, (char)0xDF); //double arrow down
-        AddSubmember(2, (char)0xDB); //double arrow both way
-        AddSubmember(2, (char)0xAE); //arrow right
-        AddSubmember(2, (char)0xAC); //arrow left
-        AddSubmember(2, (char)0xAD); //arrow up
-        AddSubmember(2, (char)0xAF); //arrow down
-        AddSubmember(2, (char)0xAB); //arrow both way
-        AddSubmember(2, (char)0xE2); // |-->  arrow
-        AddSubmember(2, (char)0xE3); // -->  arrow with expression over it
+        AddSubmember(2, static_cast<char>(0xDE)); //double arrow right 
+        AddSubmember(2, static_cast<char>(0xDC)); //double arrow left
+        AddSubmember(2, static_cast<char>(0xDD)); //double arrow up
+        AddSubmember(2, static_cast<char>(0xDF)); //double arrow down
+        AddSubmember(2, static_cast<char>(0xDB)); //double arrow both way
+        AddSubmember(2, static_cast<char>(0xAE)); //arrow right
+        AddSubmember(2, static_cast<char>(0xAC)); //arrow left
+        AddSubmember(2, static_cast<char>(0xAD)); //arrow up
+        AddSubmember(2, static_cast<char>(0xAF)); //arrow down
+        AddSubmember(2, static_cast<char>(0xAB)); //arrow both way
+        AddSubmember(2, static_cast<char>(0xE2)); // |-->  arrow
+        AddSubmember(2, static_cast<char>(0xE3)); // -->  arrow with expression over it
         ToolboxNumMembers++;
 
         AddSubmember(8, 1);
@@ -538,16 +538,16 @@ CToolbox::CToolbox(int IsSubtoolbox)
         AddSubmember(5, '\\');
         AddSubmember(5, 'l'); //left curly parentheses
         AddSubmember(5, 'r'); //right curly parentheses
-        AddSubmember(5, (char)(0x80 | 0x01)); //vector vertical, 1x2
-        AddSubmember(5, (char)(0x80 | 0x02)); //vector vertical, 1x3
+        AddSubmember(5, static_cast<char>(0x80 | 0x01)); //vector vertical, 1x2
+        AddSubmember(5, static_cast<char>(0x80 | 0x02)); //vector vertical, 1x3
         //AddSubmember(5,(char)(0x80|0x03)); //vector vertical, 1x4
         //AddSubmember(5,(char)(0x80|0x04)); //vector vertical, 1x5
-        AddSubmember(5, (char)(0x80 | 0x10)); //vector horizontal, 2x1
-        AddSubmember(5, (char)(0x80 | 0x20)); //vector horizontal, 3x1
+        AddSubmember(5, static_cast<char>(0x80 | 0x10)); //vector horizontal, 2x1
+        AddSubmember(5, static_cast<char>(0x80 | 0x20)); //vector horizontal, 3x1
         //AddSubmember(5,(char)(0x80|0x30)); //vector horizontal, 4x1
         //AddSubmember(5,(char)(0x80|0x40)); //vector horizontal, 5x1
-        AddSubmember(5, (char)(0x80 | 0x11)); //matrix, 2x2
-        AddSubmember(5, (char)(0x80 | 0x22)); //matrix, 3x3
+        AddSubmember(5, static_cast<char>(0x80 | 0x11)); //matrix, 2x2
+        AddSubmember(5, static_cast<char>(0x80 | 0x22)); //matrix, 3x3
         //AddSubmember(5,(char)(0x80|0x33)); //matrix, 4x4
         //AddSubmember(5,(char)(0x80|0x44)); //matrix, 5x5
         AddSubmember(1, 6);
@@ -643,27 +643,27 @@ CToolbox::CToolbox(int IsSubtoolbox)
         ToolboxNumMembers++;
 
         //AddSubmember(5,'T'); AddAccelerator('T'); //Text box (use 't' for textbox without parentheses )
-        AddSubmember(201, (char)0xA5); //infinite
+        AddSubmember(201, static_cast<char>(0xA5)); //infinite
         AddSubmember(1, 13); //permille
         AddSubmember(1, 4); //e
         AddSubmember(1, 5); //pi
-        AddSubmember(201, (char)0xA6);
+        AddSubmember(201, static_cast<char>(0xA6));
         //AddSubmember(201,(char)0xA2);
         AddSubmember(1, 11); //imaginary unit
-        AddSubmember(201, (char)0xC0); //aleph
-        AddSubmember(201, (char)0xC1);
-        AddSubmember(201, (char)0xC2);
-        AddSubmember(201, (char)0xC3);
-        AddSubmember(201, (char)0xC6);
-        AddSubmember(2, (char)0xD0); //angle
-        AddSubmember(2, (char)0xBC); //triple dot - note that this is an operator (not variable)
+        AddSubmember(201, static_cast<char>(0xC0)); //aleph
+        AddSubmember(201, static_cast<char>(0xC1));
+        AddSubmember(201, static_cast<char>(0xC2));
+        AddSubmember(201, static_cast<char>(0xC3));
+        AddSubmember(201, static_cast<char>(0xC6));
+        AddSubmember(2, static_cast<char>(0xD0)); //angle
+        AddSubmember(2, static_cast<char>(0xBC)); //triple dot - note that this is an operator (not variable)
         //AddSubmember(201,(char)0xA1); //pisani Y
-        AddSubmember(2, (char)0x9E); //triangle
+        AddSubmember(2, static_cast<char>(0x9E)); //triangle
         AddSubmember(1, 0x24); //$
-        AddSubmember(1, (char)0xA3); //pound
+        AddSubmember(1, static_cast<char>(0xA3)); //pound
         AddSubmember(1, '€');
         AddSubmember(1, '@');
-        AddSubmember(201, (char)0xB0); //degree
+        AddSubmember(201, static_cast<char>(0xB0)); //degree
         AddSubmember(1, 10); //degree celsius
 
         AddSubmember(9, 'H'); //hyperlink
@@ -727,9 +727,10 @@ CToolbox::CToolbox(int IsSubtoolbox)
         AddFontFormating(1, 0, 1, 2); //serif, italic, arrow
         AddFontFormating(1, 0, 1, 3); //serif, italic, hat
 
-        ToolboxFontFormating.MixedFormat = new CExpression(nullptr,nullptr, 100);
+        ToolboxFontFormating.MixedFormat = new CExpression(nullptr, nullptr, 100);
         ToolboxFontFormating.MixedFormat->InsertEmptyElement(0, 1, 'M');
-        ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0] = 0x22; //Italic, serif (by default)
+        ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0] = 0x22;
+        //Italic, serif (by default)
         ToolboxFontFormating.SelectedUniform = 0;
         m_FontModeElement = -1;
         m_FontModeSelection = 1;
@@ -774,26 +775,26 @@ CToolbox::CToolbox(int IsSubtoolbox)
         Subtoolbox = new CToolbox(1);
         Subtoolbox->m_IsSubtoolbox = -1;
         Subtoolbox->CreateEx(/*WS_EX_TOPMOST*/0, AfxRegisterWndClass(CS_OWNDC), "Subtoolbox",WS_POPUP, 5, 5, 10, 10,
-                                              theApp.m_pMainWnd->m_hWnd,nullptr, 0);
+                                              theApp.m_pMainWnd->m_hWnd, nullptr, nullptr);
         Subtoolbox->ShowWindow(SW_HIDE);
 
         ContextMenu = new CToolbox(2);
         ContextMenu->m_IsContextMenu = 1;
         ContextMenu->CreateEx(WS_EX_TOPMOST, AfxRegisterWndClass(CS_OWNDC), "Context Menu",WS_POPUP, 5, 5, 10, 10,
-                              theApp.m_pMainWnd->m_hWnd,nullptr, 0);
+                              theApp.m_pMainWnd->m_hWnd, nullptr, nullptr);
         ContextMenu->ShowWindow(SW_HIDE);
 
         Toolbar = new CToolbox(4);
         Toolbar->m_IsToolbar = 1;
         Toolbar->CreateEx(/*WS_EX_TOPMOST*/0, AfxRegisterWndClass(CS_OWNDC), "Toolbar",WS_CHILD, 5, 5, 10, 10,
-                                           theApp.m_pMainWnd->m_hWnd,nullptr, 0);
+                                           theApp.m_pMainWnd->m_hWnd, nullptr, nullptr);
         Toolbar->ShowWindow(SW_HIDE);
 
         Keyboard = new CToolbox(3);
         Keyboard->m_IsKeyboard = 1;
         Keyboard->CreateEx(/*WS_EX_TOPMOST*/WS_EX_TOOLWINDOW, AfxRegisterWndClass(CS_OWNDC), "Virtual Keyboard",
                                             WS_SYSMENU | WS_CAPTION | WS_POPUP, 5, 5, 10, 10, theApp.m_pMainWnd->m_hWnd,
-                                            nullptr, 0);
+                                            nullptr, nullptr);
         Keyboard->ShowWindow(SW_HIDE);
 
         Keyboard->m_KeyboardX = -1;
@@ -814,10 +815,10 @@ int CToolbox::AddAccelerator(short code)
 int CToolbox::AddKeyboardKey(int x, int y, char key)
 {
     int i = ToolboxKeyboardElements.NumKeys;
-    ToolboxKeyboardElements.Key[i] = new CExpression(nullptr,nullptr, 100);
+    ToolboxKeyboardElements.Key[i] = new CExpression(nullptr, nullptr, 100);
     ToolboxKeyboardElements.Key[i]->InsertEmptyElement(0, 1, key);
     //ToolboxKeyboardElements.Key[i]->m_pElementList[0].pElementObject->Data2[0]=0x02;
-    ToolboxKeyboardElements.code[i] = (short)key;
+    ToolboxKeyboardElements.code[i] = static_cast<short>(key);
     ToolboxKeyboardElements.X[i] = x;
     ToolboxKeyboardElements.Y[i] = y;
     ToolboxKeyboardElements.FormatingBigCaps[i] = 0x22; //by default we set everything to serif italic
@@ -836,15 +837,15 @@ int CToolbox::AddKeyboardKey(int x, int y, char key)
 int CToolbox::AddFontFormating(int FaceType, int IsBold, int IsItalic, int Modificator)
 {
     int i = ToolboxFontFormating.NumFormats;
-    ToolboxFontFormating.UniformFormats2[i] = (char)0x80;
-    ToolboxFontFormating.UniformFormats[i] = new CExpression(nullptr,nullptr, 100);
+    ToolboxFontFormating.UniformFormats2[i] = static_cast<char>(0x80);
+    ToolboxFontFormating.UniformFormats[i] = new CExpression(nullptr, nullptr, 100);
     ToolboxFontFormating.UniformFormats[i]->InsertEmptyElement(0, 1, 'U');
     ToolboxFontFormating.UniformFormats[i]->m_pElementList[0].pElementObject->Data2[0] =
         (FaceType << 5) + (IsItalic << 1) + IsBold;
     ToolboxFontFormating.UniformFormats[i]->m_pElementList[0].pElementObject->m_VMods = Modificator << 2;
 
     if (Modificator || FaceType == 3)
-        ToolboxFontFormating.UniformFormats2[i] = (char)0x81;
+        ToolboxFontFormating.UniformFormats2[i] = static_cast<char>(0x81);
 
     ToolboxFontFormating.NumFormats++;
     return 0;
@@ -866,20 +867,21 @@ int CToolbox::AddSubmember(short Type, char data)
         Type -= 100;
         forceparentheses = 1;
     }
-    ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers] = new CExpression(nullptr,nullptr, 100);
+    ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers] = new CExpression(nullptr, nullptr, 100);
     ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers]->InsertEmptyElement(0, Type, data);
     ToolboxMembers[member].CreationCode[ToolboxMembers[member].NumSubmembers] = Type * 256 + data;
     if (forceparentheses)
     {
         //forces parentheses in expression1 of the element;
         CExpression* e1 = ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers]->
-                          m_pElementList[0].pElementObject->Expression1;
+            m_pElementList[0].pElementObject->Expression1;
         if (e1)
             e1->m_ParenthesesFlags |= 1;
     }
     if (greek)
     {
-        ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers]->m_pElementList[0].pElementObject->Data2[
+        ToolboxMembers[member].Submembers[ToolboxMembers[member].NumSubmembers]->m_pElementList[0].pElementObject->Data2
+        [
             0] |= 0x60;
     }
     ToolboxMembers[member].NumSubmembers++;
@@ -926,9 +928,9 @@ CToolbox::~CToolbox()
     if (LanguageStrings)
     {
         free(LanguageStrings);
-        LanguageStrings = 0;
+        LanguageStrings = nullptr;
         if (LanguagePointers) free(LanguagePointers);
-        LanguagePointers = 0;
+        LanguagePointers = nullptr;
     }
 }
 
@@ -1107,7 +1109,7 @@ void CToolbox::OnPaint()
 
         return;
     }
-    else if (m_IsSubtoolbox)
+    if (m_IsSubtoolbox)
     {
         pdc.FillSolidRect(0, 0, ClientRect.right, ClientRect.bottom,RGB(255, 255, 255));
         int i;
@@ -1141,7 +1143,7 @@ void CToolbox::OnPaint()
         }
         return;
     }
-    else if (m_IsKeyboard)
+    if (m_IsKeyboard)
     {
         pdc.FillSolidRect(0, 0, ClientRect.right, ClientRect.bottom,SHADOW_BLUE_COLOR2);
         int i;
@@ -1153,7 +1155,7 @@ void CToolbox::OnPaint()
 
         return;
     }
-    else if (m_IsToolbar)
+    if (m_IsToolbar)
     {
         PaintToolbar(&pdc);
         return;
@@ -1338,7 +1340,7 @@ void CToolbox::ToolboxChangeIndividualKeyFont()
         symbol = tolower(prevsymbol);
     }
     delete ToolboxCharacter;
-    ToolboxCharacter = new CExpression(nullptr,nullptr, 100);
+    ToolboxCharacter = new CExpression(nullptr, nullptr, 100);
     ToolboxCharacter->InsertEmptyElement(0, 1, symbol);
     ToolboxCharacter->m_pElementList[0].pElementObject->Data2[0] = fdata;
     ToolboxCharacter->m_pElementList[0].pElementObject->m_VMods = vmods;
@@ -1511,14 +1513,15 @@ void CToolbox::AdjustPosition()
         int Ysize = 23 * (TS / 4 - 1) + TS / 8;
         if (cursor.x + Xsize > wr.right) cursor.x = wr.right - Xsize;
         if (cursor.y + Ysize > wr.bottom) cursor.y = wr.bottom - Ysize;
-        SetWindowPos(0, cursor.x, cursor.y, Xsize, Ysize,SWP_NOZORDER | SWP_NOACTIVATE);
+        SetWindowPos(nullptr, cursor.x, cursor.y, Xsize, Ysize,SWP_NOZORDER | SWP_NOACTIVATE);
     }
     else if (m_IsKeyboard)
     {
         RECT wr;
         Toolbox->GetWindowRect(&wr);
         int CorrX, CorrY;
-        SetWindowPos(nullptr, wr.right + ToolboxSize / 4, wr.top + ToolboxSize / 4, 80, 80,SWP_NOZORDER | SWP_NOACTIVATE);
+        SetWindowPos(nullptr, wr.right + ToolboxSize / 4, wr.top + ToolboxSize / 4, 80, 80,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
         RECT cr;
         GetClientRect(&cr);
         CorrX = 10 * ToolboxSize / 3 + 6 - cr.right;
@@ -1838,7 +1841,8 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                                 ds->absolute_X += x;
                                 ds->absolute_Y += y;
                                 repaint = 1;
-                            }else if (ds->Type == EXPRESSION)
+                            }
+                            else if (ds->Type == EXPRESSION)
                             {
                                 ds->Object.exp->SetColor(CL);
                             }
@@ -1980,7 +1984,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
             {
                 delete ClipboardExpression;
 
-                ClipboardExpression = new CExpression(nullptr,nullptr, 100);
+                ClipboardExpression = new CExpression(nullptr, nullptr, 100);
                 ClipboardExpression->CopyExpression(ToolboxKeyboardElements.Key[m_KeyboardElement], 0);
                 short l, a, b;
                 ClipboardExpression->CalculateSize(this->GetDC(), 100, l, &a, &b);
@@ -2048,12 +2052,13 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (IsShowGrid) IsShowGrid = 0;
                     else IsShowGrid = 1;
-                    ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
                     pMainView->InvalidateRect(nullptr, 0);
                     pMainView->UpdateWindow();
                 }
                 if (icon == 8) pMainView->OnKeyDown(VK_F4, 0, 0);
-                if ((KeyboardEntryBaseObject && KeyboardEntryObject) || (NumSelectedObjects == 1 && NumSelectedDrawings == 0))
+                if ((KeyboardEntryBaseObject && KeyboardEntryObject) || (NumSelectedObjects == 1 && NumSelectedDrawings
+                    == 0))
                 {
                     tDocumentStruct* parentstr = KeyboardEntryBaseObject;
                     CExpression* exp = KeyboardEntryObject;
@@ -2098,20 +2103,23 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
 
                             {
                                 float fontsize;
-                                float rel = (float)((float)parent->m_FontSize * 100.0 / (float)DefaultFontSize);
+                                float rel = static_cast<float>(static_cast<float>(parent->m_FontSize) * 100.0 /
+                                    static_cast<float>(DefaultFontSize));
                                 if (parent->m_IsHeadline && rel > 248.0)
                                 {
-                                    fontsize = (float)(100.0 / (float)parent->m_FontSize);
+                                    fontsize = static_cast<float>(100.0 / static_cast<float>(parent->m_FontSize));
                                     parent->m_IsHeadline = 0;
                                 }
                                 else
                                 {
-                                    if (rel > 190.0) fontsize = (float)(250.0 / (float)parent->m_FontSize);
-                                    else if (rel > 135.0) fontsize = (float)(207.4 / (float)parent->m_FontSize);
-                                    else fontsize = (float)(144.0 / (float)parent->m_FontSize);
+                                    if (rel > 190.0) fontsize = static_cast<float>(250.0 / static_cast<float>(parent->
+                                        m_FontSize));
+                                    else if (rel > 135.0) fontsize = static_cast<float>(207.4 / static_cast<float>(
+                                        parent->m_FontSize));
+                                    else fontsize = static_cast<float>(144.0 / static_cast<float>(parent->m_FontSize));
                                     parent->m_IsHeadline = 1;
                                 }
-                                fontsize = fontsize * (float)DefaultFontSize / (float)100.0;
+                                fontsize = fontsize * static_cast<float>(DefaultFontSize) / static_cast<float>(100.0);
                                 parent->ChangeFontSize(fontsize);
                             }
                         }
@@ -2275,7 +2283,6 @@ void CToolbox::HideUnhideColorbox()
         AdjustPosition();
         prevDrawingMode = tmpDM;
     }
-    return;
 }
 
 char TextControlboxMode = 0;
@@ -2406,8 +2413,9 @@ void CToolbox::PaintColorbox(CDC* dc)
     //painting the line sizes
     len = ToolboxSize / 6;
     len2 = ToolboxSize / 30;
-    if (m_SelectedColor >= 10 && m_SelectedColor < 20)pdc.FillSolidRect(
-        (m_SelectedColor - 10) * len, t3, len, t3,SHADOW_BLUE_COLOR2);
+    if (m_SelectedColor >= 10 && m_SelectedColor < 20)
+        pdc.FillSolidRect(
+            (m_SelectedColor - 10) * len, t3, len, t3,SHADOW_BLUE_COLOR2);
 
     for (int j = 0; j < 6; j++)
     {
@@ -2486,7 +2494,6 @@ void CToolbox::HideUnhideTextcontrolbox()
         AdjustPosition();
         prevWasTextmode = tmpDM;
     }
-    return;
 }
 
 
@@ -2516,7 +2523,7 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
         }
 
 
-        TextControlboxMode = (char)isText;
+        TextControlboxMode = static_cast<char>(isText);
         pdc.SetTextAlign(TA_TOP);
         pdc.SetBkMode(TRANSPARENT);
 
@@ -2545,17 +2552,22 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
             pdc.SetTextColor(RGB(0, 0, 255));
             pdc.TextOut(5, -2 - zz, "S", 1);
             pdc.SelectObject(GetFontFromPool(4, false, true, ToolboxSize / 5 + (ToolboxSize < 60 ? 1 : 0)));
-            pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 8 - 4 - zz, GetTranslatedString("Math", 6054).c_str());
-            pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 4 - 3 - zz, GetTranslatedString("mode", 6055).c_str());
+            pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 8 - 4 - zz,
+                        GetTranslatedString("Math", 6054).c_str());
+            pdc.TextOut(ToolboxSize / 2 - ToolboxSize / 10, ToolboxSize / 4 - 3 - zz,
+                        GetTranslatedString("mode", 6055).c_str());
         }
 
         int yy = ToolboxSize - ToolboxSize / 3;
-        if (m_SelectedTextControl == 2) pdc.FillSolidRect(0, yy + 1, ToolboxSize / 3, ToolboxSize / 3,
-                                                          RGB(128, 128, 255));
-        if (m_SelectedTextControl == 3) pdc.FillSolidRect(ToolboxSize / 3, yy + 1, ToolboxSize / 3, ToolboxSize / 3,
-                                                          RGB(128, 128, 255));
-        if (m_SelectedTextControl == 4) pdc.FillSolidRect(2 * ToolboxSize / 3, yy + 1, ToolboxSize / 3, ToolboxSize / 3,
-                                                          RGB(128, 128, 255));
+        if (m_SelectedTextControl == 2)
+            pdc.FillSolidRect(0, yy + 1, ToolboxSize / 3, ToolboxSize / 3,
+                              RGB(128, 128, 255));
+        if (m_SelectedTextControl == 3)
+            pdc.FillSolidRect(ToolboxSize / 3, yy + 1, ToolboxSize / 3, ToolboxSize / 3,
+                              RGB(128, 128, 255));
+        if (m_SelectedTextControl == 4)
+            pdc.FillSolidRect(2 * ToolboxSize / 3, yy + 1, ToolboxSize / 3, ToolboxSize / 3,
+                              RGB(128, 128, 255));
         int yyy = yy - ToolboxSize / 4 + 1;
         int mmm = (ToolboxSize + 1) / 5;
         if (m_SelectedTextControl == 5) pdc.FillSolidRect(0, yyy, mmm, ToolboxSize / 4,RGB(128, 128, 255));
@@ -2587,7 +2599,7 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
         pdc.FillSolidRect(2 * mmm, yyy, 1, ToolboxSize / 4,RGB(96, 96, 96));
         pdc.FillSolidRect(3 * mmm, yyy, 1, ToolboxSize / 4,RGB(96, 96, 96));
         pdc.FillSolidRect(4 * mmm, yyy, 1, ToolboxSize / 4,RGB(96, 96, 96));
-        CExpression* exp = new CExpression(nullptr,nullptr, 100);
+        auto exp = new CExpression(nullptr, nullptr, 100);
         exp->InsertEmptyElement(0, 1, 'a');
         short l, a, b;
         unsigned short zoom = 5 * ToolboxSize / 4;
@@ -2595,15 +2607,15 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
         int ccc = 0;
 
         exp->m_pElementList[0].pElementObject->m_VMods = 0x08;
-        exp->PaintExpression(&pdc, zoom, ccc, yyy + zoom / 8, 0);
+        exp->PaintExpression(&pdc, zoom, ccc, yyy + zoom / 8, nullptr);
         exp->m_pElementList[0].pElementObject->m_VMods = 0x04;
-        exp->PaintExpression(&pdc, zoom, ccc + mmm, yyy + zoom / 8, 0);
+        exp->PaintExpression(&pdc, zoom, ccc + mmm, yyy + zoom / 8, nullptr);
         exp->m_pElementList[0].pElementObject->m_VMods = 0x0C;
-        exp->PaintExpression(&pdc, zoom, ccc + 2 * mmm, yyy + zoom / 8, 0);
+        exp->PaintExpression(&pdc, zoom, ccc + 2 * mmm, yyy + zoom / 8, nullptr);
         exp->m_pElementList[0].pElementObject->m_VMods = 0x14;
-        exp->PaintExpression(&pdc, zoom, ccc + 3 * mmm, yyy + zoom / 8, 0);
+        exp->PaintExpression(&pdc, zoom, ccc + 3 * mmm, yyy + zoom / 8, nullptr);
         exp->m_pElementList[0].pElementObject->m_VMods = 0x18;
-        exp->PaintExpression(&pdc, zoom, ccc + 4 * mmm, yyy + zoom / 8, 0);
+        exp->PaintExpression(&pdc, zoom, ccc + 4 * mmm, yyy + zoom / 8, nullptr);
 
         delete exp;
 
@@ -2753,9 +2765,10 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
                 xdc.MoveTo(xx, yy + 2 * rr);
                 xdc.LineTo(xx + rr, yy + rr);
             }
-            CExpression* exp = new CExpression(nullptr,nullptr, 105);
+            auto exp = new CExpression(nullptr, nullptr, 105);
             unsigned char fnt = ToolboxFontFormating.UniformFormats[member]->m_pElementList[0].pElementObject->Data2[0];
-            unsigned char vmods = ToolboxFontFormating.UniformFormats[member]->m_pElementList[0].pElementObject->m_VMods;
+            unsigned char vmods = ToolboxFontFormating.UniformFormats[member]->m_pElementList[0].pElementObject->
+                m_VMods;
             int clr = ToolboxFontFormating.UniformFormats[member]->m_pElementList[0].pElementObject->m_Color;
             for (int i = 0; i < 12; i += 2)
             {
@@ -2812,7 +2825,8 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
                 xdc.SetTextAlign(TA_LEFT);
                 xdc.SetBkMode(TRANSPARENT);
                 xdc.SetTextColor(0);
-                xdc.TextOutA(cc + 3 * Ly / 4 - (zzz > 9 ? ToolboxSize / 40 : 0), Ly - ToolboxSize / 10, bff.c_str(), zzz);
+                xdc.TextOutA(cc + 3 * Ly / 4 - (zzz > 9 ? ToolboxSize / 40 : 0), Ly - ToolboxSize / 10, bff.c_str(),
+                             zzz);
             }
         }
         if (ToolboxSize % 5 == 0)
@@ -2861,7 +2875,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
 
             char bff[128];
             CopyTranslatedString(bff, "Per-character font settings", 5082);
-            xdc.TextOutA(2, ToolboxSize / 32, bff, (int)strlen(bff));
+            xdc.TextOutA(2, ToolboxSize / 32, bff, static_cast<int>(strlen(bff)));
 
             if (m_IsArrowSelected)
                 xdc.FillSolidRect(5 * ToolboxSize, 0, cr.right - 2 - 5 * ToolboxSize + 1, ToolboxSize / 4,
@@ -2869,7 +2883,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
 
             xdc.SetTextColor(0);
             CopyTranslatedString(bff, "Alter all...", 5083);
-            xdc.TextOutA(5 * ToolboxSize + 2, ToolboxSize / 32, bff, (int)strlen(bff));
+            xdc.TextOutA(5 * ToolboxSize + 2, ToolboxSize / 32, bff, static_cast<int>(strlen(bff)));
             xdc.FillSolidRect(5 * ToolboxSize, 0, 1, ToolboxSize / 4,RGB(128, 128, 128));
             xdc.FillSolidRect(cr.right - 2, 0, 1, ToolboxSize / 4,RGB(128, 128, 128));
 
@@ -2936,12 +2950,12 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
             symbol = tolower(prevsymbol);
         }
 
-        CExpression* exp = new CExpression(nullptr,nullptr, 100);
+        auto exp = new CExpression(nullptr, nullptr, 100);
         exp->InsertEmptyElement(0, 1, symbol);
         exp->m_pElementList[0].pElementObject->Data2[0] = fdata;
         exp->m_pElementList[0].pElementObject->m_VMods = vmods;
         exp->CalculateSize(&xdc, 100 * ToolboxSize / 80, l, &a, &b);
-        exp->PaintExpression(&xdc, 100 * ToolboxSize / 73, ToolboxSize / 8 - l / 2 - 1, ToolboxSize / 6);;
+        exp->PaintExpression(&xdc, 100 * ToolboxSize / 73, ToolboxSize / 8 - l / 2 - 1, ToolboxSize / 6);
         delete exp;
 
         xdc.FillSolidRect(0, ToolboxSize / 3 - 1, ToolboxSize / 4, 1,RGB(128, 128, 128));
@@ -3302,12 +3316,12 @@ void CToolbox::UpdateToolbar(char force_redraw)
 
         sprintf_s(buff, "%d", ViewZoom);
         mdc.SetTextColor(RGB(160, 160, 160));
-        mdc.TextOut(ToolboxSize - 2, (ToolboxSize - 25) / 32, buff, (int)strlen(buff));
-        CSize ex = mdc.GetTextExtent(buff, (int)strlen(buff));
+        mdc.TextOut(ToolboxSize - 2, (ToolboxSize - 25) / 32, buff, static_cast<int>(strlen(buff)));
+        CSize ex = mdc.GetTextExtent(buff, static_cast<int>(strlen(buff)));
 
         sprintf_s(buff, "%d", page);
-        mdc.TextOut(ToolboxSize - 2, h, buff, (int)strlen(buff));
-        CSize ex2 = mdc.GetTextExtent(buff, (int)strlen(buff));
+        mdc.TextOut(ToolboxSize - 2, h, buff, static_cast<int>(strlen(buff)));
+        CSize ex2 = mdc.GetTextExtent(buff, static_cast<int>(strlen(buff)));
         mdc.SetTextColor(RGB(192, 192, 192));
         mdc.TextOut(ToolboxSize - 2 - ex.cx, (ToolboxSize - 25) / 32, "Z:", 2);
         mdc.TextOut(ToolboxSize - 2 - ex2.cx, h, "P:", 2);
@@ -3333,7 +3347,7 @@ int ToolbarBitmapSizeY;
 
 int CToolbox::PaintToolbar(CDC* dc)
 {
-    if (Toolbox->Toolbar == 0) return 0;
+    if (Toolbox->Toolbar == nullptr) return 0;
 
     RECT r;
     Toolbox->Toolbar->GetClientRect(&r);
@@ -3412,7 +3426,7 @@ int CToolbox::PaintToolbar(CDC* dc)
         {
             char buff[64];
             CopyTranslatedString(buff, ToolbarIcons[icon].name, ToolbarIcons[icon].lang_code);
-            int l = (int)strlen(buff);
+            int l = static_cast<int>(strlen(buff));
             for (int k = 1; k < l; k++)
             {
                 if (buff[k] == 9 || buff[k] == 10 || buff[k] == 13)
@@ -3446,7 +3460,7 @@ int CToolbox::PaintToolbar(CDC* dc)
             pdc.SelectObject(GetFontFromPool(4, false, false, fntsz));
             if (ToolbarConfig[i].IconState == 0) pdc.SetTextColor(RGB(160, 160, 160));
             else pdc.SetTextColor(RGB(0, 0, 0));
-            pdc.TextOutA(x + len / 2 + 1, y + fntsz + ToolboxSize / 8 + 1, buff, (int)strlen(buff));
+            pdc.TextOutA(x + len / 2 + 1, y + fntsz + ToolboxSize / 8 + 1, buff, static_cast<int>(strlen(buff)));
         }
 
         int isshort = ToolbarConfig[i].pixel_separator ? 0 : 1;
@@ -3549,7 +3563,7 @@ int CToolbox::ConfigureToolbar()
                 break;
             }
     }
-    if (IsDrawingMode && NumDocumentElements > 0 && TheDocument[NumDocumentElements - 1].Type == DRAWING && 
+    if (IsDrawingMode && NumDocumentElements > 0 && TheDocument[NumDocumentElements - 1].Type == DRAWING &&
         KeyboardEntryObject == nullptr)
         last_drawing_delete = 1;
 
@@ -3643,13 +3657,13 @@ int CToolbox::ConfigureToolbar()
         if (exp && has_selection != 2)
         {
             int align = exp->m_Alignment;
-            bool add_align_options = 0;
+            bool add_align_options = false;
 
             if (exp->m_MaxNumRows > 1 || exp->m_MaxNumColumns > 1)
             {
                 if (exp->m_IsKeyboardEntry)
                 {
-                    add_align_options = 1;
+                    add_align_options = true;
                     for (int i = 0; i < exp->m_MaxNumRows; i++)
                         for (int j = 0; j < exp->m_MaxNumColumns; j++)
                         {
@@ -3673,9 +3687,9 @@ int CToolbox::ConfigureToolbar()
             {
                 for (const tElementStruct& element : exp->m_pElementList)
                     if (element.Type == 2 &&
-                        element.pElementObject->Data1[0] == (char)0xFF)
+                        element.pElementObject->Data1[0] == static_cast<char>(0xFF))
                     {
-                        add_align_options = 1;
+                        add_align_options = true;
                         break;
                     }
             }
@@ -4392,7 +4406,7 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                     easycast = ToolboxMembers[help_element].Keycodes[help_subelement];
                     if (ToolboxMembers[help_element].Above[help_subelement] == -1)
                     {
-                        CDrawing* drw = (CDrawing*)ToolboxMembers[help_element].Submembers[help_subelement];
+                        auto drw = (CDrawing*)ToolboxMembers[help_element].Submembers[help_subelement];
                         if (drw->OriginalForm == 3)
                         {
                             text = "Freehand";
@@ -4767,35 +4781,29 @@ UINT CToolbox::GetUppercaseFormatting(int key_code, UINT formatting) const
 
     if (m_FontModeSelection == 0 || textmodeactivated)
         return formatting; //if uniform mode is active, then just return the same formatting as for lowercase 
-    else
-    {
-        //if mixed mode is active, we must check the key_code 
-        int i;
-        for (i = 0; i < ToolboxKeyboardElements.NumKeys; i++)
-            if (ToolboxKeyboardElements.code[i] == toupper(key_code))
+    //if mixed mode is active, we must check the key_code 
+    int i;
+    for (i = 0; i < ToolboxKeyboardElements.NumKeys; i++)
+        if (ToolboxKeyboardElements.code[i] == toupper(key_code))
+        {
+            //we found the key code
+            if ((formatting & 0xE0) == 0x60)
             {
-                //we found the key code
-                if ((formatting & 0xE0) == 0x60)
-                {
-                    UINT rv = ToolboxKeyboardElements.FormatingBigGreek2[i];
-                    rv = rv << 16;
-                    rv |= ToolboxKeyboardElements.FormatingBigGreek[i] & 0x1F | 0x60;
-                    return rv;
-                }
-                else
-                {
-                    UINT rv = ToolboxKeyboardElements.FormatingBigCaps2[i];
-                    rv = rv << 16;
-                    rv |= ToolboxKeyboardElements.FormatingBigCaps[i];
-                    return rv;
-                }
+                UINT rv = ToolboxKeyboardElements.FormatingBigGreek2[i];
+                rv = rv << 16;
+                rv |= ToolboxKeyboardElements.FormatingBigGreek[i] & 0x1F | 0x60;
+                return rv;
             }
+            UINT rv = ToolboxKeyboardElements.FormatingBigCaps2[i];
+            rv = rv << 16;
+            rv |= ToolboxKeyboardElements.FormatingBigCaps[i];
+            return rv;
+        }
 
-        UINT rv = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->m_VMods;
-        rv = rv << 16;
-        rv |= ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0];
-        return rv;
-    }
+    UINT rv = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->m_VMods;
+    rv = rv << 16;
+    rv |= ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0];
+    return rv;
 }
 
 #pragma optimize("",on)
@@ -4803,8 +4811,9 @@ int prevAltData = 0;
 
 UINT CToolbox::GetUniformFormatting()
 {
-    UINT rv = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject
-        ->m_VMods;
+    UINT rv = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
+              pElementObject
+              ->m_VMods;
     rv = rv << 16;
     rv |= ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject->
         Data2[0];
@@ -4835,31 +4844,22 @@ UINT CToolbox::GetMixedFormatting(char key, char is_greek)
                     rv |= ToolboxKeyboardElements.FormatingBigGreek[i];
                     return rv;
                 }
-                else
-                {
-                    UINT rv = ToolboxKeyboardElements.FormatingBigCaps2[i];
-                    rv = rv << 16;
-                    rv |= ToolboxKeyboardElements.FormatingBigCaps[i];
-                    return rv;
-                }
+                UINT rv = ToolboxKeyboardElements.FormatingBigCaps2[i];
+                rv = rv << 16;
+                rv |= ToolboxKeyboardElements.FormatingBigCaps[i];
+                return rv;
             }
-            else
+            if (is_greek)
             {
-                if (is_greek)
-                {
-                    UINT rv = ToolboxKeyboardElements.FormatingSmallGreek2[i];
-                    rv = rv << 16;
-                    rv |= ToolboxKeyboardElements.FormatingSmallGreek[i];
-                    return rv;
-                }
-                else
-                {
-                    UINT rv = ToolboxKeyboardElements.FormatingSmallCaps2[i];
-                    rv = rv << 16;
-                    rv |= ToolboxKeyboardElements.FormatingSmallCaps[i];
-                    return rv;
-                }
+                UINT rv = ToolboxKeyboardElements.FormatingSmallGreek2[i];
+                rv = rv << 16;
+                rv |= ToolboxKeyboardElements.FormatingSmallGreek[i];
+                return rv;
             }
+            UINT rv = ToolboxKeyboardElements.FormatingSmallCaps2[i];
+            rv = rv << 16;
+            rv |= ToolboxKeyboardElements.FormatingSmallCaps[i];
+            return rv;
         }
     UINT retval = ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->m_VMods;
     retval = retval << 16;
@@ -4959,7 +4959,8 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
         if (greeksymbolsactivated == 2)
             ToolboxFontFormating.MixedFormat->m_pElementList[0].pElementObject->Data2[0] = prevAltData;
         else
-            ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject->
+            ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].pElementObject
+                ->
                 Data2[0] = prevAltData;
         greeksymbolsactivated = 0;
         if (m_FontModeSelection < 0) m_FontModeSelection = 1;
@@ -5014,7 +5015,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                         else
                         {
                             IsDrawingMode = 0;
-                            ClipboardExpression = new CExpression(nullptr,nullptr, 100);
+                            ClipboardExpression = new CExpression(nullptr, nullptr, 100);
                             ClipboardExpression->CopyExpression(ToolboxMembers[ii].Submembers[jj], 0, 1, 0);
                             short l, a, b;
                             ClipboardExpression->CalculateSize(this->GetDC(), 100, l, &a, &b);
@@ -5091,10 +5092,10 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
             {
                 //permanent keyboard mode or text entry box
                 retval = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
-                    pElementObject->m_VMods;
+                         pElementObject->m_VMods;
                 retval = retval << 16;
                 retval |= ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
-                    pElementObject->Data2[0];
+                          pElementObject->Data2[0];
 
                 if (ToolboxFontFormating.UniformFormats2[ToolboxFontFormating.SelectedUniform] & 0x01)
                 //this is a singleshot formating
@@ -5107,8 +5108,9 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
 
                     ToolboxFontFormating.SelectedUniform = m_prevFontModeSelection & 0x7F;
                     if (ToolboxFontFormating.SelectedUniform < 0) ToolboxFontFormating.SelectedUniform = 0;
-                    if (ToolboxFontFormating.SelectedUniform > ToolboxFontFormating.NumFormats - 1) ToolboxFontFormating
-                        .SelectedUniform = 0;
+                    if (ToolboxFontFormating.SelectedUniform > ToolboxFontFormating.NumFormats - 1)
+                        ToolboxFontFormating
+                            .SelectedUniform = 0;
 
 
                     if (m_FontModeSelection < 0) m_FontModeSelection = 0;
@@ -5151,7 +5153,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
 char CToolbox::IsUniformFormatting() const
 {
     if (m_FontModeSelection == 0 || textmodeactivated) return 1;
-    else return 0;
+    return 0;
 }
 
 void CToolbox::ReformatKeyboardSelection()
@@ -5164,9 +5166,9 @@ void CToolbox::ReformatKeyboardSelection()
         if (Toolbox->m_FontModeSelection == 0) //permanent font mode
         {
             format = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
-                pElementObject->Data2[0];
+                     pElementObject->Data2[0];
             fcolor = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
-                pElementObject->m_Color;
+                     pElementObject->m_Color;
         }
         else if (Toolbox->m_FontModeSelection == 1) //mixed font mode
         {
@@ -5180,7 +5182,7 @@ void CToolbox::ReformatKeyboardSelection()
             if (ts.pElementObject && ts.IsSelected == 2) ts.pElementObject->m_Color = fcolor;
             if (ts.Type == 1 && ts.pElementObject && ts.IsSelected == 2 && ts.pElementObject->Data1[0])
             {
-                if (!any) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("font formatting", 20218);
+                if (!any) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font formatting", 20218);
                 for (size_t jj = 0; jj < 24; jj++)
                     ts.pElementObject->Data2[jj] = format;
                 ts.IsSelected = 0;
@@ -5197,8 +5199,9 @@ void CToolbox::ReformatKeyboardSelection()
 
             ToolboxFontFormating.SelectedUniform = m_prevFontModeSelection & 0x7F;
             if (ToolboxFontFormating.SelectedUniform < 0) ToolboxFontFormating.SelectedUniform = 0;
-            if (ToolboxFontFormating.SelectedUniform > ToolboxFontFormating.NumFormats - 1) ToolboxFontFormating.
-                SelectedUniform = 0;
+            if (ToolboxFontFormating.SelectedUniform > ToolboxFontFormating.NumFormats - 1)
+                ToolboxFontFormating.
+                    SelectedUniform = 0;
 
             CDC* DC = Toolbox->GetDC();
             Toolbox->PaintToolboxHeader(DC);
@@ -5363,11 +5366,11 @@ int CToolbox::AdjustKeyboardFont() const
             if (m_FontModeSelection == 0 || textmodeactivated) //permanent font mode
             {
                 data = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
-                    pElementObject->Data2[0];
+                       pElementObject->Data2[0];
                 vmods = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
-                    pElementObject->m_VMods;
+                        pElementObject->m_VMods;
                 color = ToolboxFontFormating.UniformFormats[ToolboxFontFormating.SelectedUniform]->m_pElementList[0].
-                    pElementObject->m_Color;
+                        pElementObject->m_Color;
             }
             else if (m_FontModeSelection == 1) //mixed font mode
             {
@@ -5766,7 +5769,7 @@ int CToolbox::SaveSettings(const char* filename) const
         char font_buffer[5][32];
         for (int i = 0; i < 5; i++)
         {
-            strcpy_s(font_buffer[i],FontFacenames[i].c_str());
+            strcpy_s(font_buffer[i], FontFacenames[i].c_str());
         }
         fwrite(font_buffer[0], 4 * 32, 1, fil);
         fwrite(&FontAdjustedSizes[0], 4, 1, fil);
@@ -6001,13 +6004,13 @@ int CToolbox::LoadSettings(char* filename)
                         {
                             if (LanguageStrings == nullptr)
                             {
-                                LanguagePointers = (unsigned short*)malloc(sizeof(unsigned short) * 36000);
+                                LanguagePointers = static_cast<unsigned short*>(malloc(sizeof(unsigned short) * 36000));
                                 memset(LanguagePointers, 0xFF, sizeof(unsigned short) * 36000);
-                                LanguageStrings = (char*)malloc(32768);
+                                LanguageStrings = static_cast<char*>(malloc(32768));
                             }
-                            LanguagePointers[id] = (unsigned short)UsedSize;
+                            LanguagePointers[id] = static_cast<unsigned short>(UsedSize);
                             strcpy(LanguageStrings + UsedSize, text);
-                            UsedSize += (int)strlen(text) + 1;
+                            UsedSize += static_cast<int>(strlen(text)) + 1;
                             if (UsedSize > 32000) break; //no more space memory
                         }
                     }
@@ -6175,13 +6178,13 @@ int CToolbox::LoadSettings(char* filename)
             fread(&len, sizeof(int), 1, fil);
             if (len == -1) break;
             if (len > 0xFFFF) break;
-            char* data = (char*)malloc(len + 256);
+            auto data = static_cast<char*>(malloc(len + 256));
             fread(data, len, 1, fil);
 
             CExpression* tmp;
             if (!is_drawing)
             {
-                tmp = new CExpression(nullptr,nullptr, 100);
+                tmp = new CExpression(nullptr, nullptr, 100);
                 tmp->XML_input(data);
             }
             else
@@ -6223,8 +6226,9 @@ int CToolbox::LoadSettings(char* filename)
         fread(&UseCapsLock, sizeof(int), 1, fil);
         fread(&MouseWheelDirection, sizeof(int), 1, fil);
         fread(&DefaultZoom, sizeof(int), 1, fil);
-        if (DefaultZoom != 150 && DefaultZoom != 120 && DefaultZoom != 100 && DefaultZoom != 80) DefaultZoom =
-            100;
+        if (DefaultZoom != 150 && DefaultZoom != 120 && DefaultZoom != 100 && DefaultZoom != 80)
+            DefaultZoom =
+                100;
         if (NumDocumentElements == 0) ViewZoom = DefaultZoom;
         fread(&RightButtonTogglesWheel, sizeof(int), 1, fil);
         fread(&WheelScrollingSpeed, sizeof(int), 1, fil);
@@ -6273,7 +6277,7 @@ int CToolbox::LoadSettings(char* filename)
 
 
     ClearFontPool();
-    ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
+    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     return 0;
 }
 #pragma optimize("s",off)
@@ -6403,11 +6407,12 @@ CExpression* CToolbox::ReturnKeycode(int keycode_order, char** Keycode)
 
 int prev_lang_code;
 
-void CToolbox::ShowHelptext(const std::string& text, const std::string& command, const std::string& accelerator, const std::string& easycast, int language_code)
+void CToolbox::ShowHelptext(const std::string& text, const std::string& command, const std::string& accelerator,
+                            const std::string& easycast, int language_code)
 {
     if (!Toolbox->IsWindowVisible()) return;
     if (ToolboxSize < 1) return;
-    CMainFrame* mf = (CMainFrame*)theApp.m_pMainWnd;
+    auto mf = static_cast<CMainFrame*>(theApp.m_pMainWnd);
     char buff[256];
     CopyTranslatedString(buff, text, language_code);
     RECT r;
@@ -6547,7 +6552,7 @@ void CToolbox::PickUpElementFromToolbox(int member, int submember)
     }
     else
     {
-        ClipboardExpression = new CExpression(nullptr,nullptr, 100);
+        ClipboardExpression = new CExpression(nullptr, nullptr, 100);
         ClipboardExpression->CopyExpression(ToolboxMembers[member].Submembers[submember], 0);
         short l, a, b;
         ClipboardExpression->CalculateSize(this->GetDC(), 100, l, &a, &b);
@@ -6626,7 +6631,7 @@ int CToolbox::InsertIntoToolbox()
         }
         return 1;
     }
-    else if (ClipboardDrawing)
+    if (ClipboardDrawing)
     {
         int ok = 1;
         int chksm = ClipboardDrawing->CalcChecksum();
@@ -6717,7 +6722,7 @@ void CToolbox::AutoResize()
             Toolbox->AdjustPosition();
             Toolbox->RedrawWindow();
             pMainView->AdjustPosition();
-            ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
+            static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
             if (UseToolbar) Toolbox->Toolbar->AdjustPosition();
         }
     }

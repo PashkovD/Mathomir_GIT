@@ -23,7 +23,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sstream>
 #include <optional>
 
-#include ".\element.h"
+#include "./element.h"
 #include "expression.h"
 #include "Mathomir.h"
 #include "mainfrm.h"
@@ -40,7 +40,8 @@ extern int MulLevel;
 extern int EqLevel;
 extern unsigned char OperatorLevelTable[256];
 #define GetOperatorLevel(x) ((int)OperatorLevelTable[(unsigned char)(x)])
-int CalculateText(CDC* DC, const char* text, const char* font, short* spacing, short TheFontSize, bool& IsHigh, bool& IsLow,
+int CalculateText(CDC* DC, const char* text, const char* font, short* spacing, short TheFontSize, bool& IsHigh,
+                  bool& IsLow,
                   bool IsText, bool IsFirst, char VMods);
 int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, short TheFontSize, bool IsBlue, int color,
               bool isText, char VMods);
@@ -144,12 +145,12 @@ const struct
 }*/
 void* CElement::operator new(size_t size)
 {
-    char* p = new char[size + ElementMemoryReservations[CElementInitType].Resize];
+    auto p = new char[size + ElementMemoryReservations[CElementInitType].Resize];
     memset(p, 0, size + ElementMemoryReservations[CElementInitType].Resize/*sizeof(CElement)*/);
     //p=(char*)HeapAlloc(ProcessHeap,HEAP_ZERO_MEMORY,tmp);  //this can make problems while plotting functions!!! better to use new/delete to reserve memeory
 
     ((CElement*)p)->m_pPaternalExpression = CElementInitPaternalExpression;
-    ((CElement*)p)->m_Type = (char)CElementInitType;
+    ((CElement*)p)->m_Type = static_cast<char>(CElementInitType);
     ((CElement*)p)->Data3 = (short*)((char*)&((CElement*)p)->Data1 + ElementMemoryReservations[CElementInitType].
         D3pos);
     return p;
@@ -184,7 +185,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         else
         {
             tElementStruct& ts = m_pPaternalExpression->m_pElementList[paternal_position - 1];
-            if (ts.Type == 11 || ts.Type == 12 || (ts.Type == 2 && ts.pElementObject->Data1[0] == (char)0xFF))
+            if (ts.Type == 11 || ts.Type == 12 || (ts.Type == 2 && ts.pElementObject->Data1[0] == static_cast<char>(
+                0xFF)))
                 IsFirst = true;
         }
         length = CalculateText(&DC, Data1, Data2, Data3, ActualSize, IsHigh, IsLow, m_Text, IsFirst, m_VMods);
@@ -196,7 +198,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             {
                 char pretext = 0;
                 if (elm2->m_Type == 1) pretext = elm2->m_Text;
-                if ((elm2->m_Type == 2 && elm2->Data1[0] == (char)0xFF) || elm2->m_Type == 11 || elm2->m_Type == 12)
+                if ((elm2->m_Type == 2 && elm2->Data1[0] == static_cast<char>(0xFF)) || elm2->m_Type == 11 || elm2->
+                    m_Type == 12)
                     pretext = m_Text;
                 if ((pretext == 0 && this->m_Text != 0) || (pretext != 0 && this->m_Text == 0))
                 {
@@ -226,7 +229,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                     this->m_pPaternalExpression->m_pElementList[paternal_position].X_pos += max(
                         ((CExpression*)m_pPaternalExpression)->m_MarginX*2-4, 0) / 3;
                     if ((this->Data1[0] >= 'A' && this->Data1[0] <= 'Z') || this->Data1[0] < 0)
-                        this->m_pPaternalExpression->m_pElementList[paternal_position].X_pos += m_pPaternalExpression->m_MarginX / 4;
+                        this->m_pPaternalExpression->m_pElementList[paternal_position].X_pos += m_pPaternalExpression->
+                            m_MarginX / 4;
                 }
             }
         }
@@ -303,7 +307,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
     if (m_Type == 2) //operator (with two operands. Like '+', '-', '/')
     {
-        if (Data1[0] == (char)0xE3)
+        if (Data1[0] == static_cast<char>(0xE3))
         {
             //special handling - arrow with expression above it
             if (Expression1)
@@ -313,8 +317,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             E1_posX = ActualSize / 4 + ActualSize / 16;
             E1_posY = -E1_below;
             length = E1_length + ActualSize / 2 + ActualSize / 4;
-            above = (short)max(ActualSize/3, E1_above-E1_posY);
-            below = (short)ActualSize / 3;
+            above = static_cast<short>(max(ActualSize/3, E1_above-E1_posY));
+            below = static_cast<short>(ActualSize) / 3;
             return;
         }
 
@@ -354,7 +358,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             char ch = Data1[0];
 
 
-            if (ch == (char)0xB4) // the 'x' operator (vector multiplication)
+            if (ch == static_cast<char>(0xB4)) // the 'x' operator (vector multiplication)
             {
                 //Data3[2]-=ActualSize/20;
                 Data3[1] = 19 * Data3[1] / 20;
@@ -369,32 +373,32 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 else if (Data1[3] == 1)
                     ls = rs = -(ActualSize + 40) / 80; //single space character
                 else
-                    ls = rs = (unsigned char)Data1[3] * ActualSize / 20;
+                    ls = rs = static_cast<unsigned char>(Data1[3]) * ActualSize / 20;
             }
-            if (ch == (char)0xFF) //line wrapper
+            if (ch == static_cast<char>(0xFF)) //line wrapper
             {
                 Data2[1] = ' ';
-                length = (short)0;
-                above = (short)ActualSize / 4;
-                below = (short)ActualSize / 3;
+                length = static_cast<short>(0);
+                above = static_cast<short>(ActualSize) / 4;
+                below = static_cast<short>(ActualSize) / 3;
                 return;
             }
 
-            if (ch == (char)0xF0) //D'Alambert operator (empty square)
+            if (ch == static_cast<char>(0xF0)) //D'Alambert operator (empty square)
             {
                 Data3[2] = ActualSize / 32;
                 rs /= 8;
             }
-            if (ch == (char)0x9E) //triangle
+            if (ch == static_cast<char>(0x9E)) //triangle
             {
                 rs = ls = -ActualSize / 8;
                 Data2[1] = 'M';
             }
-            if (ch == (char)0x44) //delta (laplace)
+            if (ch == static_cast<char>(0x44)) //delta (laplace)
             {
                 rs = 0;
             }
-            if (ch == (char)0xD1) //nabla
+            if (ch == static_cast<char>(0xD1)) //nabla
             {
                 rs /= 8;
                 CElement* prev = GetPreviousElement();
@@ -424,56 +428,57 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             {
                 rs = 0;
             }
-            if (ch == (char)0xD8) //not operator
+            if (ch == static_cast<char>(0xD8)) //not operator
             {
                 Data3[2] = -ActualSize / 6;
                 Data3[1] = 95 * ActualSize / 100;
                 rs = -ActualSize / 8;
             }
-            if (ch == (char)0xD9 || ch == (char)0xDA) //and and or operators
+            if (ch == static_cast<char>(0xD9) || ch == static_cast<char>(0xDA)) //and and or operators
             {
                 ls = rs = rs / 2;
             }
-            if (ch == (char)0xD0) //angle operator
+            if (ch == static_cast<char>(0xD0)) //angle operator
             {
                 Data3[2] = 0; //Y position correction (to baseline)
                 Data3[1] = ActualSize; //font size
                 rs = -rs;
                 ls = ls / 2;
             }
-            if (ch == (char)0xB2) //minus-plus operator
+            if (ch == static_cast<char>(0xB2)) //minus-plus operator
             {
-                Data2[1] = (char)0xB1;
+                Data2[1] = static_cast<char>(0xB1);
                 Data3[2] /= 2;
             }
-            if (ch == (char)0xE2) //  |--> arrow
+            if (ch == static_cast<char>(0xE2)) //  |--> arrow
             {
-                Data2[1] = (char)0xAE;
+                Data2[1] = static_cast<char>(0xAE);
                 Data3[2] /= 2;
             }
             if (ch == 3) //small circle (composition of functions)
             {
-                Data2[1] = (char)0xB7;
+                Data2[1] = static_cast<char>(0xB7);
                 rs = rs / 2;
                 ls = ls / 2;
             }
-            if (ch == (char)0xA0 || ch == (char)0x9F) //approx. equal (equal with dot above) and 'equal with hat'
+            if (ch == static_cast<char>(0xA0) || ch == static_cast<char>(0x9F))
+            //approx. equal (equal with dot above) and 'equal with hat'
             {
                 Data2[1] = '=';
             }
 
-            if (ch == (char)0x5B) //triple dot in triangle formation (upside down)
+            if (ch == static_cast<char>(0x5B)) //triple dot in triangle formation (upside down)
                 Data2[1] = 0x5C; //triple dot in triangle formation
             if (ch == 0x5B || ch == 0x5C)
             {
                 ls -= ActualSize / 20;
                 rs -= ActualSize / 20;
             }
-            if (ch == (char)0xBC) //triple dot
+            if (ch == static_cast<char>(0xBC)) //triple dot
             {
                 Data3[2] += ActualSize / 12;
             }
-            if (ch == (char)0xD7)
+            if (ch == static_cast<char>(0xD7))
             {
                 ls = -tmp;
                 rs = -tmp;
@@ -481,15 +486,15 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
             if (ch == '/' ||
                 ch == '&' ||
-                ch == (char)0xA1 || //gama
-                ch == (char)0xA6 || //elongated f
-                ch == (char)0xD1 || //nabla
+                ch == static_cast<char>(0xA1) || //gama
+                ch == static_cast<char>(0xA6) || //elongated f
+                ch == static_cast<char>(0xD1) || //nabla
                 ch == 'D') //delta
             {
                 Data3[2] = 0;
             }
 
-            if (ch == (char)0xD7 || ch == '/')
+            if (ch == static_cast<char>(0xD7) || ch == '/')
             {
                 //check if the operator is between two measurement units, if yes condense a bit
                 if (paternal_position && paternal_position < m_pPaternalExpression->m_pElementList.size() -
@@ -510,11 +515,11 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
             if (ch == '*') { Data3[2] /= 3; }
 
-            if (ch == (char)0xA3 || //less or equal
-                ch == (char)0xB3 || //greater or equal
-                ch == (char)0xB1 || //plus minus
-                ch == (char)0xC4 || //encircled plus
-                ch == (char)0xC5) //encircled x
+            if (ch == static_cast<char>(0xA3) || //less or equal
+                ch == static_cast<char>(0xB3) || //greater or equal
+                ch == static_cast<char>(0xB1) || //plus minus
+                ch == static_cast<char>(0xC4) || //encircled plus
+                ch == static_cast<char>(0xC5)) //encircled x
             {
                 Data3[2] /= 2;
             }
@@ -547,7 +552,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             if (ch == '3')
             {
                 Data2[1] = ':';
-                Data2[2] = (char)0xDB;
+                Data2[2] = static_cast<char>(0xDB);
                 Data2[3] = 0;
             }
 
@@ -566,11 +571,11 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
             if (ch == 0x22 || ch == 0x24) { Data3[1] = 4 * ActualSize / 3; } //'all' and 'exists'
 
-            if (ch == (char)0xAB ||
-                ch == (char)0xAC ||
-                ch == (char)0xAD ||
-                ch == (char)0xAE ||
-                ch == (char)0xAF)
+            if (ch == static_cast<char>(0xAB) ||
+                ch == static_cast<char>(0xAC) ||
+                ch == static_cast<char>(0xAD) ||
+                ch == static_cast<char>(0xAE) ||
+                ch == static_cast<char>(0xAF))
             {
                 rs = ls = -tmp;
             } //arrows (simple arrows)
@@ -617,16 +622,16 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         cs = DC.GetTextExtent(&Data2[1]);
         if (cs.cx == 0) cs.cx = ActualSize / 10;
         Data3[0] = ls;
-        length = (short)(cs.cx + ls + rs);
+        length = static_cast<short>(cs.cx + ls + rs);
         char IsHigh = IsCharacterHigh(Data2[1], Font);
         //char IsLow=((CExpression*)m_pPaternalExpression)->IsCharacterLow(Data2[1],Font);
 
         if (IsHigh)
-            above = (short)ActualSize / 3;
+            above = static_cast<short>(ActualSize) / 3;
         else
-            above = (short)ActualSize / 4;
+            above = static_cast<short>(ActualSize) / 4;
 
-        below = (short)ActualSize / 3;
+        below = static_cast<short>(ActualSize) / 3;
 
         return;
     }
@@ -658,7 +663,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 for (const tElementStruct& ts : Expression1->m_pElementList)
                 {
                     if (ts.Type == 2 &&
-                        (ts.pElementObject->Data1[0] == '/' || ts.pElementObject->Data1[0] == (char)0xD7))
+                        (ts.pElementObject->Data1[0] == '/' || ts.pElementObject->Data1[0] == static_cast<char>(0xD7)))
                         continue;
                     if (ts.pElementObject)
                         if (ts.pElementObject->IsMeasurementUnit()) continue;
@@ -699,7 +704,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 //we found that there is only one element in the power base 
                 // and that this element is a variable and that no parentheses are drawn
                 CElement* BaseElement = Base->m_pElementList[0].pElementObject;
-                int last = (int)strlen(BaseElement->Data1) - 1;
+                int last = static_cast<int>(strlen(BaseElement->Data1)) - 1;
                 char ch = BaseElement->Data1[last];
                 char fnt = BaseElement->Data2[last];
                 if ((fnt & 0xE0) != 0x60)
@@ -828,7 +833,8 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                         {
                             int skew = 0;
                             if (Base->m_pElementList[0].pElementObject->Data2[0] & 0x02) skew = ActualSize / 12;
-                            E2_posX = BaseElement->E1_posX + Base->m_pElementList[0].X_pos + skew + BaseElement->Expression1->m_pElementList[0].X_pos - Expression2->
+                            E2_posX = BaseElement->E1_posX + Base->m_pElementList[0].X_pos + skew + BaseElement->
+                                Expression1->m_pElementList[0].X_pos - Expression2->
                                 m_pElementList[0].X_pos;
                             MoveToRight = BaseElement->E1_length - E2_length - skew;
                             //
@@ -843,7 +849,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
 
                         //adjusting positions on character level
-                        int last = (int)strlen(BaseElement->Data1) - 1;
+                        int last = static_cast<int>(strlen(BaseElement->Data1)) - 1;
                         char ch = BaseElement->Data1[last];
                         if ((BaseElement->Data2[last] & 0xE0) != 0x60)
                         {
@@ -1198,18 +1204,18 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         if (cs.cx == 0) cs.cx = ActualSize / 10;
 
         //special handling if the last character in the name is 'f' character
-        if (Data1[len - 1] == 'f' && (font & 0xE0) != (char)0x60) cs.cx += ActualSize / 15;
+        if (Data1[len - 1] == 'f' && (font & 0xE0) != static_cast<char>(0x60)) cs.cx += ActualSize / 15;
 
-        length = (short)cs.cx + (HQR || (Expression1 && Expression1->m_DrawParentheses)
-                                     ? ActualSize / 6
-                                     : ActualSize / 32);
+        length = static_cast<short>(cs.cx) + (HQR || (Expression1 && Expression1->m_DrawParentheses)
+                                                  ? ActualSize / 6
+                                                  : ActualSize / 32);
 
-        if (IsHigh > 1) above = (short)ActualSize / 2;
-        else if (IsHigh == 1) above = (short)2 * ActualSize / 5;
-        else above = (short)4 * ActualSize / 11;
+        if (IsHigh > 1) above = static_cast<short>(ActualSize) / 2;
+        else if (IsHigh == 1) above = static_cast<short>(2) * ActualSize / 5;
+        else above = static_cast<short>(4) * ActualSize / 11;
 
-        if (IsLow) below = (short)4 * ActualSize / 9;
-        else below = (short)2 * ActualSize / 5;
+        if (IsLow) below = static_cast<short>(4) * ActualSize / 9;
+        else below = static_cast<short>(2) * ActualSize / 5;
 
         //the starting position of the function name (in pixels - x coordinate)
         Data3[2] = -ActualSize / 20;
@@ -1226,27 +1232,27 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                     E2_posY = E2_above + 2 * ActualSize / 5;
                 else
                     E2_posY = E2_above + 9 * ActualSize / 24;
-                if (E2_length < (short)cs.cx)
+                if (E2_length < static_cast<short>(cs.cx))
                 {
-                    E2_posX = ((short)cs.cx - E2_length) / 2;
+                    E2_posX = (static_cast<short>(cs.cx) - E2_length) / 2;
                 }
                 else
                 {
                     E2_posX = 0;
-                    length += E2_length - (short)cs.cx;
-                    Data3[2] = (E2_length - (short)cs.cx) / 2;
+                    length += E2_length - static_cast<short>(cs.cx);
+                    Data3[2] = (E2_length - static_cast<short>(cs.cx)) / 2;
                 }
             }
             else
             {
                 if (HQR)
                 {
-                    E2_posX = (short)cs.cx + ActualSize / 16;
+                    E2_posX = static_cast<short>(cs.cx) + ActualSize / 16;
                     length += E2_length + ActualSize / 16;
                 }
                 else
                 {
-                    E2_posX = (short)cs.cx - ActualSize / 12;
+                    E2_posX = static_cast<short>(cs.cx) - ActualSize / 12;
                     length += E2_length - ActualSize / 6;
                 }
                 int tt = ActualSize / 15;
@@ -1308,7 +1314,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             }
             else
             {
-                if (m_pPaternalExpression && paternal_position < m_pPaternalExpression->m_pElementList.size()- 1)
+                if (m_pPaternalExpression && paternal_position < m_pPaternalExpression->m_pElementList.size() - 1)
                 {
                     //search through paternal expression and find the next element in the expression
                     //If the next element is not operator (like + or -) then we intentionaly make a little space are
@@ -1333,7 +1339,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
                 }
             }
 
-            Data3[1] = length - (short)cs.cx - Data3[2];
+            Data3[1] = length - static_cast<short>(cs.cx) - Data3[2];
             //distance (in pixels) from function name to the end of element
             //to be used in position exponent calculation (see above: m_Type==3)
             Data3[3] = 0; //this is adjusted by fraction in the case of d/d() operator
@@ -1417,10 +1423,10 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
 
 
         CSize cs;
-        Data1[1] = (char)0xE5;
+        Data1[1] = static_cast<char>(0xE5);
         Data1[2] = 0;
-        if (Data1[0] == 'S') Data1[1] = (char)0xE5; //sigma
-        if (Data1[0] == 'P') Data1[1] = (char)0xD5; //Pi
+        if (Data1[0] == 'S') Data1[1] = static_cast<char>(0xE5); //sigma
+        if (Data1[0] == 'P') Data1[1] = static_cast<char>(0xD5); //Pi
         if (Data1[0] == 'I') Data1[1] = 'a'; //integral
         if (Data1[0] == 'O') Data1[1] = 'a'; //circular integral
         if (Data1[0] == '|' || Data1[0] == '/') Data1[1] = 'a'; //bar (left or right)
@@ -1434,15 +1440,15 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         if (IsHighQualityRendering && (Data1[0] == 'I' || Data1[0] == 'O')) cs.cx = (cs.cx + 2) * 7 / 6;
         if (IsHighQualityRendering && (Data1[0] == '|' || Data1[0] == '/')) cs.cx = (cs.cx + 1) * 6 / 5;
 
-        if (above < HalfSymbolHeight) above = (short)HalfSymbolHeight;
-        if (below < HalfSymbolHeight) below = (short)HalfSymbolHeight;
+        if (above < HalfSymbolHeight) above = static_cast<short>(HalfSymbolHeight);
+        if (below < HalfSymbolHeight) below = static_cast<short>(HalfSymbolHeight);
         if (ParenthesesAbove < HalfSymbolHeight) ParenthesesAbove = HalfSymbolHeight;
         if (ParenthesesBelow < HalfSymbolHeight) ParenthesesBelow = HalfSymbolHeight;
-        Data3[0] = (short)HalfSymbolHeight; //store the height of the symbol
-        Data3[1] = (short)cs.cx; //store the width of symbol (in pixels)
+        Data3[0] = static_cast<short>(HalfSymbolHeight); //store the height of the symbol
+        Data3[1] = static_cast<short>(cs.cx); //store the width of symbol (in pixels)
         if (Data2[2] == 2) Data3[1] = Data3[1] * 2; //double integral
         if (Data2[2] == 3) Data3[1] = Data3[1] * 5 / 2; //triple integral
-        Data3[3] = (short)cs.cx; //store the width of a single symbol
+        Data3[3] = static_cast<short>(cs.cx); //store the width of a single symbol
 
 
         int Ycorr = 0;
@@ -1588,7 +1594,7 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
             E1_posY = ActualSize / 24;
             length = E1_length + 2;
             above = E1_above + ActualSize / 8 + (HQR ? ActualSize / 16 : 0);
-            below = (short)(E1_posY + E1_below);
+            below = static_cast<short>(E1_posY + E1_below);
             ParenthesesAbove = above - ActualSize / 8;
             ParenthesesBelow = below - ActualSize / 8;
         }
@@ -1765,7 +1771,6 @@ void CElement::CalculateSize(CDC& DC, short int zoom, short int& length, short i
         E1_posX = E1_posY = 0;
         E1_length = 0;
     }
-    return;
 }
 
 void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, short* below, char align)
@@ -1778,7 +1783,7 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
     if (this->m_Type == 1)
     {
         int ok = 0;
-        int l = (int)strlen(Data1);
+        int l = static_cast<int>(strlen(Data1));
 
         if (m_pPaternalExpression != KeyboardEntryObject || this->m_Text)
             if (l > 0)
@@ -1797,10 +1802,10 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
                 char is_last_word = 0;
                 char is_first_word = 0;
                 if (!next || (next->m_Type == 11 || next->m_Type == 12 || (next->m_Type == 2 && next->Data1[0]
-                    == (char)0xFF)))
+                    == static_cast<char>(0xFF))))
                     is_last_word = 1;
                 if (!previous || (previous->m_Type == 11 || previous->m_Type == 12 || (previous->m_Type == 2 &&
-                    previous->Data1[0] == (char)0xFF)))
+                    previous->Data1[0] == static_cast<char>(0xFF))))
                     is_first_word = 1;
 
                 CalculateText(DC, Data1, Data2, Data3, as, hi, lo, this->m_Text, is_first_word, m_VMods);
@@ -1996,7 +2001,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
         return;
     }
 
-    mf = (CMainFrame*)theApp.m_pMainWnd;
+    mf = static_cast<CMainFrame*>(theApp.m_pMainWnd);
 
     if (m_Type == 2) //operator (Like: '+', '-', '/')
     {
@@ -2005,7 +2010,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
 
         if (oper_type & 0x80)
         {
-            if (oper_type == (char)0xE3) //arrow with expression above it
+            if (oper_type == static_cast<char>(0xE3)) //arrow with expression above it
             {
                 if (Expression1)
                     Expression1->PaintExpression(
@@ -2031,7 +2036,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                 return;
             }
 
-            if (oper_type == (char)0x9E) //triangle
+            if (oper_type == static_cast<char>(0x9E)) //triangle
             {
                 DC->SelectObject(GetPenFromPool(max(1, Data3[1]/16), IsBlue, clr));
                 int xx = X + Data3[0] + Data3[1] / 12;
@@ -2077,7 +2082,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
 
                 return;
             }
-            if (oper_type == (char)0xB2) //minus plus opertor
+            if (oper_type == static_cast<char>(0xB2)) //minus plus opertor
             {
                 if (Data3[1] < 20) Data3[1] = 120 * Data3[1] / 100;
                 int corr = max(1, Data3[1]/20);
@@ -2114,7 +2119,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
         }
         if (oper_type == 9 &&
             (IsBlue || this->m_pPaternalExpression->m_Selection || this->m_pPaternalExpression ==
-                (CExpression*)KeyboardEntryObject)) //the tab (space)
+                KeyboardEntryObject)) //the tab (space)
         {
             int ok = 0;
             if (IsBlue) ok = 1;
@@ -2137,7 +2142,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                     if (elm->m_Type == 1)
                     {
                         if (sel < p->m_pElementList.size() && p->m_pElementList[sel].pElementObject == this &&
-                            p->m_KeyboardCursorPos >= (int)strlen(elm->Data1))
+                            p->m_KeyboardCursorPos >= static_cast<int>(strlen(elm->Data1)))
                             ok = 1;
                         if (sel > 1 && p->m_pElementList[sel - 2].pElementObject == this &&
                             p->m_KeyboardCursorPos == 0)
@@ -2195,13 +2200,13 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
 
         if (oper_type & 0x80)
         {
-            if (oper_type == (char)0xE2) // |--> operator
+            if (oper_type == static_cast<char>(0xE2)) // |--> operator
             {
                 DC->TextOut(X + Data3[0], Y + Data3[1] / 3 + Data3[2], &Data2[1]);
                 DC->FillSolidRect(X + Data3[0], Y + ActualSize / 40 + Data3[2],max(ActualSize/22, 1),
                                   ActualSize / 4 + (ActualSize > 15 ? 1 : 0), clr);
             }
-            if (oper_type == (char)0xA0) //approx. equal (dot over equal)
+            if (oper_type == static_cast<char>(0xA0)) //approx. equal (dot over equal)
             {
                 int corr = max(0, Data3[1]/30);
                 int Xx = X + Data3[0] + 5 * Data3[1] / 23;
@@ -2221,7 +2226,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                     DC->Ellipse(Xx - corr, Yy - corr, Xx + corr, Yy + corr);
                 }
             }
-            if (oper_type == (char)0x9F) //equal with hat
+            if (oper_type == static_cast<char>(0x9F)) //equal with hat
             {
                 //int corr=max(0,Data3[1]/30);
                 int Xx = X + Data3[0] + 5 * Data3[1] / 24;
@@ -2274,8 +2279,8 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
         {
             //a over b
             m_pPaternalExpression->PaintParentheses(DC, zoom, X, Y - ParenthesesAbove, X + Data3[0],
-                                                                    Y + ParenthesesBelow, Data3[1], '(', 0, IsBlue,
-                                                                    color);
+                                                    Y + ParenthesesBelow, Data3[1], '(', 0, IsBlue,
+                                                    color);
         }
         else
         {
@@ -2310,7 +2315,9 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                                 ? RGB(0, PrintRendering?88:ActualSize<20?104:96, 0)
                                 : color;
         char font_params = Data2[0];
-        if (ActualSize <= 11) font_params = (font_params & 0xE0) != 0x60 ? (char)0x80 : (char)0x60;
+        if (ActualSize <= 11) font_params = (font_params & 0xE0) != 0x60
+                                                ? static_cast<char>(0x80)
+                                                : static_cast<char>(0x60);
 
         if (Data3[0])
         {
@@ -2319,10 +2326,11 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             char font[24];
             memset(font, font_params, 24);
             short spacing[24];
-            CalculateText(DC, Data1, font, spacing, max(ActualSize, 1), isHigh, isLow, false, (char)(Data3[0] & 0x02),
+            CalculateText(DC, Data1, font, spacing, max(ActualSize, 1), isHigh, isLow, false,
+                          static_cast<char>(Data3[0] & 0x02),
                           m_VMods);
             PaintText(DC, X + Data3[2] + ActualSize / 20, Y + Data3[3], Data1, font, spacing, max(ActualSize, 1),
-                      IsBlue ? 0xFFFFFFFF : 0, thecolor, 0, m_VMods);
+                      IsBlue ? 0xFFFFFFFF : 0, thecolor, false, m_VMods);
         }
         else
         {
@@ -2669,7 +2677,8 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
 int CElement::ContainsBlinkingCursor() const
 {
     if (this->m_pPaternalExpression == KeyboardEntryObject && this->m_pPaternalExpression->
-                                                                        m_IsKeyboardEntry == this->GetPaternalPosition() + 1)
+                                                                    m_IsKeyboardEntry == this->GetPaternalPosition() +
+        1)
         return 1;
     int t = 0;
     if (this->Expression1)
@@ -2688,7 +2697,7 @@ int CElement::IsDifferential(int only_nonparentheses) const
 
     if (m_Type == 6 && Data1[1] == 0 && m_VMods == 0)
     {
-        if (this->Expression1 == 0) return 0;
+        if (this->Expression1 == nullptr) return 0;
 
         if (this->Expression1->m_ParenthesesFlags & 0x81 && only_nonparentheses)
         {
@@ -2703,7 +2712,7 @@ int CElement::IsDifferential(int only_nonparentheses) const
                 return 0;
         }
         if (Data1[0] == 'd' && (Data2[0] & 0xE0) != 0x60) return 1;
-        if (Data1[0] == (char)0xB6 && (Data2[0] & 0xE0) == 0x60) return 2;
+        if (Data1[0] == static_cast<char>(0xB6) && (Data2[0] & 0xE0) == 0x60) return 2;
     }
     return 0;
 }
@@ -2723,7 +2732,7 @@ void CElement::Empty(char oper)
     if (m_Type == 1) //variable
     {
         Data1[0] = oper;
-        if (oper == (char)0xB0) m_VMods = 0x10; //convert to unit (degrees of arc)
+        if (oper == static_cast<char>(0xB0)) m_VMods = 0x10; //convert to unit (degrees of arc)
         if (oper >= 32) return; //for speed
 
         //special handling for exponent
@@ -2744,32 +2753,32 @@ void CElement::Empty(char oper)
         if (oper == 6)
         {
             strcpy_s(Data1, "H");
-            Data2[0] = (char)0xE3;
+            Data2[0] = static_cast<char>(0xE3);
         } //horizontal triple dot
         if (oper == 7)
         {
             strcpy_s(Data1, "V");
-            Data2[0] = (char)0xE3;
+            Data2[0] = static_cast<char>(0xE3);
         } //vertical triple dot
         if (oper == 8)
         {
             strcpy_s(Data1, "A");
-            Data2[0] = (char)0xE3;
+            Data2[0] = static_cast<char>(0xE3);
         } //angled triple dot
         if (oper == 9)
         {
             strcpy_s(Data1, "U");
-            Data2[0] = (char)0xE3;
+            Data2[0] = static_cast<char>(0xE3);
         } //up-angled triple dot
         if (oper == 13)
         {
             strcpy_s(Data1, "%");
-            Data2[0] = (char)0xE3;
+            Data2[0] = static_cast<char>(0xE3);
         } //permille
         //degrees centigrade
         if (oper == 10)
         {
-            Data1[0] = (char)0xB0;
+            Data1[0] = static_cast<char>(0xB0);
             Data1[1] = 'C';
             Data1[2] = 0;
             Data2[0] = 0x70;
@@ -2777,9 +2786,9 @@ void CElement::Empty(char oper)
         }
         if (oper == 11)
         {
-            Data1[0] = (char)0xA1;
+            Data1[0] = static_cast<char>(0xA1);
             Data1[1] = 0;
-            Data2[0] = (char)0x60;
+            Data2[0] = static_cast<char>(0x60);
         } //Greek upercase upsilon (styled)
         //if (oper==12) {strcpy(Data1,"j");Data2[0]=(char)0x22;} //imaginary unit
         return;
@@ -2788,7 +2797,7 @@ void CElement::Empty(char oper)
     if (m_Type == 2) //operator
     {
         Data1[0] = oper;
-        if (oper == (char)0xE3)
+        if (oper == static_cast<char>(0xE3))
         {
             Expression1 = new CExpression(this, m_pPaternalExpression, FontSizeForType(1));
         }
@@ -2867,7 +2876,7 @@ void CElement::Empty(char oper)
             if (Expression1->m_pElementList[0].pElementObject)
             {
                 CExpression* E2 = Expression1->m_pElementList[0].pElementObject->
-                                               Expression1;
+                                                                 Expression1;
                 E2->m_ParenthesesFlags |= 0x1;
                 E2->m_FontSize = E2->m_FontSize * 10 / 9;
             }
@@ -2880,10 +2889,10 @@ void CElement::Empty(char oper)
             if (Expression1->m_pElementList[0].pElementObject)
             {
                 CExpression* E3 = Expression1->m_pElementList[0].pElementObject->
-                                               Expression1;
+                                                                 Expression1;
                 E3->InsertEmptyElement(0, 6, func);
                 CExpression* E4 = Expression2->m_pElementList[0].pElementObject->
-                                               Expression1;
+                                                                 Expression1;
                 E4->InsertEmptyElement(0, 6, func);
                 E4->m_ParenthesesFlags |= 0x01;
             }
@@ -2895,12 +2904,12 @@ void CElement::Empty(char oper)
             if (Expression1->m_pElementList[0].pElementObject)
             {
                 CExpression* E3 = Expression1->m_pElementList[0].pElementObject->
-                                               Expression1;
+                                                                 Expression1;
                 E3->InsertEmptyElement(0, 6, func);
                 CExpression* E5 = E3->m_pElementList[0].pElementObject->Expression1;
                 E5->m_ParenthesesFlags |= 0x01;
                 CExpression* E4 = Expression2->m_pElementList[0].pElementObject->
-                                               Expression1;
+                                                                 Expression1;
                 E4->InsertEmptyElement(0, 6, func);
                 E4->m_ParenthesesFlags |= 0x01;
             }
@@ -2994,12 +3003,12 @@ void CElement::Empty(char oper)
         if (oper == 20) strcpy_s(Data1, "rot");
         if (oper == 21)
         {
-            Data1[0] = (char)0xD1;
+            Data1[0] = static_cast<char>(0xD1);
             Data2[0] = 0x60;
         } //nabla operator
         if (oper == 22)
         {
-            Data1[0] = (char)0x44;
+            Data1[0] = static_cast<char>(0x44);
             Data2[0] = 0x60;
         } //delta operator
         if (oper == 23)
@@ -3009,7 +3018,7 @@ void CElement::Empty(char oper)
         } //derivation sign
         if (oper == 24)
         {
-            Data1[0] = (char)0xB6;
+            Data1[0] = static_cast<char>(0xB6);
             Data2[0] = 0x60;
         } //partial derivation sign
         if (oper == 25)
@@ -3024,12 +3033,12 @@ void CElement::Empty(char oper)
         } //dirac delta
         if (oper == 38)
         {
-            Data1[0] = (char)0xC2;
+            Data1[0] = static_cast<char>(0xC2);
             Data2[0] = 0x60;
         } //Real part
         if (oper == 39)
         {
-            Data1[0] = (char)0xC1;
+            Data1[0] = static_cast<char>(0xC1);
             Data2[0] = 0x60;
         } //Imaginary part
     }
@@ -3156,7 +3165,6 @@ void CElement::Empty(char oper)
         Data1[21] = '?'; //marks that data is uninitialized
         Data1[20] = 0;
     }
-    return;
 }
 
 //this function deletes all data from the element (including subexpressions)
@@ -3183,9 +3191,9 @@ void CElement::CopyElement(const CElement* Element)
     {
         CExpression* oexp;
         CExpression* exp;
-        if (i == 0) { oexp = (CExpression*)Element->Expression1; }
-        else if (i == 1) { oexp = (CExpression*)Element->Expression2; }
-        else if (i == 2) { oexp = (CExpression*)Element->Expression3; }
+        if (i == 0) { oexp = static_cast<CExpression*>(Element->Expression1); }
+        else if (i == 1) { oexp = static_cast<CExpression*>(Element->Expression2); }
+        else if (i == 2) { oexp = static_cast<CExpression*>(Element->Expression3); }
         if (oexp)
         {
             //calculate font size for subexpression - font must be proportional between subexpression and paternal expression
@@ -3211,7 +3219,7 @@ void CElement::CopyElement(const CElement* Element)
         //copy hyperlinks
         try
         {
-            char* link = (char*)malloc(340);
+            auto link = static_cast<char*>(malloc(340));
             memcpy(link, *(char**)Element->Data3, 340);
             *(char**)Data3 = link;
         }
@@ -3219,7 +3227,6 @@ void CElement::CopyElement(const CElement* Element)
         {
         }
     }
-    return;
 }
 
 //when creating subexpressions, this function returns the size of font in subexpression
@@ -3436,7 +3443,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
 
                 //check if it is pointing =,<,>,<<,>>,<=,>=,...
                 if (GetOperatorLevel(ch) == EqLevel ||
-                    ch == (char)0xBA || ch == (char)0x40 || ch == (char)0xB5 || ch == (char)0x7E)
+                    ch == static_cast<char>(0xBA) || ch == static_cast<char>(0x40) || ch == static_cast<char>(0xB5) ||
+                    ch == static_cast<char>(0x7E))
                 {
                     //select all elements until '=' operator
                     m_pPaternalExpression->m_pElementList[paternal_position].IsSelected = 1;
@@ -3448,7 +3456,8 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                         {
                             char ch = ts.pElementObject->Data1[0];
                             if (GetOperatorLevel(ch) <= EqLevel ||
-                                ch == (char)0xBA || ch == 0x7E || ch == 0x40 || ch == (char)0xB5)
+                                ch == static_cast<char>(0xBA) || ch == 0x7E || ch == 0x40 || ch == static_cast<char>(
+                                    0xB5))
                                 break;
                         }
                         if (ts.Type == 11 || ts.Type == 12 || ts.Type == 9 || ts.Type == 10) break;
@@ -3469,12 +3478,11 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
 }
 
 
-
 //XML_output, trasforms all relevant element data into XML string
 //used for save (to disk) and copy (to clipboard)
 //should not be too slow (copy/paste)
 #pragma optimize("s",on)
-void CElement::XML_output(std::ostream &ostr, int num_tabs)
+void CElement::XML_output(std::ostream& ostr, int num_tabs)
 {
     std::optional<std::string> E1(std::nullopt);
     std::optional<std::string> E2(std::nullopt);
@@ -3488,7 +3496,7 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
 
     if (XMLFileVersion == 1 || m_Type >= 7)
     {
-        ostr << "<elm tp=\"" << (unsigned int)m_Type <<"\" ";
+        ostr << "<elm tp=\"" << static_cast<unsigned int>(m_Type) << "\" ";
     }
     else
     {
@@ -3502,7 +3510,7 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
 
     if (m_Color != 255)
     {
-        ostr << "color=\"" << (unsigned int)m_Color << "\" ";
+        ostr << "color=\"" << static_cast<unsigned int>(m_Color) << "\" ";
     }
 
     //addidng decoration description (encircled, strikeout, underlined, overlined...)
@@ -3514,13 +3522,13 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
             {
                 if (ts.Decoration)
                 {
-                    ostr << "decor=\"" << (unsigned int)ts.Decoration << "\" ";
+                    ostr << "decor=\"" << static_cast<unsigned int>(ts.Decoration) << "\" ";
                 }
                 break;
             }
         }
     }
-    
+
     if (m_Type == 1 || //variable
         m_Type == 6) //function
     {
@@ -3542,7 +3550,7 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
             if (Data1[i] < ' ' || Data1[i] > 0x7E || Data1[i] == '\\' || Data1[i] == '"')
             {
                 char ppp[4];
-                sprintf_s(ppp, "\\%02X", (byte)Data1[i]);
+                sprintf_s(ppp, "\\%02X", static_cast<byte>(Data1[i]));
                 memcpy(tmpstr + j, ppp, 3);
                 j += 3;
             }
@@ -3581,7 +3589,7 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
         for (unsigned int i = 0; i < tmp; i++)
         {
             char ppp[4];
-            unsigned char dd = (unsigned char)Data2[i];
+            unsigned char dd = static_cast<unsigned char>(Data2[i]);
             if (XMLFileVersion == 1) dd = (dd & 0xE3) | (m_VMods & 0x1C);
             sprintf_s(ppp, "%02X", dd);
             tmpstr[j++] = ppp[0];
@@ -3634,8 +3642,8 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
         if (Data1[0] < ' ' || Data1[0] > 0x7E || Data1[0] == '\\' || Data1[0] == '\'' || Data1[0] == '\"' || Data1[0] ==
             '<' || Data1[0] == '>')
         {
-            if (XMLFileVersion == 1) sprintf_s(tmpstr, "stp=\"\\%02X\"", (byte)Data1[0]);
-            else sprintf_s(tmpstr, "s=\"\\%02X\"", (byte)Data1[0]);
+            if (XMLFileVersion == 1) sprintf_s(tmpstr, "stp=\"\\%02X\"", static_cast<byte>(Data1[0]));
+            else sprintf_s(tmpstr, "s=\"\\%02X\"", static_cast<byte>(Data1[0]));
         }
         else
         {
@@ -3694,12 +3702,12 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
 
         if (XMLFileVersion == 1) ostr << " symbol_height=\"";
         else ostr << " sze=\"";
-        ostr << (unsigned int)Data2[0] << "\"";
+        ostr << static_cast<unsigned int>(Data2[0]) << "\"";
 
         if (Data2[1] != 1) Data2[1] = 0;
         if (XMLFileVersion == 1 || Data2[1])
         {
-            ostr << " limits_aside=\"" << (unsigned int)Data2[1] << "\"";
+            ostr << " limits_aside=\"" << static_cast<unsigned int>(Data2[1]) << "\"";
         }
 
         if (Data1[0] == 'I' || Data1[0] == 'O')
@@ -3707,7 +3715,7 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
             if (Data2[2] != 2 && Data2[2] != 3) Data2[2] = 1;
             if (XMLFileVersion == 1 || Data2[2] != 1)
             {
-                ostr << " dimension=\"" << (unsigned int)Data2[2] << "\"";
+                ostr << " dimension=\"" << static_cast<unsigned int>(Data2[2]) << "\"";
             }
         }
 
@@ -3729,7 +3737,7 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
             ostr << "label=\"1\"";
         else if (Expression3 == nullptr && Expression2 == nullptr && Data1[0] == 'H')
         {
-            ostr <<" URL=\"";
+            ostr << " URL=\"";
             if (*(char**)this->Data3 == nullptr)
             {
             }
@@ -3737,13 +3745,13 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
             {
                 char tmpstr[136] = "\0";
                 char* url = *(char**)this->Data3;
-                int tmp = (int)strlen(url);
+                int tmp = static_cast<int>(strlen(url));
                 int j = 0;
                 for (int i = 0; i < tmp; i++)
                     if (url[i] < ' ' || url[i] > 0x7E || url[i] == '\\' || url[i] == '"')
                     {
                         char ppp[4];
-                        sprintf_s(ppp, "\\%02X", (unsigned char)url[i]);
+                        sprintf_s(ppp, "\\%02X", static_cast<unsigned char>(url[i]));
                         memcpy(tmpstr + j, ppp, 3);
                         j += 3;
                     }
@@ -3759,16 +3767,16 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
     }
     else if (m_Type == 10) //condition list, as element
     {
-        ostr << "left_bar=\"" << (unsigned int)(Data1[0] & 0x01) << "\"";
-        ostr << " right_bar=\"" << (unsigned int)((Data1[0] & 0x02)>>1) << "\"";
+        ostr << "left_bar=\"" << static_cast<unsigned int>(Data1[0] & 0x01) << "\"";
+        ostr << " right_bar=\"" << static_cast<unsigned int>((Data1[0] & 0x02) >> 1) << "\"";
         if (Data2[0] < 0 || Data2[0] > 2)
             Data2[0] = 0;
-        ostr << " align=\"" << (unsigned int)Data2[0] << "\"";
+        ostr << " align=\"" << static_cast<unsigned int>(Data2[0]) << "\"";
         if (Expression1) E1 = "h";
         if (Expression2) E2 = "m";
         if (Expression3) E3 = "l";
     }
-    
+
     if (XMLFileVersion == 1)
     {
         if (E1.has_value())
@@ -3799,14 +3807,14 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
             ostr << " E3=\"" << E3.value() << "\"";
         }
     }
-    
+
     if (Expression1 == nullptr && Expression2 == nullptr && Expression3 == nullptr)
     {
         ostr << " />\r\n";
         return;
     }
     ostr << ">\r\n";
-    
+
     if (Expression1)
         Expression1->XML_output(ostr, num_tabs + 1);
     if (Expression2)
@@ -3839,7 +3847,7 @@ void CElement::XML_output(std::ostream &ostr, int num_tabs)
 #pragma optimize("s",on)
 char* CElement::XML_input(char* file, void* element_struct)
 {
-    CMainFrame* mf = (CMainFrame*)theApp.m_pMainWnd;
+    auto mf = static_cast<CMainFrame*>(theApp.m_pMainWnd);
 
     bool hasE1 = false;
     bool hasE2 = false;
@@ -3854,8 +3862,8 @@ char* CElement::XML_input(char* file, void* element_struct)
         if (strcmp(attribute, "color") == 0) m_Color = atoi(value);
         else if (strcmp(attribute, "decor") == 0 && element_struct)
         {
-            tElementStruct* ts = (tElementStruct*)element_struct;
-            ts->Decoration = (tDecoration)atoi(value);
+            auto ts = static_cast<tElementStruct*>(element_struct);
+            ts->Decoration = static_cast<tDecoration>(atoi(value));
         }
         else if (strcmp(attribute, "Exp1") == 0 || strcmp(attribute, "E1") == 0) hasE1 = true;
         else if (strcmp(attribute, "Exp2") == 0 || strcmp(attribute, "E2") == 0) hasE2 = true;
@@ -3886,7 +3894,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 tmp[2] = 0;
                 int tt = 0;
                 sscanf(tmp, "%X", &tt);
-                m_VMods = (unsigned char)tt;
+                m_VMods = static_cast<unsigned char>(tt);
             }
 
             if (strcmp(attribute, "fnt") == 0 || strcmp(attribute, "f") == 0)
@@ -3901,7 +3909,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                     tmp[2] = 0;
                     int tt = 0;
                     sscanf(tmp, "%X", &tt);
-                    Data2[j] = (char)tt;
+                    Data2[j] = static_cast<char>(tt);
                     if (j >= 23) break;
                     if (j == 0) memset(Data2 + 1, *Data2, 24 - 1);
                     if (XMLFileVersion == 1 && j == 0) m_VMods = tt & 0x1C;
@@ -3920,7 +3928,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                     bfff[1] = value[ij * 2 + 1];
                     bfff[2] = 0;
                     sscanf(bfff, "%X", &fvalue);
-                    Data1[16 + ij] = (char)fvalue;
+                    Data1[16 + ij] = static_cast<char>(fvalue);
                 }
                 Data1[15] = 126;
                 if (value[16] == '_') Data1[15] |= 0x80;
@@ -4001,7 +4009,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 *(char**)Data3 = nullptr;
                 if (value[0])
                 {
-                    *(char**)Data3 = (char*)malloc(300);
+                    *(char**)Data3 = static_cast<char*>(malloc(300));
                     strcpy(*(char**)Data3, value);
                 }
             }
@@ -4086,7 +4094,7 @@ int CElement::CalcChecksum() const
         }
         return c;
     }
-    else if (m_Type == 6)
+    if (m_Type == 6)
     {
         int i = 1;
         while (Data1[i])
@@ -4097,12 +4105,12 @@ int CElement::CalcChecksum() const
         }
         return c;
     }
-    else if (m_Type == 7)
+    if (m_Type == 7)
     {
         c += Data2[1] * 16 + Data2[2] * 32;
         return c;
     }
-    else if (m_Type == 11 || m_Type == 12)
+    if (m_Type == 11 || m_Type == 12)
     {
         c += 4 * Data1[1] + 8 * Data1[2] + 16 * Data1[3] + Data1[10];
     }
@@ -4548,7 +4556,7 @@ void CElement::LaTeX_output(std::ostream& output) const
         }
         char fnt = Data2[0] & 0xE0;
 
-        if (Data2[0] != (char)0xE3 && fnt != 0x60)
+        if (Data2[0] != static_cast<char>(0xE3) && fnt != 0x60)
             if ((Data2[0] & 0x03) == 1 || (Data2[0] & 0x03) == 3) //bold or bold-italic
                 output << "\\mathbf{";
 
@@ -4591,7 +4599,7 @@ void CElement::LaTeX_output(std::ostream& output) const
                 output << "\\min ";
             else if (strcmp(Data1, "max") == 0)
                 output << "\\max ";
-            else if (Data1[0] == (char)0xB6 && fnt == 0x60)
+            else if (Data1[0] == static_cast<char>(0xB6) && fnt == 0x60)
                 output << "\\partial ";
             else
             {
@@ -4605,7 +4613,7 @@ void CElement::LaTeX_output(std::ostream& output) const
 
         if (function_def == 0)
         {
-            if (fnt == (char)0xE0)
+            if (fnt == static_cast<char>(0xE0))
             {
                 if (Data1[0] == 'H')
                     output << "\\cdots ";
@@ -4674,17 +4682,17 @@ void CElement::LaTeX_output(std::ostream& output) const
                     if (c == 'c') str = "chi";
                     if (c == 'y') str = "psi";
                     if (c == 'w') str = "omega";
-                    if (c == (char)0xA5) str = "infty";
-                    if (c == (char)0xC0) str = "aleph";
-                    if (c == (char)0xC1) str = "Im";
-                    if (c == (char)0xC2) str = "Re";
-                    if (c == (char)0xC3) str = "wp";
-                    if (c == (char)0xC6) str = "emptyset";
-                    if (c == (char)0xA1) str = "mathcal{Y}";
-                    if (c == (char)0xA6) str = "mathcal{F}";
-                    if (c == (char)0xD0) str = "angle";
-                    if (c == (char)0xB0) str = "mathcal{Y}";
-                    if (c == (char)0xA1) str = ";"; //degeree ?????
+                    if (c == static_cast<char>(0xA5)) str = "infty";
+                    if (c == static_cast<char>(0xC0)) str = "aleph";
+                    if (c == static_cast<char>(0xC1)) str = "Im";
+                    if (c == static_cast<char>(0xC2)) str = "Re";
+                    if (c == static_cast<char>(0xC3)) str = "wp";
+                    if (c == static_cast<char>(0xC6)) str = "emptyset";
+                    if (c == static_cast<char>(0xA1)) str = "mathcal{Y}";
+                    if (c == static_cast<char>(0xA6)) str = "mathcal{F}";
+                    if (c == static_cast<char>(0xD0)) str = "angle";
+                    if (c == static_cast<char>(0xB0)) str = "mathcal{Y}";
+                    if (c == static_cast<char>(0xA1)) str = ";"; //degeree ?????
                     char bff[16];
                     strcpy_s(bff, "\\");
                     strcat_s(bff, str.c_str());
@@ -4724,7 +4732,7 @@ void CElement::LaTeX_output(std::ostream& output) const
             }
         }
 
-        if (Data2[0] != (char)0xE3 && fnt != 0x60)
+        if (Data2[0] != static_cast<char>(0xE3) && fnt != 0x60)
             if ((Data2[0] & 0x03) == 1 || (Data2[0] & 0x03) == 3)
                 output << "}";
 
@@ -4759,9 +4767,9 @@ void CElement::LaTeX_output(std::ostream& output) const
     {
         std::string str;
         char fb = Data1[0];
-        if (fb == (char)0xD7) str = "\\cdot";
-        if (fb == (char)0xB1) str = "\\pm";
-        if (fb == (char)0xB2) str = "\\mp";
+        if (fb == static_cast<char>(0xD7)) str = "\\cdot";
+        if (fb == static_cast<char>(0xB1)) str = "\\pm";
+        if (fb == static_cast<char>(0xB2)) str = "\\mp";
         if (fb == 'm') str = "\\bmod";
         if (fb == 'n') str = "\\mathrm{not}";
         if (fb == 'a') str = "\\mathrm{and}";
@@ -4773,55 +4781,55 @@ void CElement::LaTeX_output(std::ostream& output) const
         if (fb == 'p') str = "\\perp";
         if (fb == '&') str = "&";
         if (fb == '<') str = "<";
-        if (fb == (char)0xB9) str = "\\neq";
-        if (fb == (char)0x01) str = "\\ll";
-        if (fb == (char)0x02) str = "\\gg";
-        if (fb == (char)0xBB) str = "\\approx";
-        if (fb == (char)0xA3) str = "\\leq";
-        if (fb == (char)0xB3) str = "\\geq;";
-        if (fb == (char)0x40) str = "\\cong";
-        if (fb == (char)0x7E) str = "\\sim";
-        if (fb == (char)0xA0) str = "\\doteq";
-        if (fb == (char)0xB8) str = "\\div";
-        if (fb == (char)0xB5) str = "\\propto";
-        if (fb == (char)0xBA) str = "\\equiv"; //triple equal
-        if (fb == (char)0xBC) str = "\\dots"; //...
+        if (fb == static_cast<char>(0xB9)) str = "\\neq";
+        if (fb == static_cast<char>(0x01)) str = "\\ll";
+        if (fb == static_cast<char>(0x02)) str = "\\gg";
+        if (fb == static_cast<char>(0xBB)) str = "\\approx";
+        if (fb == static_cast<char>(0xA3)) str = "\\leq";
+        if (fb == static_cast<char>(0xB3)) str = "\\geq;";
+        if (fb == static_cast<char>(0x40)) str = "\\cong";
+        if (fb == static_cast<char>(0x7E)) str = "\\sim";
+        if (fb == static_cast<char>(0xA0)) str = "\\doteq";
+        if (fb == static_cast<char>(0xB8)) str = "\\div";
+        if (fb == static_cast<char>(0xB5)) str = "\\propto";
+        if (fb == static_cast<char>(0xBA)) str = "\\equiv"; //triple equal
+        if (fb == static_cast<char>(0xBC)) str = "\\dots"; //...
 
-        if (fb == (char)0xC5) str = "\\oplus";
-        if (fb == (char)0xC4) str = "\\otimes";
-        if (fb == (char)0x24) str = "\\exists";
-        if (fb == (char)0x22) str = "\\forall";
-        if (fb == (char)0x27) str = "\\ni";
-        if (fb == (char)0xCE) str = "\\in";
-        if (fb == (char)0xCF) str = "\\notin";
-        if (fb == (char)0xC7) str = "\\cap";
-        if (fb == (char)0xC8) str = "\\cup";
-        if (fb == (char)0xC9) str = "\\supset";
-        if (fb == (char)0xCA) str = "\\supseteq";
-        if (fb == (char)0xCC) str = "\\subset";
-        if (fb == (char)0xCD) str = "\\subseteq";
-        if (fb == (char)0xCB) str = "\\subset\\mid"; //not-subset?????
+        if (fb == static_cast<char>(0xC5)) str = "\\oplus";
+        if (fb == static_cast<char>(0xC4)) str = "\\otimes";
+        if (fb == static_cast<char>(0x24)) str = "\\exists";
+        if (fb == static_cast<char>(0x22)) str = "\\forall";
+        if (fb == static_cast<char>(0x27)) str = "\\ni";
+        if (fb == static_cast<char>(0xCE)) str = "\\in";
+        if (fb == static_cast<char>(0xCF)) str = "\\notin";
+        if (fb == static_cast<char>(0xC7)) str = "\\cap";
+        if (fb == static_cast<char>(0xC8)) str = "\\cup";
+        if (fb == static_cast<char>(0xC9)) str = "\\supset";
+        if (fb == static_cast<char>(0xCA)) str = "\\supseteq";
+        if (fb == static_cast<char>(0xCC)) str = "\\subset";
+        if (fb == static_cast<char>(0xCD)) str = "\\subseteq";
+        if (fb == static_cast<char>(0xCB)) str = "\\subset\\mid"; //not-subset?????
 
-        if (fb == (char)0xB4) str = "\\times";
-        if (fb == (char)0x44) str = "\\Delta"; //delta
-        if (fb == (char)0xD1) str = "\\nabla"; //nabla operator
+        if (fb == static_cast<char>(0xB4)) str = "\\times";
+        if (fb == static_cast<char>(0x44)) str = "\\Delta"; //delta
+        if (fb == static_cast<char>(0xD1)) str = "\\nabla"; //nabla operator
         if (fb == 'r') str = "\\mathrm{rot}"; //rotor
         if (fb == '*') str = "\\ast"; //asterisk
-        if (fb == (char)0xA1) str = "\\mathcal{Y}"; //pisani Y
-        if (fb == (char)0xA6) str = "\\mathcal{f}"; //pisani f
-        if (fb == (char)0xB7) str = "\\bullet"; //big dot
-        if (fb == (char)0x03) str = "\\circ"; //function composition???
-        if (fb == (char)0xDE) str = "\\Rightarrow";
-        if (fb == (char)0xDC) str = "\\Leftarrow";
-        if (fb == (char)0xDD) str = "\\Uparrow";
-        if (fb == (char)0xDF) str = "\\Downarrow";
-        if (fb == (char)0xDB) str = "\\Leftrightarrow";
-        if (fb == (char)0xAE) str = "\\rightarrow";
-        if (fb == (char)0xAC) str = "\\leftarrow";
-        if (fb == (char)0xAD) str = "\\uparrow";
-        if (fb == (char)0xAF) str = "\\downarrow";
-        if (fb == (char)0xAB) str = "\\leftrightarrow";
-        if (fb == (char)0xE2) str = "\\mapsto";
+        if (fb == static_cast<char>(0xA1)) str = "\\mathcal{Y}"; //pisani Y
+        if (fb == static_cast<char>(0xA6)) str = "\\mathcal{f}"; //pisani f
+        if (fb == static_cast<char>(0xB7)) str = "\\bullet"; //big dot
+        if (fb == static_cast<char>(0x03)) str = "\\circ"; //function composition???
+        if (fb == static_cast<char>(0xDE)) str = "\\Rightarrow";
+        if (fb == static_cast<char>(0xDC)) str = "\\Leftarrow";
+        if (fb == static_cast<char>(0xDD)) str = "\\Uparrow";
+        if (fb == static_cast<char>(0xDF)) str = "\\Downarrow";
+        if (fb == static_cast<char>(0xDB)) str = "\\Leftrightarrow";
+        if (fb == static_cast<char>(0xAE)) str = "\\rightarrow";
+        if (fb == static_cast<char>(0xAC)) str = "\\leftarrow";
+        if (fb == static_cast<char>(0xAD)) str = "\\uparrow";
+        if (fb == static_cast<char>(0xAF)) str = "\\downarrow";
+        if (fb == static_cast<char>(0xAB)) str = "\\leftrightarrow";
+        if (fb == static_cast<char>(0xE2)) str = "\\mapsto";
 
         if (str[0] == 0)
         {
@@ -4893,9 +4901,9 @@ void CElement::LaTeX_output(std::ostream& output) const
         if (Data1[0] == 'P')
             output << "\\prod ";
         if (Data1[0] == 'I')
-            output << (Data2[2]==3?"\\iiint ":Data2[2]==2?"\\iint ":"\\int ");
+            output << (Data2[2] == 3 ? "\\iiint " : Data2[2] == 2 ? "\\iint " : "\\int ");
         if (Data1[0] == 'O')
-            output << (Data2[2]==2?"\\oiint ":"\\oint ");
+            output << (Data2[2] == 2 ? "\\oiint " : "\\oint ");
         if (Data1[0] == '|')
             output << "\\mid ";
         if (Expression3 && Expression3->m_pElementList[0].Type)

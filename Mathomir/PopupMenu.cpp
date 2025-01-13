@@ -27,7 +27,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <algorithm>
 
-#include ".\popupmenu.h"
+#include "./popupmenu.h"
 #include "mainfrm.h"
 #include "toolbox.h"
 #include "drawing.h"
@@ -62,7 +62,7 @@ HANDLE CalcThreadHandle;
 
 DWORD WINAPI CalcThread(LPVOID lpParameter)
 {
-    PopupMenu* Menu = (PopupMenu*)lpParameter;
+    auto Menu = static_cast<PopupMenu*>(lpParameter);
     Sleep(150);
     //without this it doesn't work (strange!!!!) - the popup menu must frist be displayed, then we can add calculated options
     Menu->SymbolicComputation();
@@ -383,7 +383,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             if (graphics == nullptr) break;
             AddMenuOption(TSize_1p3, TSize, keycode, -802 - k, false);
 
-            CExpression* image = new CExpression(0, 0, 100);
+            auto image = new CExpression(nullptr, nullptr, 100);
             image->CopyExpression(graphics, 0);
 
             short l, a, b;
@@ -447,7 +447,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         //the drawing popup menu
         //options: delete, line size, group, ungroup, node edit?, sizing, rotating, mirroring, 
         //         lock, unlock, arrange (left,center,right, top, center, ..)
-        
+
         tDocumentStruct* dss = nullptr;
         int NumDrawings = 0;
         int NumExpressions = 0;
@@ -538,7 +538,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                     if (is_closed) fill_option = 1;
                 }
                 AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 2 * TSize_1p2, "Lock ", Any_locked, 567,
-                                     fill_option == 1 ? false : true);
+                                     fill_option != 1);
                 if (fill_option)
                     AddCheckedMenuOption(5 * TSize / 3 + TSize / 6, 1 * TSize_1p2, "Fill ",
                                          (dss->Object.draw->m_Color & 0xF8) == 8, 589,
@@ -936,7 +936,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         //add list of all availabe internal links
 
         int kkk = 0; //babaluj
-        tDocumentStruct** list = (tDocumentStruct**)malloc(sizeof(tDocumentStruct*) * 256);
+        auto list = static_cast<tDocumentStruct**>(malloc(sizeof(tDocumentStruct*) * 256));
         for (size_t i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct& ds = TheDocument[i];
@@ -988,7 +988,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
                 int tmp = 0;
                 if (e->m_IsHeadline >= 3 || e->m_IsHeadline == 0) tmp = 10;
                 AddMenuOption(TSize / 2 + (is_label ? 5 : 0), max(sz.cx-tmp, 1), buff, 850 + i, true);
-                LocalLinks[i] = (unsigned int)(ds - TheDocument) + (is_label ? 0x80000000 : 0);
+                LocalLinks[i] = static_cast<unsigned int>(ds - TheDocument) + (is_label ? 0x80000000 : 0);
                 if (tmp) PopupOption_Y -= TSize / 22;
             }
             ReleaseDC(DC);
@@ -1023,7 +1023,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         AddMenuOption(0, TSize * 2, "Table lines:", -650, true);
         AddMenuOptionButton(TSize / 3, "No border", 650, 83, false);
         AddMenuOptionButton(TSize_2p3, "Single line border", 651, 84, false);
-        AddMenuOptionButton(TSize, "Double line border", 652, 85, has_internallines ? false : true);
+        AddMenuOptionButton(TSize, "Double line border", 652, 85, !has_internallines);
         if (has_internallines)
         {
             AddMenuOptionButton(TSize / 3 + TSize + TSize / 8, "No lines", 653, 86, false);
@@ -1181,7 +1181,8 @@ int PopupMenu::PrepareSymbolMenu(int y)
     PopupOption_Y += TSize / 10; //separator
     AddMenuOption(0, 5 * TSize_1p2, "Symbol:", -3, true);
     AddCheckedMenuOptionButton(TSize / 3, "Small ", m_theSelectedElement->pElementObject->Data2[0] == 2, 52, 15, false);
-    AddCheckedMenuOptionButton(TSize_2p3, "Medium ", m_theSelectedElement->pElementObject->Data2[0] == 1, 51, 16, false);
+    AddCheckedMenuOptionButton(TSize_2p3, "Medium ", m_theSelectedElement->pElementObject->Data2[0] == 1, 51, 16,
+                               false);
     AddCheckedMenuOptionButton(TSize, "Large ", m_theSelectedElement->pElementObject->Data2[0] == 0, 50, 17, true);
 
 
@@ -1207,7 +1208,7 @@ int PopupMenu::PrepareParenthesesMenu(int y)
     //Height=theexp->m_ParentheseHeightFactor;
     for (const tElementStruct& element : theexp->m_pElementList)
         if (element.Type == 12 ||
-            (element.Type == 2 && element.pElementObject->Data1[0] == (char)0xFF))
+            (element.Type == 2 && element.pElementObject->Data1[0] == static_cast<char>(0xFF)))
         {
             isMultiline = true;
             break;
@@ -1427,7 +1428,7 @@ void PopupMenu::OnPaint()
             cursor.x = mainwnd.left + (KeyboardEntryBaseObject->absolute_X - ViewX) * ViewZoom / 100 - 30 + X;
             cursor.y = mainwnd.top + (KeyboardEntryBaseObject->absolute_Y - ViewY) * ViewZoom / 100 + Y + 5;
             if (cursor.x + m_SizeX > desktop.right) cursor.x = desktop.right - m_SizeX;
-            if (m_OwnerType == 10) cursor.y += 15;;
+            if (m_OwnerType == 10) cursor.y += 15;
             if (cursor.y + Options[m_NumOptions - 1].Y + ToolboxSize / 4 > desktop.bottom)
             {
                 cursor.y -= a + b + Options[m_NumOptions - 1].Y + ToolboxSize / 3;
@@ -1462,7 +1463,7 @@ void PopupMenu::OnPaint()
             y = rct.top;
         }
         if (m_IsFirstPass == 2)
-            SetWindowPos(0, x, y, m_SizeX, m_SizeY,SWP_NOZORDER | SWP_NOMOVE);
+            SetWindowPos(nullptr, x, y, m_SizeX, m_SizeY,SWP_NOZORDER | SWP_NOMOVE);
         else
         {
             if (m_OwnerType == 9)
@@ -1472,7 +1473,7 @@ void PopupMenu::OnPaint()
                 x = min(rr.left+150, desktop.right-100);
                 y = min(rr.top+250, desktop.bottom-50);
             }
-            SetWindowPos(0, x, y, m_SizeX, m_SizeY,SWP_NOZORDER);
+            SetWindowPos(nullptr, x, y, m_SizeX, m_SizeY,SWP_NOZORDER);
         }
 
         if ((m_OwnerType == 3 || m_OwnerType == 10) && KeyboardEntryBaseObject)
@@ -1597,9 +1598,9 @@ void PopupMenu::OnMouseMove(UINT nFlags, CPoint point)
                     Options[i].Graphics->DeselectExpression();
                     CDC* dcc = this->GetDC();
                     SelectedGraphics = Options[i].Graphics->SelectObjectAtPoint(dcc,
-                        (short)Options[i].DataArray[3],
-                        (short)(point.x - Options[i].DataArray[4]),
-                        (short)(point.y - Options[i].DataArray[5]),
+                        static_cast<short>(Options[i].DataArray[3]),
+                        static_cast<short>(point.x - Options[i].DataArray[4]),
+                        static_cast<short>(point.y - Options[i].DataArray[5]),
                         &IsExpression, &IsParenthese);
                     this->ReleaseDC(dcc);
                 }
@@ -1654,7 +1655,7 @@ int PopupMenu::PaintThePopupMenu()
     CDC MenuButtonsDC;
 
     CDC* pdc = this->GetDC();
-    CDC* dc = new CDC();
+    auto dc = new CDC();
     dc->CreateCompatibleDC(pdc);
     RECT rct;
     this->GetClientRect(&rct);
@@ -1780,7 +1781,8 @@ int PopupMenu::PaintThePopupMenu()
                 }
                 else
                 {
-                    CSize len = dc->GetTextExtent(Options[i].Text.c_str(), (int)strlen(Options[i].Text.c_str()));
+                    CSize len = dc->GetTextExtent(Options[i].Text.c_str(),
+                                                  static_cast<int>(strlen(Options[i].Text.c_str())));
                     if (len.cx > Options[i].Cx + TSize / 12 - TSize / 5)
                         dc->SelectObject(
                             GetFontFromPool(4, false, false, TSize / 5 + 2));
@@ -1810,8 +1812,11 @@ int PopupMenu::PaintThePopupMenu()
             }
             else
             {
-                CSize len = dc->GetTextExtent(Options[i].Text.c_str(), (int)strlen(Options[i].Text.c_str()));
-                if (len.cx > Options[i].Cx + TSize / 12) dc->SelectObject(GetFontFromPool(4, false, false, TSize / 5 + 1));
+                CSize len = dc->GetTextExtent(Options[i].Text.c_str(),
+                                              static_cast<int>(strlen(Options[i].Text.c_str())));
+                if (len.cx > Options[i].Cx + TSize / 12)
+                    dc->SelectObject(
+                        GetFontFromPool(4, false, false, TSize / 5 + 1));
                 dc->TextOut(Options[i].X + 2, Options[i].Y + 1, Options[i].Text.c_str());
                 if (is_bold)
                 {
@@ -2033,7 +2038,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 CExpression* exp = elm->Expression1;
                                 if (*(char**)elm->Data3 == nullptr)
                                 {
-                                    char* link = (char*)malloc(340);
+                                    auto link = static_cast<char*>(malloc(340));
                                     *(char**)elm->Data3 = link;
                                 }
                                 char buff[350];
@@ -2057,7 +2062,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 strcpy(*(char**)elm->Data3, buff);
 
                                 if (swap_all || ((exp->m_pElementList[0].Type == 0 || (exp->m_pElementList[0].Type ==
-                                        1 && exp->m_pElementList[0].pElementObject->Data1[0] == 0)) && exp->m_pElementList.size()
+                                        1 && exp->m_pElementList[0].pElementObject->Data1[0] == 0)) && exp->
+                                    m_pElementList.size()
                                     == 1))
                                 {
                                     //empty, fill it inside
@@ -2086,7 +2092,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             }
             if (dataval >= 820 && dataval <= 822) //adding a guideline at this position
             {
-                CExpression* e = new CExpression(nullptr, nullptr, 100);
+                auto e = new CExpression(nullptr, nullptr, 100);
                 if (dataval == 820) AddDocumentObject(EXPRESSION, RullerPositionPreselected, -1101); //nomal guideline
                 else if (dataval == 821) AddDocumentObject(EXPRESSION, RullerPositionPreselected, -1051);
                     //text guideline
@@ -2111,9 +2117,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     char string[65];
                     ValueEntryBox->GetWindowText(string, 64);
                     int beep = 0;
-                    for (int i = 0; i < (int)strlen(string); i++)
+                    for (int i = 0; i < static_cast<int>(strlen(string)); i++)
                     {
-                        unsigned char c = (unsigned char)string[i];
+                        unsigned char c = static_cast<unsigned char>(string[i]);
                         if (c != 10 && c != 13 && c <= 32) beep = 1;
                         if (c <= 32 && c != 0)
                         {
@@ -2128,14 +2134,14 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                     //now check if similar easycast code is alredy defined
                     int k = 0;
-                    int len2 = (int)strlen(string);
+                    int len2 = static_cast<int>(strlen(string));
                     if (len2)
                         while (true)
                         {
                             char* keycode;
                             CExpression* g = Toolbox->ReturnKeycode(k, &keycode);
                             if (!g) break;
-                            int len1 = (int)strlen(keycode);
+                            int len1 = static_cast<int>(strlen(keycode));
 
 
                             if (TheKeycodeString != keycode)
@@ -2179,8 +2185,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                     char string[65];
                     ValueEntryBox->GetWindowText(string, 64);
-                    for (int i = 0; i < (int)strlen(string); i++)
-                        if ((unsigned char)string[i] < 32 && string[i] != 0)
+                    for (int i = 0; i < static_cast<int>(strlen(string)); i++)
+                        if (static_cast<unsigned char>(string[i]) < 32 && string[i] != 0)
                         {
                             memmove(&string[i], &string[i + 1], 64 - i);
                             i--;
@@ -2193,8 +2199,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         char search_first_pass = 1;
                     search_second_pass:
                         //create sorted list (on Y coordinate) of document objects
-                        tDocumentStruct** list = (tDocumentStruct**)malloc(
-                            sizeof(tDocumentStruct*) * NumDocumentElements);
+                        auto list = static_cast<tDocumentStruct**>(malloc(
+                            sizeof(tDocumentStruct*) * NumDocumentElements));
                         for (size_t i = 0; i < NumDocumentElements; i++)
                         {
                             tDocumentStruct& dss = TheDocument[i];
@@ -2276,7 +2282,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             {
                 if (dataval >= 630 && dataval <= 632)
                 {
-                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
                     for (int i = 0; i < m_Expression->m_MaxNumRows; i++)
                         for (int j = 0; j < m_Expression->m_MaxNumColumns; j++)
                         {
@@ -2325,7 +2331,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                     if (top <= bottom && left <= right)
                     {
-                        ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
+                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
 
                         for (int i = top; i <= bottom; i++)
                             for (int j = left; j <= right; j++)
@@ -2439,7 +2445,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 if (dataval >= 601 && dataval <= 603 && (m_Expression->m_IsColumnInsertion || m_Expression->
                     m_IsRowInsertion)) //no line, single line, double line
                 {
-                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
 
                     char c = ' ';
                     if (dataval == 602) c = '-';
@@ -2523,7 +2529,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (data == 590) //add center point (to cyrcle)
                         {
-                            if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("add centerpoint", 20100);
+                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                                "add centerpoint", 20100);
                             CDrawing* drw = ds->Object.draw;
                             int minx, miny, maxx, maxy;
                             drw->FindRealCorner(&minx, &miny, &maxx, &maxy);
@@ -2539,12 +2546,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                         if (data == 591)
                         {
-                            ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("make dashed", 20101);
+                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("make dashed", 20101);
                             ds->Object.draw->MakeDashed(0);
                         }
                         if (data == 592)
                         {
-                            ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("dash-dot", 20102);
+                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("dash-dot", 20102);
                             ds->Object.draw->MakeDashed(1);
                         }
                         if (data == 595 || data == 596 || data == 597) //line endings (arrow, narrow arrow, dot)
@@ -2569,7 +2576,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             }
                             if (is_open && num_points >= 2)
                             {
-                                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("add arrows", 20103);
+                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("add arrows", 20103);
 
                                 double ang = atan2(pp[1].y - pp[0].y, pp[1].x - pp[0].x);
                                 double ang2 = atan2(pp[num_points - 1].y - pp[num_points - 2].y,
@@ -2582,8 +2589,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     tDrawingItem* di = &drw->Items[ii];
                                     if (di->Type == 1)
                                         r += sqrt(
-                                            (double)(di->X1 - di->X2) * (double)(di->X1 - di->X2) + (double)(di->Y1 - di
-                                                ->Y2) * (double)(di->Y1 - di->Y2));
+                                            static_cast<double>(di->X1 - di->X2) * static_cast<double>(di->X1 - di->X2)
+                                            + static_cast<double>(di->Y1 - di
+                                                ->Y2) * static_cast<double>(di->Y1 - di->Y2));
                                 }
 
                                 unsigned char arrow_end = 3;
@@ -2613,8 +2621,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     if (drw->Items[0].LineWidth < 4 * DRWZOOM) r = min(r, 115*DRWZOOM/10);
                                     if (drw->Items[0].LineWidth < 2 * DRWZOOM) r = min(r, 10*DRWZOOM);
                                 }
-                                int X =  lround(cos(ang + dang) * r);
-                                int Y =  lround(sin(ang + dang) * r);
+                                int X = lround(cos(ang + dang) * r);
+                                int Y = lround(sin(ang + dang) * r);
                                 int X2 = lround(cos(ang - dang) * r);
                                 int Y2 = lround(sin(ang - dang) * r);
 
@@ -2643,38 +2651,38 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     POINT* p = pp;
                                     if (data == 597)
                                     {
-                                        di2->X1 = (tDrwXY)(p->x + X);
-                                        di2->Y1 = (tDrwXY)(p->y + Y);
-                                        di2->X2 = (tDrwXY)(p->x + X2);
-                                        di2->Y2 = (tDrwXY)(p->y + Y2);
+                                        di2->X1 = static_cast<int>(p->x + X);
+                                        di2->Y1 = static_cast<int>(p->y + Y);
+                                        di2->X2 = static_cast<int>(p->x + X2);
+                                        di2->Y2 = static_cast<int>(p->y + Y2);
                                         di2++;
-                                        di2->X1 = (tDrwXY)(p->x + X2);
-                                        di2->Y1 = (tDrwXY)(p->y + Y2);
-                                        di2->X2 = (tDrwXY)(p->x - X);
-                                        di2->Y2 = (tDrwXY)(p->y - Y);
+                                        di2->X1 = static_cast<int>(p->x + X2);
+                                        di2->Y1 = static_cast<int>(p->y + Y2);
+                                        di2->X2 = static_cast<int>(p->x - X);
+                                        di2->Y2 = static_cast<int>(p->y - Y);
                                         di2++;
-                                        di2->X1 = (tDrwXY)(p->x - X);
-                                        di2->Y1 = (tDrwXY)(p->y - Y);
-                                        di2->X2 = (tDrwXY)(p->x - X2);
-                                        di2->Y2 = (tDrwXY)(p->y - Y2);
+                                        di2->X1 = static_cast<int>(p->x - X);
+                                        di2->Y1 = static_cast<int>(p->y - Y);
+                                        di2->X2 = static_cast<int>(p->x - X2);
+                                        di2->Y2 = static_cast<int>(p->y - Y2);
                                         di2++;
-                                        di2->X1 = (tDrwXY)(p->x - X2);
-                                        di2->Y1 = (tDrwXY)(p->y - Y2);
-                                        di2->X2 = (tDrwXY)(p->x + X);
-                                        di2->Y2 = (tDrwXY)(p->y + Y);
+                                        di2->X1 = static_cast<int>(p->x - X2);
+                                        di2->Y1 = static_cast<int>(p->y - Y2);
+                                        di2->X2 = static_cast<int>(p->x + X);
+                                        di2->Y2 = static_cast<int>(p->y + Y);
                                         di2++;
                                     }
                                     else
                                     {
-                                        di2->X1 = (tDrwXY)p->x;
-                                        di2->Y1 = (tDrwXY)p->y;
-                                        di2->X2 = (tDrwXY)(p->x + X);
-                                        di2->Y2 = (tDrwXY)(p->y + Y);
+                                        di2->X1 = static_cast<int>(p->x);
+                                        di2->Y1 = static_cast<int>(p->y);
+                                        di2->X2 = static_cast<int>(p->x + X);
+                                        di2->Y2 = static_cast<int>(p->y + Y);
                                         di2++;
-                                        di2->X1 = (tDrwXY)p->x;
-                                        di2->Y1 = (tDrwXY)p->y;
-                                        di2->X2 = (tDrwXY)(p->x + X2);
-                                        di2->Y2 = (tDrwXY)(p->y + Y2);
+                                        di2->X1 = static_cast<int>(p->x);
+                                        di2->Y1 = static_cast<int>(p->y);
+                                        di2->X2 = static_cast<int>(p->x + X2);
+                                        di2->Y2 = static_cast<int>(p->y + Y2);
                                         di2++;
                                     }
                                 }
@@ -2683,38 +2691,38 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     POINT* p = pp + num_points - 1;
                                     if (data == 597)
                                     {
-                                        di2->X1 = (tDrwXY)(p->x + X3);
-                                        di2->Y1 = (tDrwXY)(p->y + Y3);
-                                        di2->X2 = (tDrwXY)(p->x + X4);
-                                        di2->Y2 = (tDrwXY)(p->y + Y4);
+                                        di2->X1 = static_cast<int>(p->x + X3);
+                                        di2->Y1 = static_cast<int>(p->y + Y3);
+                                        di2->X2 = static_cast<int>(p->x + X4);
+                                        di2->Y2 = static_cast<int>(p->y + Y4);
                                         di2++;
-                                        di2->X1 = (tDrwXY)(p->x + X4);
-                                        di2->Y1 = (tDrwXY)(p->y + Y4);
-                                        di2->X2 = (tDrwXY)(p->x - X3);
-                                        di2->Y2 = (tDrwXY)(p->y - Y3);
+                                        di2->X1 = static_cast<int>(p->x + X4);
+                                        di2->Y1 = static_cast<int>(p->y + Y4);
+                                        di2->X2 = static_cast<int>(p->x - X3);
+                                        di2->Y2 = static_cast<int>(p->y - Y3);
                                         di2++;
-                                        di2->X1 = (tDrwXY)(p->x - X3);
-                                        di2->Y1 = (tDrwXY)(p->y - Y3);
-                                        di2->X2 = (tDrwXY)(p->x - X4);
-                                        di2->Y2 = (tDrwXY)(p->y - Y4);
+                                        di2->X1 = static_cast<int>(p->x - X3);
+                                        di2->Y1 = static_cast<int>(p->y - Y3);
+                                        di2->X2 = static_cast<int>(p->x - X4);
+                                        di2->Y2 = static_cast<int>(p->y - Y4);
                                         di2++;
-                                        di2->X1 = (tDrwXY)(p->x - X4);
-                                        di2->Y1 = (tDrwXY)(p->y - Y4);
-                                        di2->X2 = (tDrwXY)(p->x + X3);
-                                        di2->Y2 = (tDrwXY)(p->y + Y3);
+                                        di2->X1 = static_cast<int>(p->x - X4);
+                                        di2->Y1 = static_cast<int>(p->y - Y4);
+                                        di2->X2 = static_cast<int>(p->x + X3);
+                                        di2->Y2 = static_cast<int>(p->y + Y3);
                                         di2++;
                                     }
                                     else
                                     {
-                                        di2->X1 = (tDrwXY)p->x;
-                                        di2->Y1 = (tDrwXY)p->y;
-                                        di2->X2 = (tDrwXY)(p->x - X3);
-                                        di2->Y2 = (tDrwXY)(p->y - Y3);
+                                        di2->X1 = static_cast<int>(p->x);
+                                        di2->Y1 = static_cast<int>(p->y);
+                                        di2->X2 = static_cast<int>(p->x - X3);
+                                        di2->Y2 = static_cast<int>(p->y - Y3);
                                         di2++;
-                                        di2->X1 = (tDrwXY)p->x;
-                                        di2->Y1 = (tDrwXY)p->y;
-                                        di2->X2 = (tDrwXY)(p->x - X4);
-                                        di2->Y2 = (tDrwXY)(p->y - Y4);
+                                        di2->X1 = static_cast<int>(p->x);
+                                        di2->Y1 = static_cast<int>(p->y);
+                                        di2->X2 = static_cast<int>(p->x - X4);
+                                        di2->Y2 = static_cast<int>(p->y - Y4);
                                         di2++;
                                     }
                                 }
@@ -2740,7 +2748,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }*/
                         if (data == 594) //add grid lines to coordinate system
                         {
-                            ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("add grid lines", 20104);
+                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("add grid lines", 20104);
                             CDrawing* drw = ds->Object.draw;
                             int minx, miny, maxx, maxy;
                             drw->FindRealCorner(&minx, &miny, &maxx, &maxy);
@@ -2827,14 +2835,14 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                         if (data == 593) //close path
                         {
-                            if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("close path", 20105);
+                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("close path", 20105);
                             CDrawing* drw = ds->Object.draw;
                             drw->IsOpenPath(1);
                         }
 
                         if (data == 501) //delete
                         {
-                            if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("delete", 20106);
+                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("delete", 20106);
                             pMainView->DeleteDocumentObject(ds);
                             ii--;
                         }
@@ -2844,7 +2852,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                         if (data >= 580 && data < 590) //color changing
                         {
-                            if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("color", 20107);
+                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("color", 20107);
                             if (data == 589) ds->Object.draw->SetColor(0x08);
                             else if (ds->Type == EXPRESSION) ds->Object.exp->SetColor(data - 581);
                             else if (ds->Type == DRAWING) ds->Object.draw->SetColor(data - 581);
@@ -2861,7 +2869,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (data == 566) lw = 4 * DRWZOOM; //fat line
                             if (lw)
                             {
-                                if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("line width", 20108);
+                                if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                                    "line width", 20108);
                                 drw->SetLineWidth(lw);
                                 int x, y, w, h;
                                 drw->AdjustCoordinates(&x, &y, &w, &h);
@@ -2878,12 +2887,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             }
                             if (data == 513) //break apart
                             {
-                                if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("break apart", 20109);
+                                if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                                    "break apart", 20109);
                                 drw->BreakApart(nullptr, nullptr);
                             }
                             if (data == 514) //combine
                             {
-                                if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("combine", 20110);
+                                if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("combine", 20110);
                                 drw->Combine();
                                 break;
                             }
@@ -2912,7 +2922,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             int maxright = 0;
                             int pass = 0;
-                            ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("align", 20113);
+                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("align", 20113);
 
                             for (; pass < 2; pass++)
                                 for (size_t indx = 0; indx < NumDocumentElements; indx++)
@@ -2931,13 +2941,17 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                                 if (ts->Type == 2)
                                                 {
                                                     char ch = ts->pElementObject->Data1[0];
-                                                    if (ch == '=' || ch == '<' || ch == '>' || ch == (char)0xB9
+                                                    if (ch == '=' || ch == '<' || ch == '>' || ch == static_cast<char>(
+                                                            0xB9)
                                                         ||
-                                                        ch == (char)0x01 || ch == (char)0x02 || ch == (char)0xB8
+                                                        ch == static_cast<char>(0x01) || ch == static_cast<char>(0x02)
+                                                        || ch == static_cast<char>(0xB8)
                                                         ||
-                                                        ch == (char)0xA3 || ch == (char)0xB3 || ch == (char)0xBB
+                                                        ch == static_cast<char>(0xA3) || ch == static_cast<char>(0xB3)
+                                                        || ch == static_cast<char>(0xBB)
                                                         ||
-                                                        ch == (char)0xA0 || ch == (char)0x40 || ch == (char)0xB5
+                                                        ch == static_cast<char>(0xA0) || ch == static_cast<char>(0x40)
+                                                        || ch == static_cast<char>(0xB5)
                                                         ||
                                                         ch == '1' || ch == '2')
                                                         break;
@@ -2964,7 +2978,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (found == 0)
                             {
-                                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("v. distribution", 20112);
+                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("v. distribution", 20112);
                                 size_t numelm = 0;
                                 for (size_t indx = 0; indx < NumDocumentElements; indx++)
                                 {
@@ -2974,7 +2988,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                         (dsx.Type == EXPRESSION && dsx.Object.exp->m_Selection == 0x7FFF)))
                                         numelm++;
                                 }
-                                std::pair<int, int>* list = new std::pair<int, int>[numelm * 2];
+                                auto list = new std::pair<int, int>[numelm * 2];
                                 numelm = 0;
                                 for (int indx = 0; indx < NumDocumentElements; indx++)
                                 {
@@ -3018,7 +3032,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (found == 0)
                             {
-                                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("align", 20113);
+                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("align", 20113);
                                 if (data == 560) { StartY = -1; } //left
                                 if (data == 561) { StartX = -1; } //top
                                 if (data == 562)
@@ -3054,7 +3068,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (found == 0)
                             {
-                                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("rotate", 20114);
+                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("rotate", 20114);
                                 StartX = (StartX + MaxX) / 2;
                                 StartY = (StartY + MaxY) / 2;
                             }
@@ -3100,7 +3114,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (ds->Type == DRAWING)
                             {
                                 ds->Object.draw->RotateForAngle(
-                                    (float)angle, -ds->absolute_X + StartX, -ds->absolute_Y + StartY, &x1, &y1, &w, &h);
+                                    static_cast<float>(angle), -ds->absolute_X + StartX, -ds->absolute_Y + StartY, &x1,
+                                    &y1, &w, &h);
                                 ds->absolute_X = StartX + x1;
                                 ds->absolute_Y = StartY + y1;
                                 ds->Length = w;
@@ -3112,12 +3127,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 int Y = ds->absolute_Y;
                                 int X = ds->absolute_X;
                                 double rad = sqrt(
-                                    (double)(X - StartX) * (double)(X - StartX) + (double)(Y - StartY) * (double)(Y -
+                                    static_cast<double>(X - StartX) * static_cast<double>(X - StartX) + static_cast<
+                                        double>(Y - StartY) * static_cast<double>(Y -
                                         StartY));
                                 curangle = atan2(-Y + StartY, X - StartX);
                                 curangle += angle;
-                                ds->absolute_X = (int)(rad * cos(curangle)) + StartX;
-                                ds->absolute_Y = -(int)(rad * sin(curangle)) + StartY;
+                                ds->absolute_X = static_cast<int>(rad * cos(curangle)) + StartX;
+                                ds->absolute_Y = -static_cast<int>(rad * sin(curangle)) + StartY;
                             }
                         }
                         if ((data >= 507 && data <= 512) ||
@@ -3128,9 +3144,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (found == 0)
                             {
                                 if (data == 535 || data == 536)
-                                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("mirror", 20115);
+                                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("mirror", 20115);
                                 else
-                                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("size", 20116);
+                                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("size", 20116);
                                 StartX = (StartX + MaxX) / 2;
                                 StartY = (StartY + MaxY) / 2;
                             }
@@ -3239,9 +3255,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (data == 515)
                             {
                                 if (ValueEntryBoxString[0] == '+' || ValueEntryBoxString[0] == '-')
-                                    factorx = factory = (float)(1 + atof(ValueEntryBoxString) / 100);
+                                    factorx = factory = static_cast<float>(1 + atof(ValueEntryBoxString) / 100);
                                 else
-                                    factorx = factory = (float)(atof(ValueEntryBoxString) / 100);
+                                    factorx = factory = static_cast<float>(atof(ValueEntryBoxString) / 100);
 
                                 if (ValueEntryBox)
                                 {
@@ -3274,21 +3290,21 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     ds->Object.exp->ChangeFontSize(factorx);
                             }
 
-                            ds->Length = abs((int)(ds->Length * factorx));
-                            ds->Below = abs((int)(ds->Below * factory));
-                            float gx = (float)(ds->absolute_X - StartX) * factorx;
-                            float gy = (float)(ds->absolute_Y - StartY) * factory;
-                            ds->absolute_X = StartX + (int)gx;
-                            if (gx - (int)gx > 0.5) ds->absolute_X++;
+                            ds->Length = abs(static_cast<int>(ds->Length * factorx));
+                            ds->Below = abs(static_cast<int>(ds->Below * factory));
+                            float gx = static_cast<float>(ds->absolute_X - StartX) * factorx;
+                            float gy = static_cast<float>(ds->absolute_Y - StartY) * factory;
+                            ds->absolute_X = StartX + static_cast<int>(gx);
+                            if (gx - static_cast<int>(gx) > 0.5) ds->absolute_X++;
                             if (factorx < 0) ds->absolute_X -= ds->Length;
-                            ds->absolute_Y = StartY + (int)gy;
-                            if (gy - (int)gy > 0.5) ds->absolute_Y++;
+                            ds->absolute_Y = StartY + static_cast<int>(gy);
+                            if (gy - static_cast<int>(gy) > 0.5) ds->absolute_Y++;
                             if (factory < 0) ds->absolute_Y -= ds->Below;
                         }
 
                         if (data == 506 && ds->Type == DRAWING) //ungroup option
                         {
-                            if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("ungroup", 20117);
+                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("ungroup", 20117);
                             CDrawing* drw = ds->Object.draw;
                             for (int kk = 0; kk < drw->NumItems; kk++)
                             {
@@ -3299,7 +3315,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     if (di->Type == 2)
                                     {
                                         CDC* DC = this->GetDC();
-                                        ((CExpression*)di->pSubdrawing)->CalculateSize(DC, ViewZoom, l, &a, &b);
+                                        static_cast<CExpression*>(di->pSubdrawing)->CalculateSize(
+                                            DC, ViewZoom, l, &a, &b);
                                         this->ReleaseDC(DC);
                                     }
                                     //CMainFrame *mf=(CMainFrame*)theApp.m_pMainWnd;
@@ -3314,9 +3331,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     ds2->MovingDotState = 0;
                                     ds2->Object.v = di->pSubdrawing;
                                     if (di->Type == 0)
-                                        ((CDrawing*)di->pSubdrawing)->SelectDrawing(false);
+                                        static_cast<CDrawing*>(di->pSubdrawing)->SelectDrawing(false);
                                     else if (di->Type == 2)
-                                        ((CExpression*)di->pSubdrawing)->DeselectExpression();
+                                        static_cast<CExpression*>(di->pSubdrawing)->DeselectExpression();
                                     for (int kkk = kk; kkk < drw->NumItems - 1; kkk++)
                                         (drw->Items[kkk]) = (drw->Items[kkk + 1]);
                                     drw->NumItems--;
@@ -3334,7 +3351,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (data == 505) //group option
                         {
-                            if (found == 0) ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("group", 20118);
+                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("group", 20118);
                             int X = ds->absolute_X;
                             int Y = ds->absolute_Y;
                             if (ds->Type == EXPRESSION) Y -= ds->Above;
@@ -3397,7 +3414,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (((Options[m_SelectedOption].Data >= 3 && Options[m_SelectedOption].Data <= 7) || Options[
                 m_SelectedOption].Data == 130) && m_Expression)
             {
-                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("decoration", 20200);
+                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("decoration", 20200);
                 int data = Options[m_SelectedOption].Data;
 
                 for (tElementStruct& ts : m_Expression->m_pElementList)
@@ -3442,7 +3459,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (ClipboardExpression)
                     {
-                        ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("Paste", 20201);
+                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("Paste", 20201);
                         m_Expression->CopyAtPoint(nullptr, ViewZoom, -1, -1, ClipboardExpression);
                         delete_clipboard_at_exit = 1;
                     }
@@ -3466,7 +3483,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             (int&)m_Expression->m_pElementList[m_Expression->m_IsKeyboardEntry - 1].Decoration |= 0x40;
                         }
 
-                        ((CMainFrame*)theApp.m_pMainWnd)->UndoSave(
+                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
                             Options[m_SelectedOption].Data == 1 ? "Pick up" : "Delete",
                             Options[m_SelectedOption].Data == 1 ? 20202 : 20203);
                         CExpression* parent = m_Expression->m_pPaternalExpression;
@@ -3497,7 +3514,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (Options[m_SelectedOption].Data >= 90 && Options[m_SelectedOption].Data < 99) //alignment options
             {
                 int kaka = Options[m_SelectedOption].Data;
-                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave(
+                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
                     kaka == 93 ? "vertical" : kaka > 93 ? "expanding" : "alignment",
                     kaka == 93 ? 20204 : kaka > 93 ? 20205 : 20206);
                 if (kaka == 90) m_Expression->m_Alignment = 1;
@@ -3568,7 +3585,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (Options[m_SelectedOption].Data >= 80 && Options[m_SelectedOption].Data < 90)
             {
                 //color options
-                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("color", 20107);
+                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("color", 20107);
                 int data = Options[m_SelectedOption].Data;
                 if (m_MenuType == 1)
                 {
@@ -3675,7 +3692,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (*(char**)m_theSelectedElement->pElementObject->Data3 == nullptr)
                     {
-                        char* link = (char*)malloc(340);
+                        auto link = static_cast<char*>(malloc(340));
                         strcpy(link, "http://");
                         *(char**)m_theSelectedElement->pElementObject->Data3 = link;
                     }
@@ -3683,7 +3700,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         char* url = *(char**)m_theSelectedElement->pElementObject->Data3;
                         ValueEntryBox->GetWindowTextA(url, 299);
-                        int len = (int)strlen(url);
+                        int len = static_cast<int>(strlen(url));
                         for (int i = 0; i < len; i++)
                         {
                             if (url[i] < 32)
@@ -3725,7 +3742,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             {
                 //symbol size (height) menu handling
                 int data = Options[m_SelectedOption].Data;
-                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("symbol height", 20208);
+                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("symbol height", 20208);
                 if (data == 50) //large size
                     m_theSelectedElement->pElementObject->Data2[0] = 0;
                 if (data == 51) //medium size
@@ -3741,7 +3758,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 //the "implanting paste" option
 
                 //first create a temporary storage expression
-                CExpression* tmpExpression = new CExpression(nullptr, nullptr, 100);
+                auto tmpExpression = new CExpression(nullptr, nullptr, 100);
                 if (tmpExpression == nullptr) return;
 
                 //then copy current selection object into it
@@ -3752,12 +3769,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                 //copy this into the clipboard expression, at exact mouse position
                 ClipboardExpression->CopyAtPoint(dcc,
-                                                 (short)Options[m_SelectedOption].DataArray[3],
-                                                 (short)(point.x - Options[m_SelectedOption].DataArray[4]),
-                                                 (short)(point.y - Options[m_SelectedOption].DataArray[5]),
+                                                 static_cast<short>(Options[m_SelectedOption].DataArray[3]),
+                                                 static_cast<short>(point.x - Options[m_SelectedOption].DataArray[4]),
+                                                 static_cast<short>(point.y - Options[m_SelectedOption].DataArray[5]),
                                                  tmpExpression);
 
-                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("implanting", 20209);
+                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("implanting", 20209);
 
                 ClipboardExpression->CalculateSize(dcc, ViewZoom, l, &a, &b);
                 m_Expression->CopyAtPoint(dcc, ViewZoom, -1, -1, ClipboardExpression);
@@ -3776,7 +3793,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             //computation choice
             if (Options[m_SelectedOption].Data == 61 || Options[m_SelectedOption].Data == 62)
             {
-                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("computation", 20210);
+                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("computation", 20210);
                 if (ClipboardExpression) delete_clipboard_at_exit = 1;
 
                 if (this->m_Expression == nullptr && m_SelectedSuboption != 2)
@@ -3800,7 +3817,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     //NumDocumentElements++;
                     //pMainView->CheckDocumentMemoryReservations();
 
-                    CExpression* copy2 = new CExpression(nullptr, nullptr, DefaultFontSize);
+                    auto copy2 = new CExpression(nullptr, nullptr, DefaultFontSize);
                     copy2->CopyExpression(Options[m_SelectedOption].Graphics, 0);
 
                     short l, a, b;
@@ -3822,13 +3839,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     //ds->absolute_Y=maxY+a+5+a/6;
                     //ds->Type=1; //expression
                     ds->Object.exp = copy2;
-                    ds->Length = (short)((int)l * 100 / (int)ViewZoom);
-                    ds->Above = (short)((int)a * 100 / (int)ViewZoom);
-                    ds->Below = (short)((int)b * 100 / (int)ViewZoom);
-                    ds->MovingDotState = (char)0x80;
+                    ds->Length = static_cast<short>(static_cast<int>(l) * 100 / static_cast<int>(ViewZoom));
+                    ds->Above = static_cast<short>(static_cast<int>(a) * 100 / static_cast<int>(ViewZoom));
+                    ds->Below = static_cast<short>(static_cast<int>(b) * 100 / static_cast<int>(ViewZoom));
+                    ds->MovingDotState = static_cast<char>(0x80);
 
 
-                    ((CMainFrame*)theApp.m_pMainWnd)->RearangeObjects(delta2);
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->RearangeObjects(delta2);
 
                     pMainView->m_PopupMenuObject = ds;
 
@@ -3871,7 +3888,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         //int fsh=((CExpression*)(org_ds->Object))->m_FontSizeHQ;
                         if (m_OwnerType != 3 || KeyboardEntryBaseObject == nullptr)
                         {
-                            CExpression* copy = new CExpression(nullptr, nullptr, 100);
+                            auto copy = new CExpression(nullptr, nullptr, 100);
                             copy->CopyExpression(parent, 0);
                             int ps = parent->m_ParentheseShape;
                             //int ph=parent->m_ParentheseHeightFactor;
@@ -3974,15 +3991,15 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         //ds->absolute_Y=org_ds->absolute_Y+delta;
                         //ds->Type=1; //expression
                         ds->Object.exp = copy2;
-                        ds->Length = (short)((int)l * 100 / (int)ViewZoom);
-                        ds->Above = (short)((int)a * 100 / (int)ViewZoom);
-                        ds->Below = (short)((int)b * 100 / (int)ViewZoom);
-                        ds->MovingDotState = (char)0x80;
+                        ds->Length = static_cast<short>(static_cast<int>(l) * 100 / static_cast<int>(ViewZoom));
+                        ds->Above = static_cast<short>(static_cast<int>(a) * 100 / static_cast<int>(ViewZoom));
+                        ds->Below = static_cast<short>(static_cast<int>(b) * 100 / static_cast<int>(ViewZoom));
+                        ds->MovingDotState = static_cast<char>(0x80);
                         for (size_t i = 0; i < NumDocumentElements - 1; i++)
                             if (TheDocument[i].absolute_Y < ds->absolute_Y)
-                                TheDocument[i].MovingDotState |= (char)0x40;
+                                TheDocument[i].MovingDotState |= static_cast<char>(0x40);
 
-                        ((CMainFrame*)theApp.m_pMainWnd)->RearangeObjects(delta2);
+                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->RearangeObjects(delta2);
 
                         pMainView->m_PopupMenuObject = ds;
 
@@ -4029,7 +4046,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     }
                     else
                     {
-                        if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->m_pElementList.size() - 1)
+                        if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->m_pElementList.size() -
+                            1)
                         {
                             int prnth = m_Expression->m_ParenthesesFlags;
                             m_Expression->CopyExpression(Options[m_SelectedOption].Graphics, 0);
@@ -4063,9 +4081,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 int data = Options[m_SelectedOption].Data;
 
                 if (data == 45 || data == 46 || data == 47 || data == 48 || data == 55 || data == 54)
-                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("font size", 20211);
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font size", 20211);
                 else
-                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("parentheses format", 20212);
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("parentheses format", 20212);
 
                 if (data == 30) //'none' option chosen (no parentheses)
                 {
@@ -4136,13 +4154,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (m_theSelectedElement->pElementObject->Expression1)
                     {
-                        ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("index remove", 20213);
+                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
                         delete m_theSelectedElement->pElementObject->Expression1;
                         m_theSelectedElement->pElementObject->Expression1 = nullptr;
                     }
                     else
                     {
-                        ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("index add", 20214);
+                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
                         m_theSelectedElement->pElementObject->Expression1 = new CExpression(
                             m_theSelectedElement->pElementObject, m_Expression,
                             m_theSelectedElement->pElementObject->FontSizeForType(1));
@@ -4151,11 +4169,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else if (data == 20) //convert to function
                 {
-                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("convert to function", 20215);
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("convert to function", 20215);
                     m_theSelectedElement->Type = 6;
                     CElementInitPaternalExpression = m_theSelectedElement->pElementObject->m_pPaternalExpression;
                     CElementInitType = 6;
-                    CElement* newElement = new CElement();
+                    auto newElement = new CElement();
                     newElement->Empty(1);
                     if (m_theSelectedElement->pElementObject->Expression1)
                     {
@@ -4188,13 +4206,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (tmpExpression->m_pPaternalElement->Expression2)
                             {
-                                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("index remove", 20213);
+                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
                                 delete tmpExpression->m_pPaternalElement->Expression2;
                                 tmpExpression->m_pPaternalElement->Expression2 = nullptr;
                             }
                             else
                             {
-                                ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("index add", 20214);
+                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
                                 tmpExpression->m_pPaternalElement->Expression2 = new CExpression(
                                     tmpExpression->m_pPaternalElement, tmpExpression->m_pPaternalExpression,
                                     tmpExpression->m_pPaternalElement->FontSizeForType(2));
@@ -4208,13 +4226,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (m_theSelectedElement->pElementObject->Expression2)
                         {
-                            ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("index remove", 20213);
+                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
                             delete m_theSelectedElement->pElementObject->Expression2;
                             m_theSelectedElement->pElementObject->Expression2 = nullptr;
                         }
                         else
                         {
-                            ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("index add", 20214);
+                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
                             m_theSelectedElement->pElementObject->Expression2 = new CExpression(
                                 m_theSelectedElement->pElementObject, m_Expression,
                                 m_theSelectedElement->pElementObject->FontSizeForType(2));
@@ -4224,11 +4242,11 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else if (data == 22) //convert to variable
                 {
-                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("convert to variable", 20216);
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("convert to variable", 20216);
                     m_theSelectedElement->Type = 1;
                     CElementInitPaternalExpression = m_theSelectedElement->pElementObject->m_pPaternalExpression;
                     CElementInitType = 1;
-                    CElement* newElement = new CElement();
+                    auto newElement = new CElement();
                     if (m_theSelectedElement->pElementObject->Expression2)
                     {
                         newElement->Expression1 = new CExpression(
@@ -4251,7 +4269,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else if (data == 23 || data == 27) //convert to unit, convert to variable (from unit)
                 {
-                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave(
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
                         data == 23 ? "convert to unit" : "convert to variable", data == 23 ? 20217 : 20216);
                     if (m_theSelectedElement->pElementObject->m_VMods != 0x10)
                     {
@@ -4269,7 +4287,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else
                 {
-                    ((CMainFrame*)theApp.m_pMainWnd)->UndoSave("font format", 20218);
+                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font format", 20218);
                     char font_first = 0;
                     if (m_theSelectedElement && m_theSelectedElement->pElementObject)
                         font_first = m_theSelectedElement->pElementObject->Data2[0];
@@ -4420,8 +4438,10 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             }
             if (m_OwnerType == 0) //the toolbox
             {
-                ((CToolbox*)m_Owner)->PopupCloses(m_UserParam,
-                                                  PopupMenuSecondPassChoosing ? 1 : Options[m_SelectedOption].Data);
+                static_cast<CToolbox*>(m_Owner)->PopupCloses(m_UserParam,
+                                                             PopupMenuSecondPassChoosing
+                                                                 ? 1
+                                                                 : Options[m_SelectedOption].Data);
             }
             if (m_OwnerType == 3) //keyboard entry (double '?')
             {
@@ -4488,7 +4508,7 @@ int PopupMenu::HidePopupMenu()
         }
         if (m_OwnerType == 0) //the toolbox
         {
-            ((CToolbox*)m_Owner)->PopupCloses(m_UserParam, 0); //EXIT CODE=0;
+            static_cast<CToolbox*>(m_Owner)->PopupCloses(m_UserParam, 0); //EXIT CODE=0;
         }
         if (m_OwnerType == 3 && KeyboardEntryObject) //keyboard entry mode
         {
@@ -4661,14 +4681,14 @@ BOOL PopupMenu::OnCommand(WPARAM wParam, LPARAM lParam)
     if (ValueEntryBox)
     {
         ValueEntryBox->GetWindowText(ValueEntryBoxString, 299);
-        for (int i = 0; i < (int)strlen(ValueEntryBoxString); i++)
+        for (int i = 0; i < static_cast<int>(strlen(ValueEntryBoxString)); i++)
             if (ValueEntryBoxString[i] == 0x0D)
             {
                 m_SelectedOption = ValueEntryBoxData;
                 if (entry_box_first_call == 1)
                 {
                     entry_box_first_call = 0;
-                    PopupMenu::OnLButtonDown(0x1234, CPoint(-1, -1));
+                    OnLButtonDown(0x1234, CPoint(-1, -1));
                 }
                 return 1;
             }
@@ -4739,7 +4759,8 @@ int PopupMenu::ExtractSelection(int StartPos, int EndPos, int* StartSel, int* En
         for (int i = *StartSel; i <= *EndSel; i++)
         {
             if (m_Expression->m_pElementList[i].Type == 12) found_nl = 1;
-            ExtractedSelection->InsertElement(m_Expression->m_pElementList[i], ExtractedSelection->m_pElementList.size());
+            ExtractedSelection->InsertElement(m_Expression->m_pElementList[i],
+                                              ExtractedSelection->m_pElementList.size());
         }
         if (found_nl)
         {
@@ -4782,7 +4803,7 @@ int PopupMenu::SymbolicComputation()
                         tmp->m_pElementList[0].Type == 11 || tmp->m_pElementList[0].Type == 12))
                     continue;
                 if (!tmp->IsSuitableForComputation()) continue;
-                int lvl = tmp->FindLowestOperatorLevel((char)0xD7);
+                int lvl = tmp->FindLowestOperatorLevel(static_cast<char>(0xD7));
                 if (lvl > EqLevel)
                 {
                     //for expression of higher-than equation level, include directly
@@ -4792,54 +4813,51 @@ int PopupMenu::SymbolicComputation()
                     if (NumEquations > 16) break; //current limit is 16
                     continue;
                 }
-                else
+                //for other expression, pare to equation level
+                //first parse the expression in that areform: 'Equation1;Equation2;Equation3'
+                int pos = 0;
+                while (true)
                 {
-                    //for other expression, pare to equation level
-                    //first parse the expression in that areform: 'Equation1;Equation2;Equation3'
-                    int pos = 0;
-                    while (true)
+                    char et;
+                    bool p;
+                    int l = tmp->GetElementLen(pos, tmp->m_pElementList.size() - 1, min(lvl, EqLevel-1), &et, p);
+                    if (l == 0) break;
+                    int lvl2 = tmp->FindLowestOperatorLevel(pos + p, pos + l - 1, static_cast<char>(0xD7));
+                    if (lvl2 == EqLevel)
                     {
-                        char et;
-                        bool p;
-                        int l = tmp->GetElementLen(pos, tmp->m_pElementList.size() - 1, min(lvl, EqLevel-1), &et, p);
-                        if (l == 0) break;
-                        int lvl2 = tmp->FindLowestOperatorLevel(pos + p, pos + l - 1, (char)0xD7);
-                        if (lvl2 == EqLevel)
+                        //second, pare an complex equation: 'exrpession1=expression2=expression3'
+                        //into simpler equations: 'expression1=expression2' and 'expression2=expression3'
+                        int pos2 = pos + p;
+                        int ppos = pos + p;
+                        while (true)
                         {
-                            //second, pare an complex equation: 'exrpession1=expression2=expression3'
-                            //into simpler equations: 'expression1=expression2' and 'expression2=expression3'
-                            int pos2 = pos + p;
-                            int ppos = pos + p;
-                            while (true)
+                            char et2;
+                            bool p2;
+                            int l2 = tmp->GetElementLen(pos2, pos + l - 1, EqLevel, &et2, p2);
+                            if (l2 == 0) break;
+                            if (pos2 > pos + p)
                             {
-                                char et2;
-                                bool p2;
-                                int l2 = tmp->GetElementLen(pos2, pos + l - 1, EqLevel, &et2, p2);
-                                if (l2 == 0) break;
-                                if (pos2 > pos + p)
+                                System[NumEquations] = new CExpression(nullptr, nullptr, 100);
+                                for (int kk = ppos; kk < pos2; kk++)
+                                    System[NumEquations]->InsertElement(
+                                        tmp->m_pElementList[kk], System[NumEquations]->m_pElementList.size());
+                                for (int kk = pos2; kk < pos2 + l2; kk++)
+                                    System[NumEquations]->InsertElement(
+                                        tmp->m_pElementList[kk], System[NumEquations]->m_pElementList.size());
+                                NumEquations++;
+                                if (NumEquations > 16)
                                 {
-                                    System[NumEquations] = new CExpression(nullptr, nullptr, 100);
-                                    for (int kk = ppos; kk < pos2; kk++)
-                                        System[NumEquations]->InsertElement(
-                                            tmp->m_pElementList[kk], System[NumEquations]->m_pElementList.size());
-                                    for (int kk = pos2; kk < pos2 + l2; kk++)
-                                        System[NumEquations]->InsertElement(
-                                            tmp->m_pElementList[kk], System[NumEquations]->m_pElementList.size());
-                                    NumEquations++;
-                                    if (NumEquations > 16)
-                                    {
-                                        pos2 = tmp->m_pElementList.size();
-                                        break;
-                                    }
+                                    pos2 = tmp->m_pElementList.size();
+                                    break;
                                 }
-                                ppos = pos2 + p2;
-                                pos2 += l2;
-                                if (pos2 > pos + l - 1) break;
                             }
+                            ppos = pos2 + p2;
+                            pos2 += l2;
+                            if (pos2 > pos + l - 1) break;
                         }
-                        pos += l;
-                        if (pos > tmp->m_pElementList.size() - 1) break;
                     }
+                    pos += l;
+                    if (pos > tmp->m_pElementList.size() - 1) break;
                 }
             }
         }
@@ -4853,7 +4871,7 @@ int PopupMenu::SymbolicComputation()
         PopupMenu_AddMathHeader = 6;
         if (NumEquations <= 16) //we don't even try for large systems (too dangerous)
         {
-            CExpression* solution = new CExpression(nullptr, nullptr, 100); //create an dummy object
+            auto solution = new CExpression(nullptr, nullptr, 100); //create an dummy object
             solution->SolveSystemOfEquations(System, &NumEquations, this);
             delete solution;
         }
@@ -4875,17 +4893,17 @@ int PopupMenu::SymbolicComputation()
         while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
         if (parent->IsSuitableForComputation() == 0) return 0;
 
-        CExpression* Base = new CExpression(nullptr, nullptr, 100);
+        auto Base = new CExpression(nullptr, nullptr, 100);
         Base->CopyExpression(parent, 0);
-        CExpression* tmp_clipboard = new CExpression(nullptr, nullptr, 100);
+        auto tmp_clipboard = new CExpression(nullptr, nullptr, 100);
         tmp_clipboard->CopyExpression(ClipboardExpression, 0);
 
         if (tmp_clipboard->m_pElementList[0].Type == 2)
         {
             //just ignore the equal sign at the very beginning
             char ch = tmp_clipboard->m_pElementList[0].pElementObject->Data1[0];
-            if (ch == '=' || ch == '<' || ch == '>' || ch == (char)0xB9 || ch == 1 || ch == 2 || ch == (
-                char)0xA3 || ch == (char)0xB3)
+            if (ch == '=' || ch == '<' || ch == '>' || ch == static_cast<char>(0xB9) || ch == 1 || ch == 2 || ch ==
+                static_cast<char>(0xA3) || ch == static_cast<char>(0xB3))
                 tmp_clipboard->DeleteElement(0);
         }
 
@@ -4893,7 +4911,7 @@ int PopupMenu::SymbolicComputation()
         tmp_clipboard->CodeDecodeUnitsOfMeasurement(0, -1);
         ExtractedSelection->CodeDecodeUnitsOfMeasurement(0, -1);
 
-        if (tmp_clipboard->FindLowestOperatorLevel((char)0xD7) != EqLevel)
+        if (tmp_clipboard->FindLowestOperatorLevel(static_cast<char>(0xD7)) != EqLevel)
         {
             //the clipboard is not an equation, but an general expression
             //we will replace the Base elements in a 'stupid' manner			
@@ -4936,7 +4954,7 @@ int PopupMenu::SymbolicComputation()
     if (!is_suitable)
     {
         //try with auto-correction
-        CExpression* tmp = new CExpression(nullptr, nullptr, 100);
+        auto tmp = new CExpression(nullptr, nullptr, 100);
         tmp->CopyExpression(ExtractedSelection, 0);
         tmp->m_ParentheseShape = ExtractedSelection->m_ParentheseShape;
         tmp->m_ParenthesesFlags = ExtractedSelection->m_ParenthesesFlags;
@@ -4950,11 +4968,8 @@ int PopupMenu::SymbolicComputation()
             }
             return 1;
         }
-        else
-        {
-            delete tmp;
-            return 0;
-        }
+        delete tmp;
+        return 0;
     }
 
     if (ExtractedSelection->m_pElementList.size() == 1)
@@ -4999,12 +5014,12 @@ int PopupMenu::SymbolicComputation()
             int prec_increase = 2;
             while (prec + prec_increase < 14)
             {
-                CExpression* E1 = new CExpression(nullptr, nullptr, 100);
-                E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
-                                        fabs(N - (long long)N) < 1e-100, prec + prec_increase, 0);
+                auto E1 = new CExpression(nullptr, nullptr, 100);
+                E1->GenerateASCIINumber(N, static_cast<long long>(N + (N > 0) ? 0.01 : -0.01),
+                                        fabs(N - static_cast<long long>(N)) < 1e-100, prec + prec_increase, 0);
                 int last = E1->m_pElementList.size() - 1;
                 tElementStruct& ts = E1->m_pElementList[last];
-                int ln = (int)strlen(ts.pElementObject->Data1);
+                int ln = static_cast<int>(strlen(ts.pElementObject->Data1));
                 while (ln)
                 {
                     if (ts.pElementObject->Data1[ln - 1] == '0')
@@ -5022,38 +5037,38 @@ int PopupMenu::SymbolicComputation()
                     break;
                 }
                 if (ExtractedSelection->m_pElementList[0].pElementObject->Data1[14] != 0 || ExtractedSelection->
-                    m_pElementList[0].pElementObject->Data1[15] != (char)(128 + 126))
+                    m_pElementList[0].pElementObject->Data1[15] != static_cast<char>(128 + 126))
                     break;
                 prec_increase++;
                 if (prec + prec_increase > 10) break;
             }
             if (prec > 0 && fabs(N) > pow(10, -prec + 1))
             {
-                CExpression* E1 = new CExpression(nullptr, nullptr, 100);
-                E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
-                                        fabs(N - (long long)N) < 1e-100, prec - 1, 0);
+                auto E1 = new CExpression(nullptr, nullptr, 100);
+                E1->GenerateASCIINumber(N, static_cast<long long>(N + (N > 0) ? 0.01 : -0.01),
+                                        fabs(N - static_cast<long long>(N)) < 1e-100, prec - 1, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
                 else rounding_done = 1;
             }
             if (prec > 1 && fabs(N) > pow(10, -prec + 2))
             {
-                CExpression* E1 = new CExpression(nullptr, nullptr, 100);
-                E1->GenerateASCIINumber(N, (long long)(N + (N > 0) ? 0.01 : -0.01),
-                                        fabs(N - (long long)N) < 1e-100, prec - 2, 0);
+                auto E1 = new CExpression(nullptr, nullptr, 100);
+                E1->GenerateASCIINumber(N, static_cast<long long>(N + (N > 0) ? 0.01 : -0.01),
+                                        fabs(N - static_cast<long long>(N)) < 1e-100, prec - 2, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
                 else rounding_done = 1;
             }
             if ((fabs(N) >= 10000.0 || fabs(N) < 0.001) && this->LevelExtendedSelection <= MulLevel)
             {
                 //expressing numbers in scientific form
-                CExpression* E1 = new CExpression(nullptr, nullptr, 100);
-                int exp = (int)log10(fabs(N));
+                auto E1 = new CExpression(nullptr, nullptr, 100);
+                int exp = static_cast<int>(log10(fabs(N)));
                 if (fabs(N) < 1.0) exp--;
                 double re = N / pow(10, exp);
-                E1->GenerateASCIINumber(re, (long long)(re + (re > 0) ? 0.01 : -0.01),
-                                        fabs(re - (long long)re) < 1e-100, min(prec+abs(exp), 8), 0);
+                E1->GenerateASCIINumber(re, static_cast<long long>(re + (re > 0) ? 0.01 : -0.01),
+                                        fabs(re - static_cast<long long>(re)) < 1e-100, min(prec+abs(exp), 8), 0);
                 tElementStruct& ts = E1->m_pElementList[0];
-                int ln = (int)strlen(ts.pElementObject->Data1);
+                int ln = static_cast<int>(strlen(ts.pElementObject->Data1));
                 while (ln)
                 {
                     if (ts.pElementObject->Data1[ln - 1] == '0')
@@ -5064,7 +5079,7 @@ int PopupMenu::SymbolicComputation()
                     if (ts.pElementObject->Data1[ln - 1] == '.') ts.pElementObject->Data1[--ln] = 0;
                     break;
                 }
-                E1->InsertEmptyElement(E1->m_pElementList.size(), 2, (char)0xD7);
+                E1->InsertEmptyElement(E1->m_pElementList.size(), 2, static_cast<char>(0xD7));
                 E1->InsertEmptyElement(E1->m_pElementList.size(), 3, 0);
                 CExpression* a = E1->m_pElementList[E1->m_pElementList.size() - 1].pElementObject->Expression1;
                 CExpression* e = E1->m_pElementList[E1->m_pElementList.size() - 1].pElementObject->Expression2;
@@ -5098,7 +5113,7 @@ int PopupMenu::SymbolicComputation()
             //making factorization of integer numbers
             if (ExtractedSelection->IsPureNumber(0, ExtractedSelection->m_pElementList.size(), &N, &prec))
             {
-                if (fabs(N - (long long)N) < 1e-100 && fabs(N) > 2.9)
+                if (fabs(N - static_cast<long long>(N)) < 1e-100 && fabs(N) > 2.9)
                 {
                     int minus = 0;
                     if (N < 0)
@@ -5106,8 +5121,8 @@ int PopupMenu::SymbolicComputation()
                         minus = 1;
                         N = -N;
                     }
-                    long long n = (long long)(N + 0.01);
-                    CExpression* result = new CExpression(nullptr, nullptr, 100);
+                    long long n = static_cast<long long>(N + 0.01);
+                    auto result = new CExpression(nullptr, nullptr, 100);
 
                     long long z = 2;
                     do
@@ -5121,19 +5136,21 @@ int PopupMenu::SymbolicComputation()
                         if (cnt == 1)
                         {
                             if (result->m_pElementList[0].Type)
-                                result->InsertEmptyElement(result->m_pElementList.size(), 2, (char)0xD7);
+                                result->InsertEmptyElement(result->m_pElementList.size(), 2, static_cast<char>(0xD7));
                             int pos = result->m_pElementList.size();
                             if (result->m_pElementList[0].Type == 0) pos = 0;
-                            result->GenerateASCIINumber((double)z, z, true, 0, pos);
+                            result->GenerateASCIINumber(static_cast<double>(z), z, true, 0, pos);
                         }
                         else if (cnt > 1)
                         {
                             if (result->m_pElementList[0].Type)
-                                result->InsertEmptyElement(result->m_pElementList.size(), 2, (char)0xD7);
+                                result->InsertEmptyElement(result->m_pElementList.size(), 2, static_cast<char>(0xD7));
                             result->InsertEmptyElement(result->m_pElementList.size(), 3, 0);
-                            CExpression* a = result->m_pElementList[result->m_pElementList.size() - 1].pElementObject->Expression1;
-                            CExpression* e = result->m_pElementList[result->m_pElementList.size() - 1].pElementObject->Expression2;
-                            a->GenerateASCIINumber((double)z, z, true, 0, 0);
+                            CExpression* a = result->m_pElementList[result->m_pElementList.size() - 1].pElementObject->
+                                Expression1;
+                            CExpression* e = result->m_pElementList[result->m_pElementList.size() - 1].pElementObject->
+                                Expression2;
+                            a->GenerateASCIINumber(static_cast<double>(z), z, true, 0, 0);
                             e->GenerateASCIINumber(cnt, cnt, true, 0, 0);
                         }
                         if (z == 2) z++;
@@ -5143,8 +5160,8 @@ int PopupMenu::SymbolicComputation()
 
                     if (n > 1 && result->m_pElementList[0].Type)
                     {
-                        result->InsertEmptyElement(result->m_pElementList.size(), 2, (char)0xD7);
-                        result->GenerateASCIINumber((double)n, n, true, 0, result->m_pElementList.size());
+                        result->InsertEmptyElement(result->m_pElementList.size(), 2, static_cast<char>(0xD7));
+                        result->GenerateASCIINumber(static_cast<double>(n), n, true, 0, result->m_pElementList.size());
                     }
                     if (minus && result->m_pElementList[0].Type)
                         result->InsertEmptyElement(0, 2, '-');
@@ -5165,7 +5182,7 @@ int PopupMenu::SymbolicComputation()
             CExpression* parent = m_Expression;
             while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
 
-            CExpression* tmp = new CExpression(nullptr, nullptr, 100);
+            auto tmp = new CExpression(nullptr, nullptr, 100);
             tmp->CopyExpression(parent, 0);
 
             int cnt = 0;
@@ -5174,7 +5191,8 @@ int PopupMenu::SymbolicComputation()
             {
                 int ret = 1;
                 int prev_ret = 1;
-                while ((ret = tmp->ExtractVariable(ExtractedSelection, 0, ExtractedSelection->m_pElementList.size(), ret)) &&
+                while ((ret = tmp->ExtractVariable(ExtractedSelection, 0, ExtractedSelection->m_pElementList.size(),
+                                                   ret)) &&
                     cnt < 50)
                 {
                     if (tmp->ContainsVariable(0, tmp->m_pElementList.size() - 1, ExtractedSelection, 0,
@@ -5186,7 +5204,7 @@ int PopupMenu::SymbolicComputation()
                     }
                     if (ret == 4 && prev_ret != ret)
                     {
-                        CExpression* tmp2 = new CExpression(nullptr, nullptr, 100);
+                        auto tmp2 = new CExpression(nullptr, nullptr, 100);
                         tmp2->CopyExpression(tmp, 0);
                         AddMathMenuOption(tmp2, parent);
                     }
@@ -5209,7 +5227,7 @@ int PopupMenu::SymbolicComputation()
             //polynomization
             PopupMenu_AddMathHeader = 4;
 
-            CExpression* tmp2 = new CExpression(nullptr, nullptr, 100);
+            auto tmp2 = new CExpression(nullptr, nullptr, 100);
             parent = m_Expression;
             tmp2->CopyExpression(m_Expression, 0);
 
@@ -5254,7 +5272,7 @@ int PopupMenu::SymbolicComputation()
 
     for (int i = -1; i < 4; i++)
     {
-        CExpression* E1 = new CExpression(nullptr, nullptr, 100);
+        auto E1 = new CExpression(nullptr, nullptr, 100);
         E1->CopyExpression(ExtractedSelection, 0);
         E1->m_ParenthesesFlags = ExtractedSelection->m_ParenthesesFlags;
         E1->PROFILERClear();
@@ -5348,14 +5366,15 @@ int PopupMenu::SymbolicComputation()
             {
                 char et;
                 bool p;
-                int l = ExtractedSelection->GetElementLen(pos, ExtractedSelection->m_pElementList.size() - 1, level, &et, p);
+                int l = ExtractedSelection->GetElementLen(pos, ExtractedSelection->m_pElementList.size() - 1, level,
+                                                          &et, p);
                 if (l == 0) break;
 
                 tPureFactors PF;
                 PF.N1 = PF.N2 = 1.0;
                 PF.is_frac1 = 0;
                 PF.prec1 = 0;
-                CExpression* ex1 = new CExpression(nullptr, nullptr, 100);
+                auto ex1 = new CExpression(nullptr, nullptr, 100);
                 for (int i = pos + p; i < pos + l; i++)
                     ex1->InsertElement(ExtractedSelection->m_pElementList[i], ex1->m_pElementList.size());
                 if (ex1->StrikeoutCommonFactors(0, ex1->m_pElementList.size() - 1, 1, nullptr, 0, 0, 1, &PF))
@@ -5375,14 +5394,14 @@ int PopupMenu::SymbolicComputation()
             if (is_numbers)
             {
                 PopupMenu_AddMathHeader = 7;
-                CExpression* E1 = new CExpression(nullptr, nullptr, 100);
-                E1->GenerateASCIINumber(sum, (long long)sum, false, precision, 0);
+                auto E1 = new CExpression(nullptr, nullptr, 100);
+                E1->GenerateASCIINumber(sum, static_cast<long long>(sum), false, precision, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
 
                 PopupMenu_AddMathHeader = 8;
                 E1 = new CExpression(nullptr, nullptr, 100);
-                sum = sum / (double)number;
-                E1->GenerateASCIINumber(sum, (long long)sum, false, precision, 0);
+                sum = sum / static_cast<double>(number);
+                E1->GenerateASCIINumber(sum, static_cast<long long>(sum), false, precision, 0);
                 if (!AddMathMenuOption(E1)) delete E1;
             }
         }

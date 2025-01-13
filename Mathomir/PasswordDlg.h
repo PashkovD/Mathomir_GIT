@@ -8,17 +8,16 @@ class CPasswordDlg : public CDialog
 {
     DECLARE_DYNAMIC(CPasswordDlg)
 
-public:
     CPasswordDlg(CWnd* pParent = nullptr); // standard constructor
-    virtual ~CPasswordDlg();
-    virtual BOOL OnInitDialog();
+    ~CPasswordDlg() override;
+    BOOL OnInitDialog() override;
 
 
     // Dialog Data
     enum { IDD = IDD_DIALOG_PASSWORD };
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
+    void DoDataExchange(CDataExchange* pDX) override; // DDX/DDV support
 
     DECLARE_MESSAGE_MAP()
 

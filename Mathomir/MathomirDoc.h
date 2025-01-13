@@ -11,35 +11,29 @@ protected: // create from serialization only
     DECLARE_DYNCREATE(CMathomirDoc)
 
     // Attributes
-public:
     // Operations
-public:
     // Overrides
-public:
-    virtual BOOL OnNewDocument();
+    BOOL OnNewDocument() override;
     //virtual void Serialize(CArchive& ar);
 
     // Implementation
-public:
     //virtual ~CMathomirDoc();
 #ifdef _DEBUG
-    virtual void AssertValid() const;
-    virtual void Dump(CDumpContext& dc) const;
+    void AssertValid() const override;
+    void Dump(CDumpContext& dc) const override;
 #endif
 
-protected:
     // Generated message map functions
-protected:
     DECLARE_MESSAGE_MAP()
 
 public:
-    virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
+    BOOL OnSaveDocument(LPCTSTR lpszPathName) override;
     afx_msg void OnFileSave();
     afx_msg void OnFileOpen();
     afx_msg void OnFileNew();
     afx_msg void OnFileSaveAs();
-    afx_msg BOOL SaveModified();
-    virtual BOOL OnOpenDocument(LPCTSTR lpszPathName);
+    afx_msg BOOL SaveModified() override;
+    BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
     int OpenMOMFile(const char* filename);
     int SaveMOMFile(const char* filename, char filetype);
     int ScrambleMOMFile(char** bufer, int len, char type);

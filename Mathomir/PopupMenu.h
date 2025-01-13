@@ -7,84 +7,83 @@
 
 class PopupMenu : public CWnd
 {
-	DECLARE_DYNAMIC(PopupMenu)
+    DECLARE_DYNAMIC(PopupMenu)
 
+    PopupMenu();
+    ~PopupMenu() override;
+    CExpression* m_Expression;
+    int m_IsFirstPass;
+    int m_HaveCutDel;
+    int m_MenuType;
+    int m_NumOptions;
+    int m_SizeX;
+    int m_SizeY;
+    int m_SelectedOption, m_prevSelectedOption, m_SelectedSuboption, m_prevSelectedSuboption;
+    CWnd* m_Owner;
+    int m_OwnerType;
+    int m_UserParam;
+    tElementStruct* m_theSelectedElement;
+    int StartExtendedSelection;
+    int EndExtendedSelection;
+    int LevelExtendedSelection;
+    int MovingMode;
 
-public:
-	PopupMenu();
-	virtual ~PopupMenu();
-	CExpression *m_Expression;
-	int m_IsFirstPass;
-	int m_HaveCutDel;
-	int m_MenuType;
-	int m_NumOptions;
-	int m_SizeX;
-	int m_SizeY;
-	int m_SelectedOption,m_prevSelectedOption, m_SelectedSuboption, m_prevSelectedSuboption;
-	CWnd* m_Owner;
-	int m_OwnerType;
-	int m_UserParam;
-	tElementStruct *m_theSelectedElement;
-	int StartExtendedSelection;
-	int EndExtendedSelection;
-	int LevelExtendedSelection;
-	int MovingMode;
+    int Popup_CursorX;
+    int Popup_CursorY;
+    unsigned char entry_box_first_call;
+    char PopupMenuSecondPassChoosing;
+    CEdit* ValueEntryBox;
+    int ValueEntryBoxData;
+    char ValueEntryBoxString[300];
 
-int Popup_CursorX;
-int Popup_CursorY;
-unsigned char entry_box_first_call;
-char PopupMenuSecondPassChoosing;
-CEdit *ValueEntryBox;
-int ValueEntryBoxData;
-char ValueEntryBoxString[300];
-
-	struct POPUPMENU_OPTION
-	{
-		std::string Text;
-		int X;
-		int Y;
-		int Cx;
-		int Cy;
-		bool IsEnabled;
-		char IsChecked;  //can be checked / unchecked
-		short IsButton;  //Button option
-		CExpression *Graphics; //non-null if has graphics representation (an equation)
-		char IsGraphicsSensitive; //if it can be pointed at some particular point of the graphics
-		int Data; //any valuable data
-		int DataArray[6];
-		CExpression *Parent; //the original that will be replaced if menu item is chosen
-	} Options[64];
+    struct POPUPMENU_OPTION
+    {
+        std::string Text;
+        int X;
+        int Y;
+        int Cx;
+        int Cy;
+        bool IsEnabled;
+        char IsChecked; //can be checked / unchecked
+        short IsButton; //Button option
+        CExpression* Graphics; //non-null if has graphics representation (an equation)
+        char IsGraphicsSensitive; //if it can be pointed at some particular point of the graphics
+        int Data; //any valuable data
+        int DataArray[6];
+        CExpression* Parent; //the original that will be replaced if menu item is chosen
+    } Options[64];
 
 protected:
-	DECLARE_MESSAGE_MAP()
-public:
-	afx_msg void OnPaint();
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	int PaintThePopupMenu();
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-	int ShowPopupMenu(CExpression* expression, CWnd *owner, int OwnerType, int UserParam, int no_reposition=0);
-	int PrepareFontMenu(int y);
-	int PrepareSymbolMenu(int y);
-	int PrepareParenthesesMenu(int y);
-	int PrepareConditionListMenu();
-	int HidePopupMenu();
-	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
-	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
-	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+    DECLARE_MESSAGE_MAP()
 
-	int AddMenuOption(int X, int Cx, const std::string& text, int Data, bool new_line);
-	int AddMenuOptionButton(int X, const std::string& text, int Data, int button_ndx, bool new_line);
-	int AddCheckedMenuOption(int X, int Cx, const std::string& text, bool is_checked, int Data, bool new_line);
-	int AddCheckedMenuOptionButton(int X, const std::string& text, bool is_checked, int Data, int button_ndx, bool new_line);
-	int UncheckOptions(int from, int to);
+public:
+    afx_msg void OnPaint();
+    afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+    int PaintThePopupMenu();
+    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    int ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType, int UserParam, int no_reposition = 0);
+    int PrepareFontMenu(int y);
+    int PrepareSymbolMenu(int y);
+    int PrepareParenthesesMenu(int y);
+    int PrepareConditionListMenu();
+    int HidePopupMenu();
+    afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
+    afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+
+    int AddMenuOption(int X, int Cx, const std::string& text, int Data, bool new_line);
+    int AddMenuOptionButton(int X, const std::string& text, int Data, int button_ndx, bool new_line);
+    int AddCheckedMenuOption(int X, int Cx, const std::string& text, bool is_checked, int Data, bool new_line);
+    int AddCheckedMenuOptionButton(int X, const std::string& text, bool is_checked, int Data, int button_ndx,
+                                   bool new_line);
+    int UncheckOptions(int from, int to);
 
 protected:
-	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
+    BOOL OnCommand(WPARAM wParam, LPARAM lParam) override;
+
 public:
-	int ExtractSelection(int StartPos,int EndPos,int * StartSel, int * EndSel);
-	int SymbolicComputation();
-	int AddMathMenuOption(CExpression * E1,CExpression *original=nullptr);
-	int PaintWorkIndicator();
+    int ExtractSelection(int StartPos, int EndPos, int* StartSel, int* EndSel);
+    int SymbolicComputation();
+    int AddMathMenuOption(CExpression* E1, CExpression* original = nullptr);
+    int PaintWorkIndicator();
 };
-
-

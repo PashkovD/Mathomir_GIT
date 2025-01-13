@@ -19,7 +19,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 *********************************************************************************************************/
 #include "StdAfx.h"
-#include ".\drawing.h"
+#include "./drawing.h"
 #include "atlimage.h"
 #include "Mathomir.h"
 #include "mainfrm.h"
@@ -59,7 +59,7 @@ CBitmapImage::~CBitmapImage()
 int CBitmapImage::CopyFrom(const CDrawing* Original)
 {
     if (Original->IsSpecialDrawing != 52) return 0;
-    CBitmapImage* org = (CBitmapImage*)Original->SpecialData;
+    auto org = static_cast<CBitmapImage*>(Original->SpecialData);
     if (!org) return 0;
 
     ShowMenu = 0;
@@ -70,7 +70,7 @@ int CBitmapImage::CopyFrom(const CDrawing* Original)
 
     if (org->Image)
     {
-        Image = (char*)malloc(org->imgsize);
+        Image = static_cast<char*>(malloc(org->imgsize));
         imgsize = org->imgsize;
         memcpy(Image, org->Image, org->imgsize);
     }
@@ -95,15 +95,16 @@ int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int abs
     Y += Base->Items[0].LineWidth / DRWZOOM * zoom / 100;
     Xlen -= Base->Items[0].LineWidth / DRWZOOM * zoom / 200;
     Ylen -= Base->Items[0].LineWidth / DRWZOOM * zoom / 200;
-    MenuX = min(Base->Items[0].X1, Base->Items[0].X2) / DRWZOOM * ViewZoom / 100 + 1 + Base->Items[0].LineWidth / DRWZOOM *
+    MenuX = min(Base->Items[0].X1, Base->Items[0].X2) / DRWZOOM * ViewZoom / 100 + 1 + Base->Items[0].LineWidth /
+        DRWZOOM *
         ViewZoom / 100;
     MenuY = min((Base->Items[1]).Y1, (Base->Items[1]).Y2) / DRWZOOM * ViewZoom / 100 + 1 + Base->Items[0].LineWidth /
         DRWZOOM * ViewZoom / 100;
 
     if (Image)
     {
-        BITMAPINFO* binfo = (BITMAPINFO*)Image;
-        BITMAPINFOHEADER* bhead = (BITMAPINFOHEADER*)Image;
+        auto binfo = (BITMAPINFO*)Image;
+        auto bhead = (BITMAPINFOHEADER*)Image;
         int colors = bhead->biClrUsed;
         if (bhead->biBitCount != 24) colors = 1 << bhead->biBitCount;
         int tablesize = colors * sizeof(RGBQUAD);
@@ -118,7 +119,9 @@ int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int abs
                 DC->FillSolidRect(X + ii * Xlen / 8, Y + jj * Ylen / 8, Xlen / 8, Ylen / 8,
                                   (ii + jj) % 2
                                       ? RGB(255, 255, 255)
-                                      : Xlen < 30 ? RGB(208, 208, 208) : RGB(240, 240, 240));
+                                      : Xlen < 30
+                                      ? RGB(208, 208, 208)
+                                      : RGB(240, 240, 240));
     }
 
     if (ShowMenu && !ViewOnlyMode)
@@ -140,11 +143,13 @@ int CBitmapImage::Paint(CDC* DC, short zoom, short X, short Y, int absX, int abs
         DC->SetTextColor(sel == 2 ? BLUE_COLOR : 0);
         DC->TextOut(X, Y + 12, (editing ? str4 : str3).data());
         if (sel == 2) DC->TextOut(X + 1, Y + 12, (editing ? str4 : str3).data());
-        BITMAPINFOHEADER* bhead = (BITMAPINFOHEADER*)Image;
+        auto bhead = (BITMAPINFOHEADER*)Image;
         if (bhead)
         {
             if ((Base->Items[1]).Y2 > 40 * DRWZOOM)
-                if (abs(bhead->biWidth - (Base->Items[0].X2 - Base->Items[0].X1 - 2 * Base->Items[0].LineWidth) / DRWZOOM) >
+                if (abs(
+                        bhead->biWidth - (Base->Items[0].X2 - Base->Items[0].X1 - 2 * Base->Items[0].LineWidth) /
+                        DRWZOOM) >
                     1 ||
                     abs(bhead->biHeight - ((Base->Items[1]).Y2 - (Base->Items[1]).Y1 - 2 * Base->Items[0].LineWidth)
                         / DRWZOOM) > 1)
@@ -180,7 +185,7 @@ int CBitmapImage::MouseClick(int X, int Y)
                 else
                 {
                     //create its empty image if does not exist already
-                    if (Image == nullptr) LoadImageFromFile((CObject*)Base,nullptr);
+                    if (Image == nullptr) LoadImageFromFile((CObject*)Base, nullptr);
 
                     if (SaveImageToFileForEditing((CObject*)Base))
                     {
@@ -189,7 +194,7 @@ int CBitmapImage::MouseClick(int X, int Y)
                             {
                                 CDrawing* d = TheDocument[i].Object.draw;
                                 if (d->IsSpecialDrawing == 52)
-                                    ((CBitmapImage*)d->SpecialData)->editing = 0;
+                                    static_cast<CBitmapImage*>(d->SpecialData)->editing = 0;
                             }
                         editing = 1;
                     }
@@ -204,7 +209,7 @@ int CBitmapImage::MouseClick(int X, int Y)
                 else //cancel
                 {
                     const std::string filter = "BMP files|*.BMP|JPG files|*.jpg|PNG files|*.PNG|All files|*.*||";
-                    CFileDialog fd(TRUE, "bmp",nullptr,OFN_HIDEREADONLY, filter.c_str(), theApp.m_pMainWnd, 0);
+                    CFileDialog fd(TRUE, "bmp", nullptr,OFN_HIDEREADONLY, filter.c_str(), theApp.m_pMainWnd, 0);
                     if (fd.DoModal() == IDOK)
                     {
                         LoadImageFromFile((CObject*)Base, fd.m_pOFN->lpstrFile);
@@ -215,7 +220,7 @@ int CBitmapImage::MouseClick(int X, int Y)
             if (SelectedItem == 3) //1:1 button was choosen
             {
                 //doing stuff here
-                BITMAPINFOHEADER* bhead = (BITMAPINFOHEADER*)Image;
+                auto bhead = (BITMAPINFOHEADER*)Image;
                 if (bhead)
                 {
                     int orgx = bhead->biWidth;
@@ -246,30 +251,27 @@ int CBitmapImage::MouseMove(CDC* DC, int X, int Y, UINT flags)
             return 1; //this wil redraw the bitmap object
             //pMainView->RepaintTheView();
         }
-        else
-            return 0; //no redraw neccessary
+        return 0;
+        //no redraw neccessary
     }
-    else
-    {
-        SelectedItem = 0;
-        if (X != 0x7FFFFFFF)
-            if (X * ViewZoom / 100 < 45 + MenuX && X > 3 && Y > 3)
+    SelectedItem = 0;
+    if (X != 0x7FFFFFFF)
+        if (X * ViewZoom / 100 < 45 + MenuX && X > 3 && Y > 3)
+        {
+            if (Y * ViewZoom / 100 < 12 + MenuY) SelectedItem = 1;
+            else if (Y * ViewZoom / 100 < 24 + MenuY) SelectedItem = 2;
+            else if (Y * ViewZoom / 100 < 36 + MenuY)
             {
-                if (Y * ViewZoom / 100 < 12 + MenuY) SelectedItem = 1;
-                else if (Y * ViewZoom / 100 < 24 + MenuY) SelectedItem = 2;
-                else if (Y * ViewZoom / 100 < 36 + MenuY)
+                auto bhead = (BITMAPINFOHEADER*)Image;
+                if (bhead)
                 {
-                    BITMAPINFOHEADER* bhead = (BITMAPINFOHEADER*)Image;
-                    if (bhead)
-                    {
-                        if ((Base->Items[1]).Y2 > 40 * DRWZOOM)
-                            if (abs(bhead->biWidth - (Base->Items[0].X2 - Base->Items[0].X1) / DRWZOOM) > 1 ||
-                                abs(bhead->biHeight - ((Base->Items[1]).Y2 - (Base->Items[1]).Y1) / DRWZOOM) > 1)
-                                SelectedItem = 3;
-                    }
+                    if ((Base->Items[1]).Y2 > 40 * DRWZOOM)
+                        if (abs(bhead->biWidth - (Base->Items[0].X2 - Base->Items[0].X1) / DRWZOOM) > 1 ||
+                            abs(bhead->biHeight - ((Base->Items[1]).Y2 - (Base->Items[1]).Y1) / DRWZOOM) > 1)
+                            SelectedItem = 3;
                 }
             }
-    }
+        }
     return 1;
 }
 
@@ -403,14 +405,14 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
         output += strlen(tmpstr);
     }
 
-    return (int)len;
+    return static_cast<int>(len);
 }
 
 int bitmap_position_counter = 0;
 #pragma optimize("s",on)
 char* CBitmapImage::XML_input(char* file)
 {
-    CMainFrame* mf = (CMainFrame*)theApp.m_pMainWnd;
+    auto mf = static_cast<CMainFrame*>(theApp.m_pMainWnd);
 
     if (strncmp(file, "bmp", 3) == 0)
     {
@@ -445,7 +447,7 @@ char* CBitmapImage::XML_input(char* file)
                     {
                         for (int ii = 0; ii < 3; ii++)
                         {
-                            Image[bitmap_position_counter] = (char)0xFF;
+                            Image[bitmap_position_counter] = static_cast<char>(0xFF);
                             bitmap_position_counter++;
                         }
                     }
@@ -497,7 +499,7 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, const char* fname)
 {
     //this function loads an bitmap from file and stories it into CDrawing object (SpecialData=52 -> bitmap image object)
     CImage img;
-    CDrawing* d = (CDrawing*)dwg;
+    auto d = (CDrawing*)dwg;
 
 
     int X, Y, bpp;
@@ -529,8 +531,8 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, const char* fname)
         bpp = min(bpp, 24);
     }
 
-    if (((CBitmapImage*)d->SpecialData)->Image)
-        free(((CBitmapImage*)d->SpecialData)->Image);
+    if (static_cast<CBitmapImage*>(d->SpecialData)->Image)
+        free(static_cast<CBitmapImage*>(d->SpecialData)->Image);
 
     CBitmap bmp;
     CDC dc;
@@ -540,7 +542,7 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, const char* fname)
     dc.SelectObject(bmp);
     dc.FillSolidRect(0, 0, X, Y,RGB(255, 255, 255));
     if (fname) img.BitBlt(dc.m_hDC, 0, 0);
-    LPBITMAPINFO m2 = (LPBITMAPINFO)malloc(X * Y * 3 + 1024);
+    auto m2 = static_cast<LPBITMAPINFO>(malloc(X * Y * 3 + 1024));
     m2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     m2->bmiHeader.biWidth = X;
     m2->bmiHeader.biHeight = Y;
@@ -552,8 +554,9 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, const char* fname)
     if (m2->bmiHeader.biBitCount < 24) colors = 1 << m2->bmiHeader.biBitCount;
     int tablesize = colors * sizeof(RGBQUAD);
     GetDIBits(dc.m_hDC, bmp, 0, Y, (char*)m2 + sizeof(BITMAPINFOHEADER) + tablesize, m2,DIB_RGB_COLORS);
-    ((CBitmapImage*)d->SpecialData)->Image = (char*)m2;
-    ((CBitmapImage*)d->SpecialData)->imgsize = m2->bmiHeader.biSizeImage + tablesize + sizeof(BITMAPINFOHEADER) + 16;
+    static_cast<CBitmapImage*>(d->SpecialData)->Image = (char*)m2;
+    static_cast<CBitmapImage*>(d->SpecialData)->imgsize = m2->bmiHeader.biSizeImage + tablesize + sizeof(
+        BITMAPINFOHEADER) + 16;
     pMainView->ReleaseDC(DC);
     pMainView->RepaintTheView();
 
@@ -563,11 +566,11 @@ int CBitmapImage::LoadImageFromFile(CObject* dwg, const char* fname)
 #pragma optimize("s",on)
 int CBitmapImage::SaveImageToFileForEditing(CObject* dwg)
 {
-    CDrawing* d = (CDrawing*)dwg;
-    if (((CBitmapImage*)d->SpecialData)->Image == nullptr) return 0;
+    auto d = (CDrawing*)dwg;
+    if (static_cast<CBitmapImage*>(d->SpecialData)->Image == nullptr) return 0;
 
     CImage img;
-    BITMAPINFOHEADER* hdr = (BITMAPINFOHEADER*)((CBitmapImage*)d->SpecialData)->Image;
+    auto hdr = (BITMAPINFOHEADER*)static_cast<CBitmapImage*>(d->SpecialData)->Image;
 
     int X = hdr->biWidth;
     int Y = hdr->biHeight;
@@ -597,7 +600,7 @@ int CBitmapImage::SaveImageToFileForEditing(CObject* dwg)
     fwrite(hdr, 40 + tablesize + hdr->biSizeImage, 1, fil);
     fclose(fil);
 
-    int result = (int)ShellExecute(nullptr, "edit", filename,nullptr,nullptr,SW_SHOWNORMAL);
+    int result = (int)ShellExecute(nullptr, "edit", filename, nullptr, nullptr,SW_SHOWNORMAL);
     if (result <= 32) return 0;
 
     return 1;

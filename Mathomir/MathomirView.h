@@ -12,17 +12,13 @@ protected: // create from serialization only
     DECLARE_DYNCREATE(CMathomirView)
 
     // Attributes
-public:
     CMathomirDoc* GetDocument() const;
 
     // Operations
-public:
     // Overrides
-public:
-    virtual void OnDraw(CDC* pDC); // overridden to draw this view
-    virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+    void OnDraw(CDC* pDC) override; // overridden to draw this view
+    BOOL PreCreateWindow(CREATESTRUCT& cs) override;
 
-protected:
     //	virtual BOOL OnPreparePrinting(CPrintInfo* pInfo);
     //	virtual void OnBeginPrinting(CDC* pDC, CPrintInfo* pInfo);
     //	virtual void OnEndPrinting(CDC* pDC, CPrintInfo* pInfo);
@@ -30,13 +26,12 @@ protected:
 
     // Implementation
 public:
-    virtual ~CMathomirView();
+    ~CMathomirView() override;
 #ifdef _DEBUG
-    virtual void AssertValid() const;
-    virtual void Dump(CDumpContext& dc) const;
+    void AssertValid() const override;
+    void Dump(CDumpContext& dc) const override;
 #endif
 
-public:
     tDocumentStruct* m_PopupMenuObject;
 
     // Generated message map functions
@@ -92,8 +87,8 @@ public:
     int DeleteDocumentObject(const tDocumentStruct* object);
 
 protected:
-    virtual void OnPrint(CDC* pDC, CPrintInfo* pInfo);
-    virtual BOOL OnPreparePrinting(CPrintInfo* pInfo);
+    void OnPrint(CDC* pDC, CPrintInfo* pInfo) override;
+    BOOL OnPreparePrinting(CPrintInfo* pInfo) override;
 
 public:
     afx_msg void OnViewHalftonerendering();
@@ -191,72 +186,50 @@ public:
     void SelectLastOrTouchedObject();
     afx_msg void OnNcRButtonDown(UINT nHitTest, CPoint point);
 
-public:
     afx_msg void OnMenu32880();
 
-public:
     afx_msg void OnToolboxandcontextmenuShowtoolbar();
 
-public:
     afx_msg void OnPageLetterportrait();
 
-public:
     afx_msg void OnPageLetterlandscape();
 
-public:
     afx_msg void OnKeyboardUsecapslocktotoggletypingmode();
     afx_msg void OnToolboxandcontextmenuGigantic();
     afx_msg void OnMouseReversemousewheelscrollingdirection();
 
-public:
     afx_msg void OnFontsizeanddefaultzoomDefaultzoomis150();
 
-public:
     afx_msg void OnFontsizeanddefaultzoomDefaultzoomis120();
 
-public:
     afx_msg void OnFontsizeanddefaultzoomDefaultzoomis100();
 
-public:
     afx_msg void OnFontsizeanddefaultzoomDefaultzoomis80();
 
-public:
     afx_msg void OnMouseMouse();
 
-public:
     afx_msg void OnMouseRightmousebuttontotogglemouse();
 
-public:
     afx_msg void OnMouseSlow();
 
-public:
     afx_msg void OnPagenumerationNone();
 
-public:
     afx_msg void OnPagenumeration();
 
-public:
     afx_msg void OnPagenumeration32899();
 
-public:
     afx_msg void OnPagenumerationPage1of10();
 
-public:
     afx_msg void OnPagenumerationBottom();
 
-public:
     afx_msg void OnPagenumerationRight();
 
-public:
     afx_msg void OnPagenumerationExcludefirstpage();
 
-public:
     afx_msg void OnToolboxandcontextmenuAuto();
 
-public:
     afx_msg void OnMenu32905();
 
-public:
     afx_msg void OnKeyboardUsecomplexindexes();
 };
 

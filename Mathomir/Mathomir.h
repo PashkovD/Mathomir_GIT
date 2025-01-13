@@ -24,7 +24,6 @@ class CMathomirApp : public CWinApp
 public:
     CMathomirApp();
 
-public:
     BOOL InitInstance() override;
 
     afx_msg void OnAppAbout();
@@ -38,8 +37,8 @@ extern HANDLE ProcessHeap;
 
 enum doc_type:byte
 {
-    EXPRESSION=1,
-    DRAWING=2
+    EXPRESSION = 1,
+    DRAWING = 2
 };
 
 //The main document strcture (the main document is stored as an array of these structures)
@@ -50,8 +49,8 @@ struct tDocumentStruct
         CExpression* exp;
         CDrawing* draw;
         void* v;
-    }Object;
-    
+    } Object;
+
     int absolute_X;
     int absolute_Y;
     int Checksum; //calculated for Undo operation
@@ -82,6 +81,7 @@ struct tUndoObjectStruct
         CDrawing* draw;
         void* v;
     } pObject, pOriginal;
+
     doc_type Type;
     int UsedInLevel; //bitmask that tells us this object is used at what undo level
     int Checksum;
@@ -209,13 +209,15 @@ int PaintCheckedSign(CDC* DC, short x, short y, short size, bool IsChecked);
 void DisplayShortText(const std::string& text, int x, int y, int LanguageID, int flags = 0);
 int AddDocumentObject(doc_type type, int X, int Y);
 int CopyTranslatedString(char* dest, const std::string& defstr, int id, size_t destlen);
+
 extern "C++" {
-    template <size_t Size>
-    int CopyTranslatedString(char (&dest)[Size], const std::string& defstr, const int id)
-    {
-        return CopyTranslatedString(dest, defstr, id, Size-1);
-    }
+template <size_t Size>
+int CopyTranslatedString(char (&dest)[Size], const std::string& defstr, const int id)
+{
+    return CopyTranslatedString(dest, defstr, id, Size - 1);
 }
+}
+
 std::string GetTranslatedString(const std::string& eng_defstr, int id);
 void FatalErrorHandling();
 

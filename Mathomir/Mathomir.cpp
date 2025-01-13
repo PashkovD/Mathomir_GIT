@@ -273,14 +273,14 @@ BOOL CMathomirApp::InitInstance()
     ProcessShellCommand(cmdInfo);
 
 
-    ((CMathomirView*)m_pMainWnd)->InitSpecific(); //adjusting the menu
-    ((CMainFrame*)theApp.m_pMainWnd)->SetFontsToDefaults();
+    static_cast<CMathomirView*>(m_pMainWnd)->InitSpecific(); //adjusting the menu
+    static_cast<CMainFrame*>(theApp.m_pMainWnd)->SetFontsToDefaults();
 
     //creates popupmenu
     Popup = new PopupMenu();
     if (Popup)
         Popup->CreateEx(WS_EX_TOPMOST, AfxRegisterWndClass(CS_OWNDC), "PopupMenu",WS_CLIPCHILDREN | WS_POPUP, 5, 5, 10,
-                        10, m_pMainWnd->m_hWnd,nullptr, 0);
+                        10, m_pMainWnd->m_hWnd, nullptr, nullptr);
     else
         AfxMessageBox("Cannot create Popup menu",MB_OK | MB_ICONSTOP,NULL);
 
@@ -299,7 +299,8 @@ BOOL CMathomirApp::InitInstance()
     Toolbox = new CToolbox(0);
     if (Toolbox)
     {
-        Toolbox->CreateEx(0, AfxRegisterWndClass(CS_OWNDC), "Toolbox",WS_CHILD, 5, 5, 10, 10, m_pMainWnd->m_hWnd,nullptr,
+        Toolbox->CreateEx(0, AfxRegisterWndClass(CS_OWNDC), "Toolbox",WS_CHILD, 5, 5, 10, 10, m_pMainWnd->m_hWnd,
+                          nullptr,
                           nullptr);
         NoImageAutogeneration = 2;
         Toolbox->ShowWindow(SW_SHOWNA);
@@ -419,11 +420,10 @@ public:
     enum { IDD = IDD_ABOUTBOX };
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
-    virtual BOOL OnInitDialog();
+    void DoDataExchange(CDataExchange* pDX) override; // DDX/DDV support
+    BOOL OnInitDialog() override;
 
     // Implementation
-protected:
     DECLARE_MESSAGE_MAP()
 
 public:
@@ -434,7 +434,7 @@ public:
     CButton WebPageButton;
 };
 
-CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
+CAboutDlg::CAboutDlg() : CDialog(IDD)
 {
 }
 
@@ -464,12 +464,12 @@ void CMathomirApp::OnAppAbout()
 
 void CAboutDlg::OnBnClickedButton1()
 {
-    ShellExecute(nullptr,nullptr, "http://gorupec.awardspace.com/mathomir.html",nullptr,nullptr,SW_SHOWNORMAL);
+    ShellExecute(nullptr, nullptr, "http://gorupec.awardspace.com/mathomir.html", nullptr, nullptr,SW_SHOWNORMAL);
 }
 
 void CAboutDlg::OnBnClickedButton2()
 {
-    ShellExecute(nullptr,nullptr, "mailto:danijel.gorupec@gmail.com",nullptr,nullptr,SW_SHOWNORMAL);
+    ShellExecute(nullptr, nullptr, "mailto:danijel.gorupec@gmail.com", nullptr, nullptr,SW_SHOWNORMAL);
 }
 
 int CAboutDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)

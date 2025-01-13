@@ -23,7 +23,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Mathomir.h"
 #include "expression.h"
 #include "MathomirDoc.h"
-#include ".\MathomirDoc.h"
+#include "./MathomirDoc.h"
 
 #include <sstream>
 
@@ -92,7 +92,7 @@ void CMathomirDoc::Dump(CDumpContext& dc) const
 BOOL CMathomirDoc::OnSaveDocument(LPCTSTR lpszPathName)
 {
     //called by CMathomirDoc whenever needs to save document
-    SaveMOMFile((char*)lpszPathName, TheFileType);
+    SaveMOMFile(lpszPathName, TheFileType);
     return 1;
 }
 
@@ -132,7 +132,7 @@ void CMathomirDoc::OnFileOpen()
     if (!SaveModified()) return;
     std::string filter = GetTranslatedString("MOM files", 5010) + "|*.mom|"
         + GetTranslatedString("All files", 5011) + "|*.*||\0";
-    CFileDialog fd(TRUE, "mom",nullptr,OFN_HIDEREADONLY, filter.data(), theApp.m_pMainWnd, 0);
+    CFileDialog fd(TRUE, "mom", nullptr,OFN_HIDEREADONLY, filter.data(), theApp.m_pMainWnd, 0);
     if (fd.DoModal() == IDOK)
     {
         OpenMOMFile(fd.m_pOFN->lpstrFile);
@@ -147,7 +147,7 @@ void CMathomirDoc::OnFileNew()
     DetermineTillensData(0x7FFFFFFF); //to prevend crash when a shell command is used
     if (!SaveModified()) return;
     AutosavePoints = AutosaveTime = 0;
-    ((CMainFrame*)theApp.m_pMainWnd)->ClearDocument();
+    static_cast<CMainFrame*>(theApp.m_pMainWnd)->ClearDocument();
     SetPathName("\\Untitled", 0); //ClearPathName does not exist??
     SetModifiedFlag(0);
     Toolbox->LoadSettings(nullptr);
@@ -156,8 +156,8 @@ void CMathomirDoc::OnFileNew()
     ToolboxSize = BaseToolboxSize ? BaseToolboxSize : 60;
     if (theApp.m_pMainWnd && theApp.m_pMainWnd->IsWindowVisible())
         if (Toolbox) Toolbox->ShowWindow(SW_SHOW);
-    ((CMainFrame*)theApp.m_pMainWnd)->UndoInit();
-    ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
+    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoInit();
+    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     pMainView->AdjustPosition();
     pMainView->RepaintTheView(1);
     Toolbox->InvalidateRect(nullptr, 1);
@@ -223,7 +223,7 @@ BOOL CMathomirDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
     theApp.m_nCmdShow = -1; //tricking the MFC not to resize window
     IsDrawingMode = 0;
-    OpenMOMFile((char*)lpszPathName);
+    OpenMOMFile(lpszPathName);
 
     CString name = GetPathName();
     strcpy((char*)lpszPathName, name);
@@ -303,7 +303,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
                 CloseClipboard();
                 return 0;
             }
-            len = (int)GlobalSize(clipb_data);
+            len = static_cast<int>(GlobalSize(clipb_data));
         }
         else
             return 0;
@@ -320,7 +320,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
     if (filename != nullptr)
     {
         //clear the entire documment
-        ((CMainFrame*)theApp.m_pMainWnd)->ClearDocument();
+        static_cast<CMainFrame*>(theApp.m_pMainWnd)->ClearDocument();
 
         //get data from file
         fread(file_buffer, len, 1, fil);
@@ -329,7 +329,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
         //check if file is valid
         int i = 0;
         for (i = 0; i < len; i++)
-            if ((unsigned char)file_buffer[i] > 32) break;
+            if (static_cast<unsigned char>(file_buffer[i]) > 32) break;
         if (i == len || file_buffer[i] != '<')
         {
             if (len) AfxMessageBox("Invalid file - cannot continue",MB_OK | MB_ICONSTOP);
@@ -347,8 +347,8 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
         //adjust menu and init undo buffer
         if (theApp.m_pMainWnd)
         {
-            ((CMainFrame*)theApp.m_pMainWnd)->UndoInit();
-            ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
+            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoInit();
+            static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
         }
     }
     else
@@ -372,11 +372,11 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
 
     //parsing file  -  object by object  -  the MOM file has XML structure
     {
-        doc_type type = (doc_type)0;
+        auto type = static_cast<doc_type>(0);
         int x = 0, y = 0;
         while (true)
         {
-            file_pointer = ((CMainFrame*)theApp.m_pMainWnd)->XML_search("", file_pointer);
+            file_pointer = static_cast<CMainFrame*>(theApp.m_pMainWnd)->XML_search("", file_pointer);
             if (file_pointer == nullptr) goto openMOMfile_end; //no more objects, we finished
 
             if (*file_pointer != 'o')
@@ -392,12 +392,12 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
                 do
                 {
                     char value[128];
-                    file_pointer = ((CMainFrame*)theApp.m_pMainWnd)->XML_read_attribute(
+                    file_pointer = static_cast<CMainFrame*>(theApp.m_pMainWnd)->XML_read_attribute(
                         attribute, value, file_pointer, 128);
                     if (file_pointer == nullptr) goto openMOMfile_end; //unexpected end of file
 
                     if (strcmp(attribute, "type") == 0 || strcmp(attribute, "t") == 0)
-                        type = (doc_type)atoi(value);
+                        type = static_cast<doc_type>(atoi(value));
                     else if (strcmp(attribute, "ver") == 0)
                     {
                         XMLFileVersion = atoi(value);
@@ -420,7 +420,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
 
                 if (type == EXPRESSION) //object of type==1 - the expression
                 {
-                    CExpression* exp = new CExpression(nullptr,nullptr, 100);
+                    auto exp = new CExpression(nullptr, nullptr, 100);
                     if (!exp)
                     {
                         NumDocumentElements--;
@@ -439,7 +439,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
                 }
                 else if (type == DRAWING) //object of type==2 - the drawing
                 {
-                    CDrawing* drw = new CDrawing();
+                    auto drw = new CDrawing();
                     if (!drw)
                     {
                         NumDocumentElements--;
@@ -495,7 +495,7 @@ openMOMfile_end:
             KeyboardEntryObject)
         {
             //we are pasting into the keyboard clipboard			
-            TheKeyboardClipboard = new CExpression(nullptr,nullptr, 100);
+            TheKeyboardClipboard = new CExpression(nullptr, nullptr, 100);
             CExpression* exp = TheDocument[OrigNumElements].Object.exp;
             TheKeyboardClipboard->CopyExpression(exp, 0);
             delete exp;
@@ -567,7 +567,7 @@ openMOMfile_end:
                 Toolbox->AdjustPosition();
                 pMainView->AdjustPosition();
             }
-            ((CMainFrame*)theApp.m_pMainWnd)->AdjustMenu();
+            static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
         }
         else
             if (ViewOnlyMode) ViewOnlyMode = 2; //we don't even show the menu
@@ -596,7 +596,7 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
     if (filename && TheFileType == 'r')
     {
         char tmpbuf[128];
-        CExpression* exp = new CExpression(nullptr,nullptr, 80);
+        auto exp = new CExpression(nullptr, nullptr, 80);
         int maxy = 0;
         for (int jj = 0; jj < NumDocumentElements; jj++)
             if (TheDocument[jj].absolute_Y + TheDocument[jj].Below > maxy)
@@ -627,7 +627,7 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
     }
 #endif
 
-    
+
     //start outputing data into output buffer
     std::ostringstream ostr;
     ostr << "<?xml version=\"1.0\"?>\r\n<mathomir>\r\n";
@@ -635,28 +635,28 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
     if (save_keyboard_clipboard)
     {
         ostr << "<obj type=\"1\" X=\"0\" Y=\"0\">\r\n";
-        TheKeyboardClipboard->XML_output(ostr,  1);
+        TheKeyboardClipboard->XML_output(ostr, 1);
         ostr << "</obj>\r\n";
     }
     else
     {
         tDocumentStruct* ds = TheDocument;
-        doc_type type = (doc_type)0;
+        auto type = static_cast<doc_type>(0);
         int x = 0;
         int y = 0;
         for (int i = 0; i < NumDocumentElements; i++, ds++)
         {
             try
             {
-                if (!filename && ds->MovingDotState != 3 || ds->absolute_Y >= 2000000 || ds->absolute_Y <= - 10000)
+                if (!filename && ds->MovingDotState != 3 || ds->absolute_Y >= 2000000 || ds->absolute_Y <= -10000)
                     continue;
-                
+
                 if (XMLFileVersion == 1)
                 {
-                    type = (doc_type)0;
+                    type = static_cast<doc_type>(0);
                     x = 0;
                     y = 0;
-                    ostr << "<obj type=\"" << static_cast<int>(ds->Type) <<"\"";
+                    ostr << "<obj type=\"" << ds->Type << "\"";
                 }
                 else
                 {
@@ -664,10 +664,10 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
                     if (type != ds->Type)
                     {
                         type = ds->Type;
-                        ostr << " t=\"" << static_cast<int>(type) << "\"";
+                        ostr << " t=\"" << type << "\"";
                     }
                 }
-                    
+
                 if (x != ds->absolute_X)
                 {
                     x = ds->absolute_X;
@@ -678,7 +678,7 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
                     y = ds->absolute_Y;
                     ostr << " Y=\"" << y << "\"";
                 }
-                    
+
                 if (ds->MovingDotState == 5)
                     ostr << " lock=\"1\"";
 
@@ -688,10 +688,10 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
                     ostr << " page_w=\"" << PaperWidth << "\"";
                     ostr << " page_h=\"" << PaperHeight << "\"";
                     ostr << " numbering=\"" << PageNumeration << "\"";
-                    ostr << " ver=\"" << (int)XMLFileVersion << "\"";
+                    ostr << " ver=\"" << static_cast<int>(XMLFileVersion) << "\"";
                 }
                 ostr << ">\r\n";
-                    
+
                 if (ds->Type == EXPRESSION)
                     ds->Object.exp->XML_output(ostr, 0);
                 else
@@ -708,12 +708,12 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
         }
     }
     ostr << "</mathomir>\r\n";
-    
+
     size_t len = ostr.str().size();
 
     //reserve memory for output buffer
     size_t alloc_len = len + 1024 + NumDocumentElements * 256;
-    char* file_buffer = new char[alloc_len];
+    auto file_buffer = new char[alloc_len];
     if (file_buffer == nullptr)
     {
         if (filename) AfxMessageBox("Cannot reserve memory for file saving!",MB_OK | MB_ICONWARNING,NULL);
@@ -819,7 +819,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
             PasswordDlgStruct->disable_symbolic_math = true;
             PasswordDlgStruct->time_limit = 30;
         }
-        CPasswordDlg* psw = new CPasswordDlg(theApp.m_pMainWnd);
+        auto psw = new CPasswordDlg(theApp.m_pMainWnd);
         psw->DoModal();
         delete psw;
         if (PasswordDlgStruct->canceled)
@@ -921,7 +921,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
     {
         //if this is an exam or exam result
         pkey = new byte[1026];
-        CDiffieHellman* DH = new CDiffieHellman();
+        auto DH = new CDiffieHellman();
         int64_t N, X, Y, key;
 
         if (type == 'e')
@@ -957,22 +957,22 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
     //scramble with password
     if (passw && strlen(passw) >= 1)
     {
-        int passlen = (int)strlen(passw);
+        int passlen = static_cast<int>(strlen(passw));
 
         //add some random numbers
-        unsigned int random_numbers = (unsigned int)(GetTickCount() % 64) + passlen;
-        char* buf2 = (char*)malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64);
-        buf = (char*)malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64);
+        unsigned int random_numbers = static_cast<unsigned int>(GetTickCount() % 64) + passlen;
+        auto buf2 = static_cast<char*>(malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64));
+        buf = static_cast<char*>(malloc(len + random_numbers + 12 + 1024 + NumDocumentElements * 64));
         len += random_numbers;
         memcpy(buf + random_numbers, *buffer, len);
         free(*buffer);
         *buffer = buf;
 
-        buf[0] = (char)random_numbers;
+        buf[0] = static_cast<char>(random_numbers);
         Sleep(10);
-        for (int i = 1; i < (int)random_numbers; i++)
+        for (int i = 1; i < static_cast<int>(random_numbers); i++)
         {
-            buf[i] = (char)(GetTickCount() % 64);
+            buf[i] = static_cast<char>(GetTickCount() % 64);
             buf[i] += rand();
             Sleep(10);
         }
@@ -985,7 +985,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
             char d = passw[j];
             for (int i = 0; i < len; i++)
             {
-                unsigned char x = (unsigned char)passw[j];
+                unsigned char x = static_cast<unsigned char>(passw[j]);
                 buf2[i] = buf[pointer];
                 buf2[i] = buf2[i] ^ x;
                 buf2[i] += d;
@@ -1003,7 +1003,7 @@ int CMathomirDoc::ScrambleMOMFile(char** buffer, int len, char type)
     if (pkey)
     {
         len += 1026;
-        buf = (char*)malloc(len + 1024 + NumDocumentElements * 64 + 16);
+        buf = static_cast<char*>(malloc(len + 1024 + NumDocumentElements * 64 + 16));
         memcpy(buf + 1026, *buffer, len);
         memcpy(buf, pkey, 1026);
         free(*buffer);
@@ -1053,7 +1053,7 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
     if (type == 'e')
     {
         //exam file - create a structure to hold the public key
-        PublicKey = (tPublicKey*)calloc(sizeof(tPublicKey), 64);
+        PublicKey = static_cast<tPublicKey*>(calloc(sizeof(tPublicKey), 64));
     }
 #endif
     if (type == 'r' || type == 's')
@@ -1086,12 +1086,12 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
     if (type == 'e' || type == 'r')
     {
         //if this is an exam or exam result
-        CDiffieHellman* DH = new CDiffieHellman();
+        auto DH = new CDiffieHellman();
         int64_t N, Y, key;
 
         if (type == 'r')
         {
-            DH->DerivePublicKey(passw, &N,nullptr);
+            DH->DerivePublicKey(passw, &N, nullptr);
             memset(passw, 0, 24);
             for (int i = 0; i < 64; i++)
             {
@@ -1122,13 +1122,13 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
     if (passw && strlen(passw) >= 1)
     {
         //if password is defined, then we unscramble this file
-        char* buf2 = (char*)malloc(len + 1);
+        auto buf2 = static_cast<char*>(malloc(len + 1));
 
-        int passlen = (int)strlen(passw);
+        int passlen = static_cast<int>(strlen(passw));
         for (int j = passlen - 1; j >= 0; j--)
         {
             char d;
-            const unsigned char x = (unsigned char)passw[j];
+            const unsigned char x = static_cast<unsigned char>(passw[j]);
             for (int i = 0; i < len; i++)
             {
                 int startpointer = 0;
@@ -1156,14 +1156,14 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
         free(buf2);
 
         //remove random numbers (salt)
-        unsigned int num_randoms = (unsigned char)*buffer[0];
+        unsigned int num_randoms = static_cast<unsigned char>(*buffer[0]);
         len -= num_randoms;
         if (len < 0) len = 0;
         memmove(*buffer, *buffer + num_randoms, len);
     }
 
     //we procede by decompressing the file
-    char* buf = (char*)malloc(olen + 1);
+    auto buf = static_cast<char*>(malloc(olen + 1));
     int j = 0;
     int inside_quotation = 0;
     for (int i = 0; i < len; i++)
@@ -1345,31 +1345,31 @@ int CMathomirDoc::UnscrambleMOMFile(char** buffer, int len)
                 j += 4;
                 continue;
             }
-            if (c == (char)251)
+            if (c == static_cast<char>(251))
             {
                 strcpy(buf + j, "<bmp bits=");
                 j += 10;
                 continue;
             }
-            if (c == (char)252)
+            if (c == static_cast<char>(252))
             {
                 strcpy(buf + j, " fnthq_h=");
                 j += 9;
                 continue;
             }
-            if (c == (char)255)
+            if (c == static_cast<char>(255))
             {
                 strcpy(buf + j, " b_shape=");
                 j += 9;
                 continue;
             }
-            if (c == (char)254)
+            if (c == static_cast<char>(254))
             {
                 strcpy(buf + j, " b_height=");
                 j += 10;
                 continue;
             }
-            if (c == (char)253)
+            if (c == static_cast<char>(253))
             {
                 strcpy(buf + j, " b_data=");
                 j += 8;

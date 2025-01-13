@@ -23,7 +23,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Mathomir.h"
 
 #include "MainFrm.h"
-#include ".\mainfrm.h"
+#include "./mainfrm.h"
 #include "toolbox.h"
 #include "popupmenu.h"
 #include "drawing.h"
@@ -79,7 +79,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_WM_MENUCHAR()
     {
         WM_DISPLAYCHANGE, 0, 0, 0, AfxSig_vwp,
-        (AFX_PMSG)(AFX_PMSGW)static_cast<void (AFX_MSG_CALL CWnd::*)(WPARAM, LPARAM)>(&ThisClass::OnDisplayChange)
+        static_cast<AFX_PMSG>((AFX_PMSGW)static_cast<void (AFX_MSG_CALL CWnd::*)(WPARAM, LPARAM)>(&
+            ThisClass::OnDisplayChange))
     },
 END_MESSAGE_MAP()
 
@@ -239,7 +240,7 @@ void CMainFrame::SetLogicalFont(int font_no, LOGFONT* lf, const CDC* DC)
     FontWeight[font_no] = min(600, lf->lfWeight);
     int r = DC->GetDeviceCaps(LOGPIXELSY);
     lf->lfHeight = MulDiv(-lf->lfHeight, 72, DC->GetDeviceCaps(LOGPIXELSY));
-    FontAdjustedSizes[font_no] = (char)((abs(lf->lfHeight) - 20) * 2 + 100);
+    FontAdjustedSizes[font_no] = static_cast<char>((abs(lf->lfHeight) - 20) * 2 + 100);
     FontFacenames[font_no] = lf->lfFaceName;
     FontCharSet[font_no] = lf->lfCharSet;
 
@@ -319,7 +320,7 @@ HFONT GetFontFromPool(byte combination, unsigned short Size)
         0, //escapement
         0, //Orientation
         combination & 0x01 ? FontWeight[Face] + 300 : FontWeight[Face], //Weight
-        (BYTE)(combination & 0x02 ? 1 : 0), //Italic
+        static_cast<BYTE>(combination & 0x02 ? 1 : 0), //Italic
         0, //Underline
         0, //Strikeout
         FontCharSet[Face], //CharSet
@@ -329,7 +330,7 @@ HFONT GetFontFromPool(byte combination, unsigned short Size)
         0, //Pitch and Family
         FontFacenames[Face].c_str()); //facename
 
-    if (theFont == nullptr) return (HFONT)GetStockObject(SYSTEM_FONT);
+    if (theFont == nullptr) return static_cast<HFONT>(GetStockObject(SYSTEM_FONT));
 
     //store the font to the font pool (if there is no space, delete one)
     if (NumFontsInPool < MAX_NUM_FONTS)
@@ -428,7 +429,7 @@ void CMainFrame::OnWindowPosChanged(WINDOWPOS* lpwndpos)
 
     CFrameWnd::OnWindowPosChanged(lpwndpos);
 
-    if ((CWnd*)pMainView == this->GetActiveWindow())
+    if (static_cast<CWnd*>(pMainView) == this->GetActiveWindow())
         this->SetActiveWindow();
 }
 
@@ -524,7 +525,8 @@ int IsMenuAccessKey(UINT nChar)
     {
         for (int i = 30001; i < 30004; i++)
             //check first 3 shortcuts (main menu items starting with specific character - File, Edit, View)
-            if (LanguagePointers[i] != 0xFFFF && LanguageStrings[LanguagePointers[i]] == (char)nChar) return 1;
+            if (LanguagePointers[i] != 0xFFFF && LanguageStrings[LanguagePointers[i]] == static_cast<char>(nChar))
+                return 1;
     }
     else
     {
@@ -756,7 +758,8 @@ int CMainFrame::EndMyPainting(CDC* DC, int X, int Y, int force_black, int flip_i
             unsigned char* bits;
             if (fast_method)
             {
-                bits = (unsigned char*)HeapAlloc(ProcessHeap, 0, MyBitmapReservedWidth * H * bytes_per_pixel);
+                bits = static_cast<unsigned char*>(HeapAlloc(ProcessHeap, 0,
+                                                             MyBitmapReservedWidth * H * bytes_per_pixel));
                 if (!bits)
                     fast_method = 0;
                 else if (!MyBitmap->GetBitmapBits(H * MyBitmapReservedWidth * bytes_per_pixel, bits))
@@ -933,7 +936,7 @@ int AddDocumentObject(doc_type type, int X, int Y)
         if (NumDocumentElementsReserved == 0)
         {
             NumDocumentElementsReserved += 20;
-            TheDocument = (tDocumentStruct*)malloc(NumDocumentElementsReserved * sizeof(tDocumentStruct));
+            TheDocument = static_cast<tDocumentStruct*>(malloc(NumDocumentElementsReserved * sizeof(tDocumentStruct)));
         }
         else
         {
@@ -962,7 +965,8 @@ int AddDocumentObject(doc_type type, int X, int Y)
                 && KeyboardEntryBaseObject <= &TheDocument[NumDocumentElements - 1])
                 x6 = KeyboardEntryBaseObject - TheDocument;
             NumDocumentElementsReserved += 20;
-            TheDocument = (tDocumentStruct*)realloc(TheDocument, NumDocumentElementsReserved * sizeof(tDocumentStruct));
+            TheDocument = static_cast<tDocumentStruct*>(realloc(TheDocument,
+                                                                NumDocumentElementsReserved * sizeof(tDocumentStruct)));
 
             if (x1 < 0) prevTouchedObject = nullptr;
             else prevTouchedObject = TheDocument + x1;
@@ -1210,7 +1214,7 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     else
     {
         theMenu->ModifyMenu(ID_EDIT_UNDO,MF_BYCOMMAND | MF_STRING,ID_EDIT_UNDO,
-            (UndoText + "\tCtrl+Z").c_str());
+                            (UndoText + "\tCtrl+Z").c_str());
         //DrawMenuBar();
     }
     if (adjust_undo_only) return 0;
@@ -1218,16 +1222,16 @@ int CMainFrame::AdjustMenu(int adjust_undo_only)
     if (F1SetsZoom)
     {
         theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1,
-            (F1Text + "\tF1").c_str());
+                            (F1Text + "\tF1").c_str());
         theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE,
-            HandyHelpText.c_str());
+                            HandyHelpText.c_str());
     }
     else
     {
         theMenu->ModifyMenu(ID_VIEW_ZOOMTO1,MF_BYCOMMAND | MF_STRING,ID_VIEW_ZOOMTO1,
-            F1Text.c_str());
+                            F1Text.c_str());
         theMenu->ModifyMenu(ID_HELP_QUICKGUIDE,MF_BYCOMMAND | MF_STRING,ID_HELP_QUICKGUIDE,
-            (HandyHelpText + "\tF1").c_str());
+                            (HandyHelpText + "\tF1").c_str());
     }
 
     theMenu->CheckMenuItem(ID_HQ_REND, IsHighQualityRendering ? MF_CHECKED : MF_UNCHECKED);
@@ -1470,7 +1474,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
                     delete us->pObject.exp;
                 else if (us->Type == DRAWING)
                     delete us->pObject.draw;
-                
+
                 memmove(us, us + 1, (UndoNumObjects - i - 1) * sizeof(tUndoObjectStruct));
                 i--;
                 us--;
@@ -1520,8 +1524,9 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
             if (UndoNumObjects >= UndoNumObjectsReserved)
             {
                 UndoNumObjectsReserved += 50;
-                pUndoObjectList = (tUndoObjectStruct*)realloc(pUndoObjectList,
-                                                              UndoNumObjectsReserved * sizeof(tUndoObjectStruct));
+                pUndoObjectList = static_cast<tUndoObjectStruct*>(realloc(pUndoObjectList,
+                                                                          UndoNumObjectsReserved * sizeof(
+                                                                              tUndoObjectStruct)));
                 if (pUndoObjectList == nullptr)
                 {
                     AfxMessageBox("Cannot reserve Undo memory",MB_OK | MB_ICONWARNING,NULL);
@@ -1626,7 +1631,8 @@ int CMainFrame::UndoRestore()
                 delete TheDocument[i].Object.exp;
                 TheDocument[i].Object.exp = nullptr;
             }
-        }else if (TheDocument[i].Type == DRAWING)
+        }
+        else if (TheDocument[i].Type == DRAWING)
         {
             bool found = false;
             for (int j = 0; j < UndoNumObjects; j++)
@@ -1658,7 +1664,8 @@ int CMainFrame::UndoRestore()
     tDocumentStruct* oldDoc = TheDocument;
     int oldDocNumElements = NumDocumentElements;
 
-    TheDocument = (tDocumentStruct*)malloc(UndoStruct[UndoNumLevels - 1].NumElements * sizeof(tDocumentStruct));
+    TheDocument = static_cast<tDocumentStruct*>(malloc(
+        UndoStruct[UndoNumLevels - 1].NumElements * sizeof(tDocumentStruct)));
     if (TheDocument == nullptr)
     {
         NumDocumentElementsReserved = NumDocumentElements = 0;
@@ -1835,7 +1842,7 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
                 if (tmp[1] == 0) return nullptr;
                 int tt = 0;
                 sscanf(tmp, "%X", &tt);
-                ch = (char)tt;
+                ch = static_cast<char>(tt);
                 file += 2;
             }
 
@@ -2086,7 +2093,7 @@ void DisplayShortText(const std::string& text, int x, int y, int langID, int fla
     StaticMessageWindow->SetWindowPos(nullptr, x, y, g.cx + fsize / 2, ysize,SWP_NOZORDER);
     StaticMessageWindow->ShowWindow(SW_SHOW);
     StaticMessageWindow->UpdateWindow();
-    StaticMessageWindowCntr = 2 + (int)buff.size() / 15;
+    StaticMessageWindowCntr = 2 + static_cast<int>(buff.size()) / 15;
     if (flags == 4) StaticMessageWindowCntr += 5;
 }
 #pragma optimize("",on)
@@ -2105,7 +2112,7 @@ int CopyTranslatedString(char* dest, const std::string& eng_defstr, int id, size
         }
     }
 
-    if (strlen(defstr) + 1 > destlen )
+    if (strlen(defstr) + 1 > destlen)
     {
         memcpy(dest, defstr, destlen - 1);
         dest[destlen - 1] = 0;
@@ -2139,14 +2146,14 @@ int ExecuteLink(const char* command)
     char buff[512];
     int match = 0;
     int found = -1;
-    int d1 = (int)strlen(command);
+    int d1 = static_cast<int>(strlen(command));
     for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = &TheDocument[i];
 
         if (ds->Type == EXPRESSION)
         {
-            CExpression* e = (CExpression*)ds->Object.draw;
+            auto e = (CExpression*)ds->Object.draw;
             CExpression* label = e->GetLabel();
             if (e->m_IsHeadline || label)
             {
@@ -2154,7 +2161,7 @@ int ExecuteLink(const char* command)
                 if (e->m_IsHeadline) e->ConvertToPlainText(500, buff);
                 else label->ConvertToPlainText(500, buff);
                 buff[500] = 0;
-                int d2 = (int)strlen(buff);
+                int d2 = static_cast<int>(strlen(buff));
                 if (strcmp(buff, command) == 0)
                 {
                     match = 0x7FFF;

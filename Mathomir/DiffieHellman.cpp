@@ -40,13 +40,10 @@ int64_t CDiffieHellman::XpowYmodN(int64_t x, int64_t y, int64_t N)
         tmp = XpowYmodN(x, y / 2, N);
         return tmp * tmp % N;
     }
-    else
-    {
-        tmp = XpowYmodN(x, (y - 1) / 2, N);
-        tmp = tmp * tmp % N;
-        tmp = tmp * x % N;
-        return tmp;
-    }
+    tmp = XpowYmodN(x, (y - 1) / 2, N);
+    tmp = tmp * tmp % N;
+    tmp = tmp * x % N;
+    return tmp;
 }
 
 
@@ -83,7 +80,7 @@ uint64_t CDiffieHellman::GenerateRandomNumber()
     dh_rnd ^= GetTickCount() ^ dh_x;
     ROT(dh_rnd, 7);
 
-    return (uint64_t)GetTickCount() + dh_rnd;
+    return static_cast<uint64_t>(GetTickCount()) + dh_rnd;
 }
 
 
@@ -122,7 +119,7 @@ void CDiffieHellman::DerivePublicKey(const char* password, int64_t* N, int64_t* 
 
     char pswd[32];
     memset(pswd, 0, 32);
-    for (int i = 0; i < (int)strlen(password); i++)
+    for (int i = 0; i < static_cast<int>(strlen(password)); i++)
         pswd[i % 8] += password[i];
 
     a = *(int64_t*)pswd;
@@ -145,7 +142,7 @@ void CDiffieHellman::CreateDecryptionKey(int64_t Y, int64_t N, int64_t* Key)
 //make decription - the number 'a' is needed and is only known on the other side.)
 void CDiffieHellman::CreateEncryptionKey(int64_t N, int64_t X, int64_t* Key, int64_t* Y)
 {
-    int64_t b = (int64_t)(GenerateRandomNumber() % MAX_RANDOM_INTEGER);
+    int64_t b = static_cast<int64_t>(GenerateRandomNumber() % MAX_RANDOM_INTEGER);
     *Y = XpowYmodN(DH_G_NUMBER, b, N);
     *Key = XpowYmodN(X, b, N);
 }

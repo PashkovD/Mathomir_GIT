@@ -8,20 +8,17 @@ class CToolbox : public CWnd
 {
     DECLARE_DYNAMIC(CToolbox)
 
-public:
     CToolbox* Subtoolbox;
     CToolbox* ContextMenu;
     CToolbox* Keyboard;
     CToolbox* Toolbar;
 
-public:
     int m_IsSubtoolbox; //for submenu window
     int m_IsContextMenu; //for context menu window (right click)
     int m_IsKeyboard; //for virtual keyboard window
     int m_IsMain; //for main toolbox window
     int m_IsToolbar; //for the toolbar
 
-public:
     int m_SelectedColor;
     int m_SelectedTextControl;
     int prevSelectedColor;
@@ -42,9 +39,8 @@ public:
     int m_KeyboardX;
     int m_KeyboardY;
 
-public:
     CToolbox(int IsSubtoolbox);
-    virtual ~CToolbox();
+    ~CToolbox() override;
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -91,7 +87,8 @@ public:
     UINT GetMixedFormatting(char key, char is_greek);
     CExpression* CheckForKeycodes(const char* keystrokes, int* len);
     CExpression* ReturnKeycode(int keycode_order, char** Keycode);
-    void ShowHelptext(const std::string& text, const std::string& command, const std::string& accelerator, const std::string& easycast, int language_code);
+    void ShowHelptext(const std::string& text, const std::string& command, const std::string& accelerator,
+                      const std::string& easycast, int language_code);
     void PickUpElementFromToolbox(int member, int submember);
     int InsertIntoToolbox();
     void ToolbarShowHelp();

@@ -39,12 +39,13 @@ public:
     int Delete();
     int InsertEmptyElement(int form, int Cx, int Cy);
     int CalculateSize(CDC* DC, short zoom, short* width, short* height);
-    void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = nullptr, COLORREF color = 0);
+    void PaintDrawing(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg = nullptr,
+                      COLORREF color = 0);
     void SelectDrawing(bool select);
     int CalcChecksum() const;
     int CopyDrawing(CDrawing* Original);
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, int* NodeEdit, int internal_call = 0);
-    void XML_output(std::ostream &output, int num_tabs) const;
+    void XML_output(std::ostream& output, int num_tabs) const;
     char* XML_input(char* file);
 
     // Erases the square drawing part
@@ -74,7 +75,8 @@ public:
     // returns lenght of the diagonal from given point to drawing lines
     int FindDiagonalLength(int X, int Y, int* l1, int* l2, int direction) const;
     int SetColor(int color);
-    int IsOpenPath(int close_path, char* is_closed_path = nullptr, LPPOINT points = nullptr, char* num_points_found = nullptr);
+    int IsOpenPath(int close_path, char* is_closed_path = nullptr, LPPOINT points = nullptr,
+                   char* num_points_found = nullptr);
     int MakeDashed(char dash_dot);
     int FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X0, int Y0, int X1, int Y1);
     void FindBottomRightDrawingPoint(int* X, int* Y) const;

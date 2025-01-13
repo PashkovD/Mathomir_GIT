@@ -10,7 +10,6 @@ public:
     void* operator new(size_t size);
     //void operator delete(void *p);
 
-public:
     CExpression* m_pPaternalExpression;
     short* Data3;
     CExpression* Expression1;
@@ -31,7 +30,6 @@ public:
     short E3_length, E3_above, E3_below, E3_posX, E3_posY;
     char Data1[10];
 
-public:
     CElement();
     ~CElement();
     void CalculateSize(CDC& DC, short int zoom, short int& length, short int& above, short int& below,
@@ -44,7 +42,7 @@ public:
 
     CObject* SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
                            size_t paternal_position);
-    void XML_output(std::ostream &output, int num_tabs);
+    void XML_output(std::ostream& output, int num_tabs);
     void LaTeX_output(std::ostream& output) const;
     char* XML_input(char* file, void* element_struct);
     int CalcChecksum() const;
