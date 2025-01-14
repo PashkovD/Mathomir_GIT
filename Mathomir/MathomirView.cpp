@@ -1694,22 +1694,22 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                         short l, a, b;
                         e->CalculateSize(DC, ViewZoom, l, &a, &b);
                         short IsExpression;
-                        char IsParenthese = 0;
+                        bool IsParenthese = false;
                         CObject* ret;
 
 
                         ret = nullptr;
                         IsExpression = 0;
-                        ret = e->SelectObjectAtPoint(DC, ViewZoom, X - 5, Y, &IsExpression, &IsParenthese, 1);
+                        ret = e->SelectObjectAtPoint(DC, ViewZoom, X - 5, Y, &IsExpression, IsParenthese, true);
                         if (ret == nullptr && IsExpression == 0)
                             ret = e->SelectObjectAtPoint(
-                                DC, ViewZoom, X + 5, Y, &IsExpression, &IsParenthese, 1);
+                                DC, ViewZoom, X + 5, Y, &IsExpression, IsParenthese, true);
                         if (ret == nullptr && IsExpression == 0)
                             ret = e->SelectObjectAtPoint(
-                                DC, ViewZoom, X, Y - 5, &IsExpression, &IsParenthese, 1);
+                                DC, ViewZoom, X, Y - 5, &IsExpression, IsParenthese, true);
                         if (ret == nullptr && IsExpression == 0)
                             ret = e->SelectObjectAtPoint(
-                                DC, ViewZoom, X, Y + 5, &IsExpression, &IsParenthese, 1);
+                                DC, ViewZoom, X, Y + 5, &IsExpression, IsParenthese, true);
                         if (ret || IsExpression)
                         {
                             is_near_object = 1;
@@ -1974,8 +1974,8 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
 
                             CExpression* e = ds->Object.exp;
                             short IsExpression = 0;
-                            char IsParenthese = 0;
-                            CObject* ret = e->SelectObjectAtPoint(DC, ViewZoom, X, Y, &IsExpression, &IsParenthese, 1);
+                            bool IsParenthese = false;
+                            CObject* ret = e->SelectObjectAtPoint(DC, ViewZoom, X, Y, &IsExpression, IsParenthese, 1);
 
                             if (ret == nullptr && IsExpression == 0)
                                 if (e == KeyboardEntryObject && e->m_IsKeyboardEntry)
@@ -3677,7 +3677,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
             tDocumentStruct* TouchedExpression = nullptr;
             char IsTouchedExpressionFullyInside = 0;
             short IsExpression = -1;
-            char IsParenthese = -1;
+            bool IsParenthese = -1;
             int ScheduleFullRepaint = 0;
             int i;
             int any_drawing_touched = 0;
@@ -3862,7 +3862,7 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                                 IsExpression = -1;
 
                                 TouchedSubelement = ds->Object.exp->SelectObjectAtPoint(
-                                    DC, ViewZoom, X, Y, &IsExpression, &IsParenthese);
+                                    DC, ViewZoom, X, Y, &IsExpression, IsParenthese);
 
                                 if (TouchedSubelement == nullptr && IsExpression == -1 && ds->MovingDotState == 0)
                                     continue;
@@ -6291,10 +6291,10 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                     if (IsDrawingMode)
                                     {
                                         short is_exp;
-                                        char is_parenth;
+                                        bool is_parenth;
                                         ds->Object.exp->SelectObjectAtPoint(
                                             DC, ViewZoom, ((absX - ds->absolute_X) * ViewZoom + 50) / 100,
-                                            (absY - ds->absolute_Y) * ViewZoom / 100, &is_exp, &is_parenth, 2);
+                                            (absY - ds->absolute_Y) * ViewZoom / 100, &is_exp, is_parenth, 2);
                                     }
 
                                     tmp = ds->Object.exp->AdjustSelection();
@@ -6322,7 +6322,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         //nothing is selected - try another method (SelectObjectAtPoint)
                                         //this will reveal if any insertion point is touched
                                         short is_expression = 0;
-                                        char is_parenth;
+                                        bool is_parenth;
                                         QuickTypeUsed = 1;
                                         tmp = (CExpression*)ds->Object.exp->SelectObjectAtPoint(
                                             DC, ViewZoom,
@@ -6330,7 +6330,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                                 / 100),
                                             static_cast<short>(cursor.y - (TheDocument[i].absolute_Y - ViewY) * ViewZoom
                                                 / 100),
-                                            &is_expression, &is_parenth, 1);
+                                            &is_expression, is_parenth, 1);
                                         QuickTypeUsed = 0;
                                         if (tmp == nullptr && is_expression == 0 && ds->Object.exp->
                                             m_MaxNumColumns == 1 && ds->Object.exp->m_MaxNumRows == 1)
@@ -7936,12 +7936,12 @@ void CMathomirView::OnRButtonUp(UINT nFlags, CPoint point)
                                             CExpression* obj = ds->Object.exp;
                                             CDC* DC = this->GetDC();
                                             short is_expression;
-                                            char is_parenthese;
+                                            bool is_parenthese;
                                             obj = (CExpression*)obj->SelectObjectAtPoint(
                                                 DC, ViewZoom,
                                                 static_cast<short>(point.x - (ds->absolute_X - ViewX) * ViewZoom / 100),
                                                 static_cast<short>(point.y - (ds->absolute_Y - ViewY) * ViewZoom / 100),
-                                                &is_expression, &is_parenthese);
+                                                &is_expression, is_parenthese);
                                             this->ReleaseDC(DC);
 
                                             if (is_expression <= 0 || is_expression == 0x7FFF) obj = nullptr;
@@ -8373,13 +8373,13 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
 
                     //nothing was selected, check if clicked in between elements
                     short IsExpression;
-                    char IsParenthese;
+                    bool IsParenthese;
                     int X = point.x - (ds->absolute_X - ViewX) * ViewZoom / 100;
                     int Y = point.y - (ds->absolute_Y - ViewY) * ViewZoom / 100;
                     CObject* obj;
                     CDC* DC = GetDC();
                     obj = ds->Object.exp->SelectObjectAtPoint(
-                        DC, ViewZoom, X, Y, &IsExpression, &IsParenthese);
+                        DC, ViewZoom, X, Y, &IsExpression, IsParenthese);
                     if (obj && !IsExpression && LeftClickTimer < 4)
                     {
                         auto elm = (CElement*)obj;

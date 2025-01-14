@@ -34,14 +34,14 @@ public:
     ~CElement();
     void CalculateSize(CDC& DC, short int zoom, short int& length, short int& above, short int& below,
                        size_t paternal_position, char HQR);
-    void PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlue, int ActualSize,
+    void PaintExpression(CDC* DC, short zoom, int X, int Y, bool IsBlue, int ActualSize,
                          RECT const* ClipReg = nullptr,
                          COLORREF color = 0);
     void Empty(char oper);
     void CopyElement(const CElement* Element);
     int FontSizeForType(int subelement_no) const;
 
-    CObject* SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
+    CObject* SelectAtPoint(CDC* DC, short zoom, int X, int Y, short* IsExpression, bool& IsParenthese,
                            size_t paternal_position);
     void XML_output(std::ostream& output, int num_tabs);
     void LaTeX_output(std::ostream& output) const;

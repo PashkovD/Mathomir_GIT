@@ -1341,10 +1341,10 @@ int CFunctionPlotter::MouseClick(int X, int Y)
                 y0 = 10 + ToolboxSize / 6 + (TheState - 108) * ToolboxSize / 3;
             }
             short isexpression;
-            char isparenthese;
+            bool isparenthese;
             auto sel = (CExpression*)tmp->SelectObjectAtPoint(DC, ViewZoom, -X * ViewZoom / 100 - x0,
                                                               -Y * ViewZoom / 100 - y0 - a, &isexpression,
-                                                              &isparenthese, 2);
+                                                              isparenthese, true);
             if (sel && isexpression && sel->m_Selection && sel->m_Selection != 0x7ffff)
             {
                 KeyboardEntryObject->KeyboardStop();

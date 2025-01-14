@@ -165,7 +165,7 @@ public:
     ~CExpression();
     void CalculateSize(CDC* DC, short int zoom, short int& length, short int* above, short int* below, char HQR = -1,
                        char optimize_for_readability = 0);
-    void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT const* ClipReg = nullptr, COLORREF color = 0);
+    void PaintExpression(CDC* DC, short zoom, int X, int Y, RECT const* ClipReg = nullptr, COLORREF color = 0);
     short GetActualFontSize(short zoom) const;
     int InsertEmptyElement(size_t position, short type, char Operator, int color = -1);
     void SelectExpression(char Select);
@@ -174,11 +174,11 @@ public:
 
     void SelectElement(char Select, int position);
 
-    CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
-                                 char ForceInsertionPoint = 0);
+    CObject* SelectObjectAtPoint(CDC* DC, short zoom, int X, int Y, short* IsExpression, bool& IsParenthese,
+                                 bool ForceInsertionPoint = false);
     // Copies all data from original expression
     int CopyExpression(CExpression* Original, char OnlySelected, char selection_type = 1,
-                       char update_clipboard = 1);
+                       char update_clipboard = true);
     void Delete();
     int InsertElement(const tElementStruct& Element, size_t position);
     int MoveElementInto(const tElementStruct& Element, size_t position);
@@ -196,10 +196,10 @@ public:
     int KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, UINT nFlags, int fcolor, bool extern_call);
     // only to be called from KeyboardHit function!!
     tElementStruct* KeyboardSplitVariable();
-    int PaintParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth, char Type,
-                         short data, char IsBlue, int color = 0) const;
-    int PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth,
-                                   char Type, short data, char IsBlue, int color = 0) const;
+    int PaintParentheses(CDC* DC, short zoom, int X1, int Y1, int X2, int Y2, short ParentheseWidth, char Type,
+                         short data, bool IsBlue, COLORREF color = 0) const;
+    int PaintHorizontalParentheses(CDC* DC, short zoom, int X1, int Y1, int X2, int Y2, short ParentheseWidth,
+                                   char Type, short data, bool IsBlue, COLORREF color = 0) const;
 
     int KeyboardStop();
     void XML_output(std::ostream& output, int num_tabs);
@@ -233,6 +233,7 @@ public:
     int DetermineInsertionPointType(int position); //returns 0 if this is a math or 1 if this is a text position
     int Autocomplete(bool is_internal);
     tElementStruct* GetElementStruct(const CElement* element);
+    const tElementStruct* GetElementStruct(const CElement* element) const;
     CElement* DecodeInternalInsertionPoint() const;
     //returns nullptr if no insertion point found, otherwise the element (type=1) with the insertion point
     int ContainsBlinkingCursor() const;
@@ -306,7 +307,7 @@ public:
     int SearchForString(char* str);
     int ConvertToPlainText(int buffer_size, char* str, bool force_parentheses = false) const;
     int AutowrapText(CDC* DC, int width, int rewrap_all);
-    int IsTextContained(int position, char unmark_at_line_start = 0) const;
+    int IsTextContained(int position, bool unmark_at_line_start = 0) const;
     int GetCellAttributes(int row, int column, tCellAttributes* attributes);
     //int GetCellAttributes(int row, int column,char *align, char *top, char *bottom, char *left, char *right);
     int SetCellAttributes(int row, int column, char align, char top, char bottom, char left, char right);

@@ -355,9 +355,9 @@ HFONT GetFontFromPool(byte combination, unsigned short Size)
 
 //returns pen of given width and color - it must work fast
 //several pens are pre-created (in CMainFrame constructor)
-HPEN GetPenFromPool(short width, bool IsBlue, COLORREF color)
+HPEN GetPenFromPool(int width, bool IsBlue, COLORREF color)
 {
-    static short LastWidth;
+    static int LastWidth;
     static COLORREF LastColor;
 
     if (width <= 0 && IsBlue == 0 && color == 0) return HDottedLineBlack;
@@ -589,10 +589,10 @@ void CMainFrame::OnPaint()
 
 
 //called from pop-up menues to point the 'checked' sign
-int PaintCheckedSign(CDC* DC, short x, short y, short size, bool IsChecked)
+int PaintCheckedSign(CDC* DC, int x, int y, short size, bool IsChecked)
 {
-    CBrush* brsh;
-    CPen* pn;
+    CBrush* brsh = nullptr;
+    CPen* pn = nullptr;
 
     if (IsChecked) //when IsCheked==2 then paint gray sign
     {
@@ -623,11 +623,9 @@ int PaintCheckedSign(CDC* DC, short x, short y, short size, bool IsChecked)
 
     DC->Polygon(p, 5);
 
-    if (IsChecked)
-    {
-        delete pn;
-        delete brsh;
-    }
+
+    delete pn;
+    delete brsh;
 
     return 0;
 }
@@ -833,7 +831,7 @@ int CMainFrame::EndMyPainting(CDC* DC, int X, int Y, int force_black, int flip_i
     return 0;
 }
 
-int CMainFrame::MyPolyline(CDC* DC, LPPOINT points, int count, int LineWidth, char IsBlue)
+int CMainFrame::MyPolyline(CDC* DC, LPPOINT points, int count, int LineWidth, bool IsBlue)
 {
     for (int i = 0; i < count; i++)
         points[i].y += MyBitmapAbove;
@@ -848,7 +846,7 @@ int CMainFrame::MyMoveTo(CDC* DC, int X, int Y)
     return 0;
 }
 
-int CMainFrame::MyLineTo(CDC* DC, int X, int Y, char IsBlue)
+int CMainFrame::MyLineTo(CDC* DC, int X, int Y, bool IsBlue)
 {
     MyDC->SelectObject(GetPenFromPool(1, IsBlue, MyColor));
     MyDC->LineTo(X, Y + MyBitmapAbove);
@@ -872,18 +870,19 @@ int CMainFrame::MyArc(CDC* DC, int X1, int Y1, int X2, int Y2, int Xstart, int Y
     return 0;
 }
 
-int CMainFrame::MySetPixel(CDC* DC, int X, int Y, char IsBlue)
+int CMainFrame::MySetPixel(CDC* DC, int X, int Y, bool IsBlue)
 {
     MyDC->SetPixelV(X, Y + MyBitmapAbove, IsBlue ? BLUE_COLOR : MyColor);
     return 0;
 }
 
-int CMainFrame::MyBitBlt(CDC* DC, int X, int Y, int width, int height, int Xsrc, int Ysrc, char IsXInvers)
+int CMainFrame::MyBitBlt(CDC* DC, int X, int Y, int width, int height, int Xsrc, int Ysrc, bool IsXInvers)
 {
     if (IsXInvers)
     {
         //mirrored horizontal
-        MyDC->StretchBlt(X + width, Y + MyBitmapAbove, -width, height, MyDC, Xsrc, Ysrc + MyBitmapAbove, width, height,
+        MyDC->StretchBlt(X + width, Y + MyBitmapAbove,
+                         -width, height, MyDC, Xsrc, Ysrc + MyBitmapAbove, width, height,
                          SRCCOPY);
     }
     else
@@ -1008,7 +1007,7 @@ int AddDocumentObject(doc_type type, int X, int Y)
 extern int NumSelectedObjects;
 int MenuTranslated = 0;
 
-int CMainFrame::AdjustMenu(int adjust_undo_only)
+int CMainFrame::AdjustMenu(bool adjust_undo_only)
 {
     CMenu* theMenu;
     theMenu = GetMenu();
@@ -1373,7 +1372,7 @@ int CMainFrame::UndoInit()
     {
         for (int i = 0; i < UndoNumObjects; i++)
         {
-            tUndoObjectStruct* us = pUndoObjectList + i;
+            tUndoObjectStruct* us = &pUndoObjectList[i];
             if (us->Type == EXPRESSION)
             {
                 //((CExpression*)(us->pObject))->Delete();

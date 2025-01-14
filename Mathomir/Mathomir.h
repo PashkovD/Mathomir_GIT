@@ -69,7 +69,7 @@ struct tDocumentStruct
 struct tUndoStruct
 {
     void* data;
-    int NumElements;
+    size_t NumElements;
     char text[32];
 };
 
@@ -204,8 +204,8 @@ extern char TheFileType;
 HFONT GetFontFromPool(char Face, bool Italic, bool Bold, unsigned short Size);
 HFONT GetFontFromPool(byte combination, unsigned short Size);
 void ClearFontPool();
-HPEN GetPenFromPool(short width, bool IsBlue, COLORREF color = 0);
-int PaintCheckedSign(CDC* DC, short x, short y, short size, bool IsChecked);
+HPEN GetPenFromPool(int width, bool IsBlue, COLORREF color = 0);
+int PaintCheckedSign(CDC* DC, int x, int y, short size, bool IsChecked);
 void DisplayShortText(const std::string& text, int x, int y, int LanguageID, int flags = 0);
 int AddDocumentObject(doc_type type, int X, int Y);
 int CopyTranslatedString(char* dest, const std::string& defstr, int id, size_t destlen);

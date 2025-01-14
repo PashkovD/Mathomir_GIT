@@ -1931,7 +1931,7 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
 //it is painting the Element into device context
 //the element must be already prepared for painting (by calling 'CalculateSize' earlier)
 //this function should be fast!
-void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlue, int ActualSize, RECT const* ClipReg,
+void CElement::PaintExpression(CDC* DC, short zoom, int X, int Y, bool IsBlue, int ActualSize, RECT const* ClipReg,
                                COLORREF color)
 {
     CMainFrame* mf;
@@ -1996,8 +1996,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
 
         PaintText(DC, X, Y, Data1, Data2, Data3, ActualSize, IsBlue, color, m_Text, m_VMods);
         if (Expression1)
-            Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                         color);
+            Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg, color);
         return;
     }
 
@@ -2391,8 +2390,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                 int Y2 = HalfHeight;
                 HalfWidth = (X2 - X1) / 2;
 
-                int ii;
-                for (ii = -PenWidth / 2; ii <= PenWidth / 2; ii++)
+                for (int ii = -PenWidth / 2; ii <= PenWidth / 2; ii++)
                 {
                     mf->MyMoveTo(DC, X2 - HalfWidth + ii, Y1 + PenWidth);
                     mf->MyLineTo(DC, X1 + HalfWidth + ii, Y2 - PenWidth, IsBlue);
@@ -2494,14 +2492,11 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
             }
         }
         if (Expression1)
-            Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg,
-                                         color);
+            Expression1->PaintExpression(DC, zoom, X + E1_posX, Y + E1_posY, ClipReg, color);
         if (Expression3)
-            Expression3->PaintExpression(DC, zoom, X + E3_posX, Y + E3_posY, ClipReg,
-                                         color);
+            Expression3->PaintExpression(DC, zoom, X + E3_posX, Y + E3_posY, ClipReg, color);
         if (Expression2)
-            Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg,
-                                         color);
+            Expression2->PaintExpression(DC, zoom, X + E2_posX, Y + E2_posY, ClipReg, color);
         return;
     }
 
@@ -3191,7 +3186,6 @@ void CElement::CopyElement(const CElement* Element)
     for (int i = 0; i < 3; i++)
     {
         CExpression* oexp;
-        CExpression* exp;
         if (i == 0) { oexp = static_cast<CExpression*>(Element->Expression1); }
         else if (i == 1) { oexp = static_cast<CExpression*>(Element->Expression2); }
         else if (i == 2) { oexp = static_cast<CExpression*>(Element->Expression3); }
@@ -3207,7 +3201,7 @@ void CElement::CopyElement(const CElement* Element)
                 if (abs(NewFontSize - FontSize) * 100 / FontSize > 2)
                     FontSize = NewFontSize;
             }
-            exp = new CExpression(this, m_pPaternalExpression, FontSize);
+            CExpression* exp = new CExpression(this, m_pPaternalExpression, FontSize);
             exp->CopyExpression(oexp, 0);
             if (i == 0) Expression1 = exp;
             else if (i == 1) Expression2 = exp;
@@ -3271,7 +3265,7 @@ CElement* CElement::GetNextElement() const
 //returns an object where cursor is pointing (it select this object and its subexpressions)
 //function is used for touching object with mouse
 //this function must be fast!
-CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression, char* IsParenthese,
+CObject* CElement::SelectAtPoint(CDC* DC, short zoom, int X, int Y, short* IsExpression, bool& IsParenthese,
                                  size_t paternal_position)
 {
     //special handling for the HTML link element (we will select the whole element so it can be clicked on it)
@@ -3356,7 +3350,7 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
 
     //if not pointing at subexpression, then it is pointing at the element itself
     *IsExpression = 0;
-    *IsParenthese = 0;
+    IsParenthese = false;
 
     //babaluj
     if (this->m_Type == 1 && this->m_Text && strlen(this->Data1) >= 1)
@@ -3411,10 +3405,10 @@ CObject* CElement::SelectAtPoint(CDC* DC, short zoom, short X, short Y, short* I
                     GetCursorPos(&cursor);
                     pMainView->ScreenToClient(&cursor);
                     SelectedTabX = cursor.x - X;
-                    *IsParenthese = 1; //just to trigger repainting
+                    IsParenthese = true; //just to trigger repainting
                 }
                 else
-                    *IsParenthese = 0;
+                    IsParenthese = false;
             }
 
 
@@ -3894,7 +3888,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 tmp[1] = value[1];
                 tmp[2] = 0;
                 int tt = 0;
-                sscanf(tmp, "%X", &tt);
+                sscanf_s(tmp, "%X", &tt);
                 m_VMods = static_cast<unsigned char>(tt);
             }
 
@@ -3909,7 +3903,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                     tmp[1] = value[i + 1];
                     tmp[2] = 0;
                     int tt = 0;
-                    sscanf(tmp, "%X", &tt);
+                    sscanf_s(tmp, "%X", &tt);
                     Data2[j] = static_cast<char>(tt);
                     if (j >= 23) break;
                     if (j == 0) memset(Data2 + 1, *Data2, 24 - 1);
@@ -3928,7 +3922,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                     bfff[0] = value[ij * 2];
                     bfff[1] = value[ij * 2 + 1];
                     bfff[2] = 0;
-                    sscanf(bfff, "%X", &fvalue);
+                    sscanf_s(bfff, "%X", &fvalue);
                     Data1[16 + ij] = static_cast<char>(fvalue);
                 }
                 Data1[15] = 126;

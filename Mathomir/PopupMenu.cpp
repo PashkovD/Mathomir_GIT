@@ -1594,14 +1594,14 @@ void PopupMenu::OnMouseMove(UINT nFlags, CPoint point)
                 if (Options[i].Graphics && Options[i].IsGraphicsSensitive)
                 {
                     short IsExpression;
-                    char IsParenthese;
+                    bool IsParenthese;
                     Options[i].Graphics->DeselectExpression();
                     CDC* dcc = this->GetDC();
                     SelectedGraphics = Options[i].Graphics->SelectObjectAtPoint(dcc,
                         static_cast<short>(Options[i].DataArray[3]),
                         static_cast<short>(point.x - Options[i].DataArray[4]),
                         static_cast<short>(point.y - Options[i].DataArray[5]),
-                        &IsExpression, &IsParenthese);
+                        &IsExpression, IsParenthese);
                     this->ReleaseDC(dcc);
                 }
                 else if (Options[i].Graphics)
@@ -2134,7 +2134,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                     //now check if similar easycast code is alredy defined
                     int k = 0;
-                    int len2 = static_cast<int>(strlen(string));
+                    size_t len2 = strlen(string);
                     if (len2)
                         while (true)
                         {
@@ -2894,8 +2894,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             }
                             if (data == 514) //combine
                             {
-                                if (found == 0) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->
-                                    UndoSave("combine", 20110);
+                                if (found == 0)
+                                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->
+                                        UndoSave("combine", 20110);
                                 drw->Combine();
                                 break;
                             }

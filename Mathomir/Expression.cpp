@@ -1377,7 +1377,7 @@ void CExpression::CalculateSizeReadjust(short zoom, short* length, short* above,
 CBitmap* cursor_bitmap;
 //paints the expression - the expression must be already prepared for displaying (by call to CalculateSize)
 //this function must be fast!!
-void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT const* ClipReg, COLORREF color)
+void CExpression::PaintExpression(CDC* DC, short zoom, int X, int Y, RECT const* ClipReg, COLORREF color)
 {
     try
     {
@@ -1504,7 +1504,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT co
                 {
                     //we are transferring to the parent object of the differential //BABA2
                     exp = this->m_pPaternalExpression;
-                    tElementStruct* ts = exp->GetElementStruct(this->m_pPaternalElement);
+                    const tElementStruct* ts = exp->GetElementStruct(this->m_pPaternalElement);
                     if (ts)
                     {
                         corr = ts->X_pos + ts->pElementObject->E1_posX;
@@ -1520,7 +1520,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT co
                 int NumElements = exp->m_pElementList.size();
                 int KeyboardCursorPos = exp->m_KeyboardCursorPos;
                 char ParenthesesFlags = exp->m_ParenthesesFlags;
-                tElementStruct* pElementList = &exp->m_pElementList[0];
+                const tElementStruct* pElementList = &exp->m_pElementList[0];
 
                 if (is_pater_object_selected == 0 && ts &&
                     (!exp->m_DrawParentheses || ParenthesesFlags & 0x18) && ts->pElementObject->Expression1 == exp)
@@ -1599,7 +1599,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT co
         short LastDecorationElement = 0;
         for (size_t i = 0; i < m_pElementList.size(); i++)
         {
-            tElementStruct& theElement = m_pElementList[i];
+            const tElementStruct& theElement = m_pElementList[i];
             if (((theElement.IsSelected ||
                         (theElement.Type == 5 && theElement.pElementObject->Expression1->m_ParenthesesSelected))
                     && (TouchMouseMode > 1 || (GetKeyState(VK_SHIFT) & 0xFFFE && DisableMultitouch == 0))) ||
@@ -1641,8 +1641,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT co
                         {
                             POINT p[5];
                             int CLR = PALE_RGB(color);
-                            DC->SelectObject(GetPenFromPool(ActualSize < 9 ? 1 : 0, theElement.IsSelected ? 1 : 0,
-                                                            CLR));
+                            DC->SelectObject(GetPenFromPool(ActualSize < 9 ? 1 : 0, theElement.IsSelected, CLR));
                             p[0].x = X + theElement.X_pos;
                             p[0].y = Y + theElement.Y_pos - 3 * theElement.Above / 5 - ActualSize / 20;
                             p[1].x = X + theElement.X_pos + theElement.Length;
@@ -1726,8 +1725,8 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT co
                     {
                         //the last in the line or matrix/table cell
                         Xpos = X + m_pElementList[i - 1].X_pos + m_pElementList[i - 1].Length + (do_green
-                                ? 10 * m_MarginX / 8
-                                : m_MarginX * 2 / 3) - width / 2;
+                            ? 10 * m_MarginX / 8
+                            : m_MarginX * 2 / 3) - width / 2;
                     }
                     else
                     {
@@ -1980,7 +1979,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT co
                 int lw = max(1, ActualSize/24);
                 for (size_t i = 0; i < m_pElementList.size(); i++)
                 {
-                    tElementStruct& ts = m_pElementList[i];
+                    const tElementStruct& ts = m_pElementList[i];
                     if (ts.Type == 11)
                     {
                         painted = 0;
@@ -2153,25 +2152,20 @@ short CExpression::GetActualFontSize(short zoom) const
 }
 
 
-int CExpression::PaintParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2, short ParentheseWidth,
-                                  char Type, short data, char IsBlue, int color) const
+int CExpression::PaintParentheses(CDC* DC, short zoom, int X1, int Y1, int X2, int Y2, short ParentheseWidth,
+                                  char Type, short data, bool IsBlue, COLORREF color) const
 {
-    short tmp;
     int HQPenWidth = 0;
     int PenWidth;
     int ActualSize = GetActualFontSize(zoom);
 
     if (X2 < X1)
     {
-        tmp = X2;
-        X2 = X1;
-        X1 = tmp;
+        std::swap(X1, X2);
     }
     if (Y2 < Y1)
     {
-        tmp = Y2;
-        Y2 = Y1;
-        Y1 = tmp;
+        std::swap(Y1, Y2);
     }
 
     char HQR = IsHighQualityRendering;
@@ -2251,9 +2245,8 @@ int CExpression::PaintParentheses(CDC* DC, short zoom, short X1, short Y1, short
         else
         {
             int H = (Y2 - Y1) * 4;
-            int i;
             mf->StartMyPainting(DC, ParentheseWidth * 4, 0, (Y2 - Y1) * 4, color);
-            for (i = 0; i <= HQPenWidth; i++)
+            for (int i = 0; i <= HQPenWidth; i++)
             {
                 mf->MyArc(DC, i, 0, ParentheseWidth * 8 - i, ActualSize * 4, ParentheseWidth * 4, 0, 0, ActualSize * 2,
                           IsBlue);
@@ -2330,10 +2323,9 @@ int CExpression::PaintParentheses(CDC* DC, short zoom, short X1, short Y1, short
             return 1;
         }
         int H = (Y2 - Y1) * 4;
-        int i;
 
         mf->StartMyPainting(DC, ParentheseWidth * 4, 0, (Y2 - Y1) * 4, color);
-        for (i = 0; i <= HQPenWidth; i++)
+        for (int i = 0; i <= HQPenWidth; i++)
         {
             mf->MyArc(DC, ParentheseWidth * 2 - HQPenWidth / 2 + i, 0,
                       3 * ParentheseWidth * 2 + HQPenWidth / 2 - i, 4 * ActualSize / 3,
@@ -2599,8 +2591,8 @@ void CExpression::DeselectExpression()
 
 //selects and returns object the cursor is pointing at
 //it work recursively (can return its subelements)
-CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, short* IsExpression,
-                                          char* IsParenthese, char ForceInsertionPoints)
+CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, int X, int Y, short* IsExpression,
+                                          bool& IsParenthese, bool ForceInsertionPoints)
 {
     if (DC == nullptr || X < -5000 || X > 30000 || Y < -5000 || Y > 15000 || IsExpression == nullptr) return nullptr;
 
@@ -2623,12 +2615,12 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
     int startItem = -1; //start item of an matrix cell
     int column = 0, row = 0;
     this->m_IsPointerHover = 1;
-    *IsParenthese = 0;
+    IsParenthese = false;
 
     int insertion_points_only = 0; //if only insertion points are to be touched (for example if ALT key is held down)
     int no_insertion_points = 0; //if insertion points are not to be touched (for example if SHIFT key is held down)
     int delta = 0; //used in insertion_points_only mode to allow easier selection of an insertion point)
-    if (GetKeyState(VK_MENU) & 0xFFFE || ForceInsertionPoints == 2 || QuickTypeUsed)
+    if (GetKeyState(VK_MENU) & 0xFFFE || ForceInsertionPoints || QuickTypeUsed)
     {
         insertion_points_only = 1;
         delta = 2 * m_MarginX / 3;
@@ -3077,7 +3069,7 @@ CObject* CExpression::SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y,
                 SelectExpression(1);
                 m_Selection = 0x7FFF;
                 *IsExpression = 0x7FFF;
-                *IsParenthese = 1;
+                IsParenthese = true;
                 return (CObject*)this;
             }
         }
@@ -3844,8 +3836,8 @@ CExpression* CExpression::CopyAtPoint(CDC* DC, short zoom, short X, short Y, CEx
         else
         {
             short IsExpression;
-            char IsParenthese;
-            CObject* obj = SelectObjectAtPoint(DC, zoom, X, Y, &IsExpression, &IsParenthese);
+            bool IsParenthese;
+            CObject* obj = SelectObjectAtPoint(DC, zoom, X, Y, &IsExpression, IsParenthese);
             if (obj == nullptr) return nullptr;
             if (IsExpression == 0) return nullptr;
             expr = (CExpression*)obj;
@@ -11742,7 +11734,7 @@ int PaintText(CDC* DC, int X, int Y, char* text, char* font, short* spacing, sho
     if (*text == 0) return 0;
     if (TheFontSize < 4)
     {
-        int len = static_cast<int>(strlen(text));
+        size_t len = strlen(text);
         DC->FillSolidRect(X, Y, spacing[len - 1], TheFontSize, IsBlue ? BLUE_COLOR : PALE_RGB(color));
         return 1;
     }
@@ -12375,7 +12367,7 @@ int CExpression::Autocomplete(bool is_internal)
     autocomplete_doall:
         for (size_t i = 0; i < m_pElementList.size(); i++)
         {
-            tElementStruct& ts = m_pElementList[i];
+            const tElementStruct& ts = m_pElementList[i];
             if (ts.pElementObject)
             {
                 if (ts.pElementObject->Expression1) ts.pElementObject->Expression1->Autocomplete(true);
@@ -12420,6 +12412,16 @@ int CExpression::Autocomplete(bool is_internal)
 }
 
 tElementStruct* CExpression::GetElementStruct(const CElement* element)
+{
+    for (size_t i = 0; i < m_pElementList.size(); i++)
+    {
+        if (m_pElementList[i].pElementObject == element)
+            return &m_pElementList[i];
+    }
+    return nullptr;
+}
+
+const tElementStruct* CExpression::GetElementStruct(const CElement* element) const
 {
     for (size_t i = 0; i < m_pElementList.size(); i++)
     {
@@ -13890,8 +13892,9 @@ int CExpression::CopyToWindowsClipboard()
 }
 
 #pragma optimize("s",on)
-int CExpression::PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short Y1, short X2, short Y2,
-                                            short ParentheseWidth, char Type, short data, char IsBlue, int color) const
+int CExpression::PaintHorizontalParentheses(CDC* DC, short zoom, int X1, int Y1, int X2, int Y2,
+                                            short ParentheseWidth, char Type, short data, bool IsBlue,
+                                            COLORREF color) const
 {
     char HQR = IsHighQualityRendering;
     //if (((Type&0x80)==0) && (HQR)) ParentheseWidth=11*ParentheseWidth/8;
@@ -13957,9 +13960,8 @@ int CExpression::PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short
 
             //if ((PaintTop) && ((Type=='(') || (Type=='l')))
             {
-                int i;
                 mf->StartMyPainting(DC, (X2 - X1) * 4, 0, ParentheseWidth * 4, color);
-                for (i = 0; i <= PenWidth; i++)
+                for (int i = 0; i <= PenWidth; i++)
                 {
                     mf->MyArc(DC, 0, i, ActualSize * 4, ParentheseWidth * 8 - i, ActualSize * 2, 0, 0,
                               ParentheseWidth * 4, IsBlue);
@@ -14381,7 +14383,7 @@ int CExpression::PaintHorizontalParentheses(CDC* DC, short zoom, short X1, short
 //the following function determines wether the expression contains text or math around the given position
 //If the position=-1 then the whole expression is considered.
 //Returns 1 if it contains text.
-int CExpression::IsTextContained(int position, char unmark_at_line_start) const
+int CExpression::IsTextContained(int position, bool unmark_at_line_start) const
 {
     if (position > m_pElementList.size() - 1) position = m_pElementList.size() - 1;
     if (position < -1) position = -1;
@@ -18506,12 +18508,8 @@ int CExpression::GenerateASCIINumber(double number_dbl, long long number_int, bo
     }
 
 
-    long long rr_int;
-    int is_int;
-    rr_int = static_cast<long long>(rr + (rr < 0 ? -0.5 : 0.5));
-    if (fabs(rr - rr_int) < 1e-100) is_int = 1;
-    else is_int = 0;
-    if (is_int)
+    long long rr_int = static_cast<long long>(rr + (rr < 0 ? -0.5 : 0.5));
+    if (fabs(rr - rr_int) < 1e-100)
     {
         //it is integer
         if (abs(static_cast<long>(rr_int)) == 10)
@@ -27174,7 +27172,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                 if ((ts->pElementObject->Data2[0] & 0xE0) != 0x60) //not greek font
                 {
                     if (_strnicmp(ts->pElementObject->Data1, "log", 3) == 0 ||
-                        strnicmp(ts->pElementObject->Data1, "ln", 2) == 0)
+                        _strnicmp(ts->pElementObject->Data1, "ln", 2) == 0)
                     {
                         CExpression* base = ts->pElementObject->Expression2;
                         int is_base_null = 0;
@@ -27229,7 +27227,7 @@ int CExpression::Derivate(CExpression* variable, int internal_call)
                         done = true;
                     }
                     else if (_strnicmp(ts->pElementObject->Data1, "tg", 2) == 0 ||
-                        strnicmp(ts->pElementObject->Data1, "tan", 3) == 0)
+                        _strnicmp(ts->pElementObject->Data1, "tan", 3) == 0)
                     {
                         InsertEmptyElement(pos, 5, '(');
                         CExpression* a1 = m_pElementList[pos].pElementObject->Expression1;

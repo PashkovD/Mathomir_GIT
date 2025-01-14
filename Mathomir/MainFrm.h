@@ -41,18 +41,18 @@ public:
     afx_msg LRESULT OnMenuChar(UINT nChar, UINT nFlags, CMenu* pMenu);
 
     int StartMyPainting(CDC* DC, int width, int above, int below, int color = 0);
-    int MyPolyline(CDC* DC, LPPOINT points, int count, int LineWidth, char IsBlue);
+    int MyPolyline(CDC* DC, LPPOINT points, int count, int LineWidth, bool IsBlue);
     int EndMyPainting(CDC* DC, int X, int Y, int force_black = 0, int flip_image = 0);
     int MyMoveTo(CDC* DC, int X, int Y);
-    int MyLineTo(CDC* DC, int X, int Y, char IsBlue);
+    int MyLineTo(CDC* DC, int X, int Y, bool IsBlue);
     int MyArc(CDC* DC, int X1, int Y1, int X2, int Y2, int Xstart, int Ystart, int Xend, int Yend, char IsBlue);
-    int MySetPixel(CDC* DC, int X, int Y, char IsBlue);
-    int MyBitBlt(CDC* DC, int X, int Y, int width, int height, int Xsrc, int Ysrc, char IsXInvers);
+    int MySetPixel(CDC* DC, int X, int Y, bool IsBlue);
+    int MyBitBlt(CDC* DC, int X, int Y, int width, int height, int Xsrc, int Ysrc, bool IsXInvers);
     char* XML_search(const std::string& text, char* file);
     int ClearDocument();
     char* XML_read_attribute(char* attribute, char* value, char* file, int value_buffer_size);
     afx_msg void OnWindowPosChanged(WINDOWPOS* lpwndpos);
-    int AdjustMenu(int adjust_undo_only = 0);
+    int AdjustMenu(bool adjust_undo_only = 0);
     int MyCircle(CDC* DC, int X1, int Y1, int X2, int Y2, int PenWidth, char IsBlue);
     int UndoInit();
     int UndoRestore();
