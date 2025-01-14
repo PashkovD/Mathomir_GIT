@@ -456,7 +456,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         int Any_unlocked = 0;
         int Any_nonselected = 0;
         int common_color = 100;
-        for (int ii = 0; ii < NumDocumentElements; ii++)
+        for (size_t ii = 0; ii < NumDocumentElements; ii++)
         {
             tDocumentStruct& ds = TheDocument[ii];
             if (!ds.Object.v)
@@ -565,7 +565,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
             {
                 char is_closed = 0;
                 int is_open = dss->Object.draw->IsOpenPath(0, &is_closed, nullptr);
-                if (is_open || is_closed || dss->Object.draw->NumItems == 1)
+                if (is_open || is_closed || dss->Object.draw->Items.size() == 1)
                 {
                     AddMenuOption(TSize / 3, TSize_2p3 + TSize / 3, "dash-dash ", 591, false);
                     AddMenuOption(TSize + TSize / 2 - 2, TSize_2p3 + 6, "dash-dot ", 592, true);
@@ -606,7 +606,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         }
         else if (NumDrawings == 1 && NumExpressions == 0 && Any_uncombineable == 0 && dss->Type == DRAWING &&
             dss->Object.draw &&
-            dss->Object.draw->NumItems > 1)
+            dss->Object.draw->Items.size() > 1)
         {
             PopupOption_Y += TSize / 10;
             AddMenuOption(0, 5 * TSize_1p2, "Arrange:", -560, true);
@@ -699,7 +699,7 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
                 //if ((((CDrawing*)(dss->Object))->OriginalForm==2) ||  //line
                 //	(((CDrawing*)(dss->Object))->OriginalForm==18))   //section divider
-                if (is_open || (dss->Object.draw->NumItems == 1 && dss->Object.draw->Items[0].Type ==
+                if (is_open || (dss->Object.draw->Items.size() == 1 && dss->Object.draw->Items[0].Type ==
                     1))
                 {
                     //AddMenuOption(TSize/3,TSize*2+TSize_1p2,"Add arrows ",595,1);
@@ -855,12 +855,12 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
 
             if (m_MenuType == 1)
             {
-                int is_sel = 0;
-                for (int ii = 0; ii < NumDocumentElements; ii++)
+                bool is_sel = false;
+                for (size_t ii = 0; ii < NumDocumentElements; ii++)
                     if (TheDocument[ii].Type == EXPRESSION &&
                         TheDocument[ii].Object.exp == m_Expression &&
                         TheDocument[ii].MovingDotState == 5)
-                        is_sel = 1;
+                        is_sel = true;
                 AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 3 * TSize_1p2, "Lock ", is_sel, 8, true);
             }
 
@@ -2282,7 +2282,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             {
                 if (dataval >= 630 && dataval <= 632)
                 {
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
                     for (int i = 0; i < m_Expression->m_MaxNumRows; i++)
                         for (int j = 0; j < m_Expression->m_MaxNumColumns; j++)
                         {
@@ -2331,7 +2331,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                     if (top <= bottom && left <= right)
                     {
-                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
+                        dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
 
                         for (int i = top; i <= bottom; i++)
                             for (int j = left; j <= right; j++)
@@ -2445,7 +2445,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 if (dataval >= 601 && dataval <= 603 && (m_Expression->m_IsColumnInsertion || m_Expression->
                     m_IsRowInsertion)) //no line, single line, double line
                 {
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("table formatting", 20413);
 
                     char c = ' ';
                     if (dataval == 602) c = '-';
@@ -2529,13 +2529,14 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (data == 590) //add center point (to cyrcle)
                         {
-                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
-                                "add centerpoint", 20100);
+                            if (found == 0)
+                                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                                    "add centerpoint", 20100);
                             CDrawing* drw = ds->Object.draw;
                             int minx, miny, maxx, maxy;
                             drw->FindRealCorner(&minx, &miny, &maxx, &maxy);
-                            drw->InsertItemAt(drw->NumItems);
-                            tDrawingItem* di = &drw->Items[drw->NumItems - 1];
+                            drw->InsertItemAt(drw->Items.size());
+                            tDrawingItem* di = &drw->Items[drw->Items.size() - 1];
                             di->LineWidth = DRWZOOM;
                             di->Type = 1;
                             di->pSubdrawing = nullptr;
@@ -2546,12 +2547,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                         if (data == 591)
                         {
-                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("make dashed", 20101);
+                            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("make dashed", 20101);
                             ds->Object.draw->MakeDashed(0);
                         }
                         if (data == 592)
                         {
-                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("dash-dot", 20102);
+                            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("dash-dot", 20102);
                             ds->Object.draw->MakeDashed(1);
                         }
                         if (data == 595 || data == 596 || data == 597) //line endings (arrow, narrow arrow, dot)
@@ -2563,7 +2564,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             char is_closed;
                             char num_points;
                             int is_open = drw->IsOpenPath(0, &is_closed, &pp[0], &num_points);
-                            if (drw->NumItems == 1 && drw->Items[0].Type == 1)
+                            if (drw->Items.size() == 1 && drw->Items[0].Type == 1)
                             {
                                 //simple straight line
                                 is_closed = 0;
@@ -2576,7 +2577,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             }
                             if (is_open && num_points >= 2)
                             {
-                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("add arrows", 20103);
+                                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("add arrows", 20103);
 
                                 double ang = atan2(pp[1].y - pp[0].y, pp[1].x - pp[0].x);
                                 double ang2 = atan2(pp[num_points - 1].y - pp[num_points - 2].y,
@@ -2584,14 +2585,12 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                                 //r=lenght of line
                                 double r = 0;
-                                for (int ii = 0; ii < drw->NumItems; ii++)
+                                for (auto& di : drw->Items)
                                 {
-                                    tDrawingItem* di = &drw->Items[ii];
-                                    if (di->Type == 1)
+                                    if (di.Type == 1)
                                         r += sqrt(
-                                            static_cast<double>(di->X1 - di->X2) * static_cast<double>(di->X1 - di->X2)
-                                            + static_cast<double>(di->Y1 - di
-                                                ->Y2) * static_cast<double>(di->Y1 - di->Y2));
+                                            static_cast<double>(di.X1 - di.X2) * static_cast<double>(di.X1 - di.X2)
+                                            + static_cast<double>(di.Y1 - di.Y2) * static_cast<double>(di.Y1 - di.Y2));
                                 }
 
                                 unsigned char arrow_end = 3;
@@ -2637,13 +2636,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 if (arrow_end == 3) num_lines *= 2;
                                 for (int i = 0; i < num_lines; i++)
                                 {
-                                    drw->InsertItemAt(drw->NumItems);
-                                    drw->Items[drw->NumItems - 1].Type = 1;
-                                    drw->Items[drw->NumItems - 1].pSubdrawing = nullptr;
-                                    drw->Items[drw->NumItems - 1].LineWidth = drw->Items[0].LineWidth * 3 / (
+                                    drw->InsertItemAt(drw->Items.size());
+                                    drw->Items[drw->Items.size() - 1].Type = 1;
+                                    drw->Items[drw->Items.size() - 1].pSubdrawing = nullptr;
+                                    drw->Items[drw->Items.size() - 1].LineWidth = drw->Items[0].LineWidth * 3 / (
                                         data == 597 ? 2 : 3);
                                 }
-                                tDrawingItem* di2 = &drw->Items[drw->NumItems - num_lines];
+                                tDrawingItem* di2 = &drw->Items[drw->Items.size() - num_lines];
 
 
                                 if (arrow_end & 0x01)
@@ -2735,8 +2734,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             CDrawing *drw=(CDrawing*)(ds->Object);
                             int minx,miny,maxx,maxy;
                             drw->FindRealCorner(&minx,&miny,&maxx,&maxy);
-                            drw->InsertItemAt(drw->NumItems);
-                            tDrawingItem *di=drw->Items+drw->NumItems-1;
+                            drw->InsertItemAt(drw->Items.size());
+                            tDrawingItem *di=drw->Items+drw->Items.size()-1;
                             di->LineWidth=DRWZOOM;
                             di->Type=1;
                             di->pSubdrawing=nullptr;
@@ -2748,7 +2747,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }*/
                         if (data == 594) //add grid lines to coordinate system
                         {
-                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("add grid lines", 20104);
+                            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("add grid lines", 20104);
                             CDrawing* drw = ds->Object.draw;
                             int minx, miny, maxx, maxy;
                             drw->FindRealCorner(&minx, &miny, &maxx, &maxy);
@@ -2835,14 +2834,14 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                         if (data == 593) //close path
                         {
-                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("close path", 20105);
+                            if (found == 0) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("close path", 20105);
                             CDrawing* drw = ds->Object.draw;
                             drw->IsOpenPath(1);
                         }
 
                         if (data == 501) //delete
                         {
-                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("delete", 20106);
+                            if (found == 0) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("delete", 20106);
                             pMainView->DeleteDocumentObject(ds);
                             ii--;
                         }
@@ -2852,7 +2851,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         }
                         if (data >= 580 && data < 590) //color changing
                         {
-                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("color", 20107);
+                            if (found == 0) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("color", 20107);
                             if (data == 589) ds->Object.draw->SetColor(0x08);
                             else if (ds->Type == EXPRESSION) ds->Object.exp->SetColor(data - 581);
                             else if (ds->Type == DRAWING) ds->Object.draw->SetColor(data - 581);
@@ -2869,8 +2868,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (data == 566) lw = 4 * DRWZOOM; //fat line
                             if (lw)
                             {
-                                if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
-                                    "line width", 20108);
+                                if (found == 0)
+                                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                                        "line width", 20108);
                                 drw->SetLineWidth(lw);
                                 int x, y, w, h;
                                 drw->AdjustCoordinates(&x, &y, &w, &h);
@@ -2887,13 +2887,15 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             }
                             if (data == 513) //break apart
                             {
-                                if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
-                                    "break apart", 20109);
+                                if (found == 0)
+                                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                                        "break apart", 20109);
                                 drw->BreakApart(nullptr, nullptr);
                             }
                             if (data == 514) //combine
                             {
-                                if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("combine", 20110);
+                                if (found == 0) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->
+                                    UndoSave("combine", 20110);
                                 drw->Combine();
                                 break;
                             }
@@ -2922,7 +2924,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             int maxright = 0;
                             int pass = 0;
-                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("align", 20113);
+                            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("align", 20113);
 
                             for (; pass < 2; pass++)
                                 for (size_t indx = 0; indx < NumDocumentElements; indx++)
@@ -2978,7 +2980,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (found == 0)
                             {
-                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("v. distribution", 20112);
+                                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("v. distribution", 20112);
                                 size_t numelm = 0;
                                 for (size_t indx = 0; indx < NumDocumentElements; indx++)
                                 {
@@ -2990,7 +2992,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 }
                                 auto list = new std::pair<int, int>[numelm * 2];
                                 numelm = 0;
-                                for (int indx = 0; indx < NumDocumentElements; indx++)
+                                for (size_t indx = 0; indx < NumDocumentElements; indx++)
                                 {
                                     tDocumentStruct* dsx = &TheDocument[indx];
                                     if (dsx->Object.v && (dsx->MovingDotState == 3 ||
@@ -3009,7 +3011,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 {
                                     tDocumentStruct& dsx = TheDocument[list[indx].first];
                                     int theY = StartY;
-                                    for (int indx2 = 0; indx2 < indx; indx2++)
+                                    for (size_t indx2 = 0; indx2 < indx; indx2++)
                                     {
                                         tDocumentStruct& dsx2 = TheDocument[list[indx2].first];
                                         if (dsx.absolute_X <= dsx2.absolute_X + dsx2.Length && dsx.absolute_X +
@@ -3032,7 +3034,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (found == 0)
                             {
-                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("align", 20113);
+                                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("align", 20113);
                                 if (data == 560) { StartY = -1; } //left
                                 if (data == 561) { StartX = -1; } //top
                                 if (data == 562)
@@ -3068,7 +3070,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (found == 0)
                             {
-                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("rotate", 20114);
+                                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("rotate", 20114);
                                 StartX = (StartX + MaxX) / 2;
                                 StartY = (StartY + MaxY) / 2;
                             }
@@ -3144,9 +3146,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (found == 0)
                             {
                                 if (data == 535 || data == 536)
-                                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("mirror", 20115);
+                                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("mirror", 20115);
                                 else
-                                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("size", 20116);
+                                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("size", 20116);
                                 StartX = (StartX + MaxX) / 2;
                                 StartY = (StartY + MaxY) / 2;
                             }
@@ -3304,9 +3306,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (data == 506 && ds->Type == DRAWING) //ungroup option
                         {
-                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("ungroup", 20117);
+                            if (found == 0) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("ungroup", 20117);
                             CDrawing* drw = ds->Object.draw;
-                            for (int kk = 0; kk < drw->NumItems; kk++)
+                            for (size_t kk = 0; kk < drw->Items.size(); kk++)
                             {
                                 tDrawingItem* di = &drw->Items[kk];
                                 if (di->pSubdrawing)
@@ -3334,15 +3336,15 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                         static_cast<CDrawing*>(di->pSubdrawing)->SelectDrawing(false);
                                     else if (di->Type == 2)
                                         static_cast<CExpression*>(di->pSubdrawing)->DeselectExpression();
-                                    for (int kkk = kk; kkk < drw->NumItems - 1; kkk++)
-                                        (drw->Items[kkk]) = (drw->Items[kkk + 1]);
-                                    drw->NumItems--;
+                                    for (size_t kkk = kk; kkk < drw->Items.size() - 1; kkk++)
+                                        drw->Items[kkk] = drw->Items[kkk + 1];
+                                    drw->Items.pop_back();
                                     kk--;
                                 }
-                                //if (drw->NumItems==0)
+                                //if (drw->Items.size()==0)
                                 //	pMainView->DeleteDocumentObject(ds);
                             }
-                            if (drw->NumItems == 0)
+                            if (drw->Items.empty())
                             {
                                 pMainView->DeleteDocumentObject(ds);
                                 ii--;
@@ -3351,7 +3353,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (data == 505) //group option
                         {
-                            if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("group", 20118);
+                            if (found == 0) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("group", 20118);
                             int X = ds->absolute_X;
                             int Y = ds->absolute_Y;
                             if (ds->Type == EXPRESSION) Y -= ds->Above;
@@ -3414,7 +3416,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (((Options[m_SelectedOption].Data >= 3 && Options[m_SelectedOption].Data <= 7) || Options[
                 m_SelectedOption].Data == 130) && m_Expression)
             {
-                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("decoration", 20200);
+                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("decoration", 20200);
                 int data = Options[m_SelectedOption].Data;
 
                 for (tElementStruct& ts : m_Expression->m_pElementList)
@@ -3459,7 +3461,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (ClipboardExpression)
                     {
-                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("Paste", 20201);
+                        dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("Paste", 20201);
                         m_Expression->CopyAtPoint(nullptr, ViewZoom, -1, -1, ClipboardExpression);
                         delete_clipboard_at_exit = 1;
                     }
@@ -3483,7 +3485,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             (int&)m_Expression->m_pElementList[m_Expression->m_IsKeyboardEntry - 1].Decoration |= 0x40;
                         }
 
-                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                        dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
                             Options[m_SelectedOption].Data == 1 ? "Pick up" : "Delete",
                             Options[m_SelectedOption].Data == 1 ? 20202 : 20203);
                         CExpression* parent = m_Expression->m_pPaternalExpression;
@@ -3514,7 +3516,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (Options[m_SelectedOption].Data >= 90 && Options[m_SelectedOption].Data < 99) //alignment options
             {
                 int kaka = Options[m_SelectedOption].Data;
-                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
                     kaka == 93 ? "vertical" : kaka > 93 ? "expanding" : "alignment",
                     kaka == 93 ? 20204 : kaka > 93 ? 20205 : 20206);
                 if (kaka == 90) m_Expression->m_Alignment = 1;
@@ -3585,7 +3587,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (Options[m_SelectedOption].Data >= 80 && Options[m_SelectedOption].Data < 90)
             {
                 //color options
-                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("color", 20107);
+                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("color", 20107);
                 int data = Options[m_SelectedOption].Data;
                 if (m_MenuType == 1)
                 {
@@ -3742,7 +3744,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             {
                 //symbol size (height) menu handling
                 int data = Options[m_SelectedOption].Data;
-                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("symbol height", 20208);
+                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("symbol height", 20208);
                 if (data == 50) //large size
                     m_theSelectedElement->pElementObject->Data2[0] = 0;
                 if (data == 51) //medium size
@@ -3774,7 +3776,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                                  static_cast<short>(point.y - Options[m_SelectedOption].DataArray[5]),
                                                  tmpExpression);
 
-                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("implanting", 20209);
+                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("implanting", 20209);
 
                 ClipboardExpression->CalculateSize(dcc, ViewZoom, l, &a, &b);
                 m_Expression->CopyAtPoint(dcc, ViewZoom, -1, -1, ClipboardExpression);
@@ -3793,7 +3795,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             //computation choice
             if (Options[m_SelectedOption].Data == 61 || Options[m_SelectedOption].Data == 62)
             {
-                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("computation", 20210);
+                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("computation", 20210);
                 if (ClipboardExpression) delete_clipboard_at_exit = 1;
 
                 if (this->m_Expression == nullptr && m_SelectedSuboption != 2)
@@ -3845,7 +3847,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     ds->MovingDotState = static_cast<char>(0x80);
 
 
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->RearangeObjects(delta2);
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->RearangeObjects(delta2);
 
                     pMainView->m_PopupMenuObject = ds;
 
@@ -3999,7 +4001,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             if (TheDocument[i].absolute_Y < ds->absolute_Y)
                                 TheDocument[i].MovingDotState |= static_cast<char>(0x40);
 
-                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->RearangeObjects(delta2);
+                        dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->RearangeObjects(delta2);
 
                         pMainView->m_PopupMenuObject = ds;
 
@@ -4081,9 +4083,9 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 int data = Options[m_SelectedOption].Data;
 
                 if (data == 45 || data == 46 || data == 47 || data == 48 || data == 55 || data == 54)
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font size", 20211);
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font size", 20211);
                 else
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("parentheses format", 20212);
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("parentheses format", 20212);
 
                 if (data == 30) //'none' option chosen (no parentheses)
                 {
@@ -4154,13 +4156,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (m_theSelectedElement->pElementObject->Expression1)
                     {
-                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
+                        dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
                         delete m_theSelectedElement->pElementObject->Expression1;
                         m_theSelectedElement->pElementObject->Expression1 = nullptr;
                     }
                     else
                     {
-                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
+                        dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
                         m_theSelectedElement->pElementObject->Expression1 = new CExpression(
                             m_theSelectedElement->pElementObject, m_Expression,
                             m_theSelectedElement->pElementObject->FontSizeForType(1));
@@ -4169,7 +4171,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else if (data == 20) //convert to function
                 {
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("convert to function", 20215);
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("convert to function", 20215);
                     m_theSelectedElement->Type = 6;
                     CElementInitPaternalExpression = m_theSelectedElement->pElementObject->m_pPaternalExpression;
                     CElementInitType = 6;
@@ -4206,13 +4208,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                             if (tmpExpression->m_pPaternalElement->Expression2)
                             {
-                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
+                                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
                                 delete tmpExpression->m_pPaternalElement->Expression2;
                                 tmpExpression->m_pPaternalElement->Expression2 = nullptr;
                             }
                             else
                             {
-                                static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
+                                dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
                                 tmpExpression->m_pPaternalElement->Expression2 = new CExpression(
                                     tmpExpression->m_pPaternalElement, tmpExpression->m_pPaternalExpression,
                                     tmpExpression->m_pPaternalElement->FontSizeForType(2));
@@ -4226,13 +4228,13 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 
                         if (m_theSelectedElement->pElementObject->Expression2)
                         {
-                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
+                            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index remove", 20213);
                             delete m_theSelectedElement->pElementObject->Expression2;
                             m_theSelectedElement->pElementObject->Expression2 = nullptr;
                         }
                         else
                         {
-                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
+                            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("index add", 20214);
                             m_theSelectedElement->pElementObject->Expression2 = new CExpression(
                                 m_theSelectedElement->pElementObject, m_Expression,
                                 m_theSelectedElement->pElementObject->FontSizeForType(2));
@@ -4242,7 +4244,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else if (data == 22) //convert to variable
                 {
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("convert to variable", 20216);
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("convert to variable", 20216);
                     m_theSelectedElement->Type = 1;
                     CElementInitPaternalExpression = m_theSelectedElement->pElementObject->m_pPaternalExpression;
                     CElementInitType = 1;
@@ -4269,7 +4271,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else if (data == 23 || data == 27) //convert to unit, convert to variable (from unit)
                 {
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(
                         data == 23 ? "convert to unit" : "convert to variable", data == 23 ? 20217 : 20216);
                     if (m_theSelectedElement->pElementObject->m_VMods != 0x10)
                     {
@@ -4287,7 +4289,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 else
                 {
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font format", 20218);
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font format", 20218);
                     char font_first = 0;
                     if (m_theSelectedElement && m_theSelectedElement->pElementObject)
                         font_first = m_theSelectedElement->pElementObject->Data2[0];
@@ -4438,10 +4440,10 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             }
             if (m_OwnerType == 0) //the toolbox
             {
-                static_cast<CToolbox*>(m_Owner)->PopupCloses(m_UserParam,
-                                                             PopupMenuSecondPassChoosing
-                                                                 ? 1
-                                                                 : Options[m_SelectedOption].Data);
+                dynamic_cast<CToolbox*>(m_Owner)->PopupCloses(m_UserParam,
+                                                              PopupMenuSecondPassChoosing
+                                                                  ? 1
+                                                                  : Options[m_SelectedOption].Data);
             }
             if (m_OwnerType == 3) //keyboard entry (double '?')
             {
@@ -4508,7 +4510,7 @@ int PopupMenu::HidePopupMenu()
         }
         if (m_OwnerType == 0) //the toolbox
         {
-            static_cast<CToolbox*>(m_Owner)->PopupCloses(m_UserParam, 0); //EXIT CODE=0;
+            dynamic_cast<CToolbox*>(m_Owner)->PopupCloses(m_UserParam, 0); //EXIT CODE=0;
         }
         if (m_OwnerType == 3 && KeyboardEntryObject) //keyboard entry mode
         {

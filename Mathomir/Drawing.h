@@ -22,8 +22,6 @@ public:
     void* SpecialData;
     tDrwXY NodeX;
     tDrwXY NodeY;
-    unsigned short NumItems;
-    unsigned short NumItemsReserved;
 
     bool IsSelected;
     char m_Color;
@@ -43,7 +41,7 @@ public:
                       COLORREF color = 0);
     void SelectDrawing(bool select);
     int CalcChecksum() const;
-    int CopyDrawing(CDrawing* Original);
+    int CopyDrawing(const CDrawing* Original);
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, short X, short Y, int* NodeEdit, int internal_call = 0);
     void XML_output(std::ostream& output, int num_tabs) const;
     char* XML_input(char* file);
@@ -54,10 +52,10 @@ public:
     int FindCrosspointX(const tDrawingItem& di, int X, int Y1, int Y2, int* pX, int* pY);
     // finds crosspoint of an drawing item with horizontal line
     int FindCrosspointY(const tDrawingItem& di, int Y, int X1, int X2, int* pX, int* pY);
-    int InsertItemAt(int pos);
+    int InsertItemAt(size_t pos);
     int Combine();
     int BreakApart(tDrawingItem* di, CDrawing* parent);
-    int CopyDrawingIntoSubgroup(CDrawing* Original, int x, int y);
+    int CopyDrawingIntoSubgroup(const CDrawing* Original, int x, int y);
     int CopyExpressionIntoSubgroup(CExpression* Original, int x, int y, int widht, int height);
     int SetLineWidth(int width);
     int ScaleForFactor(float factorx, float factory);

@@ -438,7 +438,7 @@ int CDrawingBox::MouseClick(int X, int Y)
 
                     if (ds->Object.v && ds->MovingDotState == 3)
                     {
-                        if (found == 0) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("group", 20118);
+                        if (found == 0) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("group", 20118);
                         int X = ds->absolute_X;
                         int Y = ds->absolute_Y;
                         if (ds->Type == EXPRESSION) Y -= ds->Above;
@@ -503,7 +503,7 @@ int CDrawingBox::MouseClick(int X, int Y)
                 }
             }
             if (StartX == 0x7FFFFFFF) return 1;
-            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("align", 20113);
+            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("align", 20113);
             if (ToolboxSelectedItem == 1) { StartY = -1; } //left
             else if (ToolboxSelectedItem == 2)
             {
@@ -766,21 +766,16 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
             if (tmp == 3) unit_size_y = Y - starty;
             if (unit_size_x == 0) unit_size_x = 1;
             if (unit_size_y == 0) unit_size_y = -1;
-            while (Base->NumItems < 8)
+            while (Base->Items.size() < 8)
             {
-                Base->NumItems++;
-                if (Base->NumItems > Base->NumItemsReserved) Base->NumItemsReserved = Base->NumItems;
-                while (Base->Items.size() < Base->NumItemsReserved)
-                {
-                    Base->Items.push_back({});
-                }
-                (Base->Items[Base->NumItems - 1]).Type = 2;
-                (Base->Items[Base->NumItems - 1]).X1 = 0;
-                (Base->Items[Base->NumItems - 1]).X2 = 0;
-                (Base->Items[Base->NumItems - 1]).Y1 = 0;
-                (Base->Items[Base->NumItems - 1]).Y2 = 0;
-                (Base->Items[Base->NumItems - 1]).LineWidth = 0;
-                (Base->Items[Base->NumItems - 1]).pSubdrawing = new CExpression(nullptr, nullptr, 100);
+                Base->Items.push_back({});
+                (Base->Items[Base->Items.size() - 1]).Type = 2;
+                (Base->Items[Base->Items.size() - 1]).X1 = 0;
+                (Base->Items[Base->Items.size() - 1]).X2 = 0;
+                (Base->Items[Base->Items.size() - 1]).Y1 = 0;
+                (Base->Items[Base->Items.size() - 1]).Y2 = 0;
+                (Base->Items[Base->Items.size() - 1]).LineWidth = 0;
+                (Base->Items[Base->Items.size() - 1]).pSubdrawing = new CExpression(nullptr, nullptr, 100);
             }
             tDrawingItem* di = &Base->Items[4];
             while (static_cast<CExpression*>(di->pSubdrawing)->m_pElementList[0].Type)
@@ -819,17 +814,16 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
         int x2 = -x1;
         int y1 = x1;
         int y2 = x2;
-        for (int i = 0; i < tmpDrawing->NumItems; i++)
+        for (auto& di : tmpDrawing->Items)
         {
-            tDrawingItem* di = &tmpDrawing->Items[i];
-            if (di->X1 < x1) x1 = di->X1;
-            if (di->X2 < x1) x1 = di->X2;
-            if (di->Y1 < y1) y1 = di->Y1;
-            if (di->Y2 < y1) y1 = di->Y2;
-            if (di->X1 > x2) x2 = di->X1;
-            if (di->X2 > x2) x2 = di->X2;
-            if (di->Y1 > y2) y2 = di->Y1;
-            if (di->Y2 > y2) y2 = di->Y2;
+            if (di.X1 < x1) x1 = di.X1;
+            if (di.X2 < x1) x1 = di.X2;
+            if (di.Y1 < y1) y1 = di.Y1;
+            if (di.Y2 < y1) y1 = di.Y2;
+            if (di.X1 > x2) x2 = di.X1;
+            if (di.X2 > x2) x2 = di.X2;
+            if (di.Y1 > y2) y2 = di.Y1;
+            if (di.Y2 > y2) y2 = di.Y2;
         }
         if (IsDrawingMode == 2)
         {
@@ -876,7 +870,7 @@ void CDrawingBox::GetDrawingBoxGrid(int* unit_size_x, int* unit_size_y, int* sta
     *unit_size_y = -GRID;
     *startx = 5;
     *starty = h - 5;
-    if (Base->NumItems >= 8)
+    if (Base->Items.size() >= 8)
     {
         tDrawingItem* di = &Base->Items[4];
         double N;

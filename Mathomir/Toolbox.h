@@ -85,7 +85,7 @@ public:
     int GetUniformFormattingColor();
     char IsUniformFormatting() const;
     UINT GetMixedFormatting(char key, char is_greek);
-    CExpression* CheckForKeycodes(const char* keystrokes, int* len);
+    CExpression* CheckForKeycodes(const char* keystrokes, size_t& len);
     CExpression* ReturnKeycode(int keycode_order, char** Keycode);
     void ShowHelptext(const std::string& text, const std::string& command, const std::string& accelerator,
                       const std::string& easycast, int language_code);

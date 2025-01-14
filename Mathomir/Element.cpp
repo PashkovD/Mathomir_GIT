@@ -1931,7 +1931,7 @@ void CElement::CalculateSizeReadjust(short zoom, short* length, short* above, sh
 //it is painting the Element into device context
 //the element must be already prepared for painting (by calling 'CalculateSize' earlier)
 //this function should be fast!
-void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlue, int ActualSize, RECT* ClipReg,
+void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlue, int ActualSize, RECT const* ClipReg,
                                COLORREF color)
 {
     CMainFrame* mf;
@@ -2001,7 +2001,7 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
         return;
     }
 
-    mf = static_cast<CMainFrame*>(theApp.m_pMainWnd);
+    mf = dynamic_cast<CMainFrame*>(theApp.m_pMainWnd);
 
     if (m_Type == 2) //operator (Like: '+', '-', '/')
     {
@@ -2315,9 +2315,10 @@ void CElement::PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlu
                                 ? RGB(0, PrintRendering?88:ActualSize<20?104:96, 0)
                                 : color;
         char font_params = Data2[0];
-        if (ActualSize <= 11) font_params = (font_params & 0xE0) != 0x60
-                                                ? static_cast<char>(0x80)
-                                                : static_cast<char>(0x60);
+        if (ActualSize <= 11)
+            font_params = (font_params & 0xE0) != 0x60
+                              ? static_cast<char>(0x80)
+                              : static_cast<char>(0x60);
 
         if (Data3[0])
         {
@@ -3238,7 +3239,7 @@ int CElement::FontSizeForType(int subexpression) const
 int CElement::GetPaternalPosition() const
 {
     CExpression* p = this->m_pPaternalExpression;
-    for (int i = 0; i < p->m_pElementList.size(); i++)
+    for (size_t i = 0; i < p->m_pElementList.size(); i++)
         if (p->m_pElementList[i].pElementObject == this)
             return i;
     return 0;
@@ -3247,7 +3248,7 @@ int CElement::GetPaternalPosition() const
 CElement* CElement::GetPreviousElement() const
 {
     CExpression* e = m_pPaternalExpression;
-    for (int i = 1; i < e->m_pElementList.size(); i++)
+    for (size_t i = 1; i < e->m_pElementList.size(); i++)
     {
         if (e->m_pElementList[i + 1].pElementObject == this)
             return e->m_pElementList[i].pElementObject;
@@ -3847,7 +3848,7 @@ void CElement::XML_output(std::ostream& ostr, int num_tabs)
 #pragma optimize("s",on)
 char* CElement::XML_input(char* file, void* element_struct)
 {
-    auto mf = static_cast<CMainFrame*>(theApp.m_pMainWnd);
+    const auto mf = dynamic_cast<CMainFrame*>(theApp.m_pMainWnd);
 
     bool hasE1 = false;
     bool hasE2 = false;

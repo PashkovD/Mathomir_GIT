@@ -1377,7 +1377,7 @@ void CExpression::CalculateSizeReadjust(short zoom, short* length, short* above,
 CBitmap* cursor_bitmap;
 //paints the expression - the expression must be already prepared for displaying (by call to CalculateSize)
 //this function must be fast!!
-void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg, COLORREF color)
+void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT const* ClipReg, COLORREF color)
 {
     try
     {
@@ -1726,8 +1726,8 @@ void CExpression::PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* C
                     {
                         //the last in the line or matrix/table cell
                         Xpos = X + m_pElementList[i - 1].X_pos + m_pElementList[i - 1].Length + (do_green
-                            ? 10 * m_MarginX / 8
-                            : m_MarginX * 2 / 3) - width / 2;
+                                ? 10 * m_MarginX / 8
+                                : m_MarginX * 2 / 3) - width / 2;
                     }
                     else
                     {
@@ -17882,10 +17882,12 @@ int CExpression::ExecuteComputation(int StartPos, int EndPos, char element_type,
                 {
                     if (element_type2 == '+') num->InsertEmptyElement(num->m_pElementList.size(), 2, '-');
                     if (element_type2 == '-') num->InsertEmptyElement(num->m_pElementList.size(), 2, '+');
-                    if (element_type2 == static_cast<char>(0xB1)) num->InsertEmptyElement(
-                        num->m_pElementList.size(), 2, static_cast<char>(0xB2));
-                    if (element_type2 == static_cast<char>(0xB2)) num->InsertEmptyElement(
-                        num->m_pElementList.size(), 2, static_cast<char>(0xB1));
+                    if (element_type2 == static_cast<char>(0xB1))
+                        num->InsertEmptyElement(
+                            num->m_pElementList.size(), 2, static_cast<char>(0xB2));
+                    if (element_type2 == static_cast<char>(0xB2))
+                        num->InsertEmptyElement(
+                            num->m_pElementList.size(), 2, static_cast<char>(0xB1));
                 }
                 else
                     num->InsertEmptyElement(num->m_pElementList.size(), 2, element_type2);

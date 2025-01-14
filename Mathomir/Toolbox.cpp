@@ -22,6 +22,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Mathomir.h"
 #include "Toolbox.h"
 
+#include <optional>
 #include <sstream>
 
 #include "./toolbox.h"
@@ -2052,7 +2053,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (IsShowGrid) IsShowGrid = 0;
                     else IsShowGrid = 1;
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
                     pMainView->InvalidateRect(nullptr, 0);
                     pMainView->UpdateWindow();
                 }
@@ -2112,10 +2113,12 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                                 }
                                 else
                                 {
-                                    if (rel > 190.0) fontsize = static_cast<float>(250.0 / static_cast<float>(parent->
-                                        m_FontSize));
-                                    else if (rel > 135.0) fontsize = static_cast<float>(207.4 / static_cast<float>(
-                                        parent->m_FontSize));
+                                    if (rel > 190.0)
+                                        fontsize = static_cast<float>(250.0 / static_cast<float>(parent->
+                                            m_FontSize));
+                                    else if (rel > 135.0)
+                                        fontsize = static_cast<float>(207.4 / static_cast<float>(
+                                            parent->m_FontSize));
                                     else fontsize = static_cast<float>(144.0 / static_cast<float>(parent->m_FontSize));
                                     parent->m_IsHeadline = 1;
                                 }
@@ -2702,7 +2705,7 @@ void CToolbox::PaintTextcontrolbox(CDC* dc)
 //this paints elements of the toolbox (both, main toolbox and subtoolbox)
 int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
 {
-    int i, j;
+    int j;
     RECT cr;
     GetClientRect(&cr);
     cr.bottom--;
@@ -3063,6 +3066,7 @@ int CToolbox::PaintToolboxElement(CDC* dc, int member, char IsBlue) const
     int Lx = (ToolboxSize + (m_IsMain ? 2 : 0)) / 4;
     int Ly = m_ItemHeight / 2;
     int Cx, Cy;
+    int i;
     if (m_IsMain)
     {
         j = member;
@@ -3743,7 +3747,7 @@ int CToolbox::ConfigureToolbar()
                     if (ds->Type == DRAWING)
                     {
                         CDrawing* d = ds->Object.draw;
-                        if (d->NumItems && d->Items[0].pSubdrawing
+                        if (d->Items.size() && d->Items[0].pSubdrawing
                             && (d->Items[0].Type == 2
                                 || d->Items[0].Type == 0))
                             AddToolbarOption(23, 1, pixel_len - tmp, ShortSeparator);
@@ -4976,9 +4980,8 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
         if (Flags & 0x01 && !(Flags & 0x08)) //the CTRL key was down - the accelertor table will be examined
         {
             if (Flags & 0x02) code += 0x200; //also the SHIFT key was down 
-            int ii, jj;
-            for (ii = 0; ii < ToolboxNumMembers; ii++)
-                for (jj = 0; jj < ToolboxMembers[ii].NumSubmembers; jj++)
+            for (size_t ii = 0; ii < ToolboxNumMembers; ii++)
+                for (size_t jj = 0; jj < ToolboxMembers[ii].NumSubmembers; jj++)
                     if (ToolboxMembers[ii].AcceleratorKey[jj] == code && code)
                     {
                         if (ClipboardExpression)
@@ -5065,7 +5068,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                 AdjustKeyboardFont();
                 this->ReformatKeyboardSelection();
             }
-            for (ii = 0; ii < ToolboxFontFormating.NumFormats; ii++)
+            for (size_t ii = 0; ii < ToolboxFontFormating.NumFormats; ii++)
             {
                 if (ToolboxFontFormating.UniformAccKey[ii] == code && code)
                 {
@@ -5182,7 +5185,7 @@ void CToolbox::ReformatKeyboardSelection()
             if (ts.pElementObject && ts.IsSelected == 2) ts.pElementObject->m_Color = fcolor;
             if (ts.Type == 1 && ts.pElementObject && ts.IsSelected == 2 && ts.pElementObject->Data1[0])
             {
-                if (!any) static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font formatting", 20218);
+                if (!any) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("font formatting", 20218);
                 for (size_t jj = 0; jj < 24; jj++)
                     ts.pElementObject->Data2[jj] = format;
                 ts.IsSelected = 0;
@@ -6277,7 +6280,7 @@ int CToolbox::LoadSettings(char* filename)
 
 
     ClearFontPool();
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     return 0;
 }
 #pragma optimize("s",off)
@@ -6313,10 +6316,10 @@ void CToolbox::OnSysKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 unsigned int DoublestrokesTimer;
 
-CExpression* CToolbox::CheckForKeycodes(const char* keystrokes, int* len)
+CExpression* CToolbox::CheckForKeycodes(const char* keystrokes, size_t& len)
 {
     //first we check for double-strokes
-    int l2 = *len;
+    int l2 = len;
     if (l2 < 1) return nullptr;
 
     if (!KeyboardEntryObject ||
@@ -6339,7 +6342,7 @@ CExpression* CToolbox::CheckForKeycodes(const char* keystrokes, int* len)
                             keycode &= 0xFF;
                             if (keystrokes[l2 - 2] == keycode && keystrokes[l2 - 1] == keycode)
                             {
-                                *len = 2;
+                                len = 2;
                                 return ToolboxMembers[i].Submembers[j];
                             }
                         }
@@ -6352,7 +6355,7 @@ CExpression* CToolbox::CheckForKeycodes(const char* keystrokes, int* len)
     //then we check for easycast strokes - we are searching for the longest mach
     int candidate_member;
     int candidate_submember;
-    int candidate_len = -1;
+    std::optional<size_t> candidate_len = std::nullopt;
     for (int i = 0; i < ToolboxNumMembers; i++)
     {
         for (int j = 0; j < ToolboxMembers[i].NumSubmembers; j++)
@@ -6365,7 +6368,7 @@ CExpression* CToolbox::CheckForKeycodes(const char* keystrokes, int* len)
             if (memcmp(keystrokes + l2 - l, keycode, l) == 0)
             {
                 //we found a mach
-                if (l > candidate_len)
+                if (!candidate_len.has_value() || l > candidate_len)
                 {
                     candidate_member = i;
                     candidate_submember = j;
@@ -6374,9 +6377,9 @@ CExpression* CToolbox::CheckForKeycodes(const char* keystrokes, int* len)
             }
         }
     }
-    if (candidate_len > 0)
+    if (candidate_len.has_value())
     {
-        *len = candidate_len;
+        len = candidate_len.value();
         return ToolboxMembers[candidate_member].Submembers[candidate_submember];
     }
     return nullptr;
@@ -6412,7 +6415,7 @@ void CToolbox::ShowHelptext(const std::string& text, const std::string& command,
 {
     if (!Toolbox->IsWindowVisible()) return;
     if (ToolboxSize < 1) return;
-    auto mf = static_cast<CMainFrame*>(theApp.m_pMainWnd);
+    auto mf = dynamic_cast<CMainFrame*>(theApp.m_pMainWnd);
     char buff[256];
     CopyTranslatedString(buff, text, language_code);
     RECT r;
@@ -6722,7 +6725,7 @@ void CToolbox::AutoResize()
             Toolbox->AdjustPosition();
             Toolbox->RedrawWindow();
             pMainView->AdjustPosition();
-            static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
             if (UseToolbar) Toolbox->Toolbar->AdjustPosition();
         }
     }

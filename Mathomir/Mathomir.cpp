@@ -273,8 +273,8 @@ BOOL CMathomirApp::InitInstance()
     ProcessShellCommand(cmdInfo);
 
 
-    static_cast<CMathomirView*>(m_pMainWnd)->InitSpecific(); //adjusting the menu
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->SetFontsToDefaults();
+    dynamic_cast<CMathomirView*>(m_pMainWnd)->InitSpecific(); //adjusting the menu
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->SetFontsToDefaults();
 
     //creates popupmenu
     Popup = new PopupMenu();

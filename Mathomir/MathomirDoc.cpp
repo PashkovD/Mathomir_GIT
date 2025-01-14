@@ -147,7 +147,7 @@ void CMathomirDoc::OnFileNew()
     DetermineTillensData(0x7FFFFFFF); //to prevend crash when a shell command is used
     if (!SaveModified()) return;
     AutosavePoints = AutosaveTime = 0;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->ClearDocument();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->ClearDocument();
     SetPathName("\\Untitled", 0); //ClearPathName does not exist??
     SetModifiedFlag(0);
     Toolbox->LoadSettings(nullptr);
@@ -156,8 +156,8 @@ void CMathomirDoc::OnFileNew()
     ToolboxSize = BaseToolboxSize ? BaseToolboxSize : 60;
     if (theApp.m_pMainWnd && theApp.m_pMainWnd->IsWindowVisible())
         if (Toolbox) Toolbox->ShowWindow(SW_SHOW);
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoInit();
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoInit();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     pMainView->AdjustPosition();
     pMainView->RepaintTheView(1);
     Toolbox->InvalidateRect(nullptr, 1);
@@ -320,7 +320,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
     if (filename != nullptr)
     {
         //clear the entire documment
-        static_cast<CMainFrame*>(theApp.m_pMainWnd)->ClearDocument();
+        dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->ClearDocument();
 
         //get data from file
         fread(file_buffer, len, 1, fil);
@@ -347,8 +347,8 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
         //adjust menu and init undo buffer
         if (theApp.m_pMainWnd)
         {
-            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoInit();
-            static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoInit();
+            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
         }
     }
     else
@@ -376,7 +376,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
         int x = 0, y = 0;
         while (true)
         {
-            file_pointer = static_cast<CMainFrame*>(theApp.m_pMainWnd)->XML_search("", file_pointer);
+            file_pointer = dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->XML_search("", file_pointer);
             if (file_pointer == nullptr) goto openMOMfile_end; //no more objects, we finished
 
             if (*file_pointer != 'o')
@@ -392,7 +392,7 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
                 do
                 {
                     char value[128];
-                    file_pointer = static_cast<CMainFrame*>(theApp.m_pMainWnd)->XML_read_attribute(
+                    file_pointer = dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->XML_read_attribute(
                         attribute, value, file_pointer, 128);
                     if (file_pointer == nullptr) goto openMOMfile_end; //unexpected end of file
 
@@ -507,9 +507,9 @@ openMOMfile_end:
             int MinX = 0x7FFFFFFF, MinY = 0x7FFFFFFF;
             int MaxX = -MinX;
             int MaxY = -MinY;
-            tDocumentStruct* ds = TheDocument + OrigNumElements;
-            for (int i = OrigNumElements; i < NumDocumentElements; i++, ds++)
+            for (size_t i = OrigNumElements; i < NumDocumentElements; i++)
             {
+                tDocumentStruct* ds = &TheDocument[OrigNumElements + i];
                 if (ds->absolute_X < MinX) MinX = ds->absolute_X;
                 if (ds->absolute_Y - ds->Above < MinY) MinY = ds->absolute_Y - ds->Above;
                 if (ds->absolute_X + ds->Length > MaxX) MaxX = ds->absolute_X + ds->Length;
@@ -567,7 +567,7 @@ openMOMfile_end:
                 Toolbox->AdjustPosition();
                 pMainView->AdjustPosition();
             }
-            static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
         }
         else
             if (ViewOnlyMode) ViewOnlyMode = 2; //we don't even show the menu
@@ -598,7 +598,7 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
         char tmpbuf[128];
         auto exp = new CExpression(nullptr, nullptr, 80);
         int maxy = 0;
-        for (int jj = 0; jj < NumDocumentElements; jj++)
+        for (size_t jj = 0; jj < NumDocumentElements; jj++)
             if (TheDocument[jj].absolute_Y + TheDocument[jj].Below > maxy)
                 maxy = TheDocument[jj].absolute_Y + TheDocument[jj].Below;
         AddDocumentObject(EXPRESSION, 20, maxy + 30);
@@ -640,12 +640,12 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
     }
     else
     {
-        tDocumentStruct* ds = TheDocument;
         auto type = static_cast<doc_type>(0);
         int x = 0;
         int y = 0;
-        for (int i = 0; i < NumDocumentElements; i++, ds++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
+            tDocumentStruct* ds = &TheDocument[i];
             try
             {
                 if (!filename && ds->MovingDotState != 3 || ds->absolute_Y >= 2000000 || ds->absolute_Y <= -10000)

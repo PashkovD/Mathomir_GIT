@@ -197,7 +197,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
     DC->FillSolidRect(X, Y + Ylen - BottomMargin, Xlen, BottomMargin,RGB(224, 224, 224));
 
     //if we are printing, then force function plotting
-    if (Base->NumItems >= 9 && PrintRendering) PlotFunction(1, DC);
+    if (Base->Items.size() >= 9 && PrintRendering) PlotFunction(1, DC);
 
     if (TheState == 96 || TheState == 94) //Y ranging  and X ranging - stretching the bitmap
     {
@@ -234,7 +234,7 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
             }
         }
     }
-    else if (Base->NumItems >= 9 && Base->Items[8].Type == 2)
+    else if (Base->Items.size() >= 9 && Base->Items[8].Type == 2)
     {
         //we are bit-blting the function image (if the image not exist, or is not right dimensions we start the plotting thread)
         if (!Plot)
@@ -892,11 +892,11 @@ int CFunctionPlotter::Paint(CDC* DC, short zoom, short X, short Y, int absX, int
 
         //now drawing X and Y names
 
-        if (Base->NumItems >= 9 && ThreadHandle == nullptr)
+        if (Base->Items.size() >= 9 && ThreadHandle == nullptr)
         {
             CExpression* var;
             for (int kk = 0; kk < 4; kk++)
-                if (Base->NumItems > 8 + kk)
+                if (Base->Items.size() > 8 + kk)
                 {
                     auto func = static_cast<CExpression*>(Base->Items[8 + kk].pSubdrawing);
                     if (func && func->m_pElementList[0].Type && Plot)
@@ -1424,7 +1424,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             PlotFunction(1);
             return 0;
         }
-        if (edit_at_position == 1 && Base->NumItems >= 8)
+        if (edit_at_position == 1 && Base->Items.size() >= 8)
         {
             //zoom out feature
             double Xmin, Xmax, Ymin, Ymax;
@@ -1469,24 +1469,17 @@ int CFunctionPlotter::MouseClick(int X, int Y)
             return 0;
         }
 
-        if (Base->NumItems == 11)
+        if (Base->Items.size() == 11)
         {
             //special handling for compatibility - if there is no fourth function expression, make it now
             //(we only had three functions in earlier verisions)
-            if (Base->NumItemsReserved < 12)
-            {
-                Base->NumItemsReserved++;
-                while (Base->Items.size() < Base->NumItemsReserved)
-                {
-                    Base->Items.push_back({});
-                }
-            }
-            Base->Items[Base->NumItems].pSubdrawing = static_cast<void*>(new CExpression(nullptr, nullptr, 100));
-            Base->Items[Base->NumItems].Type = 2;
-            Base->NumItems++;
+            Base->Items.push_back({});
+            Base->Items[Base->Items.size() - 1].pSubdrawing = static_cast<void*>(new
+                CExpression(nullptr, nullptr, 100));
+            Base->Items[Base->Items.size() - 1].Type = 2;
         }
 
-        if (edit_at_position >= Base->NumItems) return 0;
+        if (edit_at_position >= Base->Items.size()) return 0;
         if (Base->Items[edit_at_position].Type != 2) return 0;
 
         X = -X;
@@ -1540,7 +1533,7 @@ int CFunctionPlotter::MouseClick(int X, int Y)
         if (add_at_position == 0) return 0;
 
         //delete the current expression if it exists
-        if (Base->NumItems > add_at_position)
+        if (Base->Items.size() > add_at_position)
         {
             tDrawingItem* di = &Base->Items[add_at_position];
             if (di->Type == 2) //expression
@@ -1930,7 +1923,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
     any_function_defined = 0;
 
     //check if the function is defined (first four elements are the frame, next four elements are minimum/maximum limits)
-    if (Base->NumItems < 9) return 0;
+    if (Base->Items.size() < 9) return 0;
 
 
     //find this object (function plotter) in the main document
@@ -1961,7 +1954,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
     for (int kk = 0; kk < 4; kk++, *pItem++)
     {
         Func[kk] = nullptr;
-        if (Base->NumItems >= kk + 9)
+        if (Base->Items.size() >= kk + 9)
         {
             if (pItem->pSubdrawing &&
                 static_cast<CExpression*>(pItem->pSubdrawing)->IsSuitableForComputation() &&
@@ -2359,7 +2352,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
 {
     *Xmax = *Ymax = 100;
     *Xmin = *Ymin = 0;
-    if (Base->NumItems >= 6)
+    if (Base->Items.size() >= 6)
     {
         int prec2;
         auto x = static_cast<CExpression*>(Base->Items[5].pSubdrawing);
@@ -2376,7 +2369,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
                 *Xmax = PF.N1 / PF.N2;
             }
     }
-    if (Base->NumItems >= 5)
+    if (Base->Items.size() >= 5)
     {
         int prec2;
         auto x = static_cast<CExpression*>(Base->Items[4].pSubdrawing);
@@ -2393,7 +2386,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
                 *Xmin = PF.N1 / PF.N2;
             }
     }
-    if (Base->NumItems >= 8)
+    if (Base->Items.size() >= 8)
     {
         int prec2;
         auto x = static_cast<CExpression*>(Base->Items[7].pSubdrawing);
@@ -2410,7 +2403,7 @@ int CFunctionPlotter::PlotFunctionGetBondaries(double* Xmin, double* Xmax, doubl
                 *Ymax = PF.N1 / PF.N2;
             }
     }
-    if (Base->NumItems >= 7)
+    if (Base->Items.size() >= 7)
     {
         int prec2;
         auto x = static_cast<CExpression*>(Base->Items[6].pSubdrawing);

@@ -34,7 +34,8 @@ public:
     ~CElement();
     void CalculateSize(CDC& DC, short int zoom, short int& length, short int& above, short int& below,
                        size_t paternal_position, char HQR);
-    void PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlue, int ActualSize, RECT* ClipReg = nullptr,
+    void PaintExpression(CDC* DC, short zoom, short X, short Y, bool IsBlue, int ActualSize,
+                         RECT const* ClipReg = nullptr,
                          COLORREF color = 0);
     void Empty(char oper);
     void CopyElement(const CElement* Element);

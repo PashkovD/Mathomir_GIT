@@ -493,7 +493,6 @@ int NumRullerGuidelines = 0;
 
 void CMathomirView::OnDraw(CDC* pDC)
 {
-    tDocumentStruct* ds = TheDocument;
     int SelectedElement;
     NumRullerGuidelines = 0;
     if (MouseMode != 9 && MouseMode != 11) SingleSelectedTextObject = -1;
@@ -557,8 +556,9 @@ void CMathomirView::OnDraw(CDC* pDC)
         }
 
 
-        for (int i = 0; i < NumDocumentElements; i++, ds++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
+            tDocumentStruct* ds = &TheDocument[i];
             if (ds->absolute_Y >= ViewY - 5 && ds->absolute_Y < ViewYBottom - 5)
             {
                 int RelativeX = (ds->absolute_X - ViewX) * ViewZoom / 100;
@@ -738,12 +738,12 @@ void CMathomirView::OnDraw(CDC* pDC)
             SelectionRect.bottom = SelectionRect.right = -0x7FFFFFFF;
         }
 
-
-        for (int i = NumDocumentElements - 1; i >= 0; i--, ds++)
+        for (size_t i = 0; i < NumDocumentElements; i++)
         {
+            tDocumentStruct* ds = &TheDocument[i];
             if (ds->absolute_Y < -1000 && ds->absolute_Y > -1200)
             {
-                if (NumRullerGuidelines < 13) RullerGuidelines[NumRullerGuidelines++] = NumDocumentElements - i - 1;
+                if (NumRullerGuidelines < 13) RullerGuidelines[NumRullerGuidelines++] = i;
                 continue;
             }
 
@@ -751,7 +751,7 @@ void CMathomirView::OnDraw(CDC* pDC)
             {
                 NumSelectedObjects++;
                 if (ds->Type == DRAWING) NumSelectedDrawings++;
-                SelectedElement = NumDocumentElements - i - 1;
+                SelectedElement = i;
                 if (MouseMode != 9 && MouseMode != 11)
                 {
                     if (ds->absolute_X < SelectionRect.left) SelectionRect.left = ds->absolute_X;
@@ -1162,13 +1162,12 @@ void CMathomirView::OnDraw(CDC* pDC)
                                      static_cast<int>(strlen(buff)));
                 }
 
-            ds = TheDocument;
-
             CRgn* myrgn = nullptr;
             int lasttillen = -1;
-            for (int kk = 0; kk < 2; kk++, ds = TheDocument)
-                for (int i = NumDocumentElements - 1; i >= 0; i--, ds++)
+            for (int kk = 0; kk < 2; kk++)
+                for (size_t i = 0; i < NumDocumentElements; i++)
                 {
+                    tDocumentStruct* ds = &TheDocument[i];
                     int Tillen = ds->absolute_Y / PaperHeight;
                     int vX, vY;
                     vX = 0;
@@ -1293,9 +1292,9 @@ void CMathomirView::OnDraw(CDC* pDC)
                 bitmapDC.SelectClipRgn(&myrgn);
 
 
-                ds = TheDocument;
-                for (int i = NumDocumentElements - 1; i >= 0; i--, ds++)
+                for (size_t i = 0; i < NumDocumentElements; i++)
                 {
+                    tDocumentStruct* ds = &TheDocument[i];
                     int Tillen = ds->absolute_Y / PaperHeight;
                     if (Tillen == targettillen)
                     {
@@ -1383,7 +1382,7 @@ void CMathomirView::Dump(CDumpContext& dc) const
 CMathomirDoc* CMathomirView::GetDocument() const // non-debug version is inline
 {
     ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CMathomirDoc)));
-    return static_cast<CMathomirDoc*>(m_pDocument);
+    return dynamic_cast<CMathomirDoc*>(m_pDocument);
 }
 #endif //_DEBUG
 
@@ -1513,7 +1512,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     if (NumSelectedObjects)
                     {
-                        for (int kk = 0; kk < NumDocumentElements; kk++)
+                        for (size_t kk = 0; kk < NumDocumentElements; kk++)
                             if (TheDocument[kk].MovingDotState == 3) TheDocument[kk].MovingDotState = 0;
                         NumSelectedObjects = 0;
                     }
@@ -1567,9 +1566,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
         {
             //placing down pasted objects (??)
             MouseMode = 0;
-            tDocumentStruct* ds = TheDocument;
-            for (int i = 0; i < NumDocumentElements; i++, ds++)
+            for (size_t i = 0; i < NumDocumentElements; i++)
             {
+                tDocumentStruct* ds = &TheDocument[i];
                 if (ds->MovingDotState == 3) ds->MovingDotState = 0;
                 if (ds->Type == EXPRESSION)
                     ds->Object.exp->DeselectExpression();
@@ -1619,10 +1618,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
         {
             //click at the ruller
             //check if we clicked at already defined position
-            int i;
             int deleted = 0;
             int NumRullerGuidelines = 0;
-            for (i = 0; i < NumDocumentElements; i++)
+            for (size_t i = 0; i < NumDocumentElements; i++)
             {
                 tDocumentStruct* dsx = &TheDocument[i];
                 if (dsx->absolute_Y < -1000)
@@ -1727,8 +1725,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     int minX, minY;
                     minX = minY = 0x7FFFFFFF;
                     SelectedDocumentObject = SelectedDocumentObject2 = ds;
-                    tDocumentStruct* ds2 = TheDocument;
-                    for (int ii = 0; ii < NumDocumentElements; ii++, ds2++)
+                    for (size_t ii = 0; ii < NumDocumentElements; ii++)
+                    {
+                        tDocumentStruct* ds2 = &TheDocument[ii];
                         if (ds2->MovingDotState == 3)
                         {
                             int actX = 0, actY = 0;
@@ -1745,6 +1744,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                                 SelectedDocumentObject2 = ds2;
                             }
                         }
+                    }
                     MouseMode = 2;
                     if (nFlags & MK_SHIFT)
                     {
@@ -1923,7 +1923,7 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                         auto tmp = (CDrawing*)ComposeDrawing(&x1, &y1, 0, 0);
                         if (tmp)
                         {
-                            if (tmp->NumItems > 1)
+                            if (tmp->Items.size() > 1)
                             {
                                 delete tmp;
                                 ClipboardDrawing = (CDrawing*)ComposeDrawing(&x1, &y1, 0, 1);
@@ -4167,10 +4167,10 @@ void CMathomirView::OnMouseMove(UINT nFlags, CPoint point)
                         clearscreen = 1;
                     }
                     //delete any mouse touching that was possibly done
-                    tDocumentStruct* ds = TheDocument;
 
-                    for (int i = 0; i < NumDocumentElements; i++, ds++)
+                    for (size_t i = 0; i < NumDocumentElements; i++)
                     {
+                        tDocumentStruct* ds = &TheDocument[i];
                         if (ds->absolute_Y - ds->Above <= StartAbsoluteY && ds->absolute_Y + ds->Below >=
                             StartAbsoluteY &&
                             ds->absolute_X <= StartAbsoluteX && ds->absolute_X + ds->Length >= StartAbsoluteX)
@@ -5275,7 +5275,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 ((Flags & 0x01) == 1 && nChar == 'C' && (nFlags & 0x100) == 0)) //ctrl-c (copy)
             {
                 //first check if there is any multiple seelection 
-                int i;
+                size_t i;
                 if (nChar != ' ')
                     for (i = 0; i < NumDocumentElements; i++)
                     {
@@ -5351,7 +5351,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                                     auto tmp = (CDrawing*)ComposeDrawing(&x1, &y1, 0, 0);
                                     if (tmp)
                                     {
-                                        if (tmp->NumItems > 1)
+                                        if (tmp->Items.size() > 1)
                                         {
                                             expr = nullptr;
                                             drw = (CDrawing*)1;
@@ -5756,7 +5756,7 @@ void CMathomirView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 if (KeyboardEntryObject)
                 {
                     CExpression* e = KeyboardEntryObject;
-                    int i = 0;
+                    size_t i = 0;
                     for (; i < e->m_pElementList.size(); i++)
                         if (e->m_pElementList[i].IsSelected == 2) break;
                     if (i >= e->m_pElementList.size())
@@ -6063,8 +6063,8 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     if (!elm->m_Text && KeystrokesListLen >= 1 &&
                         elm->Data1[0] != '\\' && elm->Data1[0] != '9')
                     {
-                        int len = KeystrokesListLen;
-                        CExpression* found = Toolbox->CheckForKeycodes(KeystrokesList, &len);
+                        size_t len = KeystrokesListLen;
+                        CExpression* found = Toolbox->CheckForKeycodes(KeystrokesList, len);
                         if (found && static_cast<int>(strlen(elm->Data1)) <= len)
                         {
                             int element_num = KeystrokeNumElements[KeystrokesListLen - len];
@@ -6143,7 +6143,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                         CExpression* e = KeyboardEntryBaseObject->Object.exp;
                         if (e == KeyboardEntryObject && e->IsTextContained(-1))
                         {
-                            for (int l = 0; l < NumRullerGuidelines; l++)
+                            for (size_t l = 0; l < NumRullerGuidelines; l++)
                             {
                                 int ll = RullerGuidelines[l];
                                 if (ll >= 0 && ll < NumDocumentElements && TheDocument[ll].absolute_Y < -1000 &&
@@ -6177,9 +6177,9 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                     //it grows over the equation near it. This is only done if there is space to move.
                     int dmax = 0;
                     int disallow = 0;
-                    tDocumentStruct* ds = TheDocument;
-                    for (int ii = 0; ii < NumDocumentElements; ii++, ds++)
+                    for (size_t ii = 0; ii < NumDocumentElements; ii++)
                     {
+                        tDocumentStruct* ds = &TheDocument[ii];
                         if (ds->Type == EXPRESSION)
                             if (KeyboardEntryBaseObject->Object.exp->m_pElementList.size() > 1 ||
                                 KeyboardEntryBaseObject->Object.exp->m_pElementList[0].Type != 1)
@@ -6309,9 +6309,9 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                     {
                                         if (nChar == 13 || nChar == ' ') break;
                                         tmp->m_Selection = 0;
-                                        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("insert into", 20303);
+                                        dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("insert into", 20303);
 
-                                        int ii;
+                                        size_t ii;
                                         for (ii = 0; ii < tmp->m_pElementList.size(); ii++)
                                             if (tmp->m_pElementList[ii].IsSelected) break;
                                         if (tmp->DeleteSelection() != 2) tmp->m_Selection = ii + 1;
@@ -6339,7 +6339,8 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                                         if (tmp && tmp->m_Selection == 0) tmp = nullptr;
 
                                         if (tmp)
-                                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("insert into", 20303);
+                                            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->
+                                                UndoSave("insert into", 20303);
                                         else
                                             ds->Object.exp->DeselectExpression();
                                     }
@@ -6543,7 +6544,7 @@ void CMathomirView::SendKeyStroke(UINT nChar, UINT nRepCnt, UINT nFlags)
                         else
                         {
                             //nothing found below the cursor - we are creating the new object
-                            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("insert new", 20401);
+                            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("insert new", 20401);
 
                             //NumDocumentElements++;
                             //CheckDocumentMemoryReservations();
@@ -6980,7 +6981,7 @@ void CMathomirView::OnTimer(UINT nIDEvent)
             {
                 CExpression* parent = LongClickObject;
                 while (parent->m_pPaternalExpression) parent = parent->m_pPaternalExpression;
-                int i;
+                size_t i;
                 for (i = 0; i < NumDocumentElements; i++)
                     if (TheDocument[i].Object.exp == parent) break;
                 if (i < NumDocumentElements)
@@ -7018,7 +7019,7 @@ void CMathomirView::OnTimer(UINT nIDEvent)
                         TheDocument[i].Above = a * 100 / ViewZoom;
                         TheDocument[i].Below = b * 100 / ViewZoom;
 
-                        GentlyPaintObject(*(TheDocument + i), DC);
+                        GentlyPaintObject(TheDocument[i], DC);
                         this->ReleaseDC(DC);
                     }
                     InvalidateRect(nullptr, 0);
@@ -7638,7 +7639,7 @@ void CMathomirView::OnHqRend()
 
 int CMathomirView::AdjustMenu()
 {
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     return 0;
 }
 
@@ -8551,10 +8552,9 @@ void CMathomirView::OnLButtonUp(UINT nFlags, CPoint point)
             int deltax = cx - (MovingStartX2 - MovingStartX);
             int deltay = cy - (MovingStartY2 - MovingStartY);
 
-            int iii = 0;
-            for (int ii = 0; ii < ClipboardDrawing->NumItems; ii++)
+            size_t iii = 0;
+            for (auto& td : ClipboardDrawing->Items)
             {
-                tDrawingItem* td = &ClipboardDrawing->Items[ii];
                 while (iii < NumDocumentElements && TheDocument[iii].MovingDotState != 6) iii++;
                 int pos = iii;
                 iii++;
@@ -9532,7 +9532,7 @@ void CMathomirView::OnEditPaste()
         minX = minY = 0x7FFFFFFF;
         SelectedDocumentObject = SelectedDocumentObject2 = nullptr;
 
-        for (int ii = 0; ii < NumDocumentElements; ii++)
+        for (size_t ii = 0; ii < NumDocumentElements; ii++)
         {
             tDocumentStruct* ds2 = &TheDocument[ii];
             if (ds2->MovingDotState == 3)
@@ -9673,8 +9673,7 @@ void CMathomirView::OnEditDelete()
 
     int ok = 0;
     CMathomirDoc* pDoc = GetDocument();
-    int i;
-    for (i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3) //selected
@@ -9826,15 +9825,14 @@ void CMathomirView::OnEditCopyImage()
     else IsHalftoneRendering = 0;
 
     short l, a, b;
-    int i;
     int numsel = 0;
-    for (i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3 && ds->Type == DRAWING) //selected
             numsel++;
     }
-    for (i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3) //selected
@@ -9870,7 +9868,7 @@ void CMathomirView::OnEditCopyImage()
     //bmpDC.SelectObject(GetStockObject(WHITE_BRUSH));
     bmpDC.FillSolidRect(0, 0, X2 - X1 + 8, Y2 - Y1 + 6,RGB(255, 255, 255));
 
-    for (i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = &TheDocument[i];
         if (ds->MovingDotState == 3) //selected
@@ -9908,7 +9906,7 @@ void CMathomirView::OnEditCopyImage()
 
     IsHighQualityRendering = HQ;
     IsHalftoneRendering = HT;
-    for (i = 0; i < NumDocumentElements; i++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = &TheDocument[i];
         a = 0;
@@ -10081,25 +10079,25 @@ int CMathomirView::MakeImageOfDrawing(CObject* drawing_obj)
 void CMathomirView::OnOutputimageSize200()
 {
     ImageSize = 200;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnOutputimageSize150()
 {
     ImageSize = 150;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnOutputimageSize100()
 {
     ImageSize = 100;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnOutputimageSize80()
 {
     ImageSize = 80;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnOutputimageForcehighquality()
@@ -10108,7 +10106,7 @@ void CMathomirView::OnOutputimageForcehighquality()
         ForceHighQualityImage = 0;
     else
         ForceHighQualityImage = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnOutputimageForcehalftone()
@@ -10117,31 +10115,31 @@ void CMathomirView::OnOutputimageForcehalftone()
         ForceHalftoneImage = 0;
     else
         ForceHalftoneImage = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnFontsizeVerylarge()
 {
     DefaultFontSize = 150; //bilo 185
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnFontsizeLarge()
 {
     DefaultFontSize = 120; //bilo 150
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnFontsizeNormal()
 {
     DefaultFontSize = 100;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnFontsizeSmall()
 {
     DefaultFontSize = 85; //bilo 80
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 #pragma optimize("",on)
@@ -10198,44 +10196,44 @@ void CMathomirView::OnEditUndo()
         }
     }
 
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     RepaintTheView();
 }
 
 #pragma optimize("s",on)
 int CMathomirView::UndoInit()
 {
-    return static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoInit();
+    return dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoInit();
 }
 
 int CMathomirView::UndoRestore()
 {
-    return static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoRestore();
+    return dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoRestore();
 }
 
 int CMathomirView::UndoSave(const char* undo_text, int unique_ID)
 {
-    return static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(undo_text, unique_ID);
+    return dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave(undo_text, unique_ID);
 }
 
 void CMathomirView::OnMovingdotLarge()
 {
     MovingDotSize = 8;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     RepaintTheView();
 }
 
 void CMathomirView::OnMovingdotMedium()
 {
     MovingDotSize = 6;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     RepaintTheView();
 }
 
 void CMathomirView::OnMovingdotSmall()
 {
     MovingDotSize = 5;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     RepaintTheView();
 }
 
@@ -10245,7 +10243,7 @@ void CMathomirView::OnMovingdotPermanent()
         MovingDotPermanent = 0;
     else
         MovingDotPermanent = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     RepaintTheView();
 }
 #pragma optimize("s",on)
@@ -10379,10 +10377,9 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
     }
 
 
-    for (int jj = 0; jj < mydrw->NumItems; jj++)
+    for (const auto& di : mydrw->Items)
     {
-        tDrawingItem* di = &mydrw->Items[jj];
-        if (di->Type == 0 && di->pSubdrawing)
+        if (di.Type == 0 && di.pSubdrawing)
         {
             //NumDocumentElements++;
             //CheckDocumentMemoryReservations();
@@ -10391,15 +10388,15 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
             tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
             ds->Type = DRAWING; //drawing
             auto tmp = new CDrawing();
-            tmp->CopyDrawing(static_cast<CDrawing*>(di->pSubdrawing));
+            tmp->CopyDrawing(static_cast<CDrawing*>(di.pSubdrawing));
             ds->Object.draw = tmp;
             short l = 0, a = 0, b = 0;
             ds->Object.draw->CalculateSize(DC, ViewZoom, &l, &b);
             ds->Length = static_cast<short>(static_cast<int>(l) * 100 / static_cast<int>(ViewZoom));
             ds->Above = 0;
             ds->Below = static_cast<short>(static_cast<int>(b) * 100 / static_cast<int>(ViewZoom));
-            ds->absolute_X = AbsoluteX + di->X1 / DRWZOOM;
-            ds->absolute_Y = AbsoluteY + di->Y1 / DRWZOOM;
+            ds->absolute_X = AbsoluteX + di.X1 / DRWZOOM;
+            ds->absolute_Y = AbsoluteY + di.Y1 / DRWZOOM;
             ds->MovingDotState = 0;
             if (select) ds->MovingDotState = 3;
 
@@ -10410,7 +10407,7 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
 
             GentlyPaintObject(*ds, DC);
         }
-        if (di->Type == 2 && di->pSubdrawing)
+        if (di.Type == 2 && di.pSubdrawing)
         {
             //NumDocumentElements++;
             //CheckDocumentMemoryReservations();
@@ -10418,17 +10415,17 @@ int CMathomirView::PasteDrawing(CDC* DC, int cursorX, int cursorY, CObject* draw
 
             tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
             //ds->Type=1; //expression
-            auto tmp = new CExpression(nullptr, nullptr, static_cast<CExpression*>(di->pSubdrawing)->m_FontSize);
+            auto tmp = new CExpression(nullptr, nullptr, static_cast<CExpression*>(di.pSubdrawing)->m_FontSize);
             //tmp->m_FontSizeHQ=((CExpression*)(di->pSubdrawing))->m_FontSizeHQ;
-            tmp->CopyExpression(static_cast<CExpression*>(di->pSubdrawing), 0);
+            tmp->CopyExpression(static_cast<CExpression*>(di.pSubdrawing), 0);
             ds->Object.exp = tmp;
             short l = 0, a = 0, b = 0;
             ds->Object.exp->CalculateSize(DC, ViewZoom, l, &a, &b);
             ds->Length = static_cast<short>(static_cast<int>(l) * 100 / static_cast<int>(ViewZoom));
             ds->Above = static_cast<short>(static_cast<int>(a) * 100 / static_cast<int>(ViewZoom));
             ds->Below = static_cast<short>(static_cast<int>(b) * 100 / static_cast<int>(ViewZoom));
-            ds->absolute_X = AbsoluteX + di->X1 / DRWZOOM;
-            ds->absolute_Y = AbsoluteY + di->Y1 / DRWZOOM + ds->Above;
+            ds->absolute_X = AbsoluteX + di.X1 / DRWZOOM;
+            ds->absolute_Y = AbsoluteY + di.Y1 / DRWZOOM + ds->Above;
             ds->MovingDotState = 0;
             if (select) ds->MovingDotState = 3;
 
@@ -10450,27 +10447,27 @@ void CMathomirView::OnEditAccesslockedobjects()
 {
     if (AccessLockedObjects) AccessLockedObjects = 0;
     else AccessLockedObjects = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnGridFine()
 {
     GRID = 8;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     if (IsShowGrid) RepaintTheView();
 }
 
 void CMathomirView::OnGridMedium()
 {
     GRID = 16;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     if (IsShowGrid) RepaintTheView();
 }
 
 void CMathomirView::OnGridCoarse()
 {
     GRID = 24;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     if (IsShowGrid) RepaintTheView();
 }
 
@@ -10484,7 +10481,7 @@ void CMathomirView::OnViewShowgrid()
 {
     if (IsShowGrid) IsShowGrid = 0;
     else IsShowGrid = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     RepaintTheView();
 }
 #pragma optimize("",on)
@@ -10552,13 +10549,13 @@ CObject* CMathomirView::ComposeDrawing(int* X, int* Y, int compose_from_selectio
 void CMathomirView::OnKeyboardVerysimplevariablemode()
 {
     IsSimpleVariableMode = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnKeyboardGeneralvariablemode()
 {
     IsSimpleVariableMode = 0;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 #pragma optimize("s",on)
@@ -10637,7 +10634,7 @@ void CMathomirView::OnSymboliccalculatorEnable()
         IsMathDisabled = 0;
     else
         IsMathDisabled = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnImaginaryunitI()
@@ -10646,7 +10643,7 @@ void CMathomirView::OnImaginaryunitI()
         ImaginaryUnit = 0;
     else
         ImaginaryUnit = 'i';
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnImaginaryunitJ()
@@ -10655,7 +10652,7 @@ void CMathomirView::OnImaginaryunitJ()
         ImaginaryUnit = 0;
     else
         ImaginaryUnit = 'j';
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 
@@ -10796,7 +10793,7 @@ void CMathomirView::OnSelectionsShadowselections()
 {
     if (ShadowSelection) ShadowSelection = 0;
     else ShadowSelection = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnAutosaveNever()
@@ -10809,19 +10806,19 @@ void CMathomirView::OnAutosaveNever()
 void CMathomirView::OnAutosaveLow()
 {
     AutosaveOption = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnAutosaveMedium()
 {
     AutosaveOption = 2;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnAutosaveHigh()
 {
     AutosaveOption = 3;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnAutosaveLoadtheautosave()
@@ -10834,7 +10831,7 @@ void CMathomirView::OnAutosaveLoadtheautosave()
             AutosavePoints = AutosaveTime = 0;
             this->GetDocument()->SetPathName("Untitled", 0);
             this->GetDocument()->SetModifiedFlag(0);
-            static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+            dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
             RepaintTheView();
             InvalidateRect(nullptr, 1);
         }
@@ -10845,7 +10842,7 @@ void CMathomirView::OnZoomWheelzoomadjustspointer()
 {
     if (MoveCursorOnWheel) MoveCursorOnWheel = 0;
     else MoveCursorOnWheel = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 
@@ -10853,7 +10850,7 @@ void CMathomirView::OnKeyboardAltmenushortcuts()
 {
     if (EnableMenuShortcuts) EnableMenuShortcuts = 0;
     else EnableMenuShortcuts = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 #pragma optimize("s",on)
@@ -11033,7 +11030,7 @@ void CMathomirView::OnFontfacesFont1()
     LOGFONT lf;
     CHOOSEFONT f;
     CDC* DC = this->GetDC();
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->GetLogicalFont(choosenfont, &lf, DC);
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->GetLogicalFont(choosenfont, &lf, DC);
     ZeroMemory(&f, sizeof(CHOOSEFONT));
     f.lStructSize = sizeof(CHOOSEFONT);
     f.hwndOwner = theApp.m_pMainWnd->m_hWnd;
@@ -11042,13 +11039,13 @@ void CMathomirView::OnFontfacesFont1()
     f.Flags = CF_SCREENFONTS | CF_INITTOLOGFONTSTRUCT | CF_SCALABLEONLY | CF_LIMITSIZE;
     f.nSizeMin = 10;
     f.nSizeMax = 30;
-    if (ChooseFont(&f)) static_cast<CMainFrame*>(theApp.m_pMainWnd)->SetLogicalFont(choosenfont, &lf, DC);
+    if (ChooseFont(&f)) dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->SetLogicalFont(choosenfont, &lf, DC);
 
     this->ReleaseDC(DC);
     RepaintTheView(1);
     Toolbox->InvalidateRect(nullptr, 1);
     Toolbox->UpdateWindow();
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnFontfacesFont2()
@@ -11074,11 +11071,11 @@ void CMathomirView::OnFontfacesFont4()
 
 void CMathomirView::OnFontfacesSetfontstodefaullts()
 {
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->SetFontsToDefaults();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->SetFontsToDefaults();
     RepaintTheView(1);
     Toolbox->InvalidateRect(nullptr, 1);
     Toolbox->UpdateWindow();
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 #pragma optimize("s",on)
@@ -11087,8 +11084,8 @@ void CMathomirView::KeyboardSelectionCut(bool no_copy)
     if (!no_copy) KeyboardSelectionCopy(true);
     CExpression* e = KeyboardEntryObject;
 
-    int mi = 0;
-    int i;
+    size_t mi = 0;
+    size_t i;
     for (i = 0; i < e->m_pElementList.size(); i++)
     {
         if (e->m_pElementList[i].IsSelected == 2)
@@ -11165,7 +11162,7 @@ void CMathomirView::KeyboardSelectionPaste()
                     CDC* DC = GetDC();
                     int first_pass = 1;
                     //((CMainFrame*)theApp.m_pMainWnd)->UndoSave("text paste");
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoDisableSaving();
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoDisableSaving();
                     //int enterkey=0;
                     InhibitParentheseMerging = 1;
                     int IsText = KeyboardEntryObject->DetermineInsertionPointType(
@@ -11271,7 +11268,7 @@ void CMathomirView::KeyboardSelectionPaste()
                         first_pass = 0;
                         KeyboardEntryObject->KeyboardKeyHit(DC, ViewZoom, ch, 0, flags, fcolor, false);
                     }
-                    static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoEnableSaving();
+                    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoEnableSaving();
                     ReleaseDC(DC);
                     InhibitAllKeyHandling = 0;
                     InhibitParentheseMerging = 0;
@@ -11395,14 +11392,14 @@ void CMathomirView::OnKeyboardF1setszoomlevelto100()
 {
     if (F1SetsZoom) F1SetsZoom = 0;
     else F1SetsZoom = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnOutputimagePrintfontsasimages()
 {
     if (PrintTextAsImage) PrintTextAsImage = 0;
     else PrintTextAsImage = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 #pragma optimize("",on)
@@ -11474,7 +11471,7 @@ void CMathomirView::OnKeyboardAllowcommaasdecimalseparator()
 {
     if (UseCommaAsDecimal) UseCommaAsDecimal = 0;
     else UseCommaAsDecimal = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 /*void CMathomirView::OnSelectionsWidekeyboardcursor()
@@ -11487,7 +11484,7 @@ void CMathomirView::OnGridandguidelinesSnaptoguidelines()
 {
     if (SnapToGuidlines) SnapToGuidlines = 0;
     else SnapToGuidlines = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 
@@ -11523,7 +11520,7 @@ void CMathomirView::OnToolboxandcontextmenuShowtoolbar()
     if (UseToolbar) UseToolbar = 0;
     else UseToolbar = 1;
     if (AutoResizeToolbox && Toolbox) Toolbox->AutoResize();
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     Toolbox->AdjustPosition();
     this->AdjustPosition();
 }
@@ -11533,7 +11530,7 @@ void CMathomirView::OnKeyboardUsecapslocktotoggletypingmode()
 {
     if (UseCapsLock) UseCapsLock = 0;
     else UseCapsLock = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 
@@ -11598,33 +11595,33 @@ void CMathomirView::OnFontsizeanddefaultzoomDefaultzoomis80()
 void CMathomirView::OnZoomUsectrlforwheelzoom() //mouse function: scroll up/down
 {
     UseCTRLForZoom = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnMouseMouse() //mouse function: zoom in/ou
 {
     UseCTRLForZoom = 0;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnMouseRightmousebuttontotogglemouse()
 {
     if (RightButtonTogglesWheel) RightButtonTogglesWheel = 0;
     else RightButtonTogglesWheel = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnMouseSlow()
 {
     if (WheelScrollingSpeed < 50) WheelScrollingSpeed = 60;
     else WheelScrollingSpeed = 30;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnPagenumerationNone()
 {
     PageNumeration = PageNumeration & 0xFFFFFFF0;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     InvalidateRect(nullptr, 0);
     UpdateWindow();
 }
@@ -11632,7 +11629,7 @@ void CMathomirView::OnPagenumerationNone()
 void CMathomirView::OnPagenumeration()
 {
     PageNumeration = PageNumeration & 0xFFFFFFF0 | 0x01;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     InvalidateRect(nullptr, 0);
     UpdateWindow();
 }
@@ -11640,7 +11637,7 @@ void CMathomirView::OnPagenumeration()
 void CMathomirView::OnPagenumeration32899()
 {
     PageNumeration = PageNumeration & 0xFFFFFFF0 | 0x02;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     InvalidateRect(nullptr, 0);
     UpdateWindow();
 }
@@ -11648,7 +11645,7 @@ void CMathomirView::OnPagenumeration32899()
 void CMathomirView::OnPagenumerationPage1of10()
 {
     PageNumeration = PageNumeration & 0xFFFFFFF0 | 0x03;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     InvalidateRect(nullptr, 0);
     UpdateWindow();
 }
@@ -11658,7 +11655,7 @@ void CMathomirView::OnPagenumerationBottom()
     int is_bottom = PageNumeration & 0x10;
     if (is_bottom) PageNumeration &= 0xFFFFFFEF;
     else PageNumeration |= 0x10;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     InvalidateRect(nullptr, 0);
     UpdateWindow();
 }
@@ -11668,7 +11665,7 @@ void CMathomirView::OnPagenumerationRight()
     int is_right = PageNumeration & 0x20;
     if (is_right) PageNumeration &= 0xFFFFFFDF;
     else PageNumeration |= 0x20;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
     InvalidateRect(nullptr, 0);
     UpdateWindow();
 }
@@ -11678,7 +11675,7 @@ void CMathomirView::OnPagenumerationExcludefirstpage()
     int is_excludefirst = PageNumeration & 0x40;
     if (is_excludefirst) PageNumeration &= 0xFFFFFFBF;
     else PageNumeration |= 0x40;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 
     InvalidateRect(nullptr, 0);
     UpdateWindow();
@@ -11688,7 +11685,7 @@ void CMathomirView::OnToolboxandcontextmenuAuto()
 {
     AutoResizeToolbox = 1;
     if (Toolbox) Toolbox->AutoResize();
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnMenu32905()
@@ -11706,12 +11703,12 @@ void CMathomirView::OnMenu32905()
         NoImageAutogeneration = 2;
         Toolbox->Keyboard->ShowWindow(SW_SHOW);
     }
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }
 
 void CMathomirView::OnKeyboardUsecomplexindexes()
 {
     if (UseComplexIndexes) UseComplexIndexes = 0;
     else UseComplexIndexes = 1;
-    static_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
+    dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->AdjustMenu();
 }

@@ -1438,7 +1438,6 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
         }
     }
 
-    int i;
     AutosavePoints++; //for the autosave function
 
     if (pMainViewBase)
@@ -1450,6 +1449,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
     //first check if the oldest undo level must be deleted (only limited numer of undo levels is possible)
     if (UndoNumLevels >= NUM_UNDO_LEVELS)
     {
+        int i;
         //first check if any of newer undo layers re-uses the same data (main document strucutre)
         for (i = 1; i < UndoNumLevels; i++)
             if (UndoStruct[i].data == UndoStruct[0].data) break;
@@ -1462,7 +1462,7 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
 
         //now clear objects that are no more used
         tUndoObjectStruct* us = pUndoObjectList;
-        for (i = 0; i < UndoNumObjects; i++, us++)
+        for (size_t i = 0; i < UndoNumObjects; i++, us++)
         {
             //shift the 'used in level' bitmask - this bitmask tells at what undo level is
             //this object used
@@ -1489,13 +1489,15 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
         strcat_s(UndoStruct[UndoNumLevels].text, "**");
 
     //calculate checksums
-    tDocumentStruct* ds = TheDocument;
-    for (i = 0; i < NumDocumentElements; i++, ds++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
+    {
+        tDocumentStruct* ds = &TheDocument[i];
         if (ds->Object.exp)
         {
             if (ds->Type == EXPRESSION) ds->Checksum = ds->Object.exp->CalcChecksum();
             else if (ds->Type == DRAWING) ds->Checksum = ds->Object.draw->CalcChecksum();
         }
+    }
 
     //store the main document structure
     UndoStruct[UndoNumLevels].data = malloc(NumDocumentElements * sizeof(tDocumentStruct));
@@ -1509,9 +1511,10 @@ int CMainFrame::UndoSave(const std::string& undo_text, int unique_ID)
 
 
     //finally, check if there is any changed object
-    ds = TheDocument;
-    for (i = 0; i < NumDocumentElements; i++, ds++)
+    for (size_t i = 0; i < NumDocumentElements; i++)
     {
+        tDocumentStruct* ds = &TheDocument[i];
+
         int j;
         tUndoObjectStruct* us = pUndoObjectList;
         for (j = 0; j < UndoNumObjects; j++, us++)

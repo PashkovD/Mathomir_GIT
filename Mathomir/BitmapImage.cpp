@@ -412,7 +412,7 @@ int bitmap_position_counter = 0;
 #pragma optimize("s",on)
 char* CBitmapImage::XML_input(char* file)
 {
-    auto mf = static_cast<CMainFrame*>(theApp.m_pMainWnd);
+    auto mf = dynamic_cast<CMainFrame*>(theApp.m_pMainWnd);
 
     if (strncmp(file, "bmp", 3) == 0)
     {

@@ -165,7 +165,7 @@ public:
     ~CExpression();
     void CalculateSize(CDC* DC, short int zoom, short int& length, short int* above, short int* below, char HQR = -1,
                        char optimize_for_readability = 0);
-    void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT* ClipReg = nullptr, COLORREF color = 0);
+    void PaintExpression(CDC* DC, short zoom, short X, short Y, RECT const* ClipReg = nullptr, COLORREF color = 0);
     short GetActualFontSize(short zoom) const;
     int InsertEmptyElement(size_t position, short type, char Operator, int color = -1);
     void SelectExpression(char Select);
