@@ -4396,10 +4396,10 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
             (help_font_element >= 0 && help_font_subelement >= 0))
         {
             int langid = 6000;
-            char* text = "";
-            char* easycast = "";
+            std::string text = "";
+            std::string easycast = "";
             short key;
-            char* command = "";
+            std::string command = "";
             char buff[32];
             strcpy_s(buff, "");
             if (!m_IsArrowSelected)
@@ -4467,9 +4467,9 @@ void CToolbox::OnMouseMove(UINT nFlags, CPoint point)
                         CExpression* e = ToolboxMembers[help_element].Submembers[help_subelement];
                         const char* cmd = GetCommandFromCreationCode(
                             ToolboxMembers[help_element].CreationCode[help_subelement]);
-                        if (cmd) command = (char*)cmd;
+                        if (cmd) command = cmd;
 
-                        if (command[0] == 0 && e && e->m_pElementList.size() == 1 && (ToolboxMembers[help_element].
+                        if (command.empty() && e && e->m_pElementList.size() == 1 && (ToolboxMembers[help_element].
                                 userdef_mask & 1 << help_subelement) == 0 &&
                             e->m_pElementList[0].Type == 6 && e->m_pElementList[0].pElementObject->Data2[0] == 0x20 &&
                             e->m_pElementList[0].pElementObject->Expression2 == nullptr)

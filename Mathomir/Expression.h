@@ -254,7 +254,7 @@ public:
     int ComputeRoot(int Position, char element_type, int ComputationType);
     int ExtractVariables(int StartPos, int EndPos, double order, int summand_no, tVariableList* VarList,
                          CExpression* exponent = nullptr, char style = 0);
-    int Polynomize(CExpression* variable, char* alternative_variable = nullptr, char is_greek = 0);
+    int Polynomize(CExpression* variable, const char* alternative_variable = nullptr, char is_greek = 0);
     int DividePolynome(CExpression* Q, int orderQ, CExpression* result, CExpression* variable);
     int ComputeFraction(int Position, char element_type, int ComputationType);
     int MultiplyElements(int StartPos, int EndPos, int inv, CExpression* Other, int StartPos22, int EndPos2, int inv2,
@@ -274,7 +274,7 @@ public:
     int IsSuitableForComputation(int autocorrect = 0);
     int ComputeLog(int Position, char element_type, int ComputationType);
     int ContainsVariable(int StartPos, int EndPos, CExpression* variable, int VarPos, int VarLen,
-                         char* alternative_variable = nullptr, char is_greek = 0);
+                         const std::string& alternative_variable = "", bool is_greek = false);
     int ExtractVariable(CExpression* variable, int VarPos, int VarLen, int ComputationLevel);
     int SynthetizeExpression(int Position, void* VarList, int summand_no);
     int ComputeMatrixDeterminant(int ComputationType);

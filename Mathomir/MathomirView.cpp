@@ -1500,7 +1500,11 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                 int X = SpecialDrawingHover->absolute_X - AbsoluteX;
                 int Y = SpecialDrawingHover->absolute_Y - AbsoluteY;
                 if (SpecialDrawingHover->Object.draw->MouseClick(X, Y))
-                    goto on_lbuttondown_end;
+                {
+                    this->ReleaseDC(DC);
+                    CView::OnLButtonDown(nFlags, point);
+                    return;
+                }
             }
 
 
@@ -1559,7 +1563,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     }
 
 
-                    goto on_lbuttondown_end;
+                    this->ReleaseDC(DC);
+                    CView::OnLButtonDown(nFlags, point);
+                    return;
                 }
 
         if (MouseMode == 102)
@@ -1577,7 +1583,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
             }
             RepaintTheView();
 
-            goto on_lbuttondown_end;
+            this->ReleaseDC(DC);
+            CView::OnLButtonDown(nFlags, point);
+            return;
         }
 
         //clicked on streching handle - start stretching
@@ -1610,7 +1618,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
             MovingStartY = AbsoluteY - MultipleY;
             MouseMode = 9;
             ResizingFirstPass = 1;
-            goto on_lbuttondown_end;
+            this->ReleaseDC(DC);
+            CView::OnLButtonDown(nFlags, point);
+            return;
         }
 
         if (ShowRullerCounter == 0 && RullerPositionPreselected >= 0 && point.y <= 12 && !ViewOnlyMode && RullerType ==
@@ -1867,7 +1877,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                             tmpDrawing2 = drw;
                             MouseMode = 8;
                             SelectedDocumentObject = ds;
-                            goto on_lbuttondown_end;
+                            this->ReleaseDC(DC);
+                            CView::OnLButtonDown(nFlags, point);
+                            return;
                         }
                         //int X=point.x*100/ViewZoom-(ds->absolute_X-ViewX);
                         //int Y=point.y*100/ViewZoom-(ds->absolute_Y-ViewY);
@@ -2126,7 +2138,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     this->GentlyPaintObject(ds, DC);
 
 
-                    goto on_lbuttondown_end;
+                    this->ReleaseDC(DC);
+                    CView::OnLButtonDown(nFlags, point);
+                    return;
                 }
 
 
@@ -2149,7 +2163,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     || ClipboardExpression->m_pElementList.empty())
                 {
                     StartKeyboardEntryAt(AbsoluteX, AbsoluteY, make_text);
-                    goto on_lbuttondown_end;
+                    this->ReleaseDC(DC);
+                    CView::OnLButtonDown(nFlags, point);
+                    return;
                 }
                 if (ClipboardExpression->m_pElementList.size() == 1 && ClipboardExpression->m_pElementList[0].Type == 5)
                 {
@@ -2158,7 +2174,9 @@ void CMathomirView::OnLButtonDown(UINT nFlags, CPoint point)
                     if (expr->m_StartAsText)
                     {
                         StartKeyboardEntryAt(AbsoluteX, AbsoluteY, 1);
-                        goto on_lbuttondown_end;
+                        this->ReleaseDC(DC);
+                        CView::OnLButtonDown(nFlags, point);
+                        return;
                     }
                 }
 
@@ -9694,8 +9712,7 @@ void CMathomirView::SaveImageToFile(int cx, int cy, CDC* bmpDC)
 {
     //exporting equation image to file
     int i = 0;
-    char* filter;
-    filter =
+    char filter[] =
         "32bit .PNG (transparent, full color)|*.png|24bit .PNG (full color)|*.png|8bit .PNG (basic color)|*.png|1bit .PNG (black and white)|*.png|.JPG (JPEG, full color)|*.jpg|24bit .BMP (full color)|*.bmp|8bit .BMP (basic color)|*.bmp||\0";
     CFileDialog fd(FALSE, nullptr, nullptr, 0, filter, theApp.m_pMainWnd, 0);
     fd.m_pOFN->nFilterIndex = save_image_to_file_type;
@@ -10747,8 +10764,8 @@ int CMathomirView::CopyLaTeXCode(CObject* expr)
     ((CExpression*)expr)->CalculateSize(DC, ViewZoom, l, &a, &b);
     pMainView->ReleaseDC(DC);
 
-    char* head = "";
-    char* foot = "";
+    std::string head;
+    std::string foot;
     std::ostringstream out;
     out << head;
     ((CExpression*)expr)->LaTeX_output(out);

@@ -1384,7 +1384,7 @@ int CMainFrame::UndoInit()
                 delete us->pObject.draw;
             }
         }
-        free(pUndoObjectList);
+        delete pUndoObjectList;
         pUndoObjectList = nullptr;
     }
 
@@ -1783,8 +1783,8 @@ int CMainFrame::UndoRestore()
 int CMainFrame::UndoRelease(int exit_app)
 {
     UndoInit();
-    if (pUndoObjectList)
-        free(pUndoObjectList);
+
+    delete pUndoObjectList;
 
     if (!exit_app) AdjustMenu();
     return 0;
@@ -1905,7 +1905,13 @@ int CMainFrame::RearangeObjects(int delta)
         break;
     }
 
-    if (mx == 0) goto rearange_end;
+    if (mx == 0)
+    {
+        for (size_t i = 0; i < NumDocumentElements; i++)
+            TheDocument[i].MovingDotState &= 0x3F;
+
+        return 1;
+    }
     delta = mx;
 
 
@@ -1928,7 +1934,7 @@ int CMainFrame::RearangeObjects(int delta)
             //if (ds->Type==1)
             //	if (delta==0) maxy+=((CExpression*)(ds->Object))->m_FontSize/5;
 
-            for (int j = 0; j < NumDocumentElements; j++)
+            for (size_t j = 0; j < NumDocumentElements; j++)
             {
                 tDocumentStruct& ds2 = TheDocument[j];
                 if ((ds2.MovingDotState & 0xC0) != 0 || ds2.MovingDotState == 5)
@@ -1947,7 +1953,7 @@ int CMainFrame::RearangeObjects(int delta)
             }
         }
     }
-rearange_end:
+
     for (size_t i = 0; i < NumDocumentElements; i++)
         TheDocument[i].MovingDotState &= 0x3F;
 

@@ -983,176 +983,178 @@ void CExpression::CalculateSize(CDC* DC, short int zoom, short int& length, shor
         //okay, now we have calculated size of every element, width of
         //every column,height of every row and number of columns and rows.
         //now continue placing elements into matrix
-
-        Row = 0;
-        Column = 0;
-        int l = MarginX, a = 0, b = 0;
-        int ColumnStart = 0;
-        int ColumnStartX = MarginX / 2; //(HQR)?0:MarginX/2;
-        int MatrixHeight = 0;
-
-        int ggg;
-        if (HQR)
-            ggg = 6 * ((zoom > 200 ? 128 * ActualSize / 9 : 16 * ActualSize) - 64 * MarginY - 3) / 4;
-        else
-            ggg = 5 * (PrecisionMarginY - 64 * MarginY) / 2;
-        int ttt = 0;
-        int ttt2 = 0;
-        for (int i = 0; i < MaxNumRows; i++)
         {
-            ttt2 += ggg;
-            int ccc = (ttt2 - ttt) / 64;
-            m_MatrixRows[i].above += ccc;
-            m_MatrixRows[i].below += ccc;
-            ttt += ccc * 64;
+            Row = 0;
+            Column = 0;
+            int l = MarginX, a = 0, b = 0;
+            int ColumnStart = 0;
+            int ColumnStartX = MarginX / 2; //(HQR)?0:MarginX/2;
+            int MatrixHeight = 0;
 
-            MatrixHeight += m_MatrixRows[i].above + m_MatrixRows[i].below;
-        }
-
-        MatrixHeight += (MaxNumRows + 1) * MarginY;
-
-        int RowStart = 0;
-        int RowStartY = -(MatrixHeight / 2) + m_MatrixRows[0].above + MarginY;
-        if (MaxNumRows == 1)
-        {
-            RowStartY = 0;
-        }
-
-        m_MaxNumRows = MaxNumRows;
-        m_MaxNumColumns = MaxNumColumns;
-
-        for (int i = 0; i < m_MaxNumColumns; i++)
-            m_MatrixColumns[i].length += m_MarginX;
-
-        length = 0;
-        *above = 0;
-        *below = 0;
-
-
-        char* prevcellalign = nullptr;
-        for (size_t i = 0; i <= m_pElementList.size(); i++)
-        {
-            if (i == m_pElementList.size() || m_pElementList[i].Type == 11 || (m_pElementList[i].Type == 12 && i <
-                m_pElementList.size() - 1))
+            int ggg;
+            if (HQR)
+                ggg = 6 * ((zoom > 200 ? 128 * ActualSize / 9 : 16 * ActualSize) - 64 * MarginY - 3) / 4;
+            else
+                ggg = 5 * (PrecisionMarginY - 64 * MarginY) / 2;
+            int ttt = 0;
+            int ttt2 = 0;
+            for (int i = 0; i < MaxNumRows; i++)
             {
-                l -= 2 * MarginX;
-                int Delta;
-                int align = m_Alignment;
-                char* cellalign = nullptr;
-                if (i < m_pElementList.size())
-                {
-                    cellalign = &m_pElementList[i].pElementObject->Data1[10];
-                    if (m_pElementList[i].Type == 11) prevcellalign = &m_pElementList[i].pElementObject->Data1[11];
-                    else prevcellalign = &m_pElementList[i].pElementObject->Data1[12];
-                }
-                else
-                    cellalign = prevcellalign;
-                if (cellalign)
-                {
-                    if (*cellalign == 'l') align = 1;
-                    if (*cellalign == 'c') align = 0;
-                    if (*cellalign == 'r') align = 2;
-                }
+                ttt2 += ggg;
+                int ccc = (ttt2 - ttt) / 64;
+                m_MatrixRows[i].above += ccc;
+                m_MatrixRows[i].below += ccc;
+                ttt += ccc * 64;
 
-                if (align == 1) Delta = 5 * MarginX / 4; //left alignment
-                else if (align == 2) Delta = m_MatrixColumns[Column].length - l - 5 * MarginX / 4; //right alignment
-                else Delta = (m_MatrixColumns[Column].length - l) / 2; //center alignment
-                int increment = -MarginX;
-                if (HQR)
-                {
-                    //if (Column==0) increment+=MarginX/2;
-                    //if (Column==m_MaxNumColumns-1) increment-=MarginX/2;
-                }
-                int hh = ColumnStartX - m_pElementList[ColumnStart].X_pos;
-                for (size_t j = ColumnStart; j < i; j++)
-                {
-                    m_pElementList[j].X_pos += ColumnStartX + Delta + increment;
-                }
-                m_MatrixColumns[Column].x = ColumnStartX;
-
-                if (i < m_pElementList.size())
-                {
-                    m_pElementList[i].X_pos += ColumnStartX + Delta + increment;
-                    m_pElementList[i].Length = 0;
-                    if (m_pElementList[i].Type == 11) ColumnStartX += HQR ? 1 * MarginX : MarginX;
-                }
-                ColumnStartX += m_MatrixColumns[Column].length;
-                if (length < ColumnStartX) length = ColumnStartX;
-                ColumnStart = i + 1;
-                l = MarginX;
-                Column++;
-                if (i < m_pElementList.size() && m_pElementList[i].Type == 11) continue;
+                MatrixHeight += m_MatrixRows[i].above + m_MatrixRows[i].below;
             }
 
-            if (i == m_pElementList.size() || (m_pElementList[i].Type == 12 && i < m_pElementList.size() - 1))
+            MatrixHeight += (MaxNumRows + 1) * MarginY;
+
+
+            int RowStart = 0;
+            int RowStartY = -(MatrixHeight / 2) + m_MatrixRows[0].above + MarginY;
+            if (MaxNumRows == 1)
             {
-                int Delta = 0;
-                m_MarginY;
-                int hh = RowStartY - m_pElementList[RowStart].Y_pos;
-                for (size_t j = RowStart; j < i; j++)
+                RowStartY = 0;
+            }
+
+            m_MaxNumRows = MaxNumRows;
+            m_MaxNumColumns = MaxNumColumns;
+
+            for (int i = 0; i < m_MaxNumColumns; i++)
+                m_MatrixColumns[i].length += m_MarginX;
+
+            length = 0;
+            *above = 0;
+            *below = 0;
+
+            char* prevcellalign = nullptr;
+            for (size_t i = 0; i <= m_pElementList.size(); i++)
+            {
+                if (i == m_pElementList.size() || m_pElementList[i].Type == 11 || (m_pElementList[i].Type == 12 && i <
+                    m_pElementList.size() - 1))
                 {
-                    tElementStruct& ts = m_pElementList[j];
-                    ts.Y_pos += RowStartY; //hh+Delta;
-                    if (ts.Type == 11)
+                    l -= 2 * MarginX;
+                    int Delta;
+                    int align = m_Alignment;
+                    char* cellalign = nullptr;
+                    if (i < m_pElementList.size())
                     {
-                        ts.Above = m_MatrixRows[Row].above;
-                        ts.Below = m_MatrixRows[Row].below;
+                        cellalign = &m_pElementList[i].pElementObject->Data1[10];
+                        if (m_pElementList[i].Type == 11) prevcellalign = &m_pElementList[i].pElementObject->Data1[11];
+                        else prevcellalign = &m_pElementList[i].pElementObject->Data1[12];
                     }
+                    else
+                        cellalign = prevcellalign;
+                    if (cellalign)
+                    {
+                        if (*cellalign == 'l') align = 1;
+                        if (*cellalign == 'c') align = 0;
+                        if (*cellalign == 'r') align = 2;
+                    }
+
+                    if (align == 1) Delta = 5 * MarginX / 4; //left alignment
+                    else if (align == 2) Delta = m_MatrixColumns[Column].length - l - 5 * MarginX / 4; //right alignment
+                    else Delta = (m_MatrixColumns[Column].length - l) / 2; //center alignment
+                    int increment = -MarginX;
+                    if (HQR)
+                    {
+                        //if (Column==0) increment+=MarginX/2;
+                        //if (Column==m_MaxNumColumns-1) increment-=MarginX/2;
+                    }
+                    int hh = ColumnStartX - m_pElementList[ColumnStart].X_pos;
+                    for (size_t j = ColumnStart; j < i; j++)
+                    {
+                        m_pElementList[j].X_pos += ColumnStartX + Delta + increment;
+                    }
+                    m_MatrixColumns[Column].x = ColumnStartX;
+
+                    if (i < m_pElementList.size())
+                    {
+                        m_pElementList[i].X_pos += ColumnStartX + Delta + increment;
+                        m_pElementList[i].Length = 0;
+                        if (m_pElementList[i].Type == 11) ColumnStartX += HQR ? 1 * MarginX : MarginX;
+                    }
+                    ColumnStartX += m_MatrixColumns[Column].length;
+                    if (length < ColumnStartX) length = ColumnStartX;
+                    ColumnStart = i + 1;
+                    l = MarginX;
+                    Column++;
+                    if (i < m_pElementList.size() && m_pElementList[i].Type == 11) continue;
                 }
-                if (*above < m_MatrixRows[Row].above - RowStartY) *above = m_MatrixRows[Row].above - RowStartY;
-                if (*below < m_MatrixRows[Row].below + RowStartY) *below = m_MatrixRows[Row].below + RowStartY;
 
-                m_MatrixRows[Row].y = RowStartY;
-
-                if (i < m_pElementList.size())
+                if (i == m_pElementList.size() || (m_pElementList[i].Type == 12 && i < m_pElementList.size() - 1))
                 {
-                    m_pElementList[i].Length = 0;
-                    m_pElementList[i].Y_pos += RowStartY;
-                    m_pElementList[i].Above = m_MatrixRows[Row].above;
-                    m_pElementList[i].Below = m_MatrixRows[Row].below;
-                    RowStartY += m_MatrixRows[Row].below + MarginY;
-                    RowStart = i + 1;
-                    ColumnStartX = MarginX / 2; //(HQR)?0:MarginX/2;
-                    Column = 0;
-                    a = 0;
-                    b = 0;
-                    Row++;
-                    RowStartY += m_MatrixRows[Row].above;
-                    continue;
+                    int Delta = 0;
+                    m_MarginY;
+                    int hh = RowStartY - m_pElementList[RowStart].Y_pos;
+                    for (size_t j = RowStart; j < i; j++)
+                    {
+                        tElementStruct& ts = m_pElementList[j];
+                        ts.Y_pos += RowStartY; //hh+Delta;
+                        if (ts.Type == 11)
+                        {
+                            ts.Above = m_MatrixRows[Row].above;
+                            ts.Below = m_MatrixRows[Row].below;
+                        }
+                    }
+                    if (*above < m_MatrixRows[Row].above - RowStartY) *above = m_MatrixRows[Row].above - RowStartY;
+                    if (*below < m_MatrixRows[Row].below + RowStartY) *below = m_MatrixRows[Row].below + RowStartY;
+
+                    m_MatrixRows[Row].y = RowStartY;
+
+                    if (i < m_pElementList.size())
+                    {
+                        m_pElementList[i].Length = 0;
+                        m_pElementList[i].Y_pos += RowStartY;
+                        m_pElementList[i].Above = m_MatrixRows[Row].above;
+                        m_pElementList[i].Below = m_MatrixRows[Row].below;
+                        RowStartY += m_MatrixRows[Row].below + MarginY;
+                        RowStart = i + 1;
+                        ColumnStartX = MarginX / 2; //(HQR)?0:MarginX/2;
+                        Column = 0;
+                        a = 0;
+                        b = 0;
+                        Row++;
+                        RowStartY += m_MatrixRows[Row].above;
+                        continue;
+                    }
+                    break;
                 }
-                break;
-            }
 
-            if (m_pElementList[i].Type != 12 && m_pElementList[i].Type != 11 &&
-                (m_pElementList[i].Type != 2 || m_pElementList[i].pElementObject->Data1[0] != static_cast<char>(0xFF)))
-                if (l < MarginX + m_pElementList[i].X_pos + m_pElementList[i].Length)
-                    l = MarginX + m_pElementList[i].X_pos + m_pElementList[i].Length;
+                if (m_pElementList[i].Type != 12 && m_pElementList[i].Type != 11 &&
+                    (m_pElementList[i].Type != 2 || m_pElementList[i].pElementObject->Data1[0] != static_cast<char>(
+                        0xFF)))
+                    if (l < MarginX + m_pElementList[i].X_pos + m_pElementList[i].Length)
+                        l = MarginX + m_pElementList[i].X_pos + m_pElementList[i].Length;
 
-            if (m_pElementList[i].Type == 1)
-            {
-                if (m_pElementList[i].pElementObject->Expression2 == nullptr)
+                if (m_pElementList[i].Type == 1)
                 {
-                    if (a < m_pElementList[i].Above + MarginY) a = m_pElementList[i].Above + MarginY;
+                    if (m_pElementList[i].pElementObject->Expression2 == nullptr)
+                    {
+                        if (a < m_pElementList[i].Above + MarginY) a = m_pElementList[i].Above + MarginY;
+                    }
+                    else
+                    {
+                        if (a < m_pElementList[i].Above) a = m_pElementList[i].Above;
+                    }
+                    if (m_pElementList[i].pElementObject->Expression1 == nullptr && m_pElementList[i].pElementObject->
+                        Expression3 ==
+                        nullptr)
+                    {
+                        if (b < m_pElementList[i].Below + MarginY) b = m_pElementList[i].Below + MarginY;
+                    }
+                    else
+                    {
+                        if (b < m_pElementList[i].Below) b = m_pElementList[i].Below;
+                    }
                 }
                 else
                 {
                     if (a < m_pElementList[i].Above) a = m_pElementList[i].Above;
-                }
-                if (m_pElementList[i].pElementObject->Expression1 == nullptr && m_pElementList[i].pElementObject->
-                    Expression3 ==
-                    nullptr)
-                {
-                    if (b < m_pElementList[i].Below + MarginY) b = m_pElementList[i].Below + MarginY;
-                }
-                else
-                {
                     if (b < m_pElementList[i].Below) b = m_pElementList[i].Below;
                 }
-            }
-            else
-            {
-                if (a < m_pElementList[i].Above) a = m_pElementList[i].Above;
-                if (b < m_pElementList[i].Below) b = m_pElementList[i].Below;
             }
         }
 
@@ -1359,7 +1361,12 @@ void CExpression::CalculateSizeReadjust(short zoom, short* length, short* above,
         tCellAttributes attr;
         if ((this->m_MaxNumColumns == 1 && this->m_MaxNumRows == 1) ||
             this->GetCellAttributes(row, col, &attr) == 0)
-            attr.alignment = this->m_Alignment == 0 ? "c" : this->m_Alignment == 1 ? "l" : "r";
+            if (this->m_Alignment == 0)
+                *attr.alignment = 'c';
+            else if (this->m_Alignment == 1)
+                *attr.alignment = 'l';
+            else
+                *attr.alignment = 'c';
 
         if (ts->pElementObject)
             ts->pElementObject->CalculateSizeReadjust(zoom, &l, &a, &b, *attr.alignment);
@@ -1725,8 +1732,8 @@ void CExpression::PaintExpression(CDC* DC, short zoom, int X, int Y, RECT const*
                     {
                         //the last in the line or matrix/table cell
                         Xpos = X + m_pElementList[i - 1].X_pos + m_pElementList[i - 1].Length + (do_green
-                                ? 10 * m_MarginX / 8
-                                : m_MarginX * 2 / 3) - width / 2;
+                            ? 10 * m_MarginX / 8
+                            : m_MarginX * 2 / 3) - width / 2;
                     }
                     else
                     {
@@ -1813,7 +1820,7 @@ void CExpression::PaintExpression(CDC* DC, short zoom, int X, int Y, RECT const*
                                       cw,
                                       hhh, clr);
                 }
-                if (IsTextContained(i, 1) && m_MaxNumColumns == 1 && m_MaxNumRows == 1)
+                if (IsTextContained(i, true) && m_MaxNumColumns == 1 && m_MaxNumRows == 1)
                 {
                     //painting a small sign below the cursor to inform the user that the Enter key would wrap the line
                     DWORD clr = PALE_RGB((do_green)?(GREEN_COLOR):(BLUE_COLOR));
@@ -5878,9 +5885,25 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                     //m_ModeDefinedAt=0;
 
                     IsSpacebarOnlyHit = 0;
-                    goto show_keymode_label;
+                    if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION &&
+                        KeyboardEntryBaseObject->Object.exp)
+                    {
+                        CExpression* parent = KeyboardEntryBaseObject->Object.exp;
+                        int x, y;
+                        short l, a, b;
+                        parent->CalculateSize(DC, ViewZoom, l, &a, &b);
+                        parent->GetKeyboardCursorPos(&x, &y);
+                        int ycord = (KeyboardEntryBaseObject->absolute_Y + KeyboardEntryBaseObject->Below -
+                            ViewY + 2) * ViewZoom / 100 + 1;
 
-
+                        CDC* mdc = Toolbox->GetDC();
+                        Toolbox->PaintTextcontrolbox(mdc);
+                        Toolbox->ReleaseDC(mdc);
+                        DisplayShortText(
+                            IsText ? "T" : "S",
+                            (KeyboardEntryBaseObject->absolute_X - ViewX) * ViewZoom / 100 + x - 8,
+                            ycord, 7999, IsText ? 3 : 2);
+                    }
                     return 1;
                 }
             }
@@ -7396,7 +7419,37 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
         if (GetKeyState(VK_SPACE) & 0xFFFE && is_external)
         {
             //Spacebar + Enter changes the typing mode (math/text)
-            goto toggle_keymode;
+            if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION &&
+                KeyboardEntryBaseObject->Object.exp)
+            {
+                m_pElementList[m_IsKeyboardEntry - 1].pElementObject->m_Text = IsText =
+                    IsText ? 0 : 1;
+                if (m_pElementList.size() == 1) m_StartAsText = IsText;
+
+                m_ModeDefinedAt = m_IsKeyboardEntry & 0x3FFF;
+                if (IsText) m_ModeDefinedAt |= 0x4000;
+            }
+
+            if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION &&
+                KeyboardEntryBaseObject->Object.exp)
+            {
+                CExpression* parent = KeyboardEntryBaseObject->Object.exp;
+                int x, y;
+                short l, a, b;
+                parent->CalculateSize(DC, ViewZoom, l, &a, &b);
+                parent->GetKeyboardCursorPos(&x, &y);
+                int ycord = (KeyboardEntryBaseObject->absolute_Y + KeyboardEntryBaseObject->Below -
+                    ViewY + 2) * ViewZoom / 100 + 1;
+
+                CDC* mdc = Toolbox->GetDC();
+                Toolbox->PaintTextcontrolbox(mdc);
+                Toolbox->ReleaseDC(mdc);
+                DisplayShortText(
+                    IsText ? "T" : "S",
+                    (KeyboardEntryBaseObject->absolute_X - ViewX) * ViewZoom / 100 + x - 8,
+                    ycord, 7999, IsText ? 3 : 2);
+            }
+            return 1;
         }
 
         DotAutomaticallyAdded = 0;
@@ -7406,7 +7459,8 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
             return 1;
         }
 
-        if ((IsTextContained(m_IsKeyboardEntry - 1, 0) && this->m_pPaternalElement == nullptr && this->m_MaxNumColumns
+        if ((IsTextContained(m_IsKeyboardEntry - 1, false) && this->m_pPaternalElement == nullptr && this->
+                m_MaxNumColumns
                 == 1 && this->m_MaxNumRows == 1)
             || (IsALTDown && !KeyboardExponentMode && !KeyboardIndexMode))
         {
@@ -8537,11 +8591,11 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
 
         char ch = nChar & 0xFF;
 
-        char ch_number = 0;
+        bool ch_number = false;
         if ((ch >= '0' && ch <= '9') || ch == '.' ||
             (ch == ',' && UseCommaAsDecimal && m_KeyboardCursorPos == strlen(theElement->pElementObject->Data1) &&
                 m_KeyboardCursorPos))
-            ch_number = 1;
+            ch_number = true;
         //check if user entered the name of any known function (sin cos...)
         //if yes, accept that function
         if (ch < 'A' || ch > 'z' || (ch < 'a' && ch > 'Z')) //not a letter	
@@ -8644,11 +8698,60 @@ int CExpression::KeyboardKeyHit(CDC* DC, short zoom, UINT nChar, UINT nRptCnt, U
                 InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
                 m_KeyboardCursorPos = 0;
                 IsEditedVariableEmpty = true;
-                goto toggle_keymode;
+                if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION &&
+                    KeyboardEntryBaseObject->Object.exp)
+                {
+                    m_pElementList[m_IsKeyboardEntry - 1].pElementObject->m_Text = IsText =
+                        IsText ? 0 : 1;
+                    if (m_pElementList.size() == 1) m_StartAsText = IsText;
+
+                    m_ModeDefinedAt = m_IsKeyboardEntry & 0x3FFF;
+                    if (IsText) m_ModeDefinedAt |= 0x4000;
+                }
+
+                if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION &&
+                    KeyboardEntryBaseObject->Object.exp)
+                {
+                    CExpression* parent = KeyboardEntryBaseObject->Object.exp;
+                    int x, y;
+                    short l, a, b;
+                    parent->CalculateSize(DC, ViewZoom, l, &a, &b);
+                    parent->GetKeyboardCursorPos(&x, &y);
+                    int ycord = (KeyboardEntryBaseObject->absolute_Y + KeyboardEntryBaseObject->Below -
+                        ViewY + 2) * ViewZoom / 100 + 1;
+
+                    CDC* mdc = Toolbox->GetDC();
+                    Toolbox->PaintTextcontrolbox(mdc);
+                    Toolbox->ReleaseDC(mdc);
+                    DisplayShortText(
+                        IsText ? "T" : "S",
+                        (KeyboardEntryBaseObject->absolute_X - ViewX) * ViewZoom / 100 + x - 8,
+                        ycord, 7999, IsText ? 3 : 2);
+                }
+                return 1;
 
                 IsText = IsText ? 0 : 1;
                 m_pElementList[m_IsKeyboardEntry - 1].pElementObject->m_Text = IsText;
-                goto show_keymode_label;
+                if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION &&
+                    KeyboardEntryBaseObject->Object.exp)
+                {
+                    CExpression* parent = KeyboardEntryBaseObject->Object.exp;
+                    int x, y;
+                    short l, a, b;
+                    parent->CalculateSize(DC, ViewZoom, l, &a, &b);
+                    parent->GetKeyboardCursorPos(&x, &y);
+                    int ycord = (KeyboardEntryBaseObject->absolute_Y + KeyboardEntryBaseObject->Below -
+                        ViewY + 2) * ViewZoom / 100 + 1;
+
+                    CDC* mdc = Toolbox->GetDC();
+                    Toolbox->PaintTextcontrolbox(mdc);
+                    Toolbox->ReleaseDC(mdc);
+                    DisplayShortText(
+                        IsText ? "T" : "S",
+                        (KeyboardEntryBaseObject->absolute_X - ViewX) * ViewZoom / 100 + x - 8,
+                        ycord, 7999, IsText ? 3 : 2);
+                }
+                return 1;
 
                 //doube backslash - we are starting the new equation just below
                 /*DeleteElement(m_IsKeyboardEntry-1);
@@ -9132,20 +9235,20 @@ keyboardkeyhit_addtoexponent:
         }*/
 
         //inserting Greek symbols - by using double-stroke combination
-        char cnvOk = 1;
-        char isdelta = 0;
+        bool cnvOk = true;
+        bool isdelta = false;
         if (theElement->pElementObject->Data1[0] == 'D' &&
             (theElement->pElementObject->Data2[0] & 0xE0) == 0x60 &&
             m_KeyboardCursorPos == 2)
-            isdelta = 1;
+            isdelta = true;
 
-        if (InhibitAllKeyHandling) cnvOk = 0;
-        if (lastkeystrokes[1] != (nChar & 0xFF)) cnvOk = 0;
-        if (m_KeyboardCursorPos != 1 && !isdelta) cnvOk = 0;
-        if (m_KeyboardCursorPos != 2 && isdelta) cnvOk = 0;
-        if (theElement->Type != 1) cnvOk = 0;
-        if (theElement->pElementObject->Data1[m_KeyboardCursorPos] != 0) cnvOk = 0;
-        if (theElement->pElementObject->m_VMods == 0x10 && nChar != 'u') cnvOk = 0; //if it is a measurement unit
+        if (InhibitAllKeyHandling) cnvOk = false;
+        if (lastkeystrokes[1] != (nChar & 0xFF)) cnvOk = false;
+        if (m_KeyboardCursorPos != 1 && !isdelta) cnvOk = false;
+        if (m_KeyboardCursorPos != 2 && isdelta) cnvOk = false;
+        if (theElement->Type != 1) cnvOk = false;
+        if (theElement->pElementObject->Data1[m_KeyboardCursorPos] != 0) cnvOk = false;
+        if (theElement->pElementObject->m_VMods == 0x10 && nChar != 'u') cnvOk = false; //if it is a measurement unit
 
 
         if (cnvOk)
@@ -9812,7 +9915,27 @@ keyboardkeyhit_addtoexponent:
                                         InsertEmptyElement(m_IsKeyboardEntry - 1, 1, 0, fcolor);
                                         m_pElementList[m_IsKeyboardEntry - 1].pElementObject->m_Text = 1;
                                         m_KeyboardCursorPos = 0;
-                                        goto show_keymode_label;
+                                        if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION &&
+                                            KeyboardEntryBaseObject->Object.exp)
+                                        {
+                                            CExpression* parent = KeyboardEntryBaseObject->Object.exp;
+                                            int x, y;
+                                            short l, a, b;
+                                            parent->CalculateSize(DC, ViewZoom, l, &a, &b);
+                                            parent->GetKeyboardCursorPos(&x, &y);
+                                            int ycord = (KeyboardEntryBaseObject->absolute_Y + KeyboardEntryBaseObject->
+                                                Below -
+                                                ViewY + 2) * ViewZoom / 100 + 1;
+
+                                            CDC* mdc = Toolbox->GetDC();
+                                            Toolbox->PaintTextcontrolbox(mdc);
+                                            Toolbox->ReleaseDC(mdc);
+                                            DisplayShortText(
+                                                IsText ? "T" : "S",
+                                                (KeyboardEntryBaseObject->absolute_X - ViewX) * ViewZoom / 100 + x - 8,
+                                                ycord, 7999, IsText ? 3 : 2);
+                                        }
+                                        return 1;
                                     }
                                     ch = static_cast<char>(0xB7); //the big dot (for bulleted lists)
                                 }
@@ -9878,8 +10001,6 @@ keyboardkeyhit_addtoexponent:
                                     m_ModeDefinedAt = m_IsKeyboardEntry & 0x3FFF;
                                     if (IsText) m_ModeDefinedAt |= 0x4000;
                                 }
-
-                            show_keymode_label:
 
                                 if (KeyboardEntryBaseObject && KeyboardEntryBaseObject->Type == EXPRESSION &&
                                     KeyboardEntryBaseObject->Object.exp)
@@ -11514,20 +11635,63 @@ int CExpression::KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt
     {
         this->m_Selection = 0;
         this->m_IsKeyboardEntry = 0;
-        goto keyboardquicktype_end;
+        KeyboardEntryObject = nullptr;
+        KeyboardEntryBaseObject = nullptr;
+        ClipboardExpression = tmp_clipboard_storage;
+        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoEnableSaving();
+
+        return retval;
     }
     CExpression* newFocus = KeyboardEntryObject; //the keyboard focus my change;
-    if (newFocus == nullptr) goto keyboardquicktype_end;
-    if (newFocus->m_IsKeyboardEntry < 1) goto keyboardquicktype_end;
+    if (newFocus == nullptr)
+    {
+        KeyboardEntryObject = nullptr;
+        KeyboardEntryBaseObject = nullptr;
+        ClipboardExpression = tmp_clipboard_storage;
+        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoEnableSaving();
+
+        return retval;
+    }
+    if (newFocus->m_IsKeyboardEntry < 1)
+    {
+        KeyboardEntryObject = nullptr;
+        KeyboardEntryBaseObject = nullptr;
+        ClipboardExpression = tmp_clipboard_storage;
+        static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoEnableSaving();
+
+        return retval;
+    }
 
     if (KeyboardExponentMode || KeyboardIndexMode)
     {
         if (newFocus->KeyboardKeyHit(DC, ViewZoom, 0x0D, nRepCnt, nFlags, fcolor, true) == 0)
-            goto keyboardquicktype_end
-                ;
+        {
+            KeyboardEntryObject = nullptr;
+            KeyboardEntryBaseObject = nullptr;
+            ClipboardExpression = tmp_clipboard_storage;
+            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoEnableSaving();
+
+            return retval;
+        }
         newFocus = KeyboardEntryObject; //the keyboard focus my change;
-        if (newFocus == nullptr) goto keyboardquicktype_end;
-        if (newFocus->m_IsKeyboardEntry < 1) goto keyboardquicktype_end;
+        if (newFocus == nullptr)
+        {
+            KeyboardEntryObject = nullptr;
+            KeyboardEntryBaseObject = nullptr;
+            ClipboardExpression = tmp_clipboard_storage;
+            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoEnableSaving();
+
+            return retval;
+        }
+        if (newFocus->m_IsKeyboardEntry < 1)
+        {
+            KeyboardEntryObject = nullptr;
+            KeyboardEntryBaseObject = nullptr;
+            ClipboardExpression = tmp_clipboard_storage;
+            static_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoEnableSaving();
+
+            return retval;
+        }
     }
 
     prevQuickTypeElement = newFocus->m_pElementList[newFocus->m_IsKeyboardEntry - 1].pElementObject;
@@ -11576,7 +11740,7 @@ int CExpression::KeyboardQuickType(CDC* DC, short zoom, UINT nChar, UINT nRepCnt
 
     //finish the keyboard entry mode
     newFocus->KeyboardStop();
-keyboardquicktype_end:
+
     KeyboardEntryObject = nullptr;
     KeyboardEntryBaseObject = nullptr;
     ClipboardExpression = tmp_clipboard_storage;
@@ -12146,15 +12310,67 @@ int CExpression::Autocomplete(bool is_internal)
         CExpression* e = org;
         while (e)
         {
-            if (e == this) goto autocomplete_doall;
-            if (e->m_pPaternalElement && e->m_pPaternalElement == this->m_pPaternalElement) goto autocomplete_doall;
+            if (e == this)
+            {
+                for (size_t i = 0; i < m_pElementList.size(); i++)
+                {
+                    const tElementStruct& ts = m_pElementList[i];
+                    if (ts.pElementObject)
+                    {
+                        if (ts.pElementObject->Expression1) ts.pElementObject->Expression1->Autocomplete(true);
+                        if (ts.pElementObject->Expression2) ts.pElementObject->Expression2->Autocomplete(true);
+                        if (ts.pElementObject->Expression3) ts.pElementObject->Expression3->Autocomplete(true);
+                    }
+                }
+                return 1;
+            }
+            if (e->m_pPaternalElement && e->m_pPaternalElement == this->m_pPaternalElement)
+            {
+                for (size_t i = 0; i < m_pElementList.size(); i++)
+                {
+                    const tElementStruct& ts = m_pElementList[i];
+                    if (ts.pElementObject)
+                    {
+                        if (ts.pElementObject->Expression1) ts.pElementObject->Expression1->Autocomplete(true);
+                        if (ts.pElementObject->Expression2) ts.pElementObject->Expression2->Autocomplete(true);
+                        if (ts.pElementObject->Expression3) ts.pElementObject->Expression3->Autocomplete(true);
+                    }
+                }
+                return 1;
+            }
             e = e->m_pPaternalExpression;
         }
         e = this;
         while (e)
         {
-            if (e == org) goto autocomplete_doall;
-            if (e->m_pPaternalElement && e->m_pPaternalElement == org->m_pPaternalElement) goto autocomplete_doall;
+            if (e == org)
+            {
+                for (size_t i = 0; i < m_pElementList.size(); i++)
+                {
+                    const tElementStruct& ts = m_pElementList[i];
+                    if (ts.pElementObject)
+                    {
+                        if (ts.pElementObject->Expression1) ts.pElementObject->Expression1->Autocomplete(true);
+                        if (ts.pElementObject->Expression2) ts.pElementObject->Expression2->Autocomplete(true);
+                        if (ts.pElementObject->Expression3) ts.pElementObject->Expression3->Autocomplete(true);
+                    }
+                }
+                return 1;
+            }
+            if (e->m_pPaternalElement && e->m_pPaternalElement == org->m_pPaternalElement)
+            {
+                for (size_t i = 0; i < m_pElementList.size(); i++)
+                {
+                    const tElementStruct& ts = m_pElementList[i];
+                    if (ts.pElementObject)
+                    {
+                        if (ts.pElementObject->Expression1) ts.pElementObject->Expression1->Autocomplete(true);
+                        if (ts.pElementObject->Expression2) ts.pElementObject->Expression2->Autocomplete(true);
+                        if (ts.pElementObject->Expression3) ts.pElementObject->Expression3->Autocomplete(true);
+                    }
+                }
+                return 1;
+            }
             e = e->m_pPaternalExpression;
         }
 
@@ -12364,7 +12580,6 @@ int CExpression::Autocomplete(bool is_internal)
                 AutocompleteSource = this;
             }
         }
-    autocomplete_doall:
         for (size_t i = 0; i < m_pElementList.size(); i++)
         {
             const tElementStruct& ts = m_pElementList[i];
@@ -16036,7 +16251,11 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
     while (true)
     {
         int l = GetElementLen(pos, EndPos, tmpLevel, &es->et, (bool&)(es->p));
-        if (l == 0) goto compute_exit;
+        if (l == 0)
+        {
+            if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
+            xreturn(0);
+        }
         es->position = static_cast<unsigned short>(pos);
         es++;
         num_factors++;
@@ -16079,7 +16298,11 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
                         while (true)
                         {
                             int l = GetElementLen(pos, EndPos, Level, &es3->et, (bool&)(es3->p));
-                            if (l == 0) goto compute_finish;
+                            if (l == 0)
+                            {
+                                if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
+                                xreturn(1);
+                            }
                             es3->position = static_cast<unsigned short>(pos);
                             num_factors++;
                             pos += l;
@@ -16103,14 +16326,19 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
                         es = first_element + i;
                         break;
                     }
-                    goto compute_finish;
+                    if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
+                    xreturn(1);
                 }
                 es2++;
             }
             es++;
         }
     }
-    if (fnd) goto compute_finish;
+    if (fnd)
+    {
+        if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
+        xreturn(1);
+    }
     m_IsComputed |= IsComputedTestMask2;
 
     //if still here, then all pairs are tried, but no computation is made
@@ -16260,7 +16488,11 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
                 if (cnt) rval = -1;
             }
 
-            if (rval > 0) goto compute_finish;
+            if (rval > 0)
+            {
+                if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
+                xreturn(1);
+            }
             if (rval) retval = 1;
         }
 
@@ -16274,21 +16506,25 @@ int CExpression::Compute(int StartPos, int EndPos, int ComputationType, int Outs
                 k = 1;
             }
 
-            if (Compute(i + preoperator + k, i + l1 - 1, ComputationType, Level)) goto compute_finish;
+            if (Compute(i + preoperator + k, i + l1 - 1, ComputationType, Level))
+            {
+                if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
+                xreturn(1);
+            }
         }
     }
 
-    if (retval) goto compute_finish;
+    if (retval)
+    {
+        if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
+        xreturn(1);
+    }
 
     //flag that we succesfully finished computation of this expression
     m_IsComputed |= IsComputedTestMask;
-compute_exit:
+
     if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
     xreturn(0);
-
-compute_finish:
-    if (large_storage) HeapFree(ProcessHeap, 0, large_storage);
-    xreturn(1);
 }
 
 
@@ -19401,791 +19637,921 @@ int CExpression::FactorizeExpression(int force_factorization)
     auto original = new CExpression(nullptr, nullptr, 100);
     original->CopyExpression(this, 0);
 
-factorizeexpression_try_again:
-
+    while (true)
     {
-        //prepare for factorization
-        int cnt = 0;
-        while (Compute(0, m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
-    }
-
-    int Level = FindLowestOperatorLevel(static_cast<char>(0xD7));
-    if (Level > MulLevel) goto factorizeexpression_exit;
-
-
-    if (Level == MulLevel)
-    {
-        bool any_change = false;
-        int pos = 0;
-        while (true)
         {
-            char et;
-            bool p;
-            int l = GetElementLen(pos, m_pElementList.size() - 1, Level, &et, p);
-            if (l == 0) break;
-
-            tElementStruct* ts = &m_pElementList[pos + p];
-
-            // jump over +/- sign
-            if (l > 1 && ts->Type == 2 &&
-                GetOperatorLevel(ts->pElementObject->Data1[0]) == PlusLevel)
-            {
-                ts++;
-                pos++;
-                l--;
-            }
-
-            if (l - p == 1)
-            {
-                if (ts->Type == 5)
-                {
-                    CExpression* tmp = ts->pElementObject->Expression1;
-                    if (tmp) if (tmp->FactorizeExpression()) any_change = true;
-                }
-            }
-
-            pos += l;
-            if (pos > m_pElementList.size() - 1) break;
+            //prepare for factorization
+            int cnt = 0;
+            while (Compute(0, m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
         }
 
-        if (any_change)
+        int Level = FindLowestOperatorLevel(static_cast<char>(0xD7));
+        if (Level > MulLevel)
         {
+            this->CopyExpression(original, 0);
+            this->m_IsComputed |= 0x00800000;
             delete original;
-            xreturn(1);
-        }
-        goto factorizeexpression_exit;
-    }
-
-    if (m_pElementList.size() <= 2)
-    {
-        goto factorizeexpression_exit;
-    }
+            xreturn(0);
+        };
 
 
-    // *********************************************************************************
-    // FACTORIZATION BY GROUPING
-    //
-    // By calling the 'ExtractVariables' for every summand in expression, the expression
-    // is divided (analyzed) to its variables and constants. 
-    // All combinations of summands are then checked.
-    // *********************************************************************************
-
-    //TODO - ExtractVariables treba preraditi da vraca X^(3.3) -> X^3*X^0.3
-
-    //make some additional checkings (to proceed the expression must be summation of summands)
-    if (Level > PlusLevel) Level = PlusLevel;
-    if (Level < PlusLevel) goto factorizeexpression_exit;
-
-    //prepare sturcture that will hold list of all variables in this expression
-    tVariableList* VarList;
-    int summand_no;
-    VarList = static_cast<tVariableList*>(this->GenerateVariableList(0, m_pElementList.size() - 1, &summand_no));
-    if (!VarList) goto factorizeexpression_exit;
-
-
-    // try various combinations of groups (there must be integer number of groups and
-    // integer number of summands in a group)
-    int zz = summand_no;
-    while (static_cast<double>(zz) >= sqrt(summand_no) - 1e-100 && zz > 1)
-    {
-        if (summand_no % zz)
+        if (Level == MulLevel)
         {
+            bool any_change = false;
+            int pos = 0;
+            while (true)
+            {
+                char et;
+                bool p;
+                int l = GetElementLen(pos, m_pElementList.size() - 1, Level, &et, p);
+                if (l == 0) break;
+
+                tElementStruct* ts = &m_pElementList[pos + p];
+
+                // jump over +/- sign
+                if (l > 1 && ts->Type == 2 &&
+                    GetOperatorLevel(ts->pElementObject->Data1[0]) == PlusLevel)
+                {
+                    ts++;
+                    pos++;
+                    l--;
+                }
+
+                if (l - p == 1)
+                {
+                    if (ts->Type == 5)
+                    {
+                        CExpression* tmp = ts->pElementObject->Expression1;
+                        if (tmp) if (tmp->FactorizeExpression()) any_change = true;
+                    }
+                }
+
+                pos += l;
+                if (pos > m_pElementList.size() - 1) break;
+            }
+
+            if (any_change)
+            {
+                delete original;
+                xreturn(1);
+            }
+            this->CopyExpression(original, 0);
+            this->m_IsComputed |= 0x00800000;
+            delete original;
+            xreturn(0);
+        }
+
+        if (m_pElementList.size() <= 2)
+        {
+            this->CopyExpression(original, 0);
+            this->m_IsComputed |= 0x00800000;
+            delete original;
+            xreturn(0);
+        }
+
+
+        // *********************************************************************************
+        // FACTORIZATION BY GROUPING
+        //
+        // By calling the 'ExtractVariables' for every summand in expression, the expression
+        // is divided (analyzed) to its variables and constants. 
+        // All combinations of summands are then checked.
+        // *********************************************************************************
+
+        //TODO - ExtractVariables treba preraditi da vraca X^(3.3) -> X^3*X^0.3
+
+        //make some additional checkings (to proceed the expression must be summation of summands)
+        if (Level > PlusLevel) Level = PlusLevel;
+        if (Level < PlusLevel)
+        {
+            this->CopyExpression(original, 0);
+            this->m_IsComputed |= 0x00800000;
+            delete original;
+            xreturn(0);
+        }
+
+        //prepare sturcture that will hold list of all variables in this expression
+        tVariableList* VarList;
+        int summand_no;
+        VarList = static_cast<tVariableList*>(this->GenerateVariableList(0, m_pElementList.size() - 1, &summand_no));
+        if (!VarList)
+        {
+            this->CopyExpression(original, 0);
+            this->m_IsComputed |= 0x00800000;
+            delete original;
+            xreturn(0);
+        };
+
+
+        // try various combinations of groups (there must be integer number of groups and
+        // integer number of summands in a group)
+        int zz = summand_no;
+        while (static_cast<double>(zz) >= sqrt(summand_no) - 1e-100 && zz > 1)
+        {
+            if (summand_no % zz)
+            {
+                zz--;
+                continue;
+            }
+            int n = zz; //number of summands in group
+            int groups = summand_no / n; //number of groups (how many groups we can make)
             zz--;
-            continue;
-        }
-        int n = zz; //number of summands in group
-        int groups = summand_no / n; //number of groups (how many groups we can make)
-        zz--;
 
-        //the following structure is used when calculating various combinations of
-        //summands in groups.
-        struct
-        {
-            int summand_pos[MAX_SUMMANDS]; //relative position of summand ('3' means third non-used summand)
-            int summand_rpos[MAX_SUMMANDS]; //real possition of summand in expression
-            int N; //number of free summands
-        } sstate[10];
+            //the following structure is used when calculating various combinations of
+            //summands in groups.
+            struct
+            {
+                int summand_pos[MAX_SUMMANDS]; //relative position of summand ('3' means third non-used summand)
+                int summand_rpos[MAX_SUMMANDS]; //real possition of summand in expression
+                int N; //number of free summands
+            } sstate[10];
 
-        //initially buld the above structure
-        for (int s = 0; s < groups; s++)
-        {
-            for (int i = 0; i < n; i++)
-                sstate[s].summand_pos[i] = i;
-            sstate[s].N = summand_no - s * n;
-        }
-
-
-        tVariableList* commVarList; //make temporary varibale list - for commons
-        tVariableList* tmpVarList; //make temporary variable list - for leftovers
-        commVarList = static_cast<tVariableList*>(HeapAlloc(ProcessHeap,HEAP_ZERO_MEMORY, 2 * sizeof(tVariableList)));
-        tmpVarList = commVarList + 1;
-
-        int try_count = 0;
-        int finished = 0;
-        while (!finished && try_count < 15000)
-        {
-            try_count++;
-
-            //find real positions of summands that will be grouped (jump over used ones)
-            char summand_used[MAX_SUMMANDS] = {};
+            //initially buld the above structure
             for (int s = 0; s < groups; s++)
             {
-                int pos = 0;
-                int frees = 0;
                 for (int i = 0; i < n; i++)
+                    sstate[s].summand_pos[i] = i;
+                sstate[s].N = summand_no - s * n;
+            }
+
+
+            tVariableList* commVarList; //make temporary varibale list - for commons
+            tVariableList* tmpVarList; //make temporary variable list - for leftovers
+            commVarList = static_cast<tVariableList*>(
+                HeapAlloc(ProcessHeap,HEAP_ZERO_MEMORY, 2 * sizeof(tVariableList)));
+            tmpVarList = commVarList + 1;
+
+            int try_count = 0;
+            int finished = 0;
+            while (!finished && try_count < 15000)
+            {
+                try_count++;
+
+                //find real positions of summands that will be grouped (jump over used ones)
+                char summand_used[MAX_SUMMANDS] = {};
+                for (int s = 0; s < groups; s++)
                 {
-                    while (summand_used[pos] || frees < sstate[s].summand_pos[i])
+                    int pos = 0;
+                    int frees = 0;
+                    for (int i = 0; i < n; i++)
                     {
-                        if (summand_used[pos] == 0) frees++;
+                        while (summand_used[pos] || frees < sstate[s].summand_pos[i])
+                        {
+                            if (summand_used[pos] == 0) frees++;
+                            pos++;
+                        }
+                        sstate[s].summand_rpos[i] = pos;
+                        summand_used[pos] = 1;
+                        frees++;
                         pos++;
                     }
-                    sstate[s].summand_rpos[i] = pos;
-                    summand_used[pos] = 1;
-                    frees++;
-                    pos++;
                 }
-            }
 
-            memcpy(tmpVarList, VarList, sizeof(tVariableList));
-            memset(commVarList, 0, sizeof(tVariableList));
+                memcpy(tmpVarList, VarList, sizeof(tVariableList));
+                memset(commVarList, 0, sizeof(tVariableList));
 
-            //extract all common factors from groups
-            for (int s = 0; s < groups; s++)
-            {
-                for (int i = 0; i < VarList->NumVariables; i++)
-                {
-                    int rpos;
-                    rpos = sstate[s].summand_rpos[0];
-                    double max_order = tmpVarList->Variables[i].summand[rpos].dorder;
-                    if (fabs(max_order) > 1e-100)
-                    {
-                        int k;
-                        if (max_order > 0)
-                            for (k = 1; k < n; k++)
-                            {
-                                rpos = sstate[s].summand_rpos[k];
-                                double d = tmpVarList->Variables[i].summand[rpos].dorder;
-                                if (d < 1e-100) break;
-                                if (d < max_order) max_order = d;
-                            }
-                        else
-                            for (k = 1; k < n; k++)
-                            {
-                                rpos = sstate[s].summand_rpos[k];
-                                double d = tmpVarList->Variables[i].summand[rpos].dorder;
-                                if (d > -1e-100) break;
-                                if (d > max_order) max_order = d;
-                            }
-
-                        if (k == n)
-                        {
-                            rpos = sstate[s].summand_rpos[0];
-                            commVarList->Variables[i].summand[rpos].dorder = max_order;
-                            tmpVarList->Variables[i].summand[rpos].dorder -= max_order;
-                            for (int k = 1; k < n; k++)
-                            {
-                                rpos = sstate[s].summand_rpos[k];
-                                tmpVarList->Variables[i].summand[rpos].dorder -= max_order;
-                            }
-                        }
-                    }
-
-                    if (i == 0)
-                    {
-                        //check constants
-                        int prec;
-                        int rpos = sstate[s].summand_rpos[0];
-                        double N1 = tmpVarList->Constants[rpos].N1;
-                        double N2 = tmpVarList->Constants[rpos].N2;
-                        int order1 = 0;
-                        int order2 = 0;
-                        if (N1 > 1e+18)
-                        {
-                            order1 = static_cast<int>(log10(N1)) - 10;
-                            N1 /= pow(10.0, order1);
-                        }
-                        if (N2 > 1e+18)
-                        {
-                            order2 = static_cast<int>(log10(N2)) - 10;
-                            N2 /= pow(10.0, order2);
-                        }
-                        if (fabs(N1) >= 1.0)
-                            while (fabs(N1 / 10 - static_cast<long long>(N1 / 10)) < 1e-100)
-                            {
-                                N1 /= 10;
-                                order1++;
-                            }
-                        else
-                            while (fabs(N1 - static_cast<long long>(N1)) > 1e-100)
-                            {
-                                N1 = N1 * 10;
-                                order1--;
-                            }
-                        if (fabs(N2) >= 1.0)
-                            while (fabs(N2 / 10 - static_cast<long long>(N2 / 10)) < 1e-100)
-                            {
-                                N2 /= 10;
-                                order2++;
-                            }
-                        else
-                            while (fabs(N2 - static_cast<long long>(N2)) > 1e-100)
-                            {
-                                N2 = N2 * 10;
-                                order2--;
-                            }
-
-                        tmpVarList->Constants[rpos].N1 = 1.0;
-                        tmpVarList->Constants[rpos].N2 = 1.0;
-
-                        prec = VarList->Constants[rpos].prec;
-                        for (int k = 1; k < n; k++)
-                        {
-                            int rpos = sstate[s].summand_rpos[k];
-                            double N3 = tmpVarList->Constants[rpos].N1;
-                            double N4 = tmpVarList->Constants[rpos].N2;
-                            int order3 = 0;
-                            int order4 = 0;
-                            if (N3 > 1e+18)
-                            {
-                                order3 = static_cast<int>(log10(N3)) - 10;
-                                N3 /= pow(10.0, order3);
-                            }
-                            if (N4 > 1e+18)
-                            {
-                                order4 = static_cast<int>(log10(N4)) - 10;
-                                N4 /= pow(10.0, order4);
-                            }
-                            if (fabs(N3) >= 1.0)
-                                while (fabs(N3 / 10 - static_cast<long long>(N3 / 10)) < 1e-100)
-                                {
-                                    N3 /= 10;
-                                    order3++;
-                                }
-                            else
-                                while (fabs(N3 - static_cast<long long>(N3)) > 1e-100)
-                                {
-                                    N3 = N3 * 10;
-                                    order3--;
-                                }
-                            if (fabs(N4) >= 1.0)
-                                while (fabs(N4 / 10 - static_cast<long long>(N4 / 10)) < 1e-100)
-                                {
-                                    N4 /= 10;
-                                    order4++;
-                                }
-                            else
-                                while (fabs(N4 - static_cast<long long>(N4)) > 1e-100)
-                                {
-                                    N4 = N4 * 10;
-                                    order4--;
-                                }
-
-                            if (VarList->Constants[rpos].prec > prec) prec = VarList->Constants[rpos].prec;
-
-                            int steps = 0;
-                            while (order1 > order3 && order3 >= 0)
-                            {
-                                N1 *= 10;
-                                order1--;
-                                steps++;
-                                if (steps > 6) break;
-                            }
-                            while (order3 > order1 && order1 >= 0)
-                            {
-                                N3 *= 10;
-                                order3--;
-                                steps++;
-                                if (steps > 6) break;
-                            }
-                            while (order1 > order3 && order1 < 0)
-                            {
-                                N1 *= 10;
-                                order1--;
-                                steps++;
-                                if (steps > 6) break;
-                            }
-                            while (order3 > order1 && order3 < 0)
-                            {
-                                N3 *= 10;
-                                order3--;
-                                steps++;
-                                if (steps > 6) break;
-                            }
-                            /*
-                                                        if (((order1>0) && (order3>0)) || ((order1<0) && (order3<0)))
-                                                        {
-                                                            double e=1.0;
-                                                            if (order1+order3>=0)
-                                                            {
-                                                                int ord=min(order1,order3);
-                                                                e=pow(10.0,ord);
-                                                                order1-=ord;
-                                                                order3-=ord;
-                                                            }
-                                                            else
-                                                            {
-                                                                int ord=max(order1,order3);
-                                                                e=pow(10.0,ord);
-                                                                order1-=ord;
-                                                                order3-=ord;
-                                                            }
-                            
-                                                            if (fabs(e)>1.0e-100)
-                                                            {
-                                                                double delta=N1/e;
-                                                                N1=e;
-                                                                for (int kk=0;kk<k;kk++)
-                                                                    tmpVarList->Constants[sstate[s].summand_rpos[kk]].N1*=delta;
-                                                                tmpVarList->Constants[rpos].N1/=N1*pow(10.0,order1+order2);
-                            
-                            
-                                                                int delta=order1;
-                                                                order1=((order1+order3)>=0)?min(order1,order3):max(order1,order3);
-                                                                order3-=order1;
-                                                                double tmp1;
-                                                                if (delta>=order1)
-                                                                    tmp1=pow(10.0,delta-order1);
-                                                                else
-                                                                    tmp1=1/pow(10.0,order1-delta);
-                                                                for (int kk=0;kk<k;kk++)
-                                                                    tmpVarList->Constants[sstate[s].summand_rpos[kk]].N1*=tmp1;
-                                                                if (order1>=0)
-                                                                    tmpVarList->Constants[rpos].N1/=pow(10.0,order1);
-                                                                else
-                                                                    tmpVarList->Constants[rpos].N1*=pow(10.0,-order1);
-                                                                
-                                                            }
-                                                        }
-                            */
-
-                            double e = 1.0;
-                            double oN1 = N1;
-                            double oN3 = N3;
-                            ReduceTwoNumbers(oN1, oN3);
-                            e = N1 / oN1;
-                            if (N1 < 0 && N3 < 0) e *= -1.0;
-                            /*for (int kk=2;kk<40;kk++)
-                            {
-                                double t1=oN1/(double)kk;
-                                double t2=oN3/(double)kk;
-                                if ((fabs(t1-(long long)t1)<1e-100) && (fabs(t2-(long long)t2)<1e-100))
-                                {
-                                    oN1=t1;
-                                    oN3=t2;
-                                    e*=kk;
-                                    kk--;
-                                }
-                            }*/
-                            //if (e>1.0)
-                            {
-                                double delta = N1 / e;
-                                N1 = e;
-                                for (int kk = 0; kk < k; kk++)
-                                    tmpVarList->Constants[sstate[s].summand_rpos[kk]].N1 *= delta;
-                                tmpVarList->Constants[rpos].N1 /= N1 * pow(10.0, order1);
-                            }
-
-                            e = 1.0;
-                            double oN2 = N2;
-                            double oN4 = N4;
-                            ReduceTwoNumbers(oN2, oN4);
-                            e = N2 / oN2;
-                            if (N2 < 0 && N4 < 0) e *= -1.0;
-                            /*
-                            for (int kk=2;kk<40;kk++)
-                            {
-                                double t1=oN2/(double)kk;
-                                double t2=oN4/(double)kk;
-                                if ((fabs(t1-(long long)t1)<1e-100) && (fabs(t2-(long long)t2)<1e-100))
-                                {
-                                    oN2=t1;
-                                    oN4=t2;
-                                    e*=kk;
-                                    kk--;
-                                }
-                            }
-                            */
-                            //if (e>1.0)
-                            {
-                                double delta = N2 / e;
-                                N2 = e;
-                                for (int kk = 0; kk < k; kk++)
-                                    tmpVarList->Constants[sstate[s].summand_rpos[kk]].N2 *= delta;
-                                tmpVarList->Constants[rpos].N2 /= N2 * pow(10.0, order2);
-                            }
-                        }
-                        double ttmp;
-                        if (order1 >= 0) ttmp = pow(10.0, order1);
-                        else ttmp = 1.0 / pow(10.0, -order1);
-                        commVarList->Constants[rpos].N1 = N1 * ttmp;
-                        if (order2 >= 0) ttmp = pow(10.0, order2);
-                        else ttmp = 1.0 / pow(10.0, -order2);
-                        commVarList->Constants[rpos].N2 = N2 * ttmp;
-                        commVarList->Constants[rpos].prec = prec;
-                    }
-                }
-            }
-
-            //now compare if leftovers of all groups are equal
-            char checked[MAX_SUMMANDS];
-
-            int found_sollution = 1;
-            for (int s = 1; s < groups; s++)
-            {
-                memset(checked, 0, n);
-
-                int founds = 0;
-                double ratio = 0;
-                for (int kk = 0; kk < n; kk++)
-                {
-                    int fnd = 0;
-                    int rpos0 = sstate[0].summand_rpos[kk];
-                    for (int k = 0; k < n; k++)
-                    {
-                        if (checked[k] == 0)
-                        {
-                            int rpos = sstate[s].summand_rpos[k];
-                            int i = 0;
-                            for (i = 0; i < VarList->NumVariables; i++)
-                            {
-                                double ord1 = tmpVarList->Variables[i].summand[rpos].dorder;
-                                double ord2 = tmpVarList->Variables[i].summand[rpos0].dorder;
-                                if (fabs(ord1 - ord2) > 1e-100) break;
-                            }
-                            if (i == VarList->NumVariables)
-                            {
-                                double N1 = tmpVarList->Constants[rpos].N1;
-                                double N2 = tmpVarList->Constants[rpos].N2;
-                                double N3 = tmpVarList->Constants[rpos0].N1;
-                                double N4 = tmpVarList->Constants[rpos0].N2;
-                                if (fabs(N2) > 1e-100 && fabs(N4) > 1e-100)
-                                    if (fabs(N1) > 1e-100 && fabs(N3) > 1e-100)
-                                    {
-                                        N1 /= N2;
-                                        N3 /= N4;
-                                        if (ratio == 0)
-                                            ratio = N1 / N3;
-                                        else
-                                            if (fabs(ratio * N3 - N1) > 1e-100) continue;
-
-                                        //we found the identical element
-                                        fnd = 1;
-                                        checked[k] = 1;
-                                        founds++;
-                                        break;
-                                    }
-                            }
-                        }
-                    }
-                    if (!fnd) break;
-                }
-                if (founds < n)
-                {
-                    found_sollution = 0;
-                    break;
-                }
-                if (founds == n && fabs(ratio) > 1e-100 && fabs(ratio - 1.0) > 1e-100)
-                {
-                    int rpos = sstate[s].summand_rpos[0];
-                    commVarList->Constants[rpos].N1 *= ratio;
-                    for (int kk = 0; kk < n; kk++)
-                    {
-                        rpos = sstate[s].summand_rpos[kk];
-                        tmpVarList->Constants[rpos].N1 /= ratio;
-                    }
-                }
-            }
-
-            if (found_sollution && commVarList->NumVariables == 0 && force_factorization == 0 &&
-                fabs(commVarList->Constants[0].N1 + 1.0) < 1e-100 &&
-                fabs(commVarList->Constants[0].N2 - 1.0) < 1e-100)
-            {
-                found_sollution = 0;
-                //we do not allow extraction of minus 1 (this would not a nice factorization, anyway)
-            }
-
-            if (found_sollution)
-            {
-                if (groups == 1)
+                //extract all common factors from groups
+                for (int s = 0; s < groups; s++)
                 {
                     for (int i = 0; i < VarList->NumVariables; i++)
                     {
-                        for (int k = 0; k < summand_no; k++)
-                            if (fabs(commVarList->Variables[i].summand[k].dorder) > 1e-100)
-                            {
-                                finished = 2;
-                                break;
-                            }
-                    }
-                    if (fabs(commVarList->Constants[0].N1 - 1.0) > 1e-100) finished = 2;
-                    if (fabs(commVarList->Constants[0].N2 - 1.0) > 1e-100) finished = 2;
-                }
-                else
-                    finished = 2;
-            }
-
-            if (!finished)
-            {
-                //calculate new positions for next generation
-                sstate[groups - 1].summand_pos[n - 1]++;
-                for (int s = groups - 1; s >= 0; s--)
-                {
-                    for (int i = n - 1; i >= 1; i--)
-                    {
-                        if (sstate[s].summand_pos[i] > sstate[s].N - n + i)
+                        int rpos;
+                        rpos = sstate[s].summand_rpos[0];
+                        double max_order = tmpVarList->Variables[i].summand[rpos].dorder;
+                        if (fabs(max_order) > 1e-100)
                         {
-                            if (i == 1)
-                            {
-                                if (s == 0)
+                            int k;
+                            if (max_order > 0)
+                                for (k = 1; k < n; k++)
                                 {
-                                    finished = 1;
+                                    rpos = sstate[s].summand_rpos[k];
+                                    double d = tmpVarList->Variables[i].summand[rpos].dorder;
+                                    if (d < 1e-100) break;
+                                    if (d < max_order) max_order = d;
+                                }
+                            else
+                                for (k = 1; k < n; k++)
+                                {
+                                    rpos = sstate[s].summand_rpos[k];
+                                    double d = tmpVarList->Variables[i].summand[rpos].dorder;
+                                    if (d > -1e-100) break;
+                                    if (d > max_order) max_order = d;
+                                }
+
+                            if (k == n)
+                            {
+                                rpos = sstate[s].summand_rpos[0];
+                                commVarList->Variables[i].summand[rpos].dorder = max_order;
+                                tmpVarList->Variables[i].summand[rpos].dorder -= max_order;
+                                for (int k = 1; k < n; k++)
+                                {
+                                    rpos = sstate[s].summand_rpos[k];
+                                    tmpVarList->Variables[i].summand[rpos].dorder -= max_order;
+                                }
+                            }
+                        }
+
+                        if (i == 0)
+                        {
+                            //check constants
+                            int prec;
+                            int rpos = sstate[s].summand_rpos[0];
+                            double N1 = tmpVarList->Constants[rpos].N1;
+                            double N2 = tmpVarList->Constants[rpos].N2;
+                            int order1 = 0;
+                            int order2 = 0;
+                            if (N1 > 1e+18)
+                            {
+                                order1 = static_cast<int>(log10(N1)) - 10;
+                                N1 /= pow(10.0, order1);
+                            }
+                            if (N2 > 1e+18)
+                            {
+                                order2 = static_cast<int>(log10(N2)) - 10;
+                                N2 /= pow(10.0, order2);
+                            }
+                            if (fabs(N1) >= 1.0)
+                                while (fabs(N1 / 10 - static_cast<long long>(N1 / 10)) < 1e-100)
+                                {
+                                    N1 /= 10;
+                                    order1++;
+                                }
+                            else
+                                while (fabs(N1 - static_cast<long long>(N1)) > 1e-100)
+                                {
+                                    N1 = N1 * 10;
+                                    order1--;
+                                }
+                            if (fabs(N2) >= 1.0)
+                                while (fabs(N2 / 10 - static_cast<long long>(N2 / 10)) < 1e-100)
+                                {
+                                    N2 /= 10;
+                                    order2++;
+                                }
+                            else
+                                while (fabs(N2 - static_cast<long long>(N2)) > 1e-100)
+                                {
+                                    N2 = N2 * 10;
+                                    order2--;
+                                }
+
+                            tmpVarList->Constants[rpos].N1 = 1.0;
+                            tmpVarList->Constants[rpos].N2 = 1.0;
+
+                            prec = VarList->Constants[rpos].prec;
+                            for (int k = 1; k < n; k++)
+                            {
+                                int rpos = sstate[s].summand_rpos[k];
+                                double N3 = tmpVarList->Constants[rpos].N1;
+                                double N4 = tmpVarList->Constants[rpos].N2;
+                                int order3 = 0;
+                                int order4 = 0;
+                                if (N3 > 1e+18)
+                                {
+                                    order3 = static_cast<int>(log10(N3)) - 10;
+                                    N3 /= pow(10.0, order3);
+                                }
+                                if (N4 > 1e+18)
+                                {
+                                    order4 = static_cast<int>(log10(N4)) - 10;
+                                    N4 /= pow(10.0, order4);
+                                }
+                                if (fabs(N3) >= 1.0)
+                                    while (fabs(N3 / 10 - static_cast<long long>(N3 / 10)) < 1e-100)
+                                    {
+                                        N3 /= 10;
+                                        order3++;
+                                    }
+                                else
+                                    while (fabs(N3 - static_cast<long long>(N3)) > 1e-100)
+                                    {
+                                        N3 = N3 * 10;
+                                        order3--;
+                                    }
+                                if (fabs(N4) >= 1.0)
+                                    while (fabs(N4 / 10 - static_cast<long long>(N4 / 10)) < 1e-100)
+                                    {
+                                        N4 /= 10;
+                                        order4++;
+                                    }
+                                else
+                                    while (fabs(N4 - static_cast<long long>(N4)) > 1e-100)
+                                    {
+                                        N4 = N4 * 10;
+                                        order4--;
+                                    }
+
+                                if (VarList->Constants[rpos].prec > prec) prec = VarList->Constants[rpos].prec;
+
+                                int steps = 0;
+                                while (order1 > order3 && order3 >= 0)
+                                {
+                                    N1 *= 10;
+                                    order1--;
+                                    steps++;
+                                    if (steps > 6) break;
+                                }
+                                while (order3 > order1 && order1 >= 0)
+                                {
+                                    N3 *= 10;
+                                    order3--;
+                                    steps++;
+                                    if (steps > 6) break;
+                                }
+                                while (order1 > order3 && order1 < 0)
+                                {
+                                    N1 *= 10;
+                                    order1--;
+                                    steps++;
+                                    if (steps > 6) break;
+                                }
+                                while (order3 > order1 && order3 < 0)
+                                {
+                                    N3 *= 10;
+                                    order3--;
+                                    steps++;
+                                    if (steps > 6) break;
+                                }
+                                /*
+                                                            if (((order1>0) && (order3>0)) || ((order1<0) && (order3<0)))
+                                                            {
+                                                                double e=1.0;
+                                                                if (order1+order3>=0)
+                                                                {
+                                                                    int ord=min(order1,order3);
+                                                                    e=pow(10.0,ord);
+                                                                    order1-=ord;
+                                                                    order3-=ord;
+                                                                }
+                                                                else
+                                                                {
+                                                                    int ord=max(order1,order3);
+                                                                    e=pow(10.0,ord);
+                                                                    order1-=ord;
+                                                                    order3-=ord;
+                                                                }
+                                
+                                                                if (fabs(e)>1.0e-100)
+                                                                {
+                                                                    double delta=N1/e;
+                                                                    N1=e;
+                                                                    for (int kk=0;kk<k;kk++)
+                                                                        tmpVarList->Constants[sstate[s].summand_rpos[kk]].N1*=delta;
+                                                                    tmpVarList->Constants[rpos].N1/=N1*pow(10.0,order1+order2);
+                                
+                                
+                                                                    int delta=order1;
+                                                                    order1=((order1+order3)>=0)?min(order1,order3):max(order1,order3);
+                                                                    order3-=order1;
+                                                                    double tmp1;
+                                                                    if (delta>=order1)
+                                                                        tmp1=pow(10.0,delta-order1);
+                                                                    else
+                                                                        tmp1=1/pow(10.0,order1-delta);
+                                                                    for (int kk=0;kk<k;kk++)
+                                                                        tmpVarList->Constants[sstate[s].summand_rpos[kk]].N1*=tmp1;
+                                                                    if (order1>=0)
+                                                                        tmpVarList->Constants[rpos].N1/=pow(10.0,order1);
+                                                                    else
+                                                                        tmpVarList->Constants[rpos].N1*=pow(10.0,-order1);
+                                                                    
+                                                                }
+                                                            }
+                                */
+
+                                double e = 1.0;
+                                double oN1 = N1;
+                                double oN3 = N3;
+                                ReduceTwoNumbers(oN1, oN3);
+                                e = N1 / oN1;
+                                if (N1 < 0 && N3 < 0) e *= -1.0;
+                                /*for (int kk=2;kk<40;kk++)
+                                {
+                                    double t1=oN1/(double)kk;
+                                    double t2=oN3/(double)kk;
+                                    if ((fabs(t1-(long long)t1)<1e-100) && (fabs(t2-(long long)t2)<1e-100))
+                                    {
+                                        oN1=t1;
+                                        oN3=t2;
+                                        e*=kk;
+                                        kk--;
+                                    }
+                                }*/
+                                //if (e>1.0)
+                                {
+                                    double delta = N1 / e;
+                                    N1 = e;
+                                    for (int kk = 0; kk < k; kk++)
+                                        tmpVarList->Constants[sstate[s].summand_rpos[kk]].N1 *= delta;
+                                    tmpVarList->Constants[rpos].N1 /= N1 * pow(10.0, order1);
+                                }
+
+                                e = 1.0;
+                                double oN2 = N2;
+                                double oN4 = N4;
+                                ReduceTwoNumbers(oN2, oN4);
+                                e = N2 / oN2;
+                                if (N2 < 0 && N4 < 0) e *= -1.0;
+                                /*
+                                for (int kk=2;kk<40;kk++)
+                                {
+                                    double t1=oN2/(double)kk;
+                                    double t2=oN4/(double)kk;
+                                    if ((fabs(t1-(long long)t1)<1e-100) && (fabs(t2-(long long)t2)<1e-100))
+                                    {
+                                        oN2=t1;
+                                        oN4=t2;
+                                        e*=kk;
+                                        kk--;
+                                    }
+                                }
+                                */
+                                //if (e>1.0)
+                                {
+                                    double delta = N2 / e;
+                                    N2 = e;
+                                    for (int kk = 0; kk < k; kk++)
+                                        tmpVarList->Constants[sstate[s].summand_rpos[kk]].N2 *= delta;
+                                    tmpVarList->Constants[rpos].N2 /= N2 * pow(10.0, order2);
+                                }
+                            }
+                            double ttmp;
+                            if (order1 >= 0) ttmp = pow(10.0, order1);
+                            else ttmp = 1.0 / pow(10.0, -order1);
+                            commVarList->Constants[rpos].N1 = N1 * ttmp;
+                            if (order2 >= 0) ttmp = pow(10.0, order2);
+                            else ttmp = 1.0 / pow(10.0, -order2);
+                            commVarList->Constants[rpos].N2 = N2 * ttmp;
+                            commVarList->Constants[rpos].prec = prec;
+                        }
+                    }
+                }
+
+                //now compare if leftovers of all groups are equal
+                char checked[MAX_SUMMANDS];
+
+                int found_sollution = 1;
+                for (int s = 1; s < groups; s++)
+                {
+                    memset(checked, 0, n);
+
+                    int founds = 0;
+                    double ratio = 0;
+                    for (int kk = 0; kk < n; kk++)
+                    {
+                        int fnd = 0;
+                        int rpos0 = sstate[0].summand_rpos[kk];
+                        for (int k = 0; k < n; k++)
+                        {
+                            if (checked[k] == 0)
+                            {
+                                int rpos = sstate[s].summand_rpos[k];
+                                int i = 0;
+                                for (i = 0; i < VarList->NumVariables; i++)
+                                {
+                                    double ord1 = tmpVarList->Variables[i].summand[rpos].dorder;
+                                    double ord2 = tmpVarList->Variables[i].summand[rpos0].dorder;
+                                    if (fabs(ord1 - ord2) > 1e-100) break;
+                                }
+                                if (i == VarList->NumVariables)
+                                {
+                                    double N1 = tmpVarList->Constants[rpos].N1;
+                                    double N2 = tmpVarList->Constants[rpos].N2;
+                                    double N3 = tmpVarList->Constants[rpos0].N1;
+                                    double N4 = tmpVarList->Constants[rpos0].N2;
+                                    if (fabs(N2) > 1e-100 && fabs(N4) > 1e-100)
+                                        if (fabs(N1) > 1e-100 && fabs(N3) > 1e-100)
+                                        {
+                                            N1 /= N2;
+                                            N3 /= N4;
+                                            if (ratio == 0)
+                                                ratio = N1 / N3;
+                                            else
+                                                if (fabs(ratio * N3 - N1) > 1e-100) continue;
+
+                                            //we found the identical element
+                                            fnd = 1;
+                                            checked[k] = 1;
+                                            founds++;
+                                            break;
+                                        }
+                                }
+                            }
+                        }
+                        if (!fnd) break;
+                    }
+                    if (founds < n)
+                    {
+                        found_sollution = 0;
+                        break;
+                    }
+                    if (founds == n && fabs(ratio) > 1e-100 && fabs(ratio - 1.0) > 1e-100)
+                    {
+                        int rpos = sstate[s].summand_rpos[0];
+                        commVarList->Constants[rpos].N1 *= ratio;
+                        for (int kk = 0; kk < n; kk++)
+                        {
+                            rpos = sstate[s].summand_rpos[kk];
+                            tmpVarList->Constants[rpos].N1 /= ratio;
+                        }
+                    }
+                }
+
+                if (found_sollution && commVarList->NumVariables == 0 && force_factorization == 0 &&
+                    fabs(commVarList->Constants[0].N1 + 1.0) < 1e-100 &&
+                    fabs(commVarList->Constants[0].N2 - 1.0) < 1e-100)
+                {
+                    found_sollution = 0;
+                    //we do not allow extraction of minus 1 (this would not a nice factorization, anyway)
+                }
+
+                if (found_sollution)
+                {
+                    if (groups == 1)
+                    {
+                        for (int i = 0; i < VarList->NumVariables; i++)
+                        {
+                            for (int k = 0; k < summand_no; k++)
+                                if (fabs(commVarList->Variables[i].summand[k].dorder) > 1e-100)
+                                {
+                                    finished = 2;
                                     break;
                                 }
-                                for (int ii = 0; ii < n; ii++) sstate[s].summand_pos[ii] = ii;
-                                sstate[s - 1].summand_pos[n - 1]++;
-                            }
-                            else
+                        }
+                        if (fabs(commVarList->Constants[0].N1 - 1.0) > 1e-100) finished = 2;
+                        if (fabs(commVarList->Constants[0].N2 - 1.0) > 1e-100) finished = 2;
+                    }
+                    else
+                        finished = 2;
+                }
+
+                if (!finished)
+                {
+                    //calculate new positions for next generation
+                    sstate[groups - 1].summand_pos[n - 1]++;
+                    for (int s = groups - 1; s >= 0; s--)
+                    {
+                        for (int i = n - 1; i >= 1; i--)
+                        {
+                            if (sstate[s].summand_pos[i] > sstate[s].N - n + i)
                             {
-                                sstate[s].summand_pos[i - 1]++;
-                                for (int ii = i; ii < n; ii++)
-                                    sstate[s].summand_pos[ii] = sstate[s].summand_pos[ii - 1] + 1;
-                                //sstate[s].summand_pos[i]=sstate[s].summand_pos[i-1]+1;
+                                if (i == 1)
+                                {
+                                    if (s == 0)
+                                    {
+                                        finished = 1;
+                                        break;
+                                    }
+                                    for (int ii = 0; ii < n; ii++) sstate[s].summand_pos[ii] = ii;
+                                    sstate[s - 1].summand_pos[n - 1]++;
+                                }
+                                else
+                                {
+                                    sstate[s].summand_pos[i - 1]++;
+                                    for (int ii = i; ii < n; ii++)
+                                        sstate[s].summand_pos[ii] = sstate[s].summand_pos[ii - 1] + 1;
+                                    //sstate[s].summand_pos[i]=sstate[s].summand_pos[i-1]+1;
+                                }
                             }
+                            if (finished) break;
                         }
                         if (finished) break;
                     }
-                    if (finished) break;
                 }
             }
-        }
 
-        if (finished == 2)
-        {
-            //print out the sollution
-            auto factorized = new CExpression(nullptr, nullptr, 100);
-            CExpression* arg;
-            if (groups > 1)
+            if (finished == 2)
             {
-                factorized->InsertEmptyElement(0, 5, '(');
-                arg = factorized->m_pElementList[0].pElementObject->Expression1;
-            }
-            else
-                arg = factorized;
-
-            commVarList->NumVariables = VarList->NumVariables;
-            for (int kk = 0; kk < VarList->NumVariables; kk++)
-            {
-                commVarList->Variables[kk].exponent = VarList->Variables[kk].exponent;
-                commVarList->Variables[kk].len = VarList->Variables[kk].len;
-                commVarList->Variables[kk].pos = VarList->Variables[kk].pos;
-                commVarList->Variables[kk].variable = VarList->Variables[kk].variable;
-            }
-
-            for (int s = 0; s < groups; s++)
-            {
-                int rpos = sstate[s].summand_rpos[0];
-
-
-                int ppos = arg->m_pElementList.size();
-                if (arg->m_pElementList[0].Type == 0) ppos = 0;
-                arg->SynthetizeExpression(ppos, commVarList, rpos);
-            }
-
-
-            factorized->InsertEmptyElement(factorized->m_pElementList.size(), 5, '(');
-            arg = factorized->m_pElementList[factorized->m_pElementList.size() - 1].pElementObject->Expression1;
-            for (int k = 0; k < n; k++)
-            {
-                int rpos = sstate[0].summand_rpos[k];
-
-                int ppos = arg->m_pElementList.size();
-                if (arg->m_pElementList[0].Type == 0) ppos = 0;
-                arg->SynthetizeExpression(ppos, tmpVarList, rpos);
-            }
-
-
-            int tmpp = this->m_ParenthesesFlags;
-            CopyExpression(factorized, 0);
-            this->m_ParenthesesFlags = tmpp;
-            delete factorized;
-        }
-
-        HeapFree(ProcessHeap, 0, commVarList);
-
-        if (finished == 2)
-        {
-            //delete all temporary created objects
-            this->FreeVariableList(VarList);
-            goto factorizeexpression_finish;
-        }
-    }
-    //delete all temporary created objects
-    this->FreeVariableList(VarList);
-
-
-    if (is_first_pass)
-    {
-        is_first_pass = false;
-        int cnt = 0;
-        while (Compute(0, m_pElementList.size() - 1, 0) && cnt < 50) { cnt++; }
-        if (cnt) goto factorizeexpression_try_again;
-    }
-
-
-    //try for quadratic formula
-
-
-    int retval = 0;
-    auto tmp = new CExpression(nullptr, nullptr, 100);
-    for (int kk = 0; kk <= m_pElementList.size() - 1; kk++)
-        tmp->InsertElement(m_pElementList[kk], tmp->m_pElementList.size());
-
-
-    int order = tmp->Polynomize(nullptr);
-    if (order == 2)
-    {
-        auto tmp2 = new CExpression(nullptr, nullptr, 100);
-        int lvl = tmp->FindLowestOperatorLevel();
-        if (lvl == PlusLevel)
-        {
-            char et;
-            bool p;
-            int l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, p);
-            if (tmp->m_pElementList[l - 1].Type == 3)
-            {
-                tPureFactors aPF;
-                aPF.N1 = aPF.N2 = 1.0;
-                aPF.is_frac1 = 0;
-                aPF.prec1 = aPF.prec2 = 0;
-                if (l >= 2)
+                //print out the sollution
+                auto factorized = new CExpression(nullptr, nullptr, 100);
+                CExpression* arg;
+                if (groups > 1)
                 {
-                    //checking if 'a' has some pure-number factor
-                    //if it has, we will temporarely remove, but will have to add it later (check for aPF variable)
-
-                    tmp->StrikeoutCommonFactors(0, l - 2, 1, nullptr, 0, 0, 1, &aPF);
-                    tmp->StrikeoutRemove(0, l - 2);
-                    if (fabs(aPF.N1 / aPF.N2 - 1.00) > 1e-100)
-                    {
-                        CExpression* arg = tmp->m_pElementList[l - 1].pElementObject->Expression1;
-                        auto variable = new CExpression(nullptr, nullptr, 100);
-                        variable->CopyExpression(arg, 0);
-
-                        tmp->InsertEmptyElement(0, 5, '(');
-                        for (int jj = 1; jj < tmp->m_pElementList.size(); jj++)
-                            tmp->m_pElementList[0].pElementObject->Expression1
-                                                  ->InsertElement(tmp->m_pElementList[jj], jj - 1);
-                        while (tmp->m_pElementList.size() > 1)
-                            tmp->DeleteElement(1);
-                        tmp->GenerateASCIIFraction(0, aPF.N2, aPF.N1,max(aPF.prec1, aPF.prec2), 1);
-
-                        int cntr = 0;
-                        while (tmp->Compute(0, tmp->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
-                        tmp->Polynomize(variable);
-                        l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, p);
-                        delete variable;
-                        //this->CopyExpression(tmp,0);
-                        //goto factorizeexpression_finish;
-                    }
+                    factorized->InsertEmptyElement(0, 5, '(');
+                    arg = factorized->m_pElementList[0].pElementObject->Expression1;
                 }
-                CExpression* exp = tmp->m_pElementList[l - 1].pElementObject->Expression2;
-                CExpression* arg = tmp->m_pElementList[l - 1].pElementObject->Expression1;
-                double N;
-                int prec;
-                if (arg && exp && exp->IsPureNumber(0, exp->m_pElementList.size(), &N, &prec) &&
-                    fabs(N - 2.0) < 1e-100)
+                else
+                    arg = factorized;
+
+                commVarList->NumVariables = VarList->NumVariables;
+                for (int kk = 0; kk < VarList->NumVariables; kk++)
                 {
-                    char et2;
-                    bool p2;
-                    int l2 = tmp->GetElementLen(l, tmp->m_pElementList.size() - 1, lvl, &et2, p2);
-                    if (l2 - p2 >= arg->m_pElementList.size())
+                    commVarList->Variables[kk].exponent = VarList->Variables[kk].exponent;
+                    commVarList->Variables[kk].len = VarList->Variables[kk].len;
+                    commVarList->Variables[kk].pos = VarList->Variables[kk].pos;
+                    commVarList->Variables[kk].variable = VarList->Variables[kk].variable;
+                }
+
+                for (int s = 0; s < groups; s++)
+                {
+                    int rpos = sstate[s].summand_rpos[0];
+
+
+                    int ppos = arg->m_pElementList.size();
+                    if (arg->m_pElementList[0].Type == 0) ppos = 0;
+                    arg->SynthetizeExpression(ppos, commVarList, rpos);
+                }
+
+
+                factorized->InsertEmptyElement(factorized->m_pElementList.size(), 5, '(');
+                arg = factorized->m_pElementList[factorized->m_pElementList.size() - 1].pElementObject->Expression1;
+                for (int k = 0; k < n; k++)
+                {
+                    int rpos = sstate[0].summand_rpos[k];
+
+                    int ppos = arg->m_pElementList.size();
+                    if (arg->m_pElementList[0].Type == 0) ppos = 0;
+                    arg->SynthetizeExpression(ppos, tmpVarList, rpos);
+                }
+
+
+                int tmpp = this->m_ParenthesesFlags;
+                CopyExpression(factorized, 0);
+                this->m_ParenthesesFlags = tmpp;
+                delete factorized;
+            }
+
+            HeapFree(ProcessHeap, 0, commVarList);
+
+            if (finished == 2)
+            {
+                //delete all temporary created objects
+                this->FreeVariableList(VarList);
+                delete original;
+                if (FindLowestOperatorLevel(static_cast<char>(0xD7)) == MulLevel)
+                    FactorizeExpression();
+                {
+                    int cnt = 0;
+                    while (Compute(0, m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
+                }
+                this->m_IsComputed |= 0x00800000;
+                xreturn(1);
+            }
+        }
+        //delete all temporary created objects
+        this->FreeVariableList(VarList);
+
+
+        if (is_first_pass)
+        {
+            is_first_pass = false;
+            int cnt = 0;
+            while (Compute(0, m_pElementList.size() - 1, 0) && cnt < 50) { cnt++; }
+            if (cnt) continue;
+        }
+
+
+        //try for quadratic formula
+
+
+        int retval = 0;
+        auto tmp = new CExpression(nullptr, nullptr, 100);
+        for (int kk = 0; kk <= m_pElementList.size() - 1; kk++)
+            tmp->InsertElement(m_pElementList[kk], tmp->m_pElementList.size());
+
+
+        int order = tmp->Polynomize(nullptr);
+        if (order == 2)
+        {
+            auto tmp2 = new CExpression(nullptr, nullptr, 100);
+            int lvl = tmp->FindLowestOperatorLevel();
+            if (lvl == PlusLevel)
+            {
+                char et;
+                bool p;
+                int l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, p);
+                if (tmp->m_pElementList[l - 1].Type == 3)
+                {
+                    tPureFactors aPF;
+                    aPF.N1 = aPF.N2 = 1.0;
+                    aPF.is_frac1 = 0;
+                    aPF.prec1 = aPF.prec2 = 0;
+                    if (l >= 2)
                     {
-                        if (arg->CompareExpressions(0, arg->m_pElementList.size() - 1, tmp,
-                                                    l2 + l - arg->m_pElementList.size(),
-                                                    l2 + l - 1))
+                        //checking if 'a' has some pure-number factor
+                        //if it has, we will temporarely remove, but will have to add it later (check for aPF variable)
+
+                        tmp->StrikeoutCommonFactors(0, l - 2, 1, nullptr, 0, 0, 1, &aPF);
+                        tmp->StrikeoutRemove(0, l - 2);
+                        if (fabs(aPF.N1 / aPF.N2 - 1.00) > 1e-100)
                         {
-                            //this is factor for x^1
-                            char et3;
-                            bool p3;
-                            int l3 = tmp->GetElementLen(l + l2, tmp->m_pElementList.size() - 1, lvl, &et3, p3);
-                            if (l3)
+                            CExpression* arg = tmp->m_pElementList[l - 1].pElementObject->Expression1;
+                            auto variable = new CExpression(nullptr, nullptr, 100);
+                            variable->CopyExpression(arg, 0);
+
+                            tmp->InsertEmptyElement(0, 5, '(');
+                            for (int jj = 1; jj < tmp->m_pElementList.size(); jj++)
+                                tmp->m_pElementList[0].pElementObject->Expression1
+                                                      ->InsertElement(tmp->m_pElementList[jj], jj - 1);
+                            while (tmp->m_pElementList.size() > 1)
+                                tmp->DeleteElement(1);
+                            tmp->GenerateASCIIFraction(0, aPF.N2, aPF.N1,max(aPF.prec1, aPF.prec2), 1);
+
+                            int cntr = 0;
+                            while (tmp->Compute(0, tmp->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
+                            tmp->Polynomize(variable);
+                            l = tmp->GetElementLen(0, tmp->m_pElementList.size() - 1, lvl, &et, p);
+                            delete variable;
+                            //this->CopyExpression(tmp,0);
+                            // delete original;
+                            // if (FindLowestOperatorLevel(static_cast<char>(0xD7)) == MulLevel)
+                            //     FactorizeExpression();
+                            // {
+                            //     int cnt = 0;
+                            //     while (Compute(0, m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
+                            // }
+                            // this->m_IsComputed |= 0x00800000;
+                            // xreturn(1);
+                        }
+                    }
+                    CExpression* exp = tmp->m_pElementList[l - 1].pElementObject->Expression2;
+                    CExpression* arg = tmp->m_pElementList[l - 1].pElementObject->Expression1;
+                    double N;
+                    int prec;
+                    if (arg && exp && exp->IsPureNumber(0, exp->m_pElementList.size(), &N, &prec) &&
+                        fabs(N - 2.0) < 1e-100)
+                    {
+                        char et2;
+                        bool p2;
+                        int l2 = tmp->GetElementLen(l, tmp->m_pElementList.size() - 1, lvl, &et2, p2);
+                        if (l2 - p2 >= arg->m_pElementList.size())
+                        {
+                            if (arg->CompareExpressions(0, arg->m_pElementList.size() - 1, tmp,
+                                                        l2 + l - arg->m_pElementList.size(),
+                                                        l2 + l - 1))
                             {
-                                //build tmp2
-                                tmp2->InsertEmptyElement(0, 5, '(');
-                                CExpression* factor1 = tmp2->m_pElementList[0].pElementObject->
+                                //this is factor for x^1
+                                char et3;
+                                bool p3;
+                                int l3 = tmp->GetElementLen(l + l2, tmp->m_pElementList.size() - 1, lvl, &et3, p3);
+                                if (l3)
+                                {
+                                    //build tmp2
+                                    tmp2->InsertEmptyElement(0, 5, '(');
+                                    CExpression* factor1 = tmp2->m_pElementList[0].pElementObject->
+                                        Expression1;
+                                    for (int kk = 0; kk < arg->m_pElementList.size(); kk++)
+                                        factor1->InsertElement(arg->m_pElementList[kk], factor1->m_pElementList.size());
+                                    factor1->InsertEmptyElement(factor1->m_pElementList.size(), 2, '-');
+                                    factor1->InsertEmptyElement(factor1->m_pElementList.size(), 4, 0);
+                                    CExpression* nom = factor1->m_pElementList[factor1->m_pElementList.size() - 1]
+                                                       .pElementObject->Expression1;
+                                    CExpression* denom = factor1->m_pElementList[factor1->m_pElementList.size() - 1]
+                                                         .pElementObject->Expression2;
+                                    nom->InsertEmptyElement(0, 2, '-');
+                                    nom->InsertEmptyElement(1, 5, '(');
+                                    CExpression* arg2 = nom->m_pElementList[1].pElementObject->
                                                                                Expression1;
+                                    for (int kk = l; kk < l + l2 - arg->m_pElementList.size(); kk++)
+                                        arg2->InsertElement(tmp->m_pElementList[kk], arg2->m_pElementList.size());
+                                    if (arg2->m_pElementList[0].Type == 0 ||
+                                        (arg2->m_pElementList.size() == 1 && arg2->m_pElementList[0].Type == 2))
+                                        arg2->InsertEmptyElement(arg2->m_pElementList.size(), 1, '1');
+                                    nom->InsertEmptyElement(2, 2, '+');
+                                    nom->InsertEmptyElement(3, 8, 1);
+                                    CExpression* arg3 = nom->m_pElementList[3].pElementObject->
+                                                                               Expression1;
+                                    arg3->InsertElement(nom->m_pElementList[1], 0);
+                                    arg3->InsertElement(nom->m_pElementList[1], 1);
+                                    arg3->InsertEmptyElement(2, 2, '-');
+                                    arg3->InsertEmptyElement(3, 1, '4');
+                                    arg3->InsertEmptyElement(4, 5, '(');
+                                    CExpression* arg4 = arg3->m_pElementList[4].pElementObject->Expression1;
+                                    for (int kk = 0; kk < l - 1; kk++)
+                                        arg4->InsertElement(tmp->m_pElementList[kk], arg4->m_pElementList.size());
+                                    if (arg4->m_pElementList[0].Type == 0 ||
+                                        (arg4->m_pElementList.size() == 1 && arg4->m_pElementList[0].Type == 2))
+                                        arg4->InsertEmptyElement(arg4->m_pElementList.size(), 1, '1');
+
+                                    arg3->InsertEmptyElement(5, 5, '(');
+                                    CExpression* arg5 = arg3->m_pElementList[5].pElementObject->Expression1;
+                                    for (int kk = l + l2; kk < l + l2 + l3; kk++)
+                                        arg5->InsertElement(tmp->m_pElementList[kk], arg5->m_pElementList.size());
+                                    if (arg5->m_pElementList[0].Type == 0 ||
+                                        (arg5->m_pElementList.size() == 1 && arg5->m_pElementList[0].Type == 2))
+                                        arg5->InsertEmptyElement(arg5->m_pElementList.size(), 1, '1');
+                                    denom->InsertEmptyElement(0, 5, '(');
+                                    CExpression* arg6 = denom->m_pElementList[0].pElementObject->
+                                        Expression1;
+                                    arg6->CopyExpression(arg4, 0);
+                                    denom->InsertEmptyElement(0, 1, '2');
+
+                                    int cntr = 0;
+                                    while (arg3->Compute(0, arg3->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
+
+                                    int llv = arg3->FindLowestOperatorLevel(static_cast<char>(0xD7));
+                                    if (llv >= MulLevel)
+                                    {
+                                        tPureFactors PF;
+                                        PF.N1 = PF.N2 = 1.0;
+                                        PF.is_frac1 = 0;
+                                        PF.prec1 = 0;
+                                        int rslt = arg3
+                                            ->StrikeoutCommonFactors(0, arg3->m_pElementList.size() - 1, 1, nullptr, 0,
+                                                                     0,
+                                                                     1, &PF);
+                                        arg3->StrikeoutRemove(0, arg3->m_pElementList.size() - 1);
+                                        if (/*(!rslt) || */PF.N1 * PF.N2 > -1e-100)
+                                        {
+                                            tmp2->InsertEmptyElement(1, 5, '(');
+                                            CExpression* factor2 = tmp2->m_pElementList[1].pElementObject->Expression1;
+                                            factor2->CopyExpression(factor1, 0);
+                                            nom->m_pElementList[2].pElementObject->Data1[0] = '-';
+
+                                            int cntr = 0;
+                                            while (factor1->Compute(0, factor1->m_pElementList.size() - 1, 0) && cntr <
+                                                50)
+                                                cntr++;
+                                            cntr = 0;
+                                            while (factor2->Compute(0, factor2->m_pElementList.size() - 1, 0) && cntr <
+                                                50)
+                                                cntr++;
+                                            if (!force_factorization)
+                                            {
+                                                //we don't do it if square root or imaginary unit is found
+                                                char tmpstr[3];
+                                                tmpstr[0] = ImaginaryUnit;
+                                                tmpstr[1] = 0;
+                                                for (int iii = 0; iii < factor1->m_pElementList.size(); iii++)
+                                                    if (factor1->m_pElementList[iii].Type == 8 ||
+                                                        (factor1->m_pElementList[iii].Type == 1 &&
+                                                            strcmp(factor1->m_pElementList[iii].pElementObject->Data1,
+                                                                   tmpstr) == 0 &&
+                                                            factor1->m_pElementList[iii].pElementObject->m_VMods ==
+                                                            0 &&
+                                                            (factor1->m_pElementList[iii].pElementObject->Data2[0] &
+                                                                0xE0) != 0x60))
+                                                    {
+                                                        tmp2->Delete();
+                                                        break;
+                                                    }
+                                            }
+                                        }
+                                        else
+                                            tmp2->Delete();
+                                    }
+                                    else
+                                        tmp2->Delete();
+                                }
+                            }
+                            else
+                            {
+                                //this is factor for x^0
+                                tmp2->InsertEmptyElement(0, 5, '(');
+                                CExpression* factor1 = tmp2->m_pElementList[0].pElementObject->Expression1;
                                 for (int kk = 0; kk < arg->m_pElementList.size(); kk++)
                                     factor1->InsertElement(arg->m_pElementList[kk], factor1->m_pElementList.size());
                                 factor1->InsertEmptyElement(factor1->m_pElementList.size(), 2, '-');
-                                factor1->InsertEmptyElement(factor1->m_pElementList.size(), 4, 0);
-                                CExpression* nom = factor1->m_pElementList[factor1->m_pElementList.size() - 1]
-                                                   .pElementObject->Expression1;
-                                CExpression* denom = factor1->m_pElementList[factor1->m_pElementList.size() - 1]
-                                                     .pElementObject->Expression2;
-                                nom->InsertEmptyElement(0, 2, '-');
-                                nom->InsertEmptyElement(1, 5, '(');
-                                CExpression* arg2 = nom->m_pElementList[1].pElementObject->
-                                                                           Expression1;
-                                for (int kk = l; kk < l + l2 - arg->m_pElementList.size(); kk++)
-                                    arg2->InsertElement(tmp->m_pElementList[kk], arg2->m_pElementList.size());
-                                if (arg2->m_pElementList[0].Type == 0 ||
-                                    (arg2->m_pElementList.size() == 1 && arg2->m_pElementList[0].Type == 2))
-                                    arg2->InsertEmptyElement(arg2->m_pElementList.size(), 1, '1');
-                                nom->InsertEmptyElement(2, 2, '+');
-                                nom->InsertEmptyElement(3, 8, 1);
-                                CExpression* arg3 = nom->m_pElementList[3].pElementObject->
-                                                                           Expression1;
-                                arg3->InsertElement(nom->m_pElementList[1], 0);
-                                arg3->InsertElement(nom->m_pElementList[1], 1);
-                                arg3->InsertEmptyElement(2, 2, '-');
-                                arg3->InsertEmptyElement(3, 1, '4');
-                                arg3->InsertEmptyElement(4, 5, '(');
-                                CExpression* arg4 = arg3->m_pElementList[4].pElementObject->Expression1;
+                                factor1->InsertEmptyElement(factor1->m_pElementList.size(), 8, 1);
+                                CExpression* arg1 = factor1->m_pElementList[factor1->m_pElementList.size() - 1].
+                                                    pElementObject->Expression1;
+                                arg1->InsertEmptyElement(0, 4, 0);
+                                CExpression* nom = arg1->m_pElementList[0].pElementObject->Expression1;
+                                CExpression* denom = arg1->m_pElementList[0].pElementObject->Expression2;
                                 for (int kk = 0; kk < l - 1; kk++)
-                                    arg4->InsertElement(tmp->m_pElementList[kk], arg4->m_pElementList.size());
-                                if (arg4->m_pElementList[0].Type == 0 ||
-                                    (arg4->m_pElementList.size() == 1 && arg4->m_pElementList[0].Type == 2))
-                                    arg4->InsertEmptyElement(arg4->m_pElementList.size(), 1, '1');
-
-                                arg3->InsertEmptyElement(5, 5, '(');
-                                CExpression* arg5 = arg3->m_pElementList[5].pElementObject->Expression1;
-                                for (int kk = l + l2; kk < l + l2 + l3; kk++)
-                                    arg5->InsertElement(tmp->m_pElementList[kk], arg5->m_pElementList.size());
-                                if (arg5->m_pElementList[0].Type == 0 ||
-                                    (arg5->m_pElementList.size() == 1 && arg5->m_pElementList[0].Type == 2))
-                                    arg5->InsertEmptyElement(arg5->m_pElementList.size(), 1, '1');
-                                denom->InsertEmptyElement(0, 5, '(');
-                                CExpression* arg6 = denom->m_pElementList[0].pElementObject->
-                                                                             Expression1;
-                                arg6->CopyExpression(arg4, 0);
-                                denom->InsertEmptyElement(0, 1, '2');
+                                    denom->InsertElement(tmp->m_pElementList[kk], denom->m_pElementList.size());
+                                if (denom->m_pElementList[0].Type == 0 ||
+                                    (denom->m_pElementList.size() == 1 && denom->m_pElementList[0].Type == 2))
+                                    denom->InsertEmptyElement(denom->m_pElementList.size(), 1, '1');
+                                for (int kk = l; kk < l + l2; kk++)
+                                    nom->InsertElement(tmp->m_pElementList[kk], nom->m_pElementList.size());
+                                if (nom->m_pElementList[0].Type == 0 ||
+                                    (nom->m_pElementList.size() == 1 && nom->m_pElementList[0].Type == 2))
+                                    nom->InsertEmptyElement(nom->m_pElementList.size(), 1, '1');
+                                arg1->InsertEmptyElement(0, 2, '-');
 
                                 int cntr = 0;
-                                while (arg3->Compute(0, arg3->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
+                                while (arg1->Compute(0, arg1->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
 
-                                int llv = arg3->FindLowestOperatorLevel(static_cast<char>(0xD7));
+                                int llv = arg1->FindLowestOperatorLevel(static_cast<char>(0xD7));
                                 if (llv >= MulLevel)
                                 {
                                     tPureFactors PF;
                                     PF.N1 = PF.N2 = 1.0;
                                     PF.is_frac1 = 0;
                                     PF.prec1 = 0;
-                                    int rslt = arg3
-                                        ->StrikeoutCommonFactors(0, arg3->m_pElementList.size() - 1, 1, nullptr, 0, 0,
-                                                                 1, &PF);
-                                    arg3->StrikeoutRemove(0, arg3->m_pElementList.size() - 1);
-                                    if (/*(!rslt) || */PF.N1 * PF.N2 > -1e-100)
+                                    int rslt = arg1->StrikeoutCommonFactors(
+                                        0, arg1->m_pElementList.size() - 1, 1, nullptr,
+                                        0, 0, 1,
+                                        &PF);
+                                    arg1->StrikeoutRemove(0, arg1->m_pElementList.size() - 1);
+                                    if (/*(!rslt) ||*/ PF.N1 * PF.N2 > -1e-100)
                                     {
                                         tmp2->InsertEmptyElement(1, 5, '(');
                                         CExpression* factor2 = tmp2->m_pElementList[1].pElementObject->Expression1;
                                         factor2->CopyExpression(factor1, 0);
-                                        nom->m_pElementList[2].pElementObject->Data1[0] = '-';
+                                        factor2->m_pElementList[factor2->m_pElementList.size() - 2].pElementObject->
+                                            Data1[0]
+                                            = '+';
 
                                         int cntr = 0;
                                         while (factor1->Compute(0, factor1->m_pElementList.size() - 1, 0) && cntr < 50)
-                                            cntr++;
+                                            cntr
+                                                ++;
                                         cntr = 0;
                                         while (factor2->Compute(0, factor2->m_pElementList.size() - 1, 0) && cntr < 50)
-                                            cntr++;
+                                            cntr
+                                                ++;
                                         if (!force_factorization)
                                         {
                                             //we don't do it if square root or imaginary unit is found
@@ -20197,10 +20563,9 @@ factorizeexpression_try_again:
                                                     (factor1->m_pElementList[iii].Type == 1 &&
                                                         strcmp(factor1->m_pElementList[iii].pElementObject->Data1,
                                                                tmpstr) == 0 &&
-                                                        factor1->m_pElementList[iii].pElementObject->m_VMods ==
-                                                        0 &&
-                                                        (factor1->m_pElementList[iii].pElementObject->Data2[0] &
-                                                            0xE0) != 0x60))
+                                                        factor1->m_pElementList[iii].pElementObject->m_VMods == 0 &&
+                                                        (factor1->m_pElementList[iii].pElementObject->Data2[0] & 0xE0)
+                                                        != 0x60))
                                                 {
                                                     tmp2->Delete();
                                                     break;
@@ -20214,140 +20579,53 @@ factorizeexpression_try_again:
                                     tmp2->Delete();
                             }
                         }
-                        else
-                        {
-                            //this is factor for x^0
-                            tmp2->InsertEmptyElement(0, 5, '(');
-                            CExpression* factor1 = tmp2->m_pElementList[0].pElementObject->Expression1;
-                            for (int kk = 0; kk < arg->m_pElementList.size(); kk++)
-                                factor1->InsertElement(arg->m_pElementList[kk], factor1->m_pElementList.size());
-                            factor1->InsertEmptyElement(factor1->m_pElementList.size(), 2, '-');
-                            factor1->InsertEmptyElement(factor1->m_pElementList.size(), 8, 1);
-                            CExpression* arg1 = factor1->m_pElementList[factor1->m_pElementList.size() - 1].
-                                                pElementObject->Expression1;
-                            arg1->InsertEmptyElement(0, 4, 0);
-                            CExpression* nom = arg1->m_pElementList[0].pElementObject->Expression1;
-                            CExpression* denom = arg1->m_pElementList[0].pElementObject->Expression2;
-                            for (int kk = 0; kk < l - 1; kk++)
-                                denom->InsertElement(tmp->m_pElementList[kk], denom->m_pElementList.size());
-                            if (denom->m_pElementList[0].Type == 0 ||
-                                (denom->m_pElementList.size() == 1 && denom->m_pElementList[0].Type == 2))
-                                denom->InsertEmptyElement(denom->m_pElementList.size(), 1, '1');
-                            for (int kk = l; kk < l + l2; kk++)
-                                nom->InsertElement(tmp->m_pElementList[kk], nom->m_pElementList.size());
-                            if (nom->m_pElementList[0].Type == 0 ||
-                                (nom->m_pElementList.size() == 1 && nom->m_pElementList[0].Type == 2))
-                                nom->InsertEmptyElement(nom->m_pElementList.size(), 1, '1');
-                            arg1->InsertEmptyElement(0, 2, '-');
-
-                            int cntr = 0;
-                            while (arg1->Compute(0, arg1->m_pElementList.size() - 1, 0) && cntr < 50) cntr++;
-
-                            int llv = arg1->FindLowestOperatorLevel(static_cast<char>(0xD7));
-                            if (llv >= MulLevel)
-                            {
-                                tPureFactors PF;
-                                PF.N1 = PF.N2 = 1.0;
-                                PF.is_frac1 = 0;
-                                PF.prec1 = 0;
-                                int rslt = arg1->StrikeoutCommonFactors(0, arg1->m_pElementList.size() - 1, 1, nullptr,
-                                                                        0, 0, 1,
-                                                                        &PF);
-                                arg1->StrikeoutRemove(0, arg1->m_pElementList.size() - 1);
-                                if (/*(!rslt) ||*/ PF.N1 * PF.N2 > -1e-100)
-                                {
-                                    tmp2->InsertEmptyElement(1, 5, '(');
-                                    CExpression* factor2 = tmp2->m_pElementList[1].pElementObject->Expression1;
-                                    factor2->CopyExpression(factor1, 0);
-                                    factor2->m_pElementList[factor2->m_pElementList.size() - 2].pElementObject->Data1[0]
-                                        = '+';
-
-                                    int cntr = 0;
-                                    while (factor1->Compute(0, factor1->m_pElementList.size() - 1, 0) && cntr < 50)
-                                        cntr
-                                            ++;
-                                    cntr = 0;
-                                    while (factor2->Compute(0, factor2->m_pElementList.size() - 1, 0) && cntr < 50)
-                                        cntr
-                                            ++;
-                                    if (!force_factorization)
-                                    {
-                                        //we don't do it if square root or imaginary unit is found
-                                        char tmpstr[3];
-                                        tmpstr[0] = ImaginaryUnit;
-                                        tmpstr[1] = 0;
-                                        for (int iii = 0; iii < factor1->m_pElementList.size(); iii++)
-                                            if (factor1->m_pElementList[iii].Type == 8 ||
-                                                (factor1->m_pElementList[iii].Type == 1 &&
-                                                    strcmp(factor1->m_pElementList[iii].pElementObject->Data1,
-                                                           tmpstr) == 0 &&
-                                                    factor1->m_pElementList[iii].pElementObject->m_VMods == 0 &&
-                                                    (factor1->m_pElementList[iii].pElementObject->Data2[0] & 0xE0)
-                                                    != 0x60))
-                                            {
-                                                tmp2->Delete();
-                                                break;
-                                            }
-                                    }
-                                }
-                                else
-                                    tmp2->Delete();
-                            }
-                            else
-                                tmp2->Delete();
-                        }
                     }
+                    if (fabs(aPF.N1 / aPF.N2 - 1.00) > 1e-100 && tmp2->m_pElementList[0].Type)
+                    {
+                        tmp2->InsertEmptyElement(0, 5, '(');
+                        for (int jj = 1; jj < tmp2->m_pElementList.size(); jj++)
+                            tmp2->m_pElementList[0].pElementObject->Expression1
+                                                   ->InsertElement(tmp2->m_pElementList[jj], jj - 1);
+                        while (tmp2->m_pElementList.size() > 1)
+                            tmp2->DeleteElement(1);
+                        tmp2->GenerateASCIIFraction(0, aPF.N1, aPF.N2,max(aPF.prec1, aPF.prec2), 1);
+                        int cntr = 0;
+                        while (tmp2->Compute(0, tmp2->m_pElementList.size() - 1, 1) && cntr < 50) cntr++;
+                    }
+                    /*if ((a_factor_negative) && (tmp2->m_pElementList[0].Type))
+                    {
+                        tmp2->InsertEmptyElement(0,2,'-');
+                    }*/
                 }
-                if (fabs(aPF.N1 / aPF.N2 - 1.00) > 1e-100 && tmp2->m_pElementList[0].Type)
-                {
-                    tmp2->InsertEmptyElement(0, 5, '(');
-                    for (int jj = 1; jj < tmp2->m_pElementList.size(); jj++)
-                        tmp2->m_pElementList[0].pElementObject->Expression1
-                                               ->InsertElement(tmp2->m_pElementList[jj], jj - 1);
-                    while (tmp2->m_pElementList.size() > 1)
-                        tmp2->DeleteElement(1);
-                    tmp2->GenerateASCIIFraction(0, aPF.N1, aPF.N2,max(aPF.prec1, aPF.prec2), 1);
-                    int cntr = 0;
-                    while (tmp2->Compute(0, tmp2->m_pElementList.size() - 1, 1) && cntr < 50) cntr++;
-                }
-                /*if ((a_factor_negative) && (tmp2->m_pElementList[0].Type))
-                {
-                    tmp2->InsertEmptyElement(0,2,'-');
-                }*/
             }
+            if (tmp2->m_pElementList[0].Type != 0)
+            {
+                int t = m_ParenthesesFlags;
+                CopyExpression(tmp2, 0);
+                m_ParenthesesFlags = t;
+                retval = 1;
+            }
+            delete tmp2;
         }
-        if (tmp2->m_pElementList[0].Type != 0)
+        delete tmp;
+
+        if (retval)
         {
-            int t = m_ParenthesesFlags;
-            CopyExpression(tmp2, 0);
-            m_ParenthesesFlags = t;
-            retval = 1;
+            delete original;
+            if (FindLowestOperatorLevel(static_cast<char>(0xD7)) == MulLevel)
+                FactorizeExpression();
+            {
+                int cnt = 0;
+                while (Compute(0, m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
+            }
+            this->m_IsComputed |= 0x00800000;
+            xreturn(1);
         }
-        delete tmp2;
+        this->CopyExpression(original, 0);
+        this->m_IsComputed |= 0x00800000;
+        delete original;
+        xreturn(0);
     }
-    delete tmp;
-
-    if (retval)
-        goto factorizeexpression_finish;
-    goto factorizeexpression_exit;
-
-
-factorizeexpression_finish:
-    delete original;
-    if (FindLowestOperatorLevel(static_cast<char>(0xD7)) == MulLevel)
-        FactorizeExpression();
-    {
-        int cnt = 0;
-        while (Compute(0, m_pElementList.size() - 1, 1) && cnt < 50) cnt++;
-    }
-    this->m_IsComputed |= 0x00800000;
-    xreturn(1);
-
-factorizeexpression_exit:
-    this->CopyExpression(original, 0);
-    this->m_IsComputed |= 0x00800000;
-    delete original;
-    xreturn(0);
 }
 
 int CExpression::ComputeRoot(int Position, char element_type, int ComputationType)
@@ -21194,12 +21472,10 @@ int CExpression::ComputeFraction(int Position, char element_type, int Computatio
         if (ImaginaryUnit && Level2 == PlusLevel && this->m_pPaternalExpression == nullptr)
         {
             //if there is a Imaginary Unit in the denominator - try to move it to numerator
-            char tmpstr[3];
-            tmpstr[0] = ImaginaryUnit;
-            tmpstr[1] = 0;
-            if (denom->ContainsVariable(0, denom->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, 0))
+            std::string tmpstr{ImaginaryUnit};
+            if (denom->ContainsVariable(0, denom->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, false))
             {
-                int order = denom->Polynomize(nullptr, tmpstr, 0);
+                int order = denom->Polynomize(nullptr, tmpstr.data(), 0);
                 if (order == 1)
                 {
                     char et;
@@ -21787,8 +22063,7 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
 
             if (ExtractVariablesMode == 0)
             {
-                int pure_order = 0;
-                pure_order = static_cast<int>(PF.N1 + (PF.N1 > 0 ? 0.01 : -0.01));
+                int pure_order = static_cast<int>(PF.N1 + (PF.N1 > 0 ? 0.01 : -0.01));
                 if (pure_order == 0) pure_order = PF.N1 >= 0 ? 1 : -1;
                 PF.N1 /= static_cast<double>(pure_order);
                 ord *= pure_order;
@@ -21899,8 +22174,9 @@ int CExpression::ExtractVariables(int StartPos, int EndPos, double order, int su
 //it uses the given variable to make the polinomization. If the variable is nullptr or
 //is an empty expression it autodetects the variable. If variable is non-nullptr, but is
 //empty, it copies the autodetected variable into 'variable'
-int CExpression::Polynomize(CExpression* variable, char* alternative_variable, char is_greek)
+int CExpression::Polynomize(CExpression* variable, const char* alternative_variable, char is_greek)
 {
+    CExpression* polynome = nullptr;
     int polynome_order = -1;
 
     if (m_IsComputed >> 24)
@@ -22110,7 +22386,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
     }
 
     //at last, build the polynome
-    auto polynome = new CExpression(nullptr, nullptr, 100);
+    polynome = new CExpression(nullptr, nullptr, 100);
     for (int order = 20; order >= 0; order--)
     {
         CExpression* arg = nullptr; //inside of parenthese
@@ -22212,8 +22488,7 @@ int CExpression::Polynomize(CExpression* variable, char* alternative_variable, c
                     }
                     else if (fabs(N1 - 1.0) > 1e-100)
                     {
-                        int pos;
-                        pos = arg->m_pElementList.size();
+                        int pos = arg->m_pElementList.size();
                         if (arg->m_pElementList[0].Type == 0) pos = 0;
                         residuum_pos += arg->GenerateASCIINumber(
                             N1, static_cast<long long>(N1 + (N1 > 0 ? 0.01 : -0.01)),
@@ -22456,7 +22731,13 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         char et;
         bool p;
         int l = P->GetElementLen(pos, P->m_pElementList.size() - 1, PlusLevel, &et, p);
-        if (l == 0) goto divide_polynome_exit2;
+        if (l == 0)
+        {
+            delete tmp;
+            for (int i = 0; i <= pnum_factors; i++)
+                if (factors[i]) delete factors[i];
+            xreturn(retval);
+        };
 
         int fnd = 0;
         const tElementStruct& ts = P->m_pElementList[pos + l - 1];
@@ -22514,8 +22795,20 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         pos += l;
         if (pos >= P->m_pElementList.size()) break;
     }
-    if (pnum_factors == 0) goto divide_polynome_exit2;
-    if (pnum_factors < orderQ) goto divide_polynome_exit2;
+    if (pnum_factors == 0)
+    {
+        delete tmp;
+        for (int i = 0; i <= pnum_factors; i++)
+            if (factors[i]) delete factors[i];
+        xreturn(retval);
+    };
+    if (pnum_factors < orderQ)
+    {
+        delete tmp;
+        for (int i = 0; i <= pnum_factors; i++)
+            if (factors[i]) delete factors[i];
+        xreturn(retval);
+    };
 
     for (int k = 0; k < pnum_factors; k++)
         if (factors[k] == nullptr)
@@ -22531,7 +22824,13 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
     char et2;
     int LevelQ = Q->FindLowestOperatorLevel();
     if (LevelQ == -1 || LevelQ > PlusLevel) LevelQ = PlusLevel;
-    if (LevelQ < PlusLevel) goto divide_polynome_exit2; //strange error - should not happen
+    if (LevelQ < PlusLevel)
+    {
+        delete tmp;
+        for (int i = 0; i <= pnum_factors; i++)
+            if (factors[i]) delete factors[i];
+        xreturn(retval);
+    }; //strange error - should not happen
     const int l2 = Q->GetElementLen(0, Q->m_pElementList.size() - 1, LevelQ, &et2, p2);
     int l2f = l2 - 1;
     if (orderQ == 1)
@@ -22594,7 +22893,13 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         if (pos <= Q->m_pElementList.size() - 1)
             while (true)
             {
-                if (tmpf < 0) goto divide_polynome_exit2; //should never happen
+                if (tmpf < 0)
+                {
+                    delete tmp;
+                    for (int i = 0; i <= pnum_factors; i++)
+                        if (factors[i]) delete factors[i];
+                    xreturn(retval);
+                }; //should never happen
 
                 char et2;
                 bool p2;
@@ -22644,15 +22949,23 @@ int CExpression::DividePolynome(CExpression* Q, int orderQ, CExpression* result,
         if (all_zero)
         {
             retval = 1;
-            goto divide_polynome_exit2;
+            delete tmp;
+            for (int i = 0; i <= pnum_factors; i++)
+                if (factors[i]) delete factors[i];
+            xreturn(retval);
         }
 
 
         //check if finished - 'P/Q' does not exist
-        if (orderQ > num_factors) goto divide_polynome_exit2;
+        if (orderQ > num_factors)
+        {
+            delete tmp;
+            for (int i = 0; i <= pnum_factors; i++)
+                if (factors[i]) delete factors[i];
+            xreturn(retval);
+        }
     }
 
-divide_polynome_exit2:
     delete tmp;
     for (int i = 0; i <= pnum_factors; i++)
         if (factors[i]) delete factors[i];
@@ -23331,12 +23644,10 @@ int CExpression::StrikeoutCommonFactors(int StartPos, int EndPos, int inv, CExpr
                     for (int kk = StartPos2; kk <= EndPos2; kk++, ts++)
                         second->InsertElement(*ts, second->m_pElementList.size());
 
-                    char tmpstr[3];
-                    tmpstr[0] = ImaginaryUnit;
-                    tmpstr[1] = 0;
-                    if (first->ContainsVariable(0, first->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, 0))
+                    std::string tmpstr{ImaginaryUnit};
+                    if (first->ContainsVariable(0, first->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, false))
                         is_first_complex = 1;
-                    if (second->ContainsVariable(0, second->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, 0))
+                    if (second->ContainsVariable(0, second->m_pElementList.size() - 1, nullptr, 0, 0, tmpstr, false))
                         is_second_complex = 1;
 
                     auto variable = new CExpression(nullptr, nullptr, 100);
@@ -24742,9 +25053,9 @@ int CExpression::ComputeLog(int Position, char element_type, int ComputationType
 }
 
 int CExpression::ContainsVariable(int StartPos, int EndPos, CExpression* variable, int VarPos, int VarLen,
-                                  char* alternative_variable, char is_greek)
+                                  const std::string& alternative_variable, bool is_greek)
 {
-    if (variable == nullptr && alternative_variable == nullptr) return 0;
+    if (variable == nullptr && alternative_variable.empty()) return 0;
     if (StartPos < 0) return 0;
     if (EndPos < 0) return 0;
     if (EndPos < StartPos) return 0;
@@ -24778,7 +25089,7 @@ int CExpression::ContainsVariable(int StartPos, int EndPos, CExpression* variabl
         }
         else if (ts->Type == 1)
         {
-            if (strcmp(ts->pElementObject->Data1, alternative_variable) == 0 &&
+            if (strcmp(ts->pElementObject->Data1, alternative_variable.data()) == 0 &&
                 ts->pElementObject->m_VMods == 0 &&
                 (((ts->pElementObject->Data2[0] & 0xE0) != 0x60 && !is_greek) ||
                     ((ts->pElementObject->Data2[0] & 0xE0) == 0x60 && is_greek)))
@@ -26462,7 +26773,7 @@ int CExpression::ComputeSinCos(int Position, char element_type, int ComputationT
             int l = arg->GetElementLen(pos, arg->m_pElementList.size() - 1, PlusLevel, &et, p);
             if (l == 0) break;
 
-            if (arg->ContainsVariable(pos + p, pos + l - 1, nullptr, 0, 0, "p", 1))
+            if (arg->ContainsVariable(pos + p, pos + l - 1, nullptr, 0, 0, "p", true))
             {
                 if (et == '-') VarList->Constants[summand_no].N1 = -VarList->Constants[summand_no].N1;
                 ExtractVariablesMode = 1;
@@ -28786,7 +29097,7 @@ int CExpression::SolveSystemOfEquations(CExpression* System[], int* NumEquations
             int tmp_cnt = CountVariablesInSystem(&System[i], 1, VS2);
             if (tmp_cnt == 1 && System[i]->ContainsVariable(0, System[i]->m_pElementList.size() - 1, nullptr, 0, 0,
                                                             VS2->name,
-                                                            (VS2->font[0] & 0xE0) == 0x60 ? 1 : 0))
+                                                            (VS2->font[0] & 0xE0) == 0x60))
             {
                 auto var = new CExpression(nullptr, nullptr, 100);
                 var->InsertEmptyElement(0, 1, 'a');

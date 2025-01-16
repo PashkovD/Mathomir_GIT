@@ -71,5 +71,5 @@ public:
     afx_msg void OnUpdateEditSaveequationimage(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEditCopymathmlcode(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEditCopylatexcode(CCmdUI* pCmdUI);
-    afx_msg void CMainFrame::OnDisplayChange(WPARAM wp, LPARAM lp);
+    afx_msg void OnDisplayChange(WPARAM wp, LPARAM lp);
 };

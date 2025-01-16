@@ -187,6 +187,7 @@ int EasycastListStart = 0;
 #pragma optimize("s",on)
 int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType, int UserParam, int no_reposition)
 {
+    int AddPasteSpecial = 0;
     PopupMenuSecondPassChoosing = 0;
 
     MovingMode = 0;
@@ -433,7 +434,6 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
         m_HaveCutDel = 1;
     }
 
-    int AddPasteSpecial = 0;
     PopupOption_Y = TSize_1p20;
 
 
@@ -734,369 +734,371 @@ int PopupMenu::ShowPopupMenu(CExpression* expression, CWnd* owner, int OwnerType
     {
         m_Expression = m_Expression->AdjustSelection();
     }
-
-    int single_simple_object_selected = 0;
-    int common_color = -100;
-    int at_least_one_variable = 0;
-    int add_even_chars = 0;
-
-    if (m_Expression == nullptr)
     {
-        //no selections - only EXIT will be available
-        m_HaveCutDel = 0;
-        m_MenuType = 0;
-    }
-    else
-    {
-        int No = 0;
+        int single_simple_object_selected = 0;
+        int common_color = -100;
+        int at_least_one_variable = 0;
+        int add_even_chars = 0;
 
-        //check how many elements is selected int the expression
-
-        StartExtendedSelection = 0x7FFF;
-        EndExtendedSelection = 0;
-        for (size_t i = 0; i < m_Expression->m_pElementList.size(); i++)
+        if (m_Expression == nullptr)
         {
-            tElementStruct& theElement = m_Expression->m_pElementList[i];
-            if (!theElement.IsSelected)
-                continue;
-            if (theElement.Type == 1) at_least_one_variable = 1;
-            if (i < StartExtendedSelection) StartExtendedSelection = i;
-            if (i > EndExtendedSelection) EndExtendedSelection = i;
-            if (m_theSelectedElement == nullptr) m_theSelectedElement = &theElement;
-            if (theElement.Type > 0 && theElement.Type != 11 && theElement.Type != 12 && theElement.pElementObject)
-            {
-                if (common_color == -100) common_color = theElement.pElementObject->m_Color;
-                if (theElement.pElementObject->m_Color != common_color) common_color = 100;
-            }
-            No++;
-        }
-
-        LevelExtendedSelection = ExtractSelection(0, m_Expression->m_pElementList.size() - 1, &StartExtendedSelection,
-                                                  &EndExtendedSelection);
-        if (LevelExtendedSelection == -1) ExtractedSelection->Delete();
-            /*if (m_Expression->m_IsText==1) 
-                ExtractedSelection->Delete();*/
-        else if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->m_pElementList.size() - 1)
-        {
-            //ExtractedSelection->m_ParentheseData=m_Expression->m_ParentheseData;
-            //ExtractedSelection->m_ParentheseHeightFactor=m_Expression->m_ParentheseHeightFactor;
-            ExtractedSelection->m_ParentheseShape = m_Expression->m_ParentheseShape;
-            ExtractedSelection->m_ParenthesesFlags = m_Expression->m_ParenthesesFlags;
-            if (m_Expression->m_DrawParentheses) ExtractedSelection->m_ParenthesesFlags |= 0x01;
-        }
-
-
-        if (m_OwnerType != 3 || UserParam != 0) //not for pop-up menues invoked by double '='
-        {
+            //no selections - only EXIT will be available
+            m_HaveCutDel = 0;
             m_MenuType = 0;
-            if (at_least_one_variable) m_MenuType = 6;
-            if (m_Expression->m_Selection == 0x7FFF)
-            {
-                m_MenuType = 1; //the parentheses menu
-                if (m_Expression->IsTextContained(-1)) add_even_chars = 1;
-            }
-            else if (No == 1)
-            {
-                single_simple_object_selected = 1;
-                if (m_theSelectedElement->Type == 5) // parentheses object (does this ever happen?)
-                    m_MenuType = 4;
-                if (m_theSelectedElement->Type == 1 || //variable
-                    m_theSelectedElement->Type == 6) //function
-                    m_MenuType = 2; //the font
-                if (m_theSelectedElement->Type == 7)
-                    m_MenuType = 3; //symbol size/height (sigma, pi, integral)
-                if (m_theSelectedElement->Type == 10) //condition list as an element
-                    m_MenuType = 5;
-                if (m_theSelectedElement->Type == 9 && m_theSelectedElement->pElementObject->Data1[0] == 'H')
-                    m_MenuType = 7; //HTML link menu
-            }
+        }
+        else
+        {
+            int No = 0;
 
-            if (ClipboardExpression && !ClipboardExpression->m_pElementList.empty())
-            {
-                //if there is something in the clipboard, we may wish to open "paste special - implanting paste" menu
-                //that is, posibility to insert selected element into clipboard expression
+            //check how many elements is selected int the expression
 
-                if (ClipboardExpression->m_pElementList.size() > 1)
-                    AddPasteSpecial = 1;
-                else if (!ClipboardExpression->m_pElementList.empty())
+            StartExtendedSelection = 0x7FFF;
+            EndExtendedSelection = 0;
+            for (size_t i = 0; i < m_Expression->m_pElementList.size(); i++)
+            {
+                tElementStruct& theElement = m_Expression->m_pElementList[i];
+                if (!theElement.IsSelected)
+                    continue;
+                if (theElement.Type == 1) at_least_one_variable = 1;
+                if (i < StartExtendedSelection) StartExtendedSelection = i;
+                if (i > EndExtendedSelection) EndExtendedSelection = i;
+                if (m_theSelectedElement == nullptr) m_theSelectedElement = &theElement;
+                if (theElement.Type > 0 && theElement.Type != 11 && theElement.Type != 12 && theElement.pElementObject)
                 {
-                    //if only one object in clibpobard then it must not be variable, operator or dummy
-                    if (ClipboardExpression->m_pElementList[0].Type > 2)
+                    if (common_color == -100) common_color = theElement.pElementObject->m_Color;
+                    if (theElement.pElementObject->m_Color != common_color) common_color = 100;
+                }
+                No++;
+            }
+
+            LevelExtendedSelection = ExtractSelection(0, m_Expression->m_pElementList.size() - 1,
+                                                      &StartExtendedSelection,
+                                                      &EndExtendedSelection);
+            if (LevelExtendedSelection == -1) ExtractedSelection->Delete();
+                /*if (m_Expression->m_IsText==1) 
+                    ExtractedSelection->Delete();*/
+            else if (StartExtendedSelection == 0 && EndExtendedSelection == m_Expression->m_pElementList.size() - 1)
+            {
+                //ExtractedSelection->m_ParentheseData=m_Expression->m_ParentheseData;
+                //ExtractedSelection->m_ParentheseHeightFactor=m_Expression->m_ParentheseHeightFactor;
+                ExtractedSelection->m_ParentheseShape = m_Expression->m_ParentheseShape;
+                ExtractedSelection->m_ParenthesesFlags = m_Expression->m_ParenthesesFlags;
+                if (m_Expression->m_DrawParentheses) ExtractedSelection->m_ParenthesesFlags |= 0x01;
+            }
+
+
+            if (m_OwnerType != 3 || UserParam != 0) //not for pop-up menues invoked by double '='
+            {
+                m_MenuType = 0;
+                if (at_least_one_variable) m_MenuType = 6;
+                if (m_Expression->m_Selection == 0x7FFF)
+                {
+                    m_MenuType = 1; //the parentheses menu
+                    if (m_Expression->IsTextContained(-1)) add_even_chars = 1;
+                }
+                else if (No == 1)
+                {
+                    single_simple_object_selected = 1;
+                    if (m_theSelectedElement->Type == 5) // parentheses object (does this ever happen?)
+                        m_MenuType = 4;
+                    if (m_theSelectedElement->Type == 1 || //variable
+                        m_theSelectedElement->Type == 6) //function
+                        m_MenuType = 2; //the font
+                    if (m_theSelectedElement->Type == 7)
+                        m_MenuType = 3; //symbol size/height (sigma, pi, integral)
+                    if (m_theSelectedElement->Type == 10) //condition list as an element
+                        m_MenuType = 5;
+                    if (m_theSelectedElement->Type == 9 && m_theSelectedElement->pElementObject->Data1[0] == 'H')
+                        m_MenuType = 7; //HTML link menu
+                }
+
+                if (ClipboardExpression && !ClipboardExpression->m_pElementList.empty())
+                {
+                    //if there is something in the clipboard, we may wish to open "paste special - implanting paste" menu
+                    //that is, posibility to insert selected element into clipboard expression
+
+                    if (ClipboardExpression->m_pElementList.size() > 1)
                         AddPasteSpecial = 1;
+                    else if (!ClipboardExpression->m_pElementList.empty())
+                    {
+                        //if only one object in clibpobard then it must not be variable, operator or dummy
+                        if (ClipboardExpression->m_pElementList[0].Type > 2)
+                            AddPasteSpecial = 1;
+                    }
                 }
             }
         }
-    }
 
 
-    //Let's create menu options
+        //Let's create menu options
 
-    m_NumOptions = 0;
-    memset(&Options, 0, sizeof(Options));
-    if (m_HaveCutDel || (m_OwnerType == 3 && UserParam))
-    {
-        if (m_OwnerType != 3)
+        m_NumOptions = 0;
+        memset(&Options, 0, sizeof(Options));
+        if (m_HaveCutDel || (m_OwnerType == 3 && UserParam))
         {
-            if (m_MenuType == 1) common_color = m_Expression->m_Color;
-            AddMenuOption(TSize / 3, TSize + TSize / 8, "Pick up ", 1, false);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ",
-                                 common_color == -1, 80, false);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1,
-                                 82, false);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 2, "Blu ", common_color == 3,
-                                 84, true);
+            if (m_OwnerType != 3)
+            {
+                if (m_MenuType == 1) common_color = m_Expression->m_Color;
+                AddMenuOption(TSize / 3, TSize + TSize / 8, "Pick up ", 1, false);
+                AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ",
+                                     common_color == -1, 80, false);
+                AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1,
+                                     82, false);
+                AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 2, "Blu ", common_color == 3,
+                                     84, true);
 
-            AddMenuOption(TSize / 3, TSize + TSize / 8, "Delete ", 2, false);
+                AddMenuOption(TSize / 3, TSize + TSize / 8, "Delete ", 2, false);
+                AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0, 81, false);
+                AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2,
+                                     83, false);
+                AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4,
+                                     85, true);
+
+                if (m_MenuType == 1)
+                {
+                    bool is_sel = false;
+                    for (size_t ii = 0; ii < NumDocumentElements; ii++)
+                        if (TheDocument[ii].Type == EXPRESSION &&
+                            TheDocument[ii].Object.exp == m_Expression &&
+                            TheDocument[ii].MovingDotState == 5)
+                            is_sel = true;
+                    AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 3 * TSize_1p2, "Lock ", is_sel, 8, true);
+                }
+
+                if (QuickSelectActive)
+                {
+                    PopupOption_Y += TSize / 10; //separator
+                    AddMenuOption(0, 3 * TSize_1p2, "Qick multitouch:", -411, true);
+                    AddMenuOption(TSize / 3, TSize, "Copy ", 9, true);
+                    if (ClipboardExpression) AddMenuOption(TSize / 3, TSize, "Paste ", 29, true);
+                }
+            }
+
+
+            if (m_MenuType != 1 || add_even_chars)
+            {
+                PopupOption_Y += TSize / 10;
+
+                AddMenuOption(0, 2 * TSize, "Decoration:", -44, true);
+
+                AddMenuOptionButton(TSize / 3, "None ", 3, 1, false);
+                AddMenuOptionButton(TSize_2p3, "Strikeout ", 4, 2, false);
+                AddMenuOptionButton(TSize, "Encircle ", 5, 3, false);
+                AddMenuOptionButton(4 * TSize / 3, "Underline ", 6, 4, false);
+                AddMenuOptionButton(5 * TSize / 3, "Overline ", 7, 5, false);
+                AddMenuOptionButton(2 * TSize, "Underbrace", 130, 79, true);
+                if (m_theSelectedElement && (m_theSelectedElement->Type != 9 || m_theSelectedElement->pElementObject->
+                    Data1[0] != 'H'))
+                    AddMenuOption(TSize / 3, 2 * TSize + TSize / 4, "Convert to hyperlink", 78, true);
+            }
+        }
+
+        if (m_MenuType == 2 && (owner == Toolbox || owner == Toolbox->Subtoolbox) && UserParam < 16 && m_Expression
+            ->m_pElementList[0].pElementObject)
+        {
+            //adding color options for font formatting menu (right clicked at the toolbox header 'U' option)
+            int common_color = m_Expression->m_pElementList[0].pElementObject->m_Color;
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ", common_color == -1,
+                                 80, false);
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1, 82,
+                                 false);
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 2, "Blu ", common_color == 3, 84,
+                                 true);
             AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0, 81, false);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2,
-                                 83, false);
-            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4,
-                                 85, true);
-
-            if (m_MenuType == 1)
-            {
-                bool is_sel = false;
-                for (size_t ii = 0; ii < NumDocumentElements; ii++)
-                    if (TheDocument[ii].Type == EXPRESSION &&
-                        TheDocument[ii].Object.exp == m_Expression &&
-                        TheDocument[ii].MovingDotState == 5)
-                        is_sel = true;
-                AddCheckedMenuOption(TSize / 3 - TSize / 5 + 1, 3 * TSize_1p2, "Lock ", is_sel, 8, true);
-            }
-
-            if (QuickSelectActive)
-            {
-                PopupOption_Y += TSize / 10; //separator
-                AddMenuOption(0, 3 * TSize_1p2, "Qick multitouch:", -411, true);
-                AddMenuOption(TSize / 3, TSize, "Copy ", 9, true);
-                if (ClipboardExpression) AddMenuOption(TSize / 3, TSize, "Paste ", 29, true);
-            }
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2, 83,
+                                 false);
+            AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4, 85,
+                                 true);
         }
 
-
-        if (m_MenuType != 1 || add_even_chars)
+        if ((m_MenuType == 2 || m_MenuType == 6 || add_even_chars) && m_theSelectedElement != nullptr) //the font menu
         {
-            PopupOption_Y += TSize / 10;
-
-            AddMenuOption(0, 2 * TSize, "Decoration:", -44, true);
-
-            AddMenuOptionButton(TSize / 3, "None ", 3, 1, false);
-            AddMenuOptionButton(TSize_2p3, "Strikeout ", 4, 2, false);
-            AddMenuOptionButton(TSize, "Encircle ", 5, 3, false);
-            AddMenuOptionButton(4 * TSize / 3, "Underline ", 6, 4, false);
-            AddMenuOptionButton(5 * TSize / 3, "Overline ", 7, 5, false);
-            AddMenuOptionButton(2 * TSize, "Underbrace", 130, 79, true);
-            if (m_theSelectedElement && (m_theSelectedElement->Type != 9 || m_theSelectedElement->pElementObject->
-                Data1[0] != 'H'))
-                AddMenuOption(TSize / 3, 2 * TSize + TSize / 4, "Convert to hyperlink", 78, true);
+            PrepareFontMenu(PopupOption_Y);
         }
-    }
-
-    if (m_MenuType == 2 && (owner == Toolbox || owner == Toolbox->Subtoolbox) && UserParam < 16 && m_Expression
-        ->m_pElementList[0].pElementObject)
-    {
-        //adding color options for font formatting menu (right clicked at the toolbox header 'U' option)
-        int common_color = m_Expression->m_pElementList[0].pElementObject->m_Color;
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 - TSize / 10, TSize / 3 + 2, "A ", common_color == -1,
-                             80, false);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Red ", common_color == 1, 82,
-                             false);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 2, "Blu ", common_color == 3, 84,
-                             true);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3, TSize / 3, "Blk ", common_color == 0, 81, false);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize / 3, TSize / 3, "Grn ", common_color == 2, 83,
-                             false);
-        AddCheckedMenuOption(TSize / 8 + 4 * TSize / 3 + TSize_2p3, TSize / 3, "Gry ", common_color == 4, 85,
-                             true);
-    }
-
-    if ((m_MenuType == 2 || m_MenuType == 6 || add_even_chars) && m_theSelectedElement != nullptr) //the font menu
-    {
-        PrepareFontMenu(PopupOption_Y);
-    }
-    if (m_MenuType == 1 || m_MenuType == 4) //the parentheses menu
-    {
-        PrepareParenthesesMenu(PopupOption_Y);
-    }
-    if (m_MenuType == 3 && m_theSelectedElement != nullptr) //the symbol height (sigma, pi, integral) menu
-    {
-        PrepareSymbolMenu(PopupOption_Y);
-    }
-    if (m_MenuType == 5 && m_theSelectedElement != nullptr)
-    {
-        PrepareConditionListMenu();
-    }
-    if (m_MenuType == 7 && m_theSelectedElement != nullptr)
-    {
-        PopupOption_Y += TSize / 5; //separator
-        AddMenuOption(0, 4 * TSize, "Hyperlink", 77, true);
-        if (*(char**)m_theSelectedElement->pElementObject->Data3 != nullptr)
-            AddMenuOption(0, 4 * TSize, *(char**)m_theSelectedElement->pElementObject->Data3, -77, true);
-
-        //add list of all availabe internal links
-
-        int kkk = 0; //babaluj
-        auto list = static_cast<tDocumentStruct**>(malloc(sizeof(tDocumentStruct*) * 256));
-        for (size_t i = 0; i < NumDocumentElements; i++)
+        if (m_MenuType == 1 || m_MenuType == 4) //the parentheses menu
         {
-            tDocumentStruct& ds = TheDocument[i];
-            if (ds.Type == EXPRESSION)
+            PrepareParenthesesMenu(PopupOption_Y);
+        }
+        if (m_MenuType == 3 && m_theSelectedElement != nullptr) //the symbol height (sigma, pi, integral) menu
+        {
+            PrepareSymbolMenu(PopupOption_Y);
+        }
+        if (m_MenuType == 5 && m_theSelectedElement != nullptr)
+        {
+            PrepareConditionListMenu();
+        }
+        if (m_MenuType == 7 && m_theSelectedElement != nullptr)
+        {
+            PopupOption_Y += TSize / 5; //separator
+            AddMenuOption(0, 4 * TSize, "Hyperlink", 77, true);
+            if (*(char**)m_theSelectedElement->pElementObject->Data3 != nullptr)
+                AddMenuOption(0, 4 * TSize, *(char**)m_theSelectedElement->pElementObject->Data3, -77, true);
+
+            //add list of all availabe internal links
+
+            int kkk = 0; //babaluj
+            auto list = static_cast<tDocumentStruct**>(malloc(sizeof(tDocumentStruct*) * 256));
+            for (size_t i = 0; i < NumDocumentElements; i++)
             {
-                if (ds.Object.exp->m_IsHeadline)
+                tDocumentStruct& ds = TheDocument[i];
+                if (ds.Type == EXPRESSION)
                 {
-                    list[kkk] = &ds;
-                    kkk++;
+                    if (ds.Object.exp->m_IsHeadline)
+                    {
+                        list[kkk] = &ds;
+                        kkk++;
+                    }
+                    if (ds.Object.exp->GetLabel())
+                    {
+                        list[kkk] = &ds;
+                        kkk++;
+                    }
                 }
-                if (ds.Object.exp->GetLabel())
+                if (kkk > 250) break;
+            }
+            if (kkk)
+            {
+                PopupOption_Y += TSize / 4;
+                AddMenuOption(0, 2 * TSize, "Internal links:", -78, true);
+                qsort(list, kkk, sizeof(tDocumentStruct*), YorderQSort);
+
+                //list now contains pointers to document objects sorted by Y coordinate
+
+                CDC* DC = GetDC();
+                DC->SelectObject(GetFontFromPool(4, false, false, TSize / 4));
+                for (int i = 0; i < 25; i++, EasycastListStart++)
                 {
-                    list[kkk] = &ds;
-                    kkk++;
+                    if (EasycastListStart >= kkk) break;
+                    tDocumentStruct* ds = *(list + EasycastListStart);
+
+                    char buff[128];
+                    buff[0] = 0;
+                    CExpression* e = ds->Object.exp;
+                    bool is_label = false;
+                    if (e->m_IsHeadline == 0)
+                    {
+                        e = e->GetLabel();
+                        is_label = true;
+                    }
+                    e->ConvertToPlainText(100, buff, is_label);
+                    if (e->m_pElementList.size() == 1 && e->m_pElementList[0].Type == 0)
+                        if (is_label) sprintf_s(buff, "(#%d)", EasycastListStart + 1);
+                        else sprintf_s(buff, "#%d", EasycastListStart + 1);
+                    buff[39] = 0;
+                    CSize sz = DC->GetTextExtent(buff);
+                    int tmp = 0;
+                    if (e->m_IsHeadline >= 3 || e->m_IsHeadline == 0) tmp = 10;
+                    AddMenuOption(TSize / 2 + (is_label ? 5 : 0), max(sz.cx-tmp, 1), buff, 850 + i, true);
+                    LocalLinks[i] = static_cast<unsigned int>(ds - TheDocument) + (is_label ? 0x80000000 : 0);
+                    if (tmp) PopupOption_Y -= TSize / 22;
+                }
+                ReleaseDC(DC);
+                if (EasycastListStart < kkk)
+                {
+                    AddMenuOption(0, TSize, "more...", 849, true);
                 }
             }
-            if (kkk > 250) break;
+            free(list);
         }
-        if (kkk)
+
+        if (m_Expression && m_Expression->m_IsMatrixElementSelected)
         {
-            PopupOption_Y += TSize / 4;
-            AddMenuOption(0, 2 * TSize, "Internal links:", -78, true);
-            qsort(list, kkk, sizeof(tDocumentStruct*), YorderQSort);
-
-            //list now contains pointers to document objects sorted by Y coordinate
-
-            CDC* DC = GetDC();
-            DC->SelectObject(GetFontFromPool(4, false, false, TSize / 4));
-            for (int i = 0; i < 25; i++, EasycastListStart++)
+            PopupOption_Y += TSize / 5; //separator
+            bool found_selected = false;
+            bool found_spacer = false;
+            bool has_internallines = false;
+            for (tElementStruct& ts : m_Expression->m_pElementList)
             {
-                if (EasycastListStart >= kkk) break;
-                tDocumentStruct* ds = *(list + EasycastListStart);
-
-                char buff[128];
-                buff[0] = 0;
-                CExpression* e = ds->Object.exp;
-                bool is_label = false;
-                if (e->m_IsHeadline == 0)
+                if (ts.IsSelected) found_selected = true;
+                if ((ts.Type == 11 || ts.Type == 12) && found_selected)
                 {
-                    e = e->GetLabel();
-                    is_label = true;
+                    found_spacer = true;
+                    continue;
                 }
-                e->ConvertToPlainText(100, buff, is_label);
-                if (e->m_pElementList.size() == 1 && e->m_pElementList[0].Type == 0)
-                    if (is_label) sprintf_s(buff, "(#%d)", EasycastListStart + 1);
-                    else sprintf_s(buff, "#%d", EasycastListStart + 1);
-                buff[39] = 0;
-                CSize sz = DC->GetTextExtent(buff);
-                int tmp = 0;
-                if (e->m_IsHeadline >= 3 || e->m_IsHeadline == 0) tmp = 10;
-                AddMenuOption(TSize / 2 + (is_label ? 5 : 0), max(sz.cx-tmp, 1), buff, 850 + i, true);
-                LocalLinks[i] = static_cast<unsigned int>(ds - TheDocument) + (is_label ? 0x80000000 : 0);
-                if (tmp) PopupOption_Y -= TSize / 22;
+                if (ts.IsSelected && found_spacer)
+                {
+                    has_internallines = true;
+                    break;
+                }
             }
-            ReleaseDC(DC);
-            if (EasycastListStart < kkk)
+            AddMenuOption(0, TSize * 2, "Table lines:", -650, true);
+            AddMenuOptionButton(TSize / 3, "No border", 650, 83, false);
+            AddMenuOptionButton(TSize_2p3, "Single line border", 651, 84, false);
+            AddMenuOptionButton(TSize, "Double line border", 652, 85, !has_internallines);
+            if (has_internallines)
             {
-                AddMenuOption(0, TSize, "more...", 849, true);
+                AddMenuOptionButton(TSize / 3 + TSize + TSize / 8, "No lines", 653, 86, false);
+                AddMenuOptionButton(TSize_2p3 + TSize + TSize / 8, "Single lines", 654, 87, false);
+                AddMenuOptionButton(TSize + TSize + TSize / 8, "Double lines", 655, 88, true);
+            }
+
+            if (m_MenuType != 1 && m_MenuType != 4)
+            {
+                /*int isMultiline=0;
+                for (int ii=0;ii<m_Expression->m_pElementList.size();ii++)
+                    if (((m_Expression->m_pElementList+ii)->Type==12) || 
+                    (((m_Expression->m_pElementList+ii)->Type==2) && ((m_Expression->m_pElementList+ii)->pElementObject->Data1[0]==(char)0xFF)))
+                    {isMultiline=1;break;}
+                if (isMultiline)*/
+                {
+                    AddMenuOption(0, TSize * 2, "Cell alignment:", -630, true);
+                    PopupOption_Y += TSize_1p20;
+                    AddMenuOptionButton(TSize / 3, "Align left ", 630, 39, false);
+                    AddMenuOptionButton(TSize_2p3, "Align center ", 631, 40, false);
+                    AddMenuOptionButton(TSize, "Align right ", 632, 41, true);
+                }
             }
         }
-        free(list);
-    }
 
-    if (m_Expression && m_Expression->m_IsMatrixElementSelected)
-    {
-        PopupOption_Y += TSize / 5; //separator
-        bool found_selected = false;
-        bool found_spacer = false;
-        bool has_internallines = false;
-        for (tElementStruct& ts : m_Expression->m_pElementList)
+
+        if (AddPasteSpecial) //adding a special menu that enables "implanting paste"
         {
-            if (ts.IsSelected) found_selected = true;
-            if ((ts.Type == 11 || ts.Type == 12) && found_selected)
-            {
-                found_spacer = true;
-                continue;
-            }
-            if (ts.IsSelected && found_spacer)
-            {
-                has_internallines = true;
-                break;
-            }
-        }
-        AddMenuOption(0, TSize * 2, "Table lines:", -650, true);
-        AddMenuOptionButton(TSize / 3, "No border", 650, 83, false);
-        AddMenuOptionButton(TSize_2p3, "Single line border", 651, 84, false);
-        AddMenuOptionButton(TSize, "Double line border", 652, 85, !has_internallines);
-        if (has_internallines)
-        {
-            AddMenuOptionButton(TSize / 3 + TSize + TSize / 8, "No lines", 653, 86, false);
-            AddMenuOptionButton(TSize_2p3 + TSize + TSize / 8, "Single lines", 654, 87, false);
-            AddMenuOptionButton(TSize + TSize + TSize / 8, "Double lines", 655, 88, true);
-        }
+            //ExtractedSelection->Delete(); //no math options when doing implanting
 
-        if (m_MenuType != 1 && m_MenuType != 4)
-        {
-            /*int isMultiline=0;
-            for (int ii=0;ii<m_Expression->m_pElementList.size();ii++)
-                if (((m_Expression->m_pElementList+ii)->Type==12) || 
-                (((m_Expression->m_pElementList+ii)->Type==2) && ((m_Expression->m_pElementList+ii)->pElementObject->Data1[0]==(char)0xFF)))
-                {isMultiline=1;break;}
-            if (isMultiline)*/
-            {
-                AddMenuOption(0, TSize * 2, "Cell alignment:", -630, true);
-                PopupOption_Y += TSize_1p20;
-                AddMenuOptionButton(TSize / 3, "Align left ", 630, 39, false);
-                AddMenuOptionButton(TSize_2p3, "Align center ", 631, 40, false);
-                AddMenuOptionButton(TSize, "Align right ", 632, 41, true);
-            }
-        }
-    }
+            PopupOption_Y += TSize / 10; //separator
+            AddMenuOption(0, TSize, "Implanting:", -4, true);
 
-
-    if (AddPasteSpecial) //adding a special menu that enables "implanting paste"
-    {
-        //ExtractedSelection->Delete(); //no math options when doing implanting
-
-        PopupOption_Y += TSize / 10; //separator
-        AddMenuOption(0, TSize, "Implanting:", -4, true);
-
-        //option: Graphics representation of clipboard expression (sensitive)
-        short l, a, b;
-        int ZoomLevel = 120 * TSize / 60;
-        CDC* dcc = this->GetDC();
-        ClipboardExpression->CalculateSize(dcc, ZoomLevel, l, &a, &b);
-        if (l > 2 * TSize || a + b > 3 * TSize_1p2)
-        {
-            ZoomLevel = 100 * TSize / 60;
+            //option: Graphics representation of clipboard expression (sensitive)
+            short l, a, b;
+            int ZoomLevel = 120 * TSize / 60;
+            CDC* dcc = this->GetDC();
             ClipboardExpression->CalculateSize(dcc, ZoomLevel, l, &a, &b);
-            if (l > 3 * TSize || a + b > 2 * TSize)
+            if (l > 2 * TSize || a + b > 3 * TSize_1p2)
             {
-                ZoomLevel = 80 * TSize / 60;
+                ZoomLevel = 100 * TSize / 60;
                 ClipboardExpression->CalculateSize(dcc, ZoomLevel, l, &a, &b);
                 if (l > 3 * TSize || a + b > 2 * TSize)
                 {
-                    ZoomLevel = 70 * TSize / 60;
+                    ZoomLevel = 80 * TSize / 60;
                     ClipboardExpression->CalculateSize(dcc, ZoomLevel, l, &a, &b);
+                    if (l > 3 * TSize || a + b > 2 * TSize)
+                    {
+                        ZoomLevel = 70 * TSize / 60;
+                        ClipboardExpression->CalculateSize(dcc, ZoomLevel, l, &a, &b);
+                    }
                 }
             }
+            this->ReleaseDC(dcc);
+            Options[m_NumOptions].Y = PopupOption_Y;
+            Options[m_NumOptions].X = 0;
+            Options[m_NumOptions].Cx = l + TSize_1p2;
+            Options[m_NumOptions].Cy = a + b + TSize / 8;
+            Options[m_NumOptions].Text = "";
+            Options[m_NumOptions].IsButton = 0;
+            Options[m_NumOptions].Graphics = ClipboardExpression;
+            Options[m_NumOptions].IsChecked = 0;
+            Options[m_NumOptions].IsEnabled = true;
+            Options[m_NumOptions].IsGraphicsSensitive = 1;
+            Options[m_NumOptions].Data = 60; //
+            Options[m_NumOptions].DataArray[0] = l;
+            Options[m_NumOptions].DataArray[1] = a;
+            Options[m_NumOptions].DataArray[2] = b;
+            Options[m_NumOptions].DataArray[3] = ZoomLevel;
+            Options[m_NumOptions].DataArray[4] = TSize / 4; //X coordinate of expression
+            Options[m_NumOptions].DataArray[5] = PopupOption_Y + a + TSize / 8; //Y coordinae of expression
+            PopupOption_Y += Options[m_NumOptions].Cy;
+            m_NumOptions++;
         }
-        this->ReleaseDC(dcc);
-        Options[m_NumOptions].Y = PopupOption_Y;
-        Options[m_NumOptions].X = 0;
-        Options[m_NumOptions].Cx = l + TSize_1p2;
-        Options[m_NumOptions].Cy = a + b + TSize / 8;
-        Options[m_NumOptions].Text = "";
-        Options[m_NumOptions].IsButton = 0;
-        Options[m_NumOptions].Graphics = ClipboardExpression;
-        Options[m_NumOptions].IsChecked = 0;
-        Options[m_NumOptions].IsEnabled = true;
-        Options[m_NumOptions].IsGraphicsSensitive = 1;
-        Options[m_NumOptions].Data = 60; //
-        Options[m_NumOptions].DataArray[0] = l;
-        Options[m_NumOptions].DataArray[1] = a;
-        Options[m_NumOptions].DataArray[2] = b;
-        Options[m_NumOptions].DataArray[3] = ZoomLevel;
-        Options[m_NumOptions].DataArray[4] = TSize / 4; //X coordinate of expression
-        Options[m_NumOptions].DataArray[5] = PopupOption_Y + a + TSize / 8; //Y coordinae of expression
-        PopupOption_Y += Options[m_NumOptions].Cy;
-        m_NumOptions++;
     }
 
 popupmenu_end_showpopup:
@@ -1932,7 +1934,7 @@ int PopupMenu::PaintThePopupMenu()
 #pragma optimize("s",on)
 void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    int DirectCallFlag = 0;
+    bool DirectCallFlag = 0;
     try
     {
         //very special handling - direct call from toolbar
@@ -1941,56 +1943,62 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             m_SelectedOption = 0;
             Options[m_SelectedOption].Data = 0;
             DirectCallFlag = 1;
-            goto DirectCall;
+        }
+        bool isShiftDown = false;
+        if (!DirectCallFlag)
+        {
+            if (point.x + point.y < TSize / 4 && point.x > 0 && point.y > 0)
+            {
+                MovingMode = point.x + point.y * 20 + 1;
+                SetCapture();
+            }
+            RECT wr;
+            POINT cursor;
+            GetWindowRect(&wr);
+            GetCursorPos(&cursor);
+            if (point.x != -1 || point.y != -1)
+                if (cursor.x < wr.left || cursor.x > wr.right || cursor.y < wr.top || cursor.y > wr.bottom)
+                {
+                    //clicked outside popup meni, sound alarm
+                    HidePopupMenu();
+                    return;
+                    /*MessageBeep(0);
+                    GetClientRect(&wr);
+                    CDC *dc=this->GetDC();
+                    dc->SelectObject(GetPenFromPool(3,1));
+                    dc->MoveTo(2,2);dc->LineTo(wr.right-2,2);dc->LineTo(wr.right-2,wr.bottom-2);dc->LineTo(2,wr.bottom-2);dc->LineTo(2,2);
+                    Sleep(50);
+                    InvalidateRect(nullptr,0);
+                    UpdateWindow();*/
+                }
+
+            isShiftDown = GetKeyState(16) & 0xFFFE;
+
+            if (ValueEntryBox && nFlags != 0x1234)
+            {
+                if (ValueEntryBox == this->WindowFromPoint(cursor))
+                {
+                    //if clicked on the entry box
+                    ValueEntryBox->ScreenToClient(&cursor);
+                    ValueEntryBox->SendMessage(WM_LBUTTONDOWN, 0, cursor.x + (cursor.y << 16));
+                    return;
+                }
+            }
         }
 
-        if (point.x + point.y < TSize / 4 && point.x > 0 && point.y > 0)
+
+        if (DirectCallFlag || m_SelectedOption >= 0 && m_SelectedOption < 63)
         {
-            MovingMode = point.x + point.y * 20 + 1;
-            SetCapture();
-        }
-        RECT wr;
-        POINT cursor;
-        GetWindowRect(&wr);
-        GetCursorPos(&cursor);
-        if (point.x != -1 || point.y != -1)
-            if (cursor.x < wr.left || cursor.x > wr.right || cursor.y < wr.top || cursor.y > wr.bottom)
+            bool delete_clipboard_at_exit;
+            int dataval;
+            if (!DirectCallFlag)
             {
-                //clicked outside popup meni, sound alarm
-                HidePopupMenu();
-                return;
-                /*MessageBeep(0);
-                GetClientRect(&wr);
-                CDC *dc=this->GetDC();
-                dc->SelectObject(GetPenFromPool(3,1));
-                dc->MoveTo(2,2);dc->LineTo(wr.right-2,2);dc->LineTo(wr.right-2,wr.bottom-2);dc->LineTo(2,wr.bottom-2);dc->LineTo(2,2);
-                Sleep(50);
-                InvalidateRect(nullptr,0);
-                UpdateWindow();*/
+                delete_clipboard_at_exit = false;
+                dataval = Options[m_SelectedOption].Data;
             }
 
-        char isShiftDown = GetKeyState(16) & 0xFFFE;
-
-        if (ValueEntryBox && nFlags != 0x1234)
-        {
-            if (ValueEntryBox == this->WindowFromPoint(cursor))
+            if (DirectCallFlag)
             {
-                //if clicked on the entry box
-                ValueEntryBox->ScreenToClient(&cursor);
-                ValueEntryBox->SendMessage(WM_LBUTTONDOWN, 0, cursor.x + (cursor.y << 16));
-                return;
-            }
-        }
-
-
-        char delete_clipboard_at_exit = 0;
-        if (m_SelectedOption >= 0 && m_SelectedOption < 63)
-        {
-            int dataval = Options[m_SelectedOption].Data;
-
-            if (false)
-            {
-            DirectCall:
                 dataval = nFlags;
             }
 
@@ -3464,7 +3472,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     {
                         dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("Paste", 20201);
                         m_Expression->CopyAtPoint(nullptr, ViewZoom, -1, -1, ClipboardExpression);
-                        delete_clipboard_at_exit = 1;
+                        delete_clipboard_at_exit = true;
                     }
                 }
                 else
@@ -3797,7 +3805,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
             if (Options[m_SelectedOption].Data == 61 || Options[m_SelectedOption].Data == 62)
             {
                 dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->UndoSave("computation", 20210);
-                if (ClipboardExpression) delete_clipboard_at_exit = 1;
+                if (ClipboardExpression) delete_clipboard_at_exit = true;
 
                 if (this->m_Expression == nullptr && m_SelectedSuboption != 2)
                 {
@@ -4030,7 +4038,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     }
                     if (ClipboardExpression == nullptr) ClipboardExpression = new CExpression(nullptr, nullptr, 100);
                     ClipboardExpression->CopyExpression(Options[m_SelectedOption].Graphics, 0);
-                    delete_clipboard_at_exit = 0;
+                    delete_clipboard_at_exit = false;
                 }
                 else
                 {
@@ -4452,7 +4460,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                     KeyboardEntryObject->KeyboardPopupClosed(m_UserParam, Options[m_SelectedOption].Data);
                 else if (m_SelectedSuboption == 0)
                 {
-                    delete_clipboard_at_exit = 0;
+                    delete_clipboard_at_exit = false;
                     delete ClipboardExpression;
                     ClipboardExpression = new CExpression(nullptr, nullptr, 100);
                     ClipboardExpression->CopyExpression(m_Expression, 0);
