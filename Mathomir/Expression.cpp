@@ -1725,8 +1725,8 @@ void CExpression::PaintExpression(CDC* DC, short zoom, int X, int Y, RECT const*
                     {
                         //the last in the line or matrix/table cell
                         Xpos = X + m_pElementList[i - 1].X_pos + m_pElementList[i - 1].Length + (do_green
-                            ? 10 * m_MarginX / 8
-                            : m_MarginX * 2 / 3) - width / 2;
+                                ? 10 * m_MarginX / 8
+                                : m_MarginX * 2 / 3) - width / 2;
                     }
                     else
                     {

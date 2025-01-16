@@ -380,37 +380,43 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         }
         tDrawingItem* di = &Items[Drawing_temp_start];
 
-        di->X1 = x1;
-        di->X2 = x2;
-        di->Y1 = y1;
-        di->Y2 = y1;
-        di++;
-        di->X1 = x2;
-        di->X2 = x2;
-        di->Y1 = y1;
-        di->Y2 = y2;
-        di++;
-        di->X1 = x2;
-        di->X2 = x1;
-        di->Y1 = y2;
-        di->Y2 = y2;
-        di++;
-        di->X1 = x1;
-        di->X2 = x1;
-        di->Y1 = y2;
-        di->Y2 = y1;
-        di++;
+        Items.resize(4);
+        Items[Drawing_temp_start].X1 = x1;
+        Items[Drawing_temp_start].X2 = x2;
+        Items[Drawing_temp_start].Y1 = y1;
+        Items[Drawing_temp_start].Y2 = y1;
+
+        Items[Drawing_temp_start + 1].X1 = x2;
+        Items[Drawing_temp_start + 1].X2 = x2;
+        Items[Drawing_temp_start + 1].Y1 = y1;
+        Items[Drawing_temp_start + 1].Y2 = y2;
+
+        Items[Drawing_temp_start + 2].X1 = x2;
+        Items[Drawing_temp_start + 2].X2 = x1;
+        Items[Drawing_temp_start + 2].Y1 = y2;
+        Items[Drawing_temp_start + 2].Y2 = y2;
+
+        Items[Drawing_temp_start + 3].X1 = x1;
+        Items[Drawing_temp_start + 3].X2 = x1;
+        Items[Drawing_temp_start + 3].Y1 = y2;
+        Items[Drawing_temp_start + 3].Y2 = y1;
+
         if (Drawing_inside_create && Drawing_temp_form == 27)
         {
-            di->X1 = -5 * DRWZOOM;
-            di->X2 = 5 * DRWZOOM;
-            di->Y1 = 0;
-            di->Y2 = 0;
-            di++;
-            di->Y1 = -5 * DRWZOOM;
-            di->Y2 = 5 * DRWZOOM;
-            di->X1 = 0;
-            di->X2 = 0;
+            Items.resize(6);
+            Items[Drawing_temp_start + 4].X1 = -5 * DRWZOOM;
+            Items[Drawing_temp_start + 4].X2 = 5 * DRWZOOM;
+            Items[Drawing_temp_start + 4].Y1 = 0;
+            Items[Drawing_temp_start + 4].Y2 = 0;
+            Items[Drawing_temp_start + 4].Type = Items[Drawing_temp_start].Type;
+            Items[Drawing_temp_start + 4].LineWidth = Items[Drawing_temp_start].LineWidth;
+
+            Items[Drawing_temp_start + 5].Y1 = -5 * DRWZOOM;
+            Items[Drawing_temp_start + 5].Y2 = 5 * DRWZOOM;
+            Items[Drawing_temp_start + 5].X1 = 0;
+            Items[Drawing_temp_start + 5].X2 = 0;
+            Items[Drawing_temp_start + 5].Type = Items[Drawing_temp_start].Type;
+            Items[Drawing_temp_start + 5].LineWidth = Items[Drawing_temp_start].LineWidth;
         }
     }
 
@@ -671,6 +677,8 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
         Items.resize(Drawing_temp_start + points, {});
         for (int i = 0; i < points; i++)
         {
+            di->Type = Items[0].Type;
+            di->LineWidth = Items[0].LineWidth;
             di->X1 = static_cast<int>((x2 - x1) * sin(2 * 3.14159 * i / points) / 2) + x1 + (x2 - x1) / 2;
             di->Y1 = static_cast<int>((y2 - y1) * cos(2 * 3.14159 * i / points) / 2) + y1 + (y2 - y1) / 2;
             di->X2 = static_cast<int>((x2 - x1) * sin(2 * 3.14159 * (i + 1) / points) / 2) + x1 + (x2 - x1) / 2;
@@ -688,11 +696,15 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
             di->X2 = 5 * DRWZOOM;
             di->Y1 = 0;
             di->Y2 = 0;
+            di->Type = Items[Drawing_temp_start].Type;
+            di->LineWidth = Items[Drawing_temp_start].LineWidth;
             di++;
             di->Y1 = -5 * DRWZOOM;
             di->Y2 = 5 * DRWZOOM;
             di->X1 = 0;
             di->X2 = 0;
+            di->Type = Items[Drawing_temp_start].Type;
+            di->LineWidth = Items[Drawing_temp_start].LineWidth;
         }
     }
 
@@ -1060,7 +1072,7 @@ int CDrawing::UpdateCreatingItem(int X, int Y, int absX, int absY)
                                 //the di2 covers only other part of di
                                 di->X2 = di2->X2;
                                 di->Y2 = di2->Y2;
-                                for (size_t j = ii; j < Items.size(); j++) Items[j] = Items[j + 1];
+                                for (size_t j = ii; j + 1 < Items.size(); j++) Items[j] = Items[j + 1];
                                 Items.pop_back();
                                 if (di > di2) di--;
                             }
@@ -1725,7 +1737,7 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
                 tDrawingItem* di = &Items[ii];
                 if (di->X1 == di->X2 && di->Y1 == di->Y2)
                 {
-                    for (size_t iii = ii + 1; iii < Items.size() - 1; iii++)
+                    for (size_t iii = ii + 1; iii + 1 < Items.size(); iii++)
                         Items[iii] = Items[iii + 1];
                     Items.pop_back();
                     ii--;
@@ -1751,7 +1763,7 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
                 else if (x1 == x2 && x1 == x3)
                 {
                     Items[Items.size() - 2].Y2 = y1;
-                    Items.pop_back();;
+                    Items.pop_back();
                 }
                 else if (y1 == y2 && y1 == y3)
                 {
@@ -1792,8 +1804,8 @@ int CDrawing::EndCreatingItem(int* X, int* Y, int absX, int absY)
     {
         if (Items[0].X1 == Items[2].X1)
         {
-            Items[0].Y2 = Items[2].Y2;
             Items.resize(1, {});
+            Items[0].Y2 = Items[2].Y2;
         }
         if (Items[0].Y1 == Items[2].Y1)
         {
