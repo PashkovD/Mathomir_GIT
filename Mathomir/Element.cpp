@@ -3848,26 +3848,28 @@ char* CElement::XML_input(char* file, void* element_struct)
     bool hasE2 = false;
     bool hasE3 = false;
 
-    static char attribute[48];
     static char value[300];
-    do
+    while (true)
     {
+        std::string attribute;
         file = mf->XML_read_attribute(attribute, value, file, 299);
         if (file == nullptr) return nullptr;
-        if (strcmp(attribute, "color") == 0) m_Color = atoi(value);
-        else if (strcmp(attribute, "decor") == 0 && element_struct)
+        if (attribute.empty())
+            break;
+        if (attribute == "color") m_Color = atoi(value);
+        else if (attribute == "decor" && element_struct)
         {
             auto ts = static_cast<tElementStruct*>(element_struct);
             ts->Decoration = static_cast<tDecoration>(atoi(value));
         }
-        else if (strcmp(attribute, "Exp1") == 0 || strcmp(attribute, "E1") == 0) hasE1 = true;
-        else if (strcmp(attribute, "Exp2") == 0 || strcmp(attribute, "E2") == 0) hasE2 = true;
-        else if (strcmp(attribute, "Exp3") == 0 || strcmp(attribute, "E3") == 0) hasE3 = true;
+        else if (attribute == "Exp1" || attribute == "E1") hasE1 = true;
+        else if (attribute == "Exp2" || attribute == "E2") hasE2 = true;
+        else if (attribute == "Exp3" || attribute == "E3") hasE3 = true;
 
         if (m_Type == 1 || //variable
             m_Type == 6) //function
         {
-            if (strcmp(attribute, "tx") == 0 || strcmp(attribute, "t") == 0)
+            if (attribute == "tx" || attribute == "t")
             {
                 int i = 0;
                 int j = 0;
@@ -3881,7 +3883,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 Data1[j++] = 0;
             }
 
-            if (strcmp(attribute, "mods") == 0)
+            if (attribute == "mods")
             {
                 char tmp[3];
                 tmp[0] = value[0];
@@ -3892,7 +3894,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 m_VMods = static_cast<unsigned char>(tt);
             }
 
-            if (strcmp(attribute, "fnt") == 0 || strcmp(attribute, "f") == 0)
+            if (attribute == "fnt" || attribute == "f")
             {
                 int i = 0;
                 int j = 0;
@@ -3913,7 +3915,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                     i += 2;
                 }
             }
-            if (strcmp(attribute, "float") == 0)
+            if (attribute == "float")
             {
                 for (int ij = 0; ij < 8; ij++)
                 {
@@ -3930,7 +3932,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 Data1[14] = 0;
             }
 
-            if (strcmp(attribute, "mth") == 0)
+            if (attribute == "mth")
             {
                 if (value[0] == '1')
                 {
@@ -3943,7 +3945,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                         m_Text = 1;
                 }
             }
-            if (strcmp(attribute, "ttxt") == 0)
+            if (attribute == "ttxt")
             {
                 if (value[0] == '2') m_Text = 2;
                 if (value[0] == '3') m_Text = 3;
@@ -3952,18 +3954,18 @@ char* CElement::XML_input(char* file, void* element_struct)
         }
         if (m_Type == 2) //operator
         {
-            if (strcmp(attribute, "stp") == 0 || strcmp(attribute, "s") == 0)
+            if (attribute == "stp" || attribute == "s")
             {
                 Data1[0] = value[0];
                 if (Data1[0] == 9) Data1[3] = 0;
             }
-            if (strcmp(attribute, "tablen") == 0 && Data1[0] == 9)
+            if (attribute == "tablen" && Data1[0] == 9)
                 Data1[3] = atoi(value);
         }
 
         if (m_Type == 4) //fraction (rational number)
         {
-            if (strcmp(attribute, "stp") == 0)
+            if (attribute == "stp")
             {
                 if (toupper(value[0]) == 'S') Data1[0] = '/'; //semi-fraction
                 else if (toupper(value[0]) == 'A') Data1[0] = ' '; //a-over-b
@@ -3973,32 +3975,32 @@ char* CElement::XML_input(char* file, void* element_struct)
         }
         if (m_Type == 7) //sigma, pi, integral
         {
-            if (strcmp(attribute, "stp") == 0)
+            if (attribute == "stp")
             {
                 Data1[0] = toupper(value[0]);
                 if (toupper(value[0]) == 'C') Data1[0] = 'O';
                 Data2[2] = 1; //default value
             }
-            if (strcmp(attribute, "symbol_height") == 0 || strcmp(attribute, "sze") == 0)
+            if (attribute == "symbol_height" || attribute == "sze")
             {
                 Data2[0] = atoi(value);
             }
-            if (strcmp(attribute, "dimension") == 0)
+            if (attribute == "dimension")
             {
                 Data2[2] = atoi(value);
             }
-            if (strcmp(attribute, "limits_aside") == 0)
+            if (attribute == "limits_aside")
             {
                 Data2[1] = atoi(value);
             }
         }
         if (m_Type == 9)
         {
-            if (strcmp(attribute, "label") == 0)
+            if (attribute == "label")
             {
                 Data1[0] = 'L';
             }
-            if (strcmp(attribute, "URL") == 0)
+            if (attribute == "URL")
             {
                 Data1[0] = 'H';
                 *(char**)Data3 = nullptr;
@@ -4011,12 +4013,11 @@ char* CElement::XML_input(char* file, void* element_struct)
         }
         if (m_Type == 10) //condition list as element
         {
-            if (strcmp(attribute, "left_bar") == 0) Data1[0] |= atoi(value);
-            if (strcmp(attribute, "right_bar") == 0) Data1[0] |= atoi(value) << 1;
-            if (strcmp(attribute, "align") == 0) Data2[0] = atoi(value);
+            if (attribute == "left_bar") Data1[0] |= atoi(value);
+            if (attribute == "right_bar") Data1[0] |= atoi(value) << 1;
+            if (attribute == "align") Data2[0] = atoi(value);
         }
     }
-    while (attribute[0]);
 
     if (hasE1) //Expression1
     {

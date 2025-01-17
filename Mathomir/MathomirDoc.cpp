@@ -388,29 +388,30 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
                 //jumps over 'obj' or 'o' tags
 
                 int lock = 0;
-                char attribute[128];
-                do
+                while (true)
                 {
+                    std::string attribute;
                     char value[128];
                     file_pointer = dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->XML_read_attribute(
                         attribute, value, file_pointer, 128);
                     if (file_pointer == nullptr) goto openMOMfile_end; //unexpected end of file
+                    if (attribute.empty())
+                        break;
 
-                    if (strcmp(attribute, "type") == 0 || strcmp(attribute, "t") == 0)
+                    if (attribute == "type" || attribute == "t")
                         type = static_cast<doc_type>(atoi(value));
-                    else if (strcmp(attribute, "ver") == 0)
+                    else if (attribute == "ver")
                     {
                         XMLFileVersion = atoi(value);
                         if (filename) if (XMLFileVersion > 1) TheFileType = '2';
                     }
-                    else if (strcmp(attribute, "X") == 0) x = atoi(value);
-                    else if (strcmp(attribute, "Y") == 0) y = atoi(value);
-                    else if (strcmp(attribute, "lock") == 0) lock = atoi(value);
-                    else if (filename && strcmp(attribute, "page_w") == 0) PaperWidth = atoi(value);
-                    else if (filename && strcmp(attribute, "page_h") == 0) PaperHeight = atoi(value);
-                    else if (filename && strcmp(attribute, "numbering") == 0) PageNumeration = atoi(value);
+                    else if (attribute == "X") x = atoi(value);
+                    else if (attribute == "Y") y = atoi(value);
+                    else if (attribute == "lock") lock = atoi(value);
+                    else if (filename && attribute == "page_w") PaperWidth = atoi(value);
+                    else if (filename && attribute == "page_h") PaperHeight = atoi(value);
+                    else if (filename && attribute == "numbering") PageNumeration = atoi(value);
                 }
-                while (attribute[0]);
 
                 if (!type)
                     continue;

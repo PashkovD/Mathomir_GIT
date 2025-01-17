@@ -1817,8 +1817,9 @@ char* CMainFrame::XML_search(const std::string& text, char* file)
 //parses the XML file and reads the next attribute-value pair
 //this function must work fast!
 
-char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, int value_buffer_size)
+char* CMainFrame::XML_read_attribute(std::string& attribute, char* value, char* file, int value_buffer_size)
 {
+    char attribute2[64] = "";
     int j = 0;
     int k = 0;
     char started_attribute = 0;
@@ -1829,8 +1830,9 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
         {
             if (started_value == 0 && ch == '>') //no atribute-value pair found
             {
-                attribute[0] = 0;
+                attribute2[0] = 0;
                 value[0] = 0;
+                attribute = attribute2;
                 return file + 1;
             }
 
@@ -1843,15 +1845,16 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
                 if (tmp[0] == 0) return nullptr;
                 if (tmp[1] == 0) return nullptr;
                 int tt = 0;
-                sscanf(tmp, "%X", &tt);
+                sscanf_s(tmp, "%X", &tt);
                 ch = static_cast<char>(tt);
                 file += 2;
             }
 
             if (started_value == 1 && *file == '"') //value finished - return results
             {
-                attribute[j] = 0;
+                attribute2[j] = 0;
                 value[k] = 0;
+                attribute = attribute2;
                 return file + 1;
             }
 
@@ -1859,7 +1862,7 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
             if (started_attribute == 1 && ch == '=') started_attribute = 2;
             if (!started_attribute) started_attribute = 1;
 
-            if (started_attribute == 1) attribute[j++] = ch;
+            if (started_attribute == 1) attribute2[j++] = ch;
             if (started_value == 1 && *file != '"') value[k++] = ch;
             if (j > 47) j = 47;
             if (k >= value_buffer_size) k = value_buffer_size - 1;
@@ -1868,7 +1871,7 @@ char* CMainFrame::XML_read_attribute(char* attribute, char* value, char* file, i
 
         file++;
     }
-
+    attribute = attribute2;
     return nullptr;
 }
 

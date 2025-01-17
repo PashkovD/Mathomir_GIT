@@ -2856,18 +2856,20 @@ char* CDrawing::XML_input(char* file)
                 if (file[2] == 'o') file += 5;
                 else file += 2;
             }
-            static char attribute[64];
             static char value[256];
-            do
+            while (true)
             {
+                std::string attribute;
                 file = mf->XML_read_attribute(attribute, value, file, 256);
                 if (file == nullptr) return nullptr;
+                if (attribute.empty())
+                    break;
                 int ttt = atoi(value);
-                if (strcmp(attribute, "X1") == 0) { di->X1 = ttt * DRWZOOM / 1000; }
-                if (strcmp(attribute, "Y1") == 0) { di->Y1 = ttt * DRWZOOM / 1000; }
-                if (strcmp(attribute, "X2") == 0) { di->X2 = ttt * DRWZOOM / 1000; }
-                if (strcmp(attribute, "Y2") == 0) { di->Y2 = ttt * DRWZOOM / 1000; }
-                if (strcmp(attribute, "d") == 0) //data is stored as: X1,Y2;X2,Y2
+                if (attribute == "X1") { di->X1 = ttt * DRWZOOM / 1000; }
+                if (attribute == "Y1") { di->Y1 = ttt * DRWZOOM / 1000; }
+                if (attribute == "X2") { di->X2 = ttt * DRWZOOM / 1000; }
+                if (attribute == "Y2") { di->Y2 = ttt * DRWZOOM / 1000; }
+                if (attribute == "d") //data is stored as: X1,Y2;X2,Y2
                 {
                     int parsepos = 0, parseelm = 0;
                     char ch = ',';
@@ -2886,7 +2888,6 @@ char* CDrawing::XML_input(char* file)
                     }
                 }
             }
-            while (attribute[0]);
 
             if (di->Type == 0)
                 file = static_cast<CDrawing*>(di->pSubdrawing)->XML_input(file);
@@ -2909,31 +2910,33 @@ char* CDrawing::XML_input(char* file)
         di->pSubdrawing = nullptr;
         di->Type = 1;
 
-        static char attribute[64];
         static char value[256];
 
-        do
+        while (true)
         {
+            std::string attribute;
             file = mf->XML_read_attribute(attribute, value, file, 256);
             if (file == nullptr) return nullptr;
+            if (attribute.empty())
+                break;
             int ttt = atoi(value);
-            if (strcmp(attribute, "t") == 0 || strcmp(attribute, "type") == 0)
+            if (attribute == "t" || attribute == "type")
             {
                 int val = atoi(value);
                 di->Type = val % 10;
                 if (val >= 10) m_Color = val / 10 - 1;
             }
-            if (strcmp(attribute, "X1") == 0) { di->X1 = ttt * DRWZOOM / 1000; }
-            if (strcmp(attribute, "Y1") == 0) { di->Y1 = ttt * DRWZOOM / 1000; }
-            if (strcmp(attribute, "X2") == 0) { di->X2 = ttt * DRWZOOM / 1000; }
-            if (strcmp(attribute, "Y2") == 0) { di->Y2 = ttt * DRWZOOM / 1000; }
-            if (strcmp(attribute, "X3") == 0 ||
-                strcmp(attribute, "X4") == 0 ||
-                strcmp(attribute, "X5") == 0 ||
-                strcmp(attribute, "X6") == 0 ||
-                strcmp(attribute, "X7") == 0 ||
-                strcmp(attribute, "X8") == 0 ||
-                strcmp(attribute, "X9") == 0)
+            if (attribute == "X1") { di->X1 = ttt * DRWZOOM / 1000; }
+            else if (attribute == "Y1") { di->Y1 = ttt * DRWZOOM / 1000; }
+            else if (attribute == "X2") { di->X2 = ttt * DRWZOOM / 1000; }
+            else if (attribute == "Y2") { di->Y2 = ttt * DRWZOOM / 1000; }
+            else if (attribute == "X3" ||
+                attribute == "X4" ||
+                attribute == "X5" ||
+                attribute == "X6" ||
+                attribute == "X7" ||
+                attribute == "X8" ||
+                attribute == "X9")
             {
                 Items.push_back({});
                 di = &Items[Items.size() - 1];
@@ -2944,21 +2947,21 @@ char* CDrawing::XML_input(char* file)
                 di->Y1 = (di - 1)->Y2;
                 di->X2 = ttt * DRWZOOM / 1000;
             }
-            if (strcmp(attribute, "Y3") == 0 ||
-                strcmp(attribute, "Y4") == 0 ||
-                strcmp(attribute, "Y5") == 0 ||
-                strcmp(attribute, "Y6") == 0 ||
-                strcmp(attribute, "Y7") == 0 ||
-                strcmp(attribute, "Y8") == 0 ||
-                strcmp(attribute, "Y9") == 0)
+            if (attribute == "Y3" ||
+                attribute == "Y4" ||
+                attribute == "Y5" ||
+                attribute == "Y6" ||
+                attribute == "Y7" ||
+                attribute == "Y8" ||
+                attribute == "Y9")
             {
                 di->Y2 = ttt * DRWZOOM / 1000;
             }
-            if (strcmp(attribute, "width") == 0)
+            if (attribute == "width")
             {
                 di->LineWidth = ttt * DRWZOOM / 1000;
             }
-            if (strcmp(attribute, "spec") == 0)
+            if (attribute == "spec")
             {
                 IsSpecialDrawing = ttt;
                 if (IsSpecialDrawing == 50)
@@ -2974,7 +2977,7 @@ char* CDrawing::XML_input(char* file)
                     SpecialData = new CBitmapImage(this);
                 }
             }
-            if (strcmp(attribute, "d") == 0) //data is given as: width|X1,Y1;X2,Y2;X3,Y3;X4,Y4...
+            if (attribute == "d") //data is given as: width|X1,Y1;X2,Y2;X3,Y3;X4,Y4...
             {
                 int parsepos = 0, parseelm = 0;
                 char ch = ',';
@@ -3017,7 +3020,6 @@ char* CDrawing::XML_input(char* file)
                 }
             }
         }
-        while (attribute[0]);
     }
 
     return nullptr;

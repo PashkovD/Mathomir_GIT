@@ -1732,8 +1732,8 @@ void CExpression::PaintExpression(CDC* DC, short zoom, int X, int Y, RECT const*
                     {
                         //the last in the line or matrix/table cell
                         Xpos = X + m_pElementList[i - 1].X_pos + m_pElementList[i - 1].Length + (do_green
-                            ? 10 * m_MarginX / 8
-                            : m_MarginX * 2 / 3) - width / 2;
+                                ? 10 * m_MarginX / 8
+                                : m_MarginX * 2 / 3) - width / 2;
                     }
                     else
                     {
@@ -3688,9 +3688,6 @@ int CExpression::MoveElementInto(const tElementStruct& Element, size_t position)
             ts.pElementObject = nullptr;
         return 1;
     }
-
-    //expanding the element list
-    m_pElementList.push_back({});
 
     //moving data
     tElementStruct& ts = *m_pElementList.insert(m_pElementList.begin() + position, tElementStruct());
@@ -13116,35 +13113,36 @@ char* CExpression::XML_input(char* file)
 
     int realStartAsText = 0;
     int old_version_text_decode = 0;
-    static char attribute[64];
     static char value[256];
-    do
+    while (true)
     {
+        std::string attribute;
         file = mf->XML_read_attribute(attribute, value, file, 256);
         if (file == nullptr) return nullptr;
-        if (strcmp(attribute, "fnt_h") == 0 || strcmp(attribute, "fh") == 0) m_FontSize = atoi(value);
-        else if (strcmp(attribute, "stxt") == 0)
+        if (attribute.empty())
+            break;
+        if (attribute == "fnt_h" || attribute == "fh") m_FontSize = atoi(value);
+        else if (attribute == "stxt")
         {
             realStartAsText = atoi(value);
             if (old_version_text_decode == 0) m_StartAsText = realStartAsText;
         }
-        else if (strcmp(attribute, "txt") == 0)
+        else if (attribute == "txt")
         {
             m_StartAsText = 1;
             old_version_text_decode = 1;
         }
-        else if (strcmp(attribute, "hed") == 0) m_IsHeadline = atoi(value);
-        else if (strcmp(attribute, "vert") == 0) m_IsVertical = atoi(value);
-        else if (strcmp(attribute, "color") == 0 || strcmp(attribute, "clr") == 0) m_Color = atoi(value);
-        else if (strcmp(attribute, "alig") == 0) m_Alignment = atoi(value);
-        else if (strcmp(attribute, "brack") == 0 || strcmp(attribute, "br") == 0) m_ParenthesesFlags = atoi(value);
-        else if (strcmp(attribute, "b_shape") == 0 || strcmp(attribute, "shp") == 0) m_ParentheseShape = value[0];
-        else if (strcmp(attribute, "b_horiz") == 0) m_ParenthesesFlags |= atoi(value) << 2;
-        else if (strcmp(attribute, "b_noleft") == 0) m_ParenthesesFlags |= atoi(value) << 3;
-        else if (strcmp(attribute, "b_noright") == 0) m_ParenthesesFlags |= atoi(value) << 4;
-        else if (strcmp(attribute, "b_data") == 0) m_ParenthesesFlags |= atoi(value) << 2;
+        else if (attribute == "hed") m_IsHeadline = atoi(value);
+        else if (attribute == "vert") m_IsVertical = atoi(value);
+        else if (attribute == "color" || attribute == "clr") m_Color = atoi(value);
+        else if (attribute == "alig") m_Alignment = atoi(value);
+        else if (attribute == "brack" || attribute == "br") m_ParenthesesFlags = atoi(value);
+        else if (attribute == "b_shape" || attribute == "shp") m_ParentheseShape = value[0];
+        else if (attribute == "b_horiz") m_ParenthesesFlags |= atoi(value) << 2;
+        else if (attribute == "b_noleft") m_ParenthesesFlags |= atoi(value) << 3;
+        else if (attribute == "b_noright") m_ParenthesesFlags |= atoi(value) << 4;
+        else if (attribute == "b_data") m_ParenthesesFlags |= atoi(value) << 2;
     }
-    while (attribute[0]);
 
     bool found_anything = false;
     bool is_matrix = false;
@@ -13201,11 +13199,11 @@ char* CExpression::XML_input(char* file)
         if (strncmp(file, "col_sep", 7) == 0)
         {
             char buff[24];
-            char attrib[24];
+            std::string attrib;
             file += 7;
             mf->XML_read_attribute(attrib, buff, file, 20);
             InsertEmptyElement(m_pElementList.size(), 11, 0);
-            if (strcmp(attrib, "data") == 0)
+            if (attrib == "data")
             {
                 memcpy(m_pElementList[m_pElementList.size() - 1].pElementObject->Data1, buff, 20);
                 m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[21] = 0;
@@ -13217,7 +13215,7 @@ char* CExpression::XML_input(char* file)
         else if (strncmp(file, "row_sep", 7) == 0)
         {
             char buff[24];
-            char attrib[24];
+            std::string attrib;
             file += 7;
             mf->XML_read_attribute(attrib, buff, file, 20);
             if (old_version_text_decode)
@@ -13228,7 +13226,7 @@ char* CExpression::XML_input(char* file)
             {
                 InsertEmptyElement(m_pElementList.size(), 12, 0);
 
-                if (strcmp(attrib, "data") == 0)
+                if (attrib == "data")
                 {
                     memcpy(m_pElementList[m_pElementList.size() - 1].pElementObject->Data1, buff, 20);
                     m_pElementList[m_pElementList.size() - 1].pElementObject->Data1[21] = 0;
@@ -13256,12 +13254,13 @@ char* CExpression::XML_input(char* file)
             char tt = *file;
             if (tt == 'f') tt = *(file + 1);
             file += 3;
+            std::string attribute;
             if (tt == 'e') //'elm' to represents a general element (type 3...12) - we need to read the element type
             {
                 file = mf->XML_read_attribute(attribute, value, file, 256);
                 if (file == nullptr) return nullptr;
             }
-            if (tt != 'e' || strcmp(attribute, "tp") == 0)
+            if (tt != 'e' || attribute == "tp")
             {
                 tElementStruct element;
                 element.IsSelected = 0;

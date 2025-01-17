@@ -417,19 +417,21 @@ char* CBitmapImage::XML_input(char* file)
     if (strncmp(file, "bmp", 3) == 0)
     {
         file += 3;
-        static char attribute[64];
         static char value[256];
-        do
+        while (true)
         {
+            std::string attribute;
             file = mf->XML_read_attribute(attribute, value, file, 256);
             if (file == nullptr) return nullptr;
-            if (strcmp(attribute, "len") == 0 || strcmp(attribute, "bmplen") == 0)
+            if (attribute.empty())
+                break;
+            if (attribute == "len" || attribute == "bmplen")
             {
                 Image = new char[atoi(value) + 16];
                 imgsize = atoi(value);
                 bitmap_position_counter = 0;
             }
-            else if (strcmp(attribute, "b") == 0 || strcmp(attribute, "bits") == 0)
+            else if (attribute == "b" || attribute == "bits")
             {
                 for (unsigned int i = 0; i < strlen(value); i++)
                 {
@@ -489,7 +491,6 @@ char* CBitmapImage::XML_input(char* file)
                 }
             }
         }
-        while (attribute[0]);
     }
     return file;
 }

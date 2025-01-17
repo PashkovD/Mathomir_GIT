@@ -50,7 +50,7 @@ public:
     int MyBitBlt(CDC* DC, int X, int Y, int width, int height, int Xsrc, int Ysrc, bool IsXInvers);
     char* XML_search(const std::string& text, char* file);
     int ClearDocument();
-    char* XML_read_attribute(char* attribute, char* value, char* file, int value_buffer_size);
+    char* XML_read_attribute(std::string& attribute, char* value, char* file, int value_buffer_size);
     afx_msg void OnWindowPosChanged(WINDOWPOS* lpwndpos);
     int AdjustMenu(bool adjust_undo_only = 0);
     int MyCircle(CDC* DC, int X1, int Y1, int X2, int Y2, int PenWidth, char IsBlue);
