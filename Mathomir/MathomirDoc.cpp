@@ -390,27 +390,27 @@ int CMathomirDoc::OpenMOMFile(const char* filename)
                 int lock = 0;
                 while (true)
                 {
+                    std::string value;
                     std::string attribute;
-                    char value[128];
                     file_pointer = dynamic_cast<CMainFrame*>(theApp.m_pMainWnd)->XML_read_attribute(
-                        attribute, value, file_pointer, 128);
+                        attribute, value, file_pointer);
                     if (file_pointer == nullptr) goto openMOMfile_end; //unexpected end of file
                     if (attribute.empty())
                         break;
 
                     if (attribute == "type" || attribute == "t")
-                        type = static_cast<doc_type>(atoi(value));
+                        type = static_cast<doc_type>(std::stoi(value));
                     else if (attribute == "ver")
                     {
-                        XMLFileVersion = atoi(value);
+                        XMLFileVersion = std::stoi(value);
                         if (filename) if (XMLFileVersion > 1) TheFileType = '2';
                     }
-                    else if (attribute == "X") x = atoi(value);
-                    else if (attribute == "Y") y = atoi(value);
-                    else if (attribute == "lock") lock = atoi(value);
-                    else if (filename && attribute == "page_w") PaperWidth = atoi(value);
-                    else if (filename && attribute == "page_h") PaperHeight = atoi(value);
-                    else if (filename && attribute == "numbering") PageNumeration = atoi(value);
+                    else if (attribute == "X") x = std::stoi(value);
+                    else if (attribute == "Y") y = std::stoi(value);
+                    else if (attribute == "lock") lock = std::stoi(value);
+                    else if (filename && attribute == "page_w") PaperWidth = std::stoi(value);
+                    else if (filename && attribute == "page_h") PaperHeight = std::stoi(value);
+                    else if (filename && attribute == "numbering") PageNumeration = std::stoi(value);
                 }
 
                 if (!type)

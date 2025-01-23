@@ -652,11 +652,11 @@ int MyBitmapAbove = 0;
 int MyBitmapBelow = 0;
 int MyBitmapReservedWidth = 0;
 int MyBitmapReservedHeight = 0;
-int MyColor = 0;
+COLORREF MyColor = 0;
 CDC* MyOldDC;
 int MyBitmapIsNew = 0;
 
-int CMainFrame::StartMyPainting(CDC* DC, int width, int above, int below, int color)
+int CMainFrame::StartMyPainting(CDC* DC, int width, int above, int below, COLORREF color)
 {
     MyColor = color;
     if (MyBitmap == nullptr || DC != MyOldDC || width > MyBitmapReservedWidth || above + below >
@@ -726,7 +726,7 @@ int CMainFrame::ReleaseMyPainting()
 
 //bilts the drawn image into real device context (at x,y position) - the image is stretched
 //the problem is speed in halftone mode - it is too slow.
-int CMainFrame::EndMyPainting(CDC* DC, int X, int Y, int force_black, int flip_image)
+int CMainFrame::EndMyPainting(CDC* DC, int X, int Y, bool force_black, int flip_image)
 {
     int W = MyBitmapWidth >> 2;
     int H = MyBitmapAbove + MyBitmapBelow >> 2;
@@ -1817,9 +1817,11 @@ char* CMainFrame::XML_search(const std::string& text, char* file)
 //parses the XML file and reads the next attribute-value pair
 //this function must work fast!
 
-char* CMainFrame::XML_read_attribute(std::string& attribute, char* value, char* file, int value_buffer_size)
+char* CMainFrame::XML_read_attribute(std::string& attribute, std::string& value, char* file)
 {
+    size_t value_buffer_size = 299;
     char attribute2[64] = "";
+    char value2[300] = "";
     int j = 0;
     int k = 0;
     char started_attribute = 0;
@@ -1831,8 +1833,9 @@ char* CMainFrame::XML_read_attribute(std::string& attribute, char* value, char* 
             if (started_value == 0 && ch == '>') //no atribute-value pair found
             {
                 attribute2[0] = 0;
-                value[0] = 0;
+                value2[0] = 0;
                 attribute = attribute2;
+                value = value2;
                 return file + 1;
             }
 
@@ -1853,8 +1856,9 @@ char* CMainFrame::XML_read_attribute(std::string& attribute, char* value, char* 
             if (started_value == 1 && *file == '"') //value finished - return results
             {
                 attribute2[j] = 0;
-                value[k] = 0;
+                value2[k] = 0;
                 attribute = attribute2;
+                value = value2;
                 return file + 1;
             }
 
@@ -1863,7 +1867,7 @@ char* CMainFrame::XML_read_attribute(std::string& attribute, char* value, char* 
             if (!started_attribute) started_attribute = 1;
 
             if (started_attribute == 1) attribute2[j++] = ch;
-            if (started_value == 1 && *file != '"') value[k++] = ch;
+            if (started_value == 1 && *file != '"') value2[k++] = ch;
             if (j > 47) j = 47;
             if (k >= value_buffer_size) k = value_buffer_size - 1;
         }
@@ -1872,6 +1876,7 @@ char* CMainFrame::XML_read_attribute(std::string& attribute, char* value, char* 
         file++;
     }
     attribute = attribute2;
+    value = value2;
     return nullptr;
 }
 
@@ -1890,7 +1895,7 @@ int CMainFrame::RearangeObjects(int delta)
         int miny = ds.absolute_Y - delta;
         int maxy = ds.absolute_Y + ds.Below;
 
-        for (int j = 0; j < NumDocumentElements; j++)
+        for (size_t j = 0; j < NumDocumentElements; j++)
         {
             const tDocumentStruct& ds2 = TheDocument[j];
             if ((ds2.MovingDotState & 0xC0) != 0 || ds2.MovingDotState == 5)

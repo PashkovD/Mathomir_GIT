@@ -3848,19 +3848,19 @@ char* CElement::XML_input(char* file, void* element_struct)
     bool hasE2 = false;
     bool hasE3 = false;
 
-    static char value[300];
     while (true)
     {
+        std::string value;
         std::string attribute;
-        file = mf->XML_read_attribute(attribute, value, file, 299);
+        file = mf->XML_read_attribute(attribute, value, file);
         if (file == nullptr) return nullptr;
         if (attribute.empty())
             break;
-        if (attribute == "color") m_Color = atoi(value);
+        if (attribute == "color") m_Color = std::stoi(value);
         else if (attribute == "decor" && element_struct)
         {
             auto ts = static_cast<tElementStruct*>(element_struct);
-            ts->Decoration = static_cast<tDecoration>(atoi(value));
+            ts->Decoration = static_cast<tDecoration>(std::stoi(value));
         }
         else if (attribute == "Exp1" || attribute == "E1") hasE1 = true;
         else if (attribute == "Exp2" || attribute == "E2") hasE2 = true;
@@ -3960,7 +3960,7 @@ char* CElement::XML_input(char* file, void* element_struct)
                 if (Data1[0] == 9) Data1[3] = 0;
             }
             if (attribute == "tablen" && Data1[0] == 9)
-                Data1[3] = atoi(value);
+                Data1[3] = std::stoi(value);
         }
 
         if (m_Type == 4) //fraction (rational number)
@@ -3983,15 +3983,15 @@ char* CElement::XML_input(char* file, void* element_struct)
             }
             if (attribute == "symbol_height" || attribute == "sze")
             {
-                Data2[0] = atoi(value);
+                Data2[0] = std::stoi(value);
             }
             if (attribute == "dimension")
             {
-                Data2[2] = atoi(value);
+                Data2[2] = std::stoi(value);
             }
             if (attribute == "limits_aside")
             {
-                Data2[1] = atoi(value);
+                Data2[1] = std::stoi(value);
             }
         }
         if (m_Type == 9)
@@ -4007,15 +4007,15 @@ char* CElement::XML_input(char* file, void* element_struct)
                 if (value[0])
                 {
                     *(char**)Data3 = static_cast<char*>(malloc(300));
-                    strcpy(*(char**)Data3, value);
+                    strcpy(*(char**)Data3, value.c_str());
                 }
             }
         }
         if (m_Type == 10) //condition list as element
         {
-            if (attribute == "left_bar") Data1[0] |= atoi(value);
-            if (attribute == "right_bar") Data1[0] |= atoi(value) << 1;
-            if (attribute == "align") Data2[0] = atoi(value);
+            if (attribute == "left_bar") Data1[0] |= std::stoi(value);
+            if (attribute == "right_bar") Data1[0] |= std::stoi(value) << 1;
+            if (attribute == "align") Data2[0] = std::stoi(value);
         }
     }
 

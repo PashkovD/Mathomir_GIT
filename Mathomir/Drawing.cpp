@@ -2856,15 +2856,15 @@ char* CDrawing::XML_input(char* file)
                 if (file[2] == 'o') file += 5;
                 else file += 2;
             }
-            static char value[256];
             while (true)
             {
+                std::string value;
                 std::string attribute;
-                file = mf->XML_read_attribute(attribute, value, file, 256);
+                file = mf->XML_read_attribute(attribute, value, file);
                 if (file == nullptr) return nullptr;
                 if (attribute.empty())
                     break;
-                int ttt = atoi(value);
+                int ttt = std::stoi(value);
                 if (attribute == "X1") { di->X1 = ttt * DRWZOOM / 1000; }
                 if (attribute == "Y1") { di->Y1 = ttt * DRWZOOM / 1000; }
                 if (attribute == "X2") { di->X2 = ttt * DRWZOOM / 1000; }
@@ -2877,14 +2877,14 @@ char* CDrawing::XML_input(char* file)
                     {
                         if ((ch < '0' || ch > '9') && ch != '-')
                         {
-                            ttt = atoi(value + parsepos);
+                            ttt = atoi(value.c_str() + parsepos);
                             if (parseelm == 0) di->X1 = ttt;
                             if (parseelm == 1) di->Y1 = ttt;
                             if (parseelm == 2) di->X2 = ttt;
                             if (parseelm == 3) di->Y2 = ttt;
                             parseelm++;
                         }
-                        ch = *(value + parsepos++);
+                        ch = value[parsepos++];
                     }
                 }
             }
@@ -2910,19 +2910,18 @@ char* CDrawing::XML_input(char* file)
         di->pSubdrawing = nullptr;
         di->Type = 1;
 
-        static char value[256];
-
         while (true)
         {
+            std::string value;
             std::string attribute;
-            file = mf->XML_read_attribute(attribute, value, file, 256);
+            file = mf->XML_read_attribute(attribute, value, file);
             if (file == nullptr) return nullptr;
             if (attribute.empty())
                 break;
-            int ttt = atoi(value);
+            int ttt = std::stoi(value);
             if (attribute == "t" || attribute == "type")
             {
-                int val = atoi(value);
+                int val = std::stoi(value);
                 di->Type = val % 10;
                 if (val >= 10) m_Color = val / 10 - 1;
             }
@@ -2985,7 +2984,7 @@ char* CDrawing::XML_input(char* file)
                 {
                     if ((ch < '0' || ch > ':') && ch != '-')
                     {
-                        ttt = atoi(value + parsepos);
+                        ttt = atoi(value.c_str() + parsepos);
                         if (parseelm == 0) di->LineWidth = ttt;
                         if (parseelm == 1) di->X1 = ttt;
                         if (parseelm == 2) di->Y1 = ttt;
@@ -2998,7 +2997,7 @@ char* CDrawing::XML_input(char* file)
                                 Items.push_back({});
                                 di = &Items[Items.size() - 1];
 
-                                if (*(value + parsepos) == ':')
+                                if (value[parsepos] == ':')
                                     ttt = (di - 1)->X2; //colon means that the value is the same as in item before
                                 di->LineWidth = (di - 1)->LineWidth;
                                 di->pSubdrawing = nullptr;
@@ -3009,14 +3008,14 @@ char* CDrawing::XML_input(char* file)
                             }
                             else
                             {
-                                if (*(value + parsepos) == ':')
+                                if (value[parsepos] == ':')
                                     ttt = (di - 1)->Y2; //colon means that the value is the same as in item before
                                 di->Y2 = ttt;
                             }
                         }
                         parseelm++;
                     }
-                    ch = *(value + parsepos++);
+                    ch = value[parsepos++];
                 }
             }
         }
