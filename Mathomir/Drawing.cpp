@@ -2762,24 +2762,12 @@ void CDrawing::XML_output(std::ostream& output, int num_tabs) const
 
     //handling special drawings
 
-    int datalen = 0;
-
     if (IsSpecialDrawing == 52)
-        datalen = static_cast<CBitmapImage*>(SpecialData)->XML_output(nullptr, num_tabs, true);
+        static_cast<CBitmapImage*>(SpecialData)->XML_output(output, num_tabs);
     else if (IsSpecialDrawing == 51)
-        datalen = static_cast<CFunctionPlotter*>(SpecialData)->XML_output(nullptr, num_tabs, true);
+        static_cast<CFunctionPlotter*>(SpecialData)->XML_output(output, num_tabs);
     else if (IsSpecialDrawing == 50)
-        datalen = static_cast<CDrawingBox*>(SpecialData)->XML_output(nullptr, num_tabs, true);
-
-    auto data = new char[datalen + 10];
-    data[0] = '\0';
-    if (IsSpecialDrawing == 52)
-        static_cast<CBitmapImage*>(SpecialData)->XML_output(data, num_tabs, false);
-    else if (IsSpecialDrawing == 51)
-        static_cast<CFunctionPlotter*>(SpecialData)->XML_output(data, num_tabs, false);
-    else if (IsSpecialDrawing == 50)
-        static_cast<CDrawingBox*>(SpecialData)->XML_output(data, num_tabs, false);
-    output << data;
+        static_cast<CDrawingBox*>(SpecialData)->XML_output(output, num_tabs);
 }
 
 #pragma optimize("s",on)

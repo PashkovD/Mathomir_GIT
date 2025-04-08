@@ -657,7 +657,7 @@ int CMathomirDoc::SaveMOMFile(const char* filename, char filetype)
                     type = static_cast<doc_type>(0);
                     x = 0;
                     y = 0;
-                    ostr << "<obj type=\"" << ds->Type << "\"";
+                    ostr << "<obj type=\"" << static_cast<unsigned>(ds->Type) << "\"";
                 }
                 else
                 {

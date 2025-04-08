@@ -1830,9 +1830,8 @@ int CFunctionPlotter::MouseMove(CDC* DC, int X, int Y, UINT flags)
     return 0;
 }
 
-int CFunctionPlotter::XML_output(char* output, int num_tabs, char only_calculate)
+void CFunctionPlotter::XML_output(std::ostream& output, int num_tabs)
 {
-    return 0;
 }
 
 char* CFunctionPlotter::XML_input(char* file)

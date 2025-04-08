@@ -851,9 +851,8 @@ int CDrawingBox::MouseMove(CDC* DC, int X, int Y, UINT flags)
     return redraw_flag;
 }
 
-int CDrawingBox::XML_output(char* output, int num_tabs, char only_calculate)
+void CDrawingBox::XML_output(std::ostream& output, int num_tabs)
 {
-    return 0;
 }
 
 char* CDrawingBox::XML_input(char* file)

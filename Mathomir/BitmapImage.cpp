@@ -276,23 +276,20 @@ int CBitmapImage::MouseMove(CDC* DC, int X, int Y, UINT flags)
 }
 
 #pragma optimize("s",on)
-int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) const
+void CBitmapImage::XML_output(std::ostream& output, int num_tabs) const
 {
-    static char tmpstr[256];
+    char tmpstr[256];
 
     int repeater = 0;
 
     unsigned char pd1 = 0, pd2 = 0, pd3 = 0;
-    int i = 0;
+    unsigned int i = 0;
     int j = 0;
-    int xlen = imgsize;
-    sprintf_s(tmpstr, "<bmp len=\"%d\" b=\"", xlen);
-    size_t len = strlen(tmpstr);
-    if (!only_calculate)
-    {
-        strcpy(output, tmpstr);
-        output += strlen(tmpstr);
-    }
+    size_t xlen = imgsize;
+    output << "<bmp len=\"" << xlen << "\" b=\"";
+    auto image_out = new char[xlen + 256]{};
+    image_out[0] = '\0';
+    auto out = image_out;
 
     //because all images are 24-bit, we are using compresion over 3 bytes.
     while (i < xlen)
@@ -306,17 +303,13 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
             repeater++;
             if (repeater == 1)
             {
-                if (!only_calculate)
-                {
-                    *output = 99;
-                    output += 1;
-                }
-                len += 1;
+                *out = 99;
+                out += 1;
                 j += 1;
             }
             else
             {
-                if (!only_calculate) *(output - 1) = *(output - 1) + 1;
+                *(out - 1) = *(out - 1) + 1;
                 if (repeater > 25) repeater = 0;
             }
         }
@@ -328,12 +321,8 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
             repeater = 0;
 
             //white color pixel - very common and deserves special code 33
-            if (!only_calculate)
-            {
-                *output = 33;
-                output += 1;
-            }
-            len += 1;
+            *out = 33;
+            out += 1;
             j += 1;
         }
         else if (d1 == 0x00 && d2 == 0x00 && d3 == 0x00)
@@ -344,12 +333,8 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
             repeater = 0;
 
             //black color pixel - very common and deserves special code 127
-            if (!only_calculate)
-            {
-                *output = 127;
-                output += 1;
-            }
-            len += 1;
+            *out = 127;
+            out += 1;
             j += 1;
         }
         else
@@ -374,12 +359,8 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
             if (d4 == 92) d4 = 125;
 
             sprintf_s(tmpstr, "%c%c%c%c", d1, d2, d3, d4);
-            len += 4;
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += 4;
-            }
+            strcpy(out, tmpstr);
+            out += 4;
             j += 4;
         }
 
@@ -387,25 +368,16 @@ int CBitmapImage::XML_output(char* output, int num_tabs, char only_calculate) co
         {
             repeater = 0;
             sprintf_s(tmpstr, "\" />\r\n<bmp b=\"");
-            len += strlen(tmpstr);
-            if (!only_calculate)
-            {
-                strcpy(output, tmpstr);
-                output += strlen(tmpstr);
-            }
+            strcpy(out, tmpstr);
+            out += strlen(tmpstr);
             j = 0;
         }
         i += 3;
     }
-    sprintf_s(tmpstr, "\" />\r\n");
-    len += strlen(tmpstr);
-    if (!only_calculate)
-    {
-        strcpy(output, tmpstr);
-        output += strlen(tmpstr);
-    }
-
-    return static_cast<int>(len);
+    output << image_out;
+    delete[] image_out;
+    output << "\" />\r\n";
+    output << tmpstr;
 }
 
 int bitmap_position_counter = 0;

@@ -258,13 +258,13 @@ struct tFontPool
     byte Combination;
 };
 
-int NumFontsInPool;
-tFontPool FontPoolList[MAX_NUM_FONTS];
+std::vector<tFontPool> FontPoolList;
 
 void ClearFontPool()
 {
-    for (int i = 0; i < NumFontsInPool; i++) DeleteObject(FontPoolList[i].Font);
-    NumFontsInPool = 0;
+    for (auto& value : FontPoolList)
+        DeleteObject(value.Font);
+    FontPoolList.clear();
 }
 
 
@@ -275,33 +275,35 @@ HFONT GetFontFromPool(char Face, bool Italic, bool Bold, unsigned short Size)
 
 HFONT GetFontFromPool(byte combination, unsigned short Size)
 {
-    tFontPool* tp = FontPoolList;
-    for (int i = 0; i < NumFontsInPool; i++, tp++)
+    for (auto& tp : FontPoolList)
     {
         //check if the font is already in pool
-        if (combination == tp->Combination && tp->Size == Size)
+        if (combination == tp.Combination && tp.Size == Size)
         {
             //we found exact mach - we will reward this font by adding some points
-            if (tp->NumRequests < 20000) tp->NumRequests += 3;
+            if (tp.NumRequests < 20000)
+                tp.NumRequests += 3;
 
             //return this font
-            return tp->Font;
+            return tp.Font;
         }
     }
 
     //font not found, we must create one
     //first, adjust usage counters
-    tp = FontPoolList;
-    int min_pos = 0, min_requests = 21000;
-    for (int i = 0; i < NumFontsInPool; i++, tp++)
+    size_t min_pos = 0;
+    int min_requests = 21000;
+    for (size_t i = 0; i < FontPoolList.size(); i++)
     {
+        tFontPool& tp = FontPoolList[i];
         //find the least used font
-        if (tp->NumRequests <= min_requests)
+        if (tp.NumRequests <= min_requests)
         {
-            min_requests = tp->NumRequests;
+            min_requests = tp.NumRequests;
             min_pos = i;
         }
-        if (tp->NumRequests > 0) tp->NumRequests--;
+        if (tp.NumRequests > 0)
+            tp.NumRequests--;
     }
 
     byte Face = (combination & 0xE0) >> 5;
@@ -333,14 +335,15 @@ HFONT GetFontFromPool(byte combination, unsigned short Size)
     if (theFont == nullptr) return static_cast<HFONT>(GetStockObject(SYSTEM_FONT));
 
     //store the font to the font pool (if there is no space, delete one)
-    if (NumFontsInPool < MAX_NUM_FONTS)
+    tFontPool* tp;
+    if (FontPoolList.size() < MAX_NUM_FONTS)
     {
-        tp = FontPoolList + NumFontsInPool;
-        NumFontsInPool++;
+        FontPoolList.push_back({});
+        tp = &FontPoolList[FontPoolList.size() - 1];
     }
     else
     {
-        tp = FontPoolList + min_pos;
+        tp = &FontPoolList[min_pos];
         DeleteObject(tp->Font);
     }
 
