@@ -26,6 +26,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PopupMenu.h"
 
 #include <algorithm>
+#include <numbers>
 
 #include "./popupmenu.h"
 #include "mainfrm.h"
@@ -2082,7 +2083,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     }
                                     else
                                     {
-                                        exp->CopyExpression(TheDocument[orderno].Object.exp, 0);
+                                        exp->CopyExpression(TheDocument[orderno].Object.exp);
                                         exp->m_IsHeadline = 0;
                                     }
                                 }
@@ -2543,7 +2544,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             CDrawing* drw = ds->Object.draw;
                             int minx, miny, maxx, maxy;
                             drw->FindRealCorner(&minx, &miny, &maxx, &maxy);
-                            drw->InsertItemAt(drw->Items.size());
+                            drw->Items.push_back({});
                             tDrawingItem* di = &drw->Items[drw->Items.size() - 1];
                             di->LineWidth = DRWZOOM;
                             di->Type = 1;
@@ -2644,10 +2645,10 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 if (arrow_end == 3) num_lines *= 2;
                                 for (int i = 0; i < num_lines; i++)
                                 {
-                                    drw->InsertItemAt(drw->Items.size());
-                                    drw->Items[drw->Items.size() - 1].Type = 1;
-                                    drw->Items[drw->Items.size() - 1].pSubdrawing = nullptr;
-                                    drw->Items[drw->Items.size() - 1].LineWidth = drw->Items[0].LineWidth * 3 / (
+                                    drw->Items.push_back({});
+                                    drw->Items.rbegin()->Type = 1;
+                                    drw->Items.rbegin()->pSubdrawing = nullptr;
+                                    drw->Items.rbegin()->LineWidth = drw->Items[0].LineWidth * 3 / (
                                         data == 597 ? 2 : 3);
                                 }
                                 tDrawingItem* di2 = &drw->Items[drw->Items.size() - num_lines];
@@ -2785,7 +2786,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 tDrawingItem* di;
                                 if (form & 0x01)
                                 {
-                                    drw->InsertItemAt(0);
+                                    drw->Items.insert(drw->Items.begin(), {});
                                     di = &drw->Items[0];
                                     di->LineWidth = g % 5 ? DRWZOOM / 2 : DRWZOOM;
                                     di->Type = 1;
@@ -2797,7 +2798,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 }
                                 if (form & 0x02)
                                 {
-                                    drw->InsertItemAt(0);
+                                    drw->Items.insert(drw->Items.begin(), {});
                                     di = &drw->Items[0];
                                     di->LineWidth = g % 5 ? DRWZOOM / 2 : DRWZOOM;
                                     di->Type = 1;
@@ -2815,7 +2816,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 tDrawingItem* di;
                                 if (form & 0x04)
                                 {
-                                    drw->InsertItemAt(0);
+                                    drw->Items.insert(drw->Items.begin(), {});
                                     di = &drw->Items[0];
                                     di->LineWidth = g % 5 ? DRWZOOM / 2 : DRWZOOM;
                                     di->Type = 1;
@@ -2827,7 +2828,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                 }
                                 if (form & 0x08)
                                 {
-                                    drw->InsertItemAt(0);
+                                    drw->Items.insert(drw->Items.begin(), {});
                                     di = &drw->Items[0];
                                     di->LineWidth = g % 5 ? DRWZOOM / 2 : DRWZOOM;
                                     di->Type = 1;
@@ -3121,7 +3122,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                                     return;
                                 }
                             }
-                            angle = angle * 3.14159265 / 180.0;
+                            angle = angle * std::numbers::pi / 180.0;
                             if (ds->Type == DRAWING)
                             {
                                 ds->Object.draw->RotateForAngle(
@@ -3900,7 +3901,7 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                         if (m_OwnerType != 3 || KeyboardEntryBaseObject == nullptr)
                         {
                             auto copy = new CExpression(nullptr, nullptr, 100);
-                            copy->CopyExpression(parent, 0);
+                            copy->CopyExpression(parent);
                             int ps = parent->m_ParentheseShape;
                             //int ph=parent->m_ParentheseHeightFactor;
                             //int pd=parent->m_ParentheseData;
@@ -3941,8 +3942,8 @@ void PopupMenu::OnLButtonDown(UINT nFlags, CPoint point)
                             }
                             copy2 = new CExpression(nullptr, nullptr, fs);
                             //copy2->m_FontSizeHQ=fsh;
-                            copy2->CopyExpression(parent, 0);
-                            parent->CopyExpression(copy, 0);
+                            copy2->CopyExpression(parent);
+                            parent->CopyExpression(copy);
                             parent->m_ParentheseShape = ps;
                             //parent->m_ParentheseHeightFactor=ph;
                             //parent->m_ParentheseData=pd;
@@ -5012,12 +5013,12 @@ int PopupMenu::SymbolicComputation()
         {
             if (is_pi)
             {
-                N = asin(1.0) * 2;
+                N = std::numbers::pi;
                 prec = 4;
             }
             if (is_e)
             {
-                N = exp(1.0);
+                N = std::numbers::e;
                 prec = 4;
             }
             PopupMenu_AddMathHeader = 2;

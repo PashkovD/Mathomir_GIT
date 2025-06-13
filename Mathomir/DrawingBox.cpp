@@ -19,6 +19,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 *********************************************************************************************************/
 #include "StdAfx.h"
+
+#include <numbers>
+
 #include "./drawing.h"
 #include "Mathomir.h"
 #include "mainfrm.h"
@@ -80,7 +83,7 @@ int CDrawingBox::CopyFrom(const CDrawing* Original)
 }
 
 //Paints the object interior (painting starts from X,Y coordinates - upper left corner)
-int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg, int no_background)
+int CDrawingBox::Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg, bool no_background)
 {
     if (absX < 0) return 0;
     if (!IsToolboxShown) return 0;
@@ -984,8 +987,9 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     AddDocumentObject(DRAWING, InsertPositionX, InsertPositionY);
                     auto drw = new CDrawing();
                     drw->StartCreatingItem(2);
-                    drw->UpdateCreatingItem(static_cast<int>(p1[0] * ux * cos(p1[1] / 180 * 3.14159265) * 10),
-                                            static_cast<int>(p1[0] * uy * sin(p1[1] / 180 * 3.14159265) * 10), X, Y);
+                    drw->UpdateCreatingItem(static_cast<int>(p1[0] * ux * cos(p1[1] / 180 * std::numbers::pi) * 10),
+                                            static_cast<int>(p1[0] * uy * sin(p1[1] / 180 * std::numbers::pi) * 10), X,
+                                            Y);
                     drw->EndCreatingItem(&x1, &y1);
                     TheDocument[NumDocumentElements - 1].Object.draw = drw;
                     LastDrawingCreated = NumDocumentElements - 1;
@@ -1078,7 +1082,7 @@ int CDrawingBox::ExecuteCommandLine(short X, short Y, int absX, int absY) const
                     int cy = TheDocument[LastDrawingCreated].absolute_Y + TheDocument[LastDrawingCreated].Below / 2;
                     int x1, y1, w, h;
                     TheDocument[LastDrawingCreated].Object.draw->RotateForAngle(
-                        static_cast<float>(p1[0] / 180 * 3.14159265), cx, cy, &x1, &y1, &w, &h);
+                        static_cast<float>(p1[0] / 180 * std::numbers::pi), cx, cy, &x1, &y1, &w, &h);
                 }
                 if (cmd == 6)
                 {

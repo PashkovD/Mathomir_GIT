@@ -1960,7 +1960,7 @@ int CFunctionPlotter::PlotFunction(int reset_plot, CDC* PrintDC, short ViewZoom)
                 static_cast<CExpression*>(pItem->pSubdrawing)->m_pElementList[0].Type != 0)
             {
                 Func[kk] = new CExpression(nullptr, nullptr, 100);
-                Func[kk]->CopyExpression(static_cast<CExpression*>(pItem->pSubdrawing), 0);
+                Func[kk]->CopyExpression(static_cast<CExpression*>(pItem->pSubdrawing));
                 any_found = 1;
             }
         }

@@ -177,13 +177,16 @@ public:
     CObject* SelectObjectAtPoint(CDC* DC, short zoom, int X, int Y, short* IsExpression, bool& IsParenthese,
                                  bool ForceInsertionPoint = false);
     // Copies all data from original expression
+    int CopyExpression(const CExpression& Original);
+    int CopyExpression(const CExpression* Original);
     int CopyExpression(CExpression* Original, char OnlySelected, char selection_type = 1,
-                       char update_clipboard = true);
+                       bool update_clipboard = true);
     void Delete();
     int InsertElement(const tElementStruct& Element, size_t position);
     int MoveElementInto(const tElementStruct& Element, size_t position);
     //int MovePortionInto(int destination_pos, CExpression *Original, int source_pos, int num_elements);
-    CExpression* CopyAtPoint(CDC* DC, short zoom, short X, short Y, CExpression* Original, int keyboard_select = 1);
+    CExpression* CopyAtPoint(CDC* DC, short zoom, short X, short Y, const CExpression* Original,
+                             int keyboard_select = 1);
     int DeleteElement(size_t position);
     CExpression* AdjustSelection(char keyboard_select = 1);
     int KeyboardStart(CDC* DC, short zoom);
@@ -213,6 +216,7 @@ public:
     // select element of the matris at (row,column)
     int SelectMatrixElement(int row, int column, char select_type = 1);
     // returns the postion of the first element at (row,column), also expands matrix if neccessary
+    int FindMatrixElement(int row, int column) const;
     int FindMatrixElement(int row, int column, int expand_flag);
     int InsertMatrixColumn(int position);
     int InsertMatrixRow(int position);
@@ -244,7 +248,7 @@ public:
     int Compute(int StartPos, int EndPos, int ComputationType, int OutsideLevel = -1);
     int ExecuteComputation(int StartPos, int EndPos, char element_type, int StartPos2, int EndPos2, char element_type2,
                            int ComputationType);
-    int IsPureNumber(int StartPos, int len, double* number, int* precision);
+    int IsPureNumber(int StartPos, int len, double* number, int* precision) const;
     int GenerateASCIINumber(double number_dbl, long long number_int, bool is_integer, int precision, int position);
     static int CompareElement(const tElementStruct& ts1, const tElementStruct& ts2);
     //int GetOperatorLevel(char op);
@@ -308,7 +312,7 @@ public:
     int ConvertToPlainText(int buffer_size, char* str, bool force_parentheses = false) const;
     int AutowrapText(CDC* DC, int width, int rewrap_all);
     int IsTextContained(int position, bool unmark_at_line_start = 0) const;
-    int GetCellAttributes(int row, int column, tCellAttributes* attributes);
+    int GetCellAttributes(int row, int column, tCellAttributes* attributes) const;
     //int GetCellAttributes(int row, int column,char *align, char *top, char *bottom, char *left, char *right);
     int SetCellAttributes(int row, int column, char align, char top, char bottom, char left, char right);
     //int FuseDifferentials(void);

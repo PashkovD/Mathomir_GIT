@@ -49,14 +49,14 @@ public:
     // Erases the square drawing part
     int EraseSquare(int X1, int Y1, int X2, int Y2, CDrawing* parent);
     // finds crospoint of an drawing item with vertical line
-    int FindCrosspointX(const tDrawingItem& di, int X, int Y1, int Y2, int* pX, int* pY);
+    int FindCrosspointX(const tDrawingItem& di, int X, int Y1, int Y2, int* pX, int* pY) const;
     // finds crosspoint of an drawing item with horizontal line
-    int FindCrosspointY(const tDrawingItem& di, int Y, int X1, int X2, int* pX, int* pY);
-    int InsertItemAt(size_t pos);
+    int FindCrosspointY(const tDrawingItem& di, int Y, int X1, int X2, int* pX, int* pY) const;
     int Combine();
     int BreakApart(tDrawingItem* di, CDrawing* parent);
     int CopyDrawingIntoSubgroup(const CDrawing* Original, int x, int y);
-    int CopyExpressionIntoSubgroup(CExpression* Original, int x, int y, int widht, int height);
+    int CopyExpressionIntoSubgroup(const CExpression& Original, int x, int y, int widht, int height);
+    int CopyExpressionIntoSubgroup(const CExpression* Original, int x, int y, int widht, int height);
     int SetLineWidth(int width);
     int ScaleForFactor(float factorx, float factory);
     int RotateForAngle(float angle, int centerX, int centerY, int* newX1, int* newY1, int* newW, int* newH);
@@ -77,7 +77,7 @@ public:
                    char* num_points_found = nullptr);
     int MakeDashed(char dash_dot);
     int FindNerbyPoint(int* X, int* Y, CDrawing* drw, int X0, int Y0, int X1, int Y1);
-    void FindBottomRightDrawingPoint(int* X, int* Y) const;
+    void FindBottomRightDrawingPoint(int& X, int& Y) const;
     int AllowQuickEditNodes() const;
 };
 
@@ -99,7 +99,7 @@ public:
     CDrawingBox(CDrawing* BaseItem);
     ~CDrawingBox();
 
-    int Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg, int no_background);
+    int Paint(CDC* DC, short zoom, short X, short Y, int absX, int absY, RECT* ClipReg, bool no_background);
     int MouseMove(CDC* DC, int X, int Y, UINT flags);
     int CopyFrom(const CDrawing* Original);
     int MouseClick(int X, int Y);

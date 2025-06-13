@@ -84,7 +84,7 @@ public:
     int PaintClipboard(int X, int Y);
     int RestoreClipboardBackground();
     void PaintDrawingHotspot(char erase_only = 0);
-    int DeleteDocumentObject(const tDocumentStruct* object);
+    int DeleteDocumentObject(tDocumentStruct* object);
 
 protected:
     void OnPrint(CDC* pDC, CPrintInfo* pInfo) override;

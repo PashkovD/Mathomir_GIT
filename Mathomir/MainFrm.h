@@ -52,7 +52,7 @@ public:
     int ClearDocument();
     char* XML_read_attribute(std::string& attribute, std::string& value, char* file);
     afx_msg void OnWindowPosChanged(WINDOWPOS* lpwndpos);
-    int AdjustMenu(bool adjust_undo_only = 0);
+    int AdjustMenu(bool adjust_undo_only = false);
     int MyCircle(CDC* DC, int X1, int Y1, int X2, int Y2, int PenWidth, char IsBlue);
     int UndoInit();
     int UndoRestore();

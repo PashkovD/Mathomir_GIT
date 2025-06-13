@@ -3202,7 +3202,7 @@ void CElement::CopyElement(const CElement* Element)
                     FontSize = NewFontSize;
             }
             CExpression* exp = new CExpression(this, m_pPaternalExpression, FontSize);
-            exp->CopyExpression(oexp, 0);
+            exp->CopyExpression(oexp);
             if (i == 0) Expression1 = exp;
             else if (i == 1) Expression2 = exp;
             else if (i == 2) Expression3 = exp;

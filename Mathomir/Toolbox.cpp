@@ -2167,7 +2167,7 @@ void CToolbox::OnLButtonDown(UINT nFlags, CPoint point)
                                 for (int i = 0; i < exp->m_MaxNumRows; i++)
                                     for (int j = 0; j < exp->m_MaxNumColumns; j++)
                                     {
-                                        int k = exp->FindMatrixElement(i, j, 0);
+                                        int k = exp->FindMatrixElement(i, j);
                                         if (k > exp->m_IsKeyboardEntry - 1)
                                         {
                                             i = 1000; //force exit;
@@ -3671,7 +3671,7 @@ int CToolbox::ConfigureToolbar()
                     for (int i = 0; i < exp->m_MaxNumRows; i++)
                         for (int j = 0; j < exp->m_MaxNumColumns; j++)
                         {
-                            int k = exp->FindMatrixElement(i, j, 0);
+                            int k = exp->FindMatrixElement(i, j);
                             if (k > exp->m_IsKeyboardEntry - 1)
                             {
                                 i = 1000; //force exit;
@@ -5002,7 +5002,7 @@ UINT CToolbox::KeyboardHit(UINT code, UINT Flags)
                             {
                                 ClipboardDrawing = new CDrawing();
                                 ClipboardDrawing->CopyDrawing((CDrawing*)ToolboxMembers[ii].Submembers[jj]);
-                                ClipboardDrawing->FindBottomRightDrawingPoint(&MovingStartX, &MovingStartY);
+                                ClipboardDrawing->FindBottomRightDrawingPoint(MovingStartX, MovingStartY);
                                 MovingStartX /= DRWZOOM;
                                 MovingStartY /= DRWZOOM;
                                 pMainView->RepaintTheView();
@@ -6542,7 +6542,7 @@ void CToolbox::PickUpElementFromToolbox(int member, int submember)
             delete ClipboardDrawing;
             ClipboardDrawing = new CDrawing();
             ClipboardDrawing->CopyDrawing((CDrawing*)ToolboxMembers[member].Submembers[submember]);
-            ClipboardDrawing->FindBottomRightDrawingPoint(&MovingStartX, &MovingStartY);
+            ClipboardDrawing->FindBottomRightDrawingPoint(MovingStartX, MovingStartY);
             MovingStartX /= DRWZOOM;
             MovingStartY /= DRWZOOM;
         }
@@ -6580,7 +6580,7 @@ int CToolbox::InsertIntoToolbox()
 
     if (ClipboardExpression)
     {
-        int ok = 1;
+        bool ok = true;
 
         CalcStructuralChecksumOnly = 1;
         int chksm = ClipboardExpression->CalcChecksum();
@@ -6590,23 +6590,23 @@ int CToolbox::InsertIntoToolbox()
                     if (ToolboxMembers[i].Above[j] != -1)
                         if (ToolboxMembers[i].Submembers[j]->CalcChecksum() == chksm)
                         {
-                            ok = 0;
+                            ok = false;
                             break;
                         }
         CalcStructuralChecksumOnly = 0;
 
         if (this->m_IsMain)
         {
-            if (ToolboxNumMembers >= 24) ok = 0;
+            if (ToolboxNumMembers >= 24) ok = false;
         }
         else
         {
-            if (ToolboxMembers[m_IsSubtoolbox - 1].NumSubmembers >= 32) ok = 0;
+            if (ToolboxMembers[m_IsSubtoolbox - 1].NumSubmembers >= 32) ok = false;
         }
 
         if (ok)
         {
-            if (AfxMessageBox(GetTranslatedString("Insert into toolbox?", 5080).data(),MB_YESNO) != IDYES) ok = 0;
+            if (AfxMessageBox(GetTranslatedString("Insert into toolbox?", 5080).data(),MB_YESNO) != IDYES) ok = false;
         }
         if (ok)
         {
@@ -6636,7 +6636,7 @@ int CToolbox::InsertIntoToolbox()
     }
     if (ClipboardDrawing)
     {
-        int ok = 1;
+        bool ok = true;
         int chksm = ClipboardDrawing->CalcChecksum();
         for (int i = 0; i < ToolboxNumMembers; i++)
             if (ok)
@@ -6644,17 +6644,17 @@ int CToolbox::InsertIntoToolbox()
                     if (ToolboxMembers[i].Above[j] == -1)
                         if (((CDrawing*)ToolboxMembers[i].Submembers[j])->CalcChecksum() == chksm)
                         {
-                            ok = 0;
+                            ok = false;
                             break;
                         }
 
         if (this->m_IsMain)
         {
-            if (ToolboxNumMembers >= 24) ok = 0;
+            if (ToolboxNumMembers >= 24) ok = false;
         }
         else
         {
-            if (ToolboxMembers[m_IsSubtoolbox - 1].NumSubmembers >= 32) ok = 0;
+            if (ToolboxMembers[m_IsSubtoolbox - 1].NumSubmembers >= 32) ok = false;
         }
 
         //we must temporarely store the drawing because it might get deleted while the message box is displayed
@@ -6665,7 +6665,7 @@ int CToolbox::InsertIntoToolbox()
         {
             char bff[128];
             CopyTranslatedString(bff, "Insert into toolbox?", 5080);
-            if (AfxMessageBox(bff,MB_YESNO) != IDYES) ok = 0;
+            if (AfxMessageBox(bff,MB_YESNO) != IDYES) ok = false;
         }
         if (ok)
         {

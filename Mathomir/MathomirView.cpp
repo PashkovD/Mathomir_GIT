@@ -9253,56 +9253,56 @@ int CMathomirView::RestoreClipboardBackground()
     return 0;
 }
 
-int CMathomirView::DeleteDocumentObject(const tDocumentStruct* object)
+int CMathomirView::DeleteDocumentObject(tDocumentStruct* object)
 {
     LastQuickTypeObject = nullptr;
+    const int i = object - TheDocument;
+    if (i < 0 || i >= NumDocumentElements)
+    {
+        return 0;
+    }
 
-    for (size_t i = 0; i < NumDocumentElements; i++)
-        if (TheDocument + i == object)
-        {
-            if (KeyboardEntryObject && KeyboardEntryBaseObject == object)
-            {
-                //we are suspending keyboard entry mode
-                KeyboardEntryBaseObject = nullptr;
-                KeyboardEntryObject = nullptr;
-            }
-            if (KeyboardEntryObject && KeyboardEntryBaseObject > object)
-            {
-                KeyboardEntryBaseObject--;
-            }
+    if (KeyboardEntryObject && KeyboardEntryBaseObject == object)
+    {
+        //we are suspending keyboard entry mode
+        KeyboardEntryBaseObject = nullptr;
+        KeyboardEntryObject = nullptr;
+    }
+    if (KeyboardEntryObject && KeyboardEntryBaseObject > object)
+    {
+        KeyboardEntryBaseObject--;
+    }
 
-            if (prevTouchedObject == object) prevTouchedObject = nullptr;
-            if (prevTouchedObject > object) prevTouchedObject--;
-            if (SelectedDocumentObject == object) SelectedDocumentObject = nullptr;
-            if (SelectedDocumentObject > object) SelectedDocumentObject--;
-            if (SelectedDocumentObject2 == object) SelectedDocumentObject2 = nullptr;
-            if (SelectedDocumentObject2 > object) SelectedDocumentObject2--;
-            if (SpecialDrawingHover == object) SpecialDrawingHover = nullptr;
-            if (SpecialDrawingHover > object) SpecialDrawingHover--;
-            if (prevSpecialDrawingHover == object) prevSpecialDrawingHover = nullptr;
-            if (prevSpecialDrawingHover > object) prevSpecialDrawingHover--;
-            if (m_PopupMenuObject == object) m_PopupMenuObject = nullptr;
-            if (m_PopupMenuObject > object) m_PopupMenuObject--;
-            LongClickObject = nullptr;
+    if (prevTouchedObject == object) prevTouchedObject = nullptr;
+    if (prevTouchedObject > object) prevTouchedObject--;
+    if (SelectedDocumentObject == object) SelectedDocumentObject = nullptr;
+    if (SelectedDocumentObject > object) SelectedDocumentObject--;
+    if (SelectedDocumentObject2 == object) SelectedDocumentObject2 = nullptr;
+    if (SelectedDocumentObject2 > object) SelectedDocumentObject2--;
+    if (SpecialDrawingHover == object) SpecialDrawingHover = nullptr;
+    if (SpecialDrawingHover > object) SpecialDrawingHover--;
+    if (prevSpecialDrawingHover == object) prevSpecialDrawingHover = nullptr;
+    if (prevSpecialDrawingHover > object) prevSpecialDrawingHover--;
+    if (m_PopupMenuObject == object) m_PopupMenuObject = nullptr;
+    if (m_PopupMenuObject > object) m_PopupMenuObject--;
+    LongClickObject = nullptr;
 
-            if (object->Type == EXPRESSION)
-            {
-                //((CExpression*)(object->Object))->Delete();
-                delete object->Object.exp;
-            }
-            else if (object->Type == DRAWING)
-            {
-                //((CDrawing*)(object->Object))->Delete();
-                delete object->Object.draw;
-            }
+    if (object->Type == EXPRESSION)
+    {
+        //((CExpression*)(object->Object))->Delete();
+        delete object->Object.exp;
+    }
+    else if (object->Type == DRAWING)
+    {
+        //((CDrawing*)(object->Object))->Delete();
+        delete object->Object.draw;
+    }
 
-            //int j;
-            //for (j=i;j<NumDocumentElements-1;j++)
-            //	TheDocument[j]=TheDocument[j+1];
-            memmove(TheDocument + i, TheDocument + i + 1, (NumDocumentElements - i - 1) * sizeof(tDocumentStruct));
-            NumDocumentElements--;
-            break;
-        }
+    //int j;
+    //for (j=i;j<NumDocumentElements-1;j++)
+    //	TheDocument[j]=TheDocument[j+1];
+    memmove(TheDocument + i, TheDocument + i + 1, (NumDocumentElements - i - 1) * sizeof(tDocumentStruct));
+    NumDocumentElements--;
     return 0;
 }
 
@@ -9316,8 +9316,7 @@ void CMathomirView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 BOOL CMathomirView::OnPreparePrinting(CPrintInfo* pInfo)
 {
     int MaxY = 1;
-    int i;
-    for (i = 0; i < NumDocumentElements; i++)
+    for (int i = 0; i < NumDocumentElements; i++)
     {
         tDocumentStruct* ds = &TheDocument[i];
         if (ds->absolute_Y > MaxY) MaxY = ds->absolute_Y + 6;
@@ -9484,7 +9483,6 @@ void CMathomirView::OnEditCut()
     {
         KeyboardSelectionCut();
     }
-    int i;
 
     if (TheKeyboardClipboard)
         pDoc->SaveMOMFile((char*)TheKeyboardClipboard, 0);
@@ -9492,14 +9490,14 @@ void CMathomirView::OnEditCut()
     {
         pDoc->SaveMOMFile(nullptr, 0);
 
-        int ok = 0;
-        for (i = 0; i < NumDocumentElements; i++)
+        bool ok = false;
+        for (int i = 0; i < NumDocumentElements; i++)
         {
             tDocumentStruct* ds = &TheDocument[i];
             if (ds->MovingDotState == 3) //selected
             {
                 if (ok == 0) UndoSave("cut selection", 20412);
-                ok = 1;
+                ok = true;
                 DeleteDocumentObject(ds);
                 i--;
             }
@@ -9689,7 +9687,7 @@ void CMathomirView::OnEditDelete()
 {
     if (ViewOnlyMode) return;
 
-    int ok = 0;
+    bool ok = false;
     CMathomirDoc* pDoc = GetDocument();
     for (size_t i = 0; i < NumDocumentElements; i++)
     {
@@ -9698,7 +9696,7 @@ void CMathomirView::OnEditDelete()
         {
             if (ok == 0) UndoSave("delete selection", 20203);
             DeleteDocumentObject(ds);
-            ok = 1;
+            ok = true;
             i--;
         }
         MouseMode = 0;
@@ -9711,7 +9709,6 @@ short save_image_to_file_type = 1;
 void CMathomirView::SaveImageToFile(int cx, int cy, CDC* bmpDC)
 {
     //exporting equation image to file
-    int i = 0;
     char filter[] =
         "32bit .PNG (transparent, full color)|*.png|24bit .PNG (full color)|*.png|8bit .PNG (basic color)|*.png|1bit .PNG (black and white)|*.png|.JPG (JPEG, full color)|*.jpg|24bit .BMP (full color)|*.bmp|8bit .BMP (basic color)|*.bmp||\0";
     CFileDialog fd(FALSE, nullptr, nullptr, 0, filter, theApp.m_pMainWnd, 0);
@@ -9826,11 +9823,10 @@ void CMathomirView::OnEditCopyImage()
     CDC* DC = GetDC();
     CBitmap bmp;
     CDC bmpDC;
-    int X1, Y1, X2, Y2;
-    X1 = 0x7FFFFFFF;
-    Y1 = 0x7FFFFFFF;
-    X2 = -1;
-    Y2 = -1;
+    int X1 = 0x7FFFFFFF;
+    int Y1 = 0x7FFFFFFF;
+    int X2 = -1;
+    int Y2 = -1;
 
     SetCursor(::LoadCursor(nullptr,IDC_WAIT));
 
@@ -10606,8 +10602,7 @@ int CMathomirView::StartKeyboardEntryAt(int AbsoluteX, int AbsoluteY, int start_
         AbsoluteY=((AbsoluteY+GRID/2)/GRID)*GRID;
     }*/
     AddDocumentObject(EXPRESSION, AbsoluteX, AbsoluteY);
-    tDocumentStruct* ds;
-    ds = &TheDocument[NumDocumentElements - 1];
+    tDocumentStruct* ds = &TheDocument[NumDocumentElements - 1];
 
     //ds->absolute_X=AbsoluteX; 
     //int RelativeX=(AbsoluteX-ViewX)*(int)ViewZoom/100;
